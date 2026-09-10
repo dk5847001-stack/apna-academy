@@ -1,0 +1,163 @@
+import api from "./api";
+
+const RAZORPAY_CHECKOUT_URL =
+  "https://checkout.razorpay.com/v1/checkout.js";
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = RAZORPAY_CHECKOUT_URL;
+    script.async = true;
+
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+
+    document.body.appendChild(script);
+  });
+};
+
+export const createPaymentOrder = async (courseId, purchaseType = "course") => {
+  const response = await api.post("/payments/create-order", {
+    courseId,
+    purchaseType,
+  });
+
+  return response.data;
+};
+
+export const verifyPayment = async ({
+  razorpayOrderId,
+  razorpayPaymentId,
+  razorpaySignature,
+}) => {
+  const response = await api.post("/payments/verify", {
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature,
+  });
+
+  return response.data;
+};
+
+export const startCoursePayment = async ({
+  courseId,
+  courseTitle,
+  purchaseType = "course",
+  user,
+  onSuccess,
+  onFailure,
+}) => {
+  try {
+    const loaded = await loadRazorpayScript();
+
+    if (!loaded) {
+      throw new Error(
+        "Razorpay Checkout could not be loaded. Please check your internet connection."
+      );
+    }
+
+    const orderResponse = await createPaymentOrder(
+      courseId,
+      purchaseType
+    );
+
+    if (!orderResponse?.success || !orderResponse?.orderId) {
+      throw new Error(
+        orderResponse?.message || "Unable to create payment order."
+      );
+    }
+
+    const {
+      orderId,
+      amount,
+      currency,
+      keyId,
+    } = orderResponse;
+
+    const options = {
+      key: keyId,
+      amount,
+      currency,
+      name: "ApnaAcademy",
+      description:
+        purchaseType === "all-access"
+          ? `${courseTitle} - All Modules Unlock`
+          : courseTitle,
+      order_id: orderId,
+
+      prefill: {
+        name: user?.name || "",
+        email: user?.email || "",
+        contact: user?.phone || "",
+      },
+
+      theme: {
+        color: "#2563eb",
+      },
+
+      modal: {
+        ondismiss: () => {
+          onFailure?.({
+            type: "dismissed",
+            message: "Payment window was closed.",
+          });
+        },
+      },
+
+      handler: async (paymentResponse) => {
+        try {
+          const verificationResponse = await verifyPayment({
+            razorpayOrderId: paymentResponse.razorpay_order_id,
+            razorpayPaymentId: paymentResponse.razorpay_payment_id,
+            razorpaySignature: paymentResponse.razorpay_signature,
+          });
+
+          if (!verificationResponse?.success) {
+            throw new Error(
+              verificationResponse?.message ||
+                "Payment verification failed."
+            );
+          }
+
+          onSuccess?.(verificationResponse);
+
+        } catch (error) {
+          onFailure?.({
+            type: "verification",
+            message:
+              error?.response?.data?.message ||
+              error?.message ||
+              "Payment verification failed.",
+          });
+        }
+      },
+    };
+
+    const razorpay = new window.Razorpay(options);
+
+    razorpay.on("payment.failed", (response) => {
+      onFailure?.({
+        type: "payment",
+        message:
+          response?.error?.description ||
+          "Payment failed. Please try again.",
+      });
+    });
+
+    razorpay.open();
+
+  } catch (error) {
+    onFailure?.({
+      type: "order",
+      message:
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unable to start payment.",
+    });
+  }
+};
