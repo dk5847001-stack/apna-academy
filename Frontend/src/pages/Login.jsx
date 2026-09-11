@@ -1,19 +1,30 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  ArrowRight,
-  Eye,
-  EyeOff,
-  LockKeyhole,
-  Mail,
-  ShieldCheck,
-  Sparkles,
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
-} from "lucide-react";
-
 import axios from "axios";
+
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Typography,
+} from "@mui/material";
+
+import {
+  ArrowForward,
+  CheckCircle,
+  Email,
+  Lock,
+  Security,
+  School,
+  Star,
+  Visibility,
+  VisibilityOff,
+} from "@mui/icons-material";
+
 import { API_BASE_URL } from "../constants/config";
 
 export default function Login() {
@@ -27,7 +38,6 @@ export default function Login() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -49,7 +59,13 @@ export default function Login() {
       [name]: value,
     }));
 
-    if (error) setError("");
+    if (error) {
+      setError("");
+    }
+
+    if (success) {
+      setSuccess("");
+    }
   };
 
   const validateForm = () => {
@@ -96,22 +112,6 @@ export default function Login() {
       );
 
       const responseData = response?.data;
-
-      /*
-       * Backend successResponse returns the actual login
-       * result inside `data`.
-       *
-       * Expected:
-       * {
-       *   success: true,
-       *   message: "Login successful.",
-       *   data: {
-       *     token,
-       *     user: {...}
-       *   }
-       * }
-       */
-
       const loginData = responseData?.data;
 
       if (!loginData?.token || !loginData?.user) {
@@ -121,6 +121,7 @@ export default function Login() {
       }
 
       localStorage.setItem("token", loginData.token);
+
       localStorage.setItem(
         "user",
         JSON.stringify(loginData.user)
@@ -128,10 +129,6 @@ export default function Login() {
 
       setSuccess("Login successful. Redirecting...");
 
-      /*
-       * Dashboard is a separate React application.
-       * Keep the URL configurable through VITE_DASHBOARD_URL.
-       */
       const dashboardUrl =
         import.meta.env.VITE_DASHBOARD_URL ||
         "http://localhost:5175";
@@ -143,11 +140,6 @@ export default function Login() {
       const status = requestError?.response?.status;
       const serverData = requestError?.response?.data;
 
-      /*
-       * Your backend error handler may return the message
-       * in slightly different shapes, so handle the common
-       * possibilities safely.
-       */
       const serverMessage =
         serverData?.message ||
         serverData?.error?.message ||
@@ -163,7 +155,10 @@ export default function Login() {
         setError(
           "Something went wrong on the server. Please try again."
         );
-      } else if (requestError?.code === "ERR_NETWORK") {
+      } else if (
+        requestError?.code === "ERR_NETWORK" ||
+        requestError?.message === "Network Error"
+      ) {
         setError(
           "Unable to connect to the server. Please make sure the backend is running."
         );
@@ -179,38 +174,49 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-[calc(100vh-5rem)] bg-white px-4 py-10 text-slate-900 sm:px-6 lg:px-8">
-      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_25px_80px_-30px_rgba(15,23,42,0.25)] lg:grid-cols-2">
+    <main className="min-h-[calc(100vh-72px)] bg-slate-50 px-4 py-8 text-slate-900 sm:px-6 sm:py-12 lg:px-8">
+      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_30px_100px_-35px_rgba(15,23,42,0.35)] lg:grid-cols-2">
+
         {/* LEFT BRAND PANEL */}
-        <section className="relative hidden min-h-[650px] overflow-hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
-          <div className="absolute -right-32 -top-32 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
-          <div className="absolute -bottom-40 -left-20 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl" />
+        <section className="relative hidden min-h-[680px] overflow-hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+
+          <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+
+          <div className="absolute -bottom-40 -left-24 h-[28rem] w-[28rem] rounded-full bg-indigo-500/20 blur-3xl" />
+
+          <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
 
           <div className="relative z-10">
-            <div className="mb-10 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-xl">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-600/30">
-                <Sparkles size={20} />
+
+            {/* BRAND */}
+            <div className="mb-12 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-2xl backdrop-blur-xl">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-600/30">
+                <School fontSize="small" />
               </div>
 
               <div>
                 <p className="text-sm font-bold tracking-wide">
                   ApnaAcademy
                 </p>
+
                 <p className="text-xs text-slate-400">
                   Learn. Build. Grow.
                 </p>
               </div>
             </div>
 
+            {/* HERO */}
             <div className="max-w-xl">
-              <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1.5 text-xs font-semibold text-blue-300">
-                <ShieldCheck size={14} />
+
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1.5 text-xs font-semibold text-blue-300">
+                <Security fontSize="inherit" />
                 Secure learning platform
-              </span>
+              </div>
 
               <h1 className="text-4xl font-black leading-tight tracking-tight xl:text-5xl">
                 Continue your
-                <span className="block bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
+
+                <span className="block bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
                   learning journey.
                 </span>
               </h1>
@@ -219,139 +225,201 @@ export default function Login() {
                 Sign in to access your courses, track your progress,
                 continue learning and unlock your achievements.
               </p>
+
+            </div>
+
+            {/* FEATURES */}
+            <div className="mt-10 grid gap-3">
+
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
+                  <School fontSize="small" />
+                </div>
+
+                <div>
+                  <p className="text-sm font-bold">
+                    Structured Learning
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-400">
+                    Learn through organized courses and modules.
+                  </p>
+                </div>
+
+              </div>
+
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-300">
+                  <Security fontSize="small" />
+                </div>
+
+                <div>
+                  <p className="text-sm font-bold">
+                    Secure Account
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-400">
+                    Your account and learning data stay protected.
+                  </p>
+                </div>
+
+              </div>
+
             </div>
           </div>
 
+          {/* STEPS */}
           <div className="relative z-10 grid grid-cols-3 gap-3">
+
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <p className="text-xl font-bold">01</p>
+              <p className="text-xl font-black">01</p>
+
               <p className="mt-1 text-xs text-slate-400">
                 Learn
               </p>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <p className="text-xl font-bold">02</p>
+              <p className="text-xl font-black">02</p>
+
               <p className="mt-1 text-xs text-slate-400">
                 Practice
               </p>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <p className="text-xl font-bold">03</p>
+              <p className="text-xl font-black">03</p>
+
               <p className="mt-1 text-xs text-slate-400">
                 Achieve
               </p>
             </div>
+
           </div>
         </section>
 
         {/* LOGIN PANEL */}
         <section className="flex items-center p-6 sm:p-10 xl:p-14">
           <div className="mx-auto w-full max-w-md">
+
             {/* MOBILE BRAND */}
             <div className="mb-8 flex items-center gap-3 lg:hidden">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg">
-                <Sparkles size={20} />
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg">
+                <School />
               </div>
 
               <div>
                 <p className="font-bold text-slate-950">
                   ApnaAcademy
                 </p>
+
                 <p className="text-xs text-slate-500">
                   Learn. Build. Grow.
                 </p>
               </div>
+
             </div>
 
+            {/* HEADER */}
             <div className="mb-8">
-              <p className="mb-2 text-sm font-semibold text-blue-600">
+
+              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-600">
+                <Star fontSize="small" />
                 Welcome back
-              </p>
+              </div>
 
-              <h2 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+              <Typography
+                component="h2"
+                className="!text-3xl !font-black !tracking-tight !text-slate-950 sm:!text-4xl"
+              >
                 Sign in to your account
-              </h2>
+              </Typography>
 
-              <p className="mt-3 text-sm leading-6 text-slate-500">
+              <Typography
+                component="p"
+                className="!mt-3 !text-sm !leading-6 !text-slate-500"
+              >
                 Enter your credentials to continue to your
                 ApnaAcademy dashboard.
-              </p>
+              </Typography>
+
             </div>
 
             {/* ERROR */}
             {error && (
-              <div
-                role="alert"
-                className="mb-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700"
+              <Alert
+                severity="error"
+                className="!mb-5 !rounded-2xl !border !border-red-200 !bg-red-50"
               >
-                <AlertCircle
-                  size={19}
-                  className="mt-0.5 shrink-0"
-                />
-
-                <p className="leading-5">{error}</p>
-              </div>
+                {error}
+              </Alert>
             )}
 
             {/* SUCCESS */}
             {success && (
-              <div
-                role="status"
-                className="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-sm text-emerald-700"
+              <Alert
+                severity="success"
+                icon={<CheckCircle />}
+                className="!mb-5 !rounded-2xl !border !border-emerald-200 !bg-emerald-50"
               >
-                <CheckCircle2
-                  size={19}
-                  className="mt-0.5 shrink-0"
-                />
-
-                <p className="leading-5">{success}</p>
-              </div>
+                {success}
+              </Alert>
             )}
 
-            <form
+            {/* LOGIN FORM */}
+            <Box
+              component="form"
               onSubmit={handleSubmit}
+              noValidate
               className="space-y-5"
             >
+
               {/* EMAIL */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-2 block text-sm font-semibold text-slate-700"
-                >
-                  Email address
-                </label>
-
-                <div className="group relative">
-                  <Mail
-                    size={19}
-                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition group-focus-within:text-blue-600"
-                  />
-
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    disabled={loading}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
-                  />
-                </div>
-              </div>
+              <TextField
+                fullWidth
+                id="email"
+                name="email"
+                type="email"
+                label="Email address"
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={loading}
+                autoComplete="email"
+                required
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Email className="!text-slate-400" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "1rem",
+                    backgroundColor: "#f8fafc",
+                  },
+                }}
+              />
 
               {/* PASSWORD */}
               <div>
+
                 <div className="mb-2 flex items-center justify-between">
-                  <label
+
+                  <Typography
+                    component="label"
                     htmlFor="password"
-                    className="block text-sm font-semibold text-slate-700"
+                    className="!text-sm !font-semibold !text-slate-700"
                   >
                     Password
-                  </label>
+                  </Typography>
 
                   <Link
                     to="/forgot-password"
@@ -359,94 +427,115 @@ export default function Login() {
                   >
                     Forgot password?
                   </Link>
+
                 </div>
 
-                <div className="group relative">
-                  <LockKeyhole
-                    size={19}
-                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition group-focus-within:text-blue-600"
-                  />
+                <TextField
+                  fullWidth
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading}
+                  autoComplete="current-password"
+                  required
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock className="!text-slate-400" />
+                      </InputAdornment>
+                    ),
 
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    disabled={loading}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
-                  />
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          type="button"
+                          onClick={() =>
+                            setShowPassword((value) => !value)
+                          }
+                          disabled={loading}
+                          edge="end"
+                          aria-label={
+                            showPassword
+                              ? "Hide password"
+                              : "Show password"
+                          }
+                        >
+                          {showPassword ? (
+                            <VisibilityOff />
+                          ) : (
+                            <Visibility />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "1rem",
+                      backgroundColor: "#f8fafc",
+                    },
+                  }}
+                />
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowPassword((value) => !value)
-                    }
-                    disabled={loading}
-                    aria-label={
-                      showPassword
-                        ? "Hide password"
-                        : "Show password"
-                    }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {showPassword ? (
-                      <EyeOff size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
-                  </button>
-                </div>
               </div>
 
               {/* SUBMIT */}
-              <button
+              <Button
                 type="submit"
+                fullWidth
                 disabled={loading}
-                className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-bold text-white shadow-xl shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-blue-600/20 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:bg-slate-950"
+                variant="contained"
+                endIcon={
+                  loading ? (
+                    <CircularProgress
+                      size={18}
+                      className="!text-white"
+                    />
+                  ) : (
+                    <ArrowForward />
+                  )
+                }
+                className="!mt-2 !min-h-[54px] !rounded-2xl !bg-slate-950 !px-5 !text-sm !font-bold !normal-case !shadow-xl !shadow-slate-950/15 transition-all hover:!-translate-y-0.5 hover:!bg-blue-600 hover:!shadow-blue-600/20 disabled:!cursor-not-allowed disabled:!opacity-60"
               >
-                {loading ? (
-                  <>
-                    <Loader2
-                      size={18}
-                      className="animate-spin"
-                    />
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    Sign in
-                    <ArrowRight
-                      size={18}
-                      className="transition-transform group-hover:translate-x-1"
-                    />
-                  </>
-                )}
-              </button>
-            </form>
+                {loading ? "Signing in..." : "Sign in"}
+              </Button>
+
+            </Box>
 
             {/* SIGN UP */}
             <div className="mt-8 text-center">
-              <p className="text-sm text-slate-500">
+
+              <Typography
+                component="p"
+                className="!text-sm !text-slate-500"
+              >
                 Don't have an account?{" "}
+
                 <Link
                   to="/register"
                   className="font-bold text-blue-600 transition hover:text-blue-700 hover:underline"
                 >
                   Create account
                 </Link>
-              </p>
+              </Typography>
+
             </div>
 
             {/* SECURITY NOTE */}
             <div className="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400">
-              <ShieldCheck size={15} />
+              <Security fontSize="small" />
               Secure authentication powered by ApnaAcademy
             </div>
+
           </div>
         </section>
+
       </div>
     </main>
   );

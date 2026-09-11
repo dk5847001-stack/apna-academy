@@ -1,8 +1,28 @@
 import { useCallback, useEffect, useState } from "react";
-import { BookOpen, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Typography,
+} from "@mui/material";
+
+import {
+  ArrowBack,
+  AutoAwesome,
+  AutoStories,
+  Book,
+  ChevronLeft,
+  ChevronRight,
+  Refresh,
+  School,
+  SearchOff,
+} from "@mui/icons-material";
+
 import api from "../services/api";
+
 import CourseCard from "../components/courses/CourseCard";
 import CourseSkeleton from "../components/courses/CourseSkeleton";
 import CourseFilters from "../components/courses/CourseFilters";
@@ -15,6 +35,7 @@ export default function Courses() {
   const [level, setLevel] = useState("All Levels");
 
   const [page, setPage] = useState(1);
+
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 12,
@@ -27,6 +48,9 @@ export default function Courses() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  /*
+   * Fetch courses from backend
+   */
   const fetchCourses = useCallback(async () => {
     try {
       setLoading(true);
@@ -53,7 +77,7 @@ export default function Courses() {
         params,
       });
 
-      const result = response.data?.data;
+      const result = response?.data?.data;
 
       setCourses(result?.courses || []);
 
@@ -73,7 +97,7 @@ export default function Courses() {
       setCourses([]);
 
       setError(
-        err.response?.data?.message ||
+        err?.response?.data?.message ||
           "Unable to load courses. Please try again."
       );
     } finally {
@@ -81,12 +105,15 @@ export default function Courses() {
     }
   }, [page, search, category, level]);
 
+  /*
+   * Fetch whenever page/filter changes
+   */
   useEffect(() => {
     fetchCourses();
   }, [fetchCourses]);
 
-  /**
-   * Reset filters.
+  /*
+   * Reset all filters
    */
   const handleReset = () => {
     setSearch("");
@@ -95,58 +122,124 @@ export default function Courses() {
     setPage(1);
   };
 
-  /**
-   * Changing filters should always return to page 1.
+  /*
+   * Search change
    */
   const handleSearchChange = (value) => {
     setSearch(value);
     setPage(1);
   };
 
+  /*
+   * Category change
+   */
   const handleCategoryChange = (value) => {
     setCategory(value);
     setPage(1);
   };
 
+  /*
+   * Level change
+   */
   const handleLevelChange = (value) => {
     setLevel(value);
     setPage(1);
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      {/* Background */}
+    <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
+
+      {/* =========================================================
+          BACKGROUND
+      ========================================================= */}
       <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
-        <div className="absolute left-[-10%] top-[-10%] h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="absolute right-[-10%] top-[25%] h-96 w-96 rounded-full bg-blue-600/10 blur-3xl" />
-        <div className="absolute bottom-[-10%] left-[30%] h-80 w-80 rounded-full bg-violet-500/10 blur-3xl" />
+
+        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
+
+        <div className="absolute -right-40 top-1/4 h-[28rem] w-[28rem] rounded-full bg-blue-600/10 blur-3xl" />
+
+        <div className="absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
+
+        <div className="absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/5 blur-3xl" />
+
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        {/* Header */}
+      {/* =========================================================
+          MAIN CONTAINER
+      ========================================================= */}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+
+        {/* =======================================================
+            HERO SECTION
+        ======================================================= */}
         <section className="mb-10">
-          <div className="max-w-3xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-400/15 bg-cyan-400/10 px-3 py-1.5 text-xs font-semibold text-cyan-300">
-              <BookOpen size={15} />
-              Explore ApnaAcademy
+
+          <div className="grid items-end gap-8 lg:grid-cols-[1fr_auto]">
+
+            {/* HERO CONTENT */}
+            <div className="max-w-3xl">
+
+              <Chip
+                icon={<AutoStories fontSize="small" />}
+                label="Explore ApnaAcademy"
+                variant="outlined"
+                className="!mb-5 !border-cyan-400/20 !bg-cyan-400/10 !text-cyan-300"
+              />
+
+              <Typography
+                component="h1"
+                className="!text-4xl !font-black !leading-tight !tracking-tight !text-white sm:!text-5xl lg:!text-6xl"
+              >
+                Learn skills that
+
+                <span className="block bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
+                  move you forward.
+                </span>
+              </Typography>
+
+              <Typography
+                component="p"
+                className="!mt-5 !max-w-2xl !text-base !leading-7 !text-slate-400 sm:!text-lg"
+              >
+                Explore practical courses designed to help you
+                build real-world technology skills and grow your
+                career.
+              </Typography>
+
             </div>
 
-            <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Learn skills that
-              <span className="block bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-                move you forward.
-              </span>
-            </h1>
+            {/* COURSE COUNT */}
+            {!loading && !error && (
+              <div className="hidden rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-5 shadow-xl backdrop-blur-xl sm:block">
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-              Explore practical courses designed to help you
-              build real-world technology skills and grow your
-              career.
-            </p>
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
+                    <School />
+                  </div>
+
+                  <div>
+                    <p className="text-2xl font-black text-white">
+                      {pagination.total}
+                    </p>
+
+                    <p className="text-xs text-slate-500">
+                      Courses available
+                    </p>
+                  </div>
+
+                </div>
+
+              </div>
+            )}
+
           </div>
+
         </section>
 
-        {/* Filters */}
+        {/* =======================================================
+            FILTERS
+        ======================================================= */}
         <CourseFilters
           search={search}
           setSearch={handleSearchChange}
@@ -157,109 +250,164 @@ export default function Courses() {
           onReset={handleReset}
         />
 
-        {/* Result summary */}
+        {/* =======================================================
+            RESULT SUMMARY
+        ======================================================= */}
         {!loading && !error && (
-          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-slate-400">
-              Showing{" "}
-              <span className="font-semibold text-slate-200">
-                {courses.length}
-              </span>{" "}
-              of{" "}
-              <span className="font-semibold text-slate-200">
-                {pagination.total}
-              </span>{" "}
-              courses
-            </p>
+          <div className="mb-6 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+            <div className="flex items-center gap-2">
+
+              <Book
+                fontSize="small"
+                className="!text-slate-500"
+              />
+
+              <Typography
+                component="p"
+                className="!text-sm !text-slate-400"
+              >
+                Showing{" "}
+
+                <span className="font-bold text-slate-200">
+                  {courses.length}
+                </span>{" "}
+
+                of{" "}
+
+                <span className="font-bold text-slate-200">
+                  {pagination.total}
+                </span>{" "}
+
+                courses
+              </Typography>
+
+            </div>
 
             {pagination.totalPages > 0 && (
-              <p className="text-sm text-slate-500">
+              <Typography
+                component="p"
+                className="!text-sm !font-medium !text-slate-500"
+              >
                 Page {pagination.page} of{" "}
                 {pagination.totalPages}
-              </p>
+              </Typography>
             )}
+
           </div>
         )}
 
-        {/* Loading */}
+        {/* =======================================================
+            LOADING STATE
+        ======================================================= */}
         {loading && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
             {Array.from({ length: 6 }).map((_, index) => (
               <CourseSkeleton key={index} />
             ))}
+
           </div>
         )}
 
-        {/* Error */}
+        {/* =======================================================
+            ERROR STATE
+        ======================================================= */}
         {!loading && error && (
-          <section className="rounded-3xl border border-red-400/15 bg-red-400/[0.05] p-8 text-center">
-            <div className="mx-auto max-w-md">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-400/10 text-red-300">
+          <section className="rounded-[2rem] border border-red-400/15 bg-red-400/[0.05] p-8 shadow-xl backdrop-blur-xl sm:p-14">
+
+            <div className="mx-auto max-w-md text-center">
+
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-red-400/10 bg-red-400/10 text-2xl font-black text-red-300">
                 !
               </div>
 
-              <h2 className="mt-5 text-xl font-bold text-white">
+              <Typography
+                component="h2"
+                className="!mt-5 !text-xl !font-bold !text-white"
+              >
                 Unable to load courses
-              </h2>
+              </Typography>
 
-              <p className="mt-2 text-sm leading-6 text-slate-400">
+              <Typography
+                component="p"
+                className="!mt-2 !text-sm !leading-6 !text-slate-400"
+              >
                 {error}
-              </p>
+              </Typography>
 
-              <button
+              <Button
                 type="button"
                 onClick={fetchCourses}
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-200"
+                startIcon={<Refresh />}
+                variant="contained"
+                className="!mt-6 !rounded-xl !bg-white !px-5 !py-3 !text-sm !font-bold !normal-case !text-slate-950 hover:!bg-slate-200"
               >
-                <RefreshCw size={16} />
                 Try Again
-              </button>
+              </Button>
+
             </div>
+
           </section>
         )}
 
-        {/* Empty state */}
+        {/* =======================================================
+            EMPTY STATE
+        ======================================================= */}
         {!loading && !error && courses.length === 0 && (
-          <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-10 text-center backdrop-blur-xl sm:p-16">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-              <BookOpen
-                size={28}
-                className="text-slate-500"
-              />
+          <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-10 text-center shadow-xl backdrop-blur-xl sm:p-16">
+
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-500">
+              <SearchOff fontSize="large" />
             </div>
 
-            <h2 className="mt-6 text-2xl font-bold text-white">
+            <Typography
+              component="h2"
+              className="!mt-6 !text-2xl !font-bold !text-white"
+            >
               No courses found
-            </h2>
+            </Typography>
 
-            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500">
+            <Typography
+              component="p"
+              className="mx-auto !mt-3 !max-w-md !text-sm !leading-6 !text-slate-500"
+            >
               We couldn't find any courses matching your
               current search or filters.
-            </p>
+            </Typography>
 
-            <button
+            <Button
               type="button"
               onClick={handleReset}
-              className="mt-6 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
+              startIcon={<Refresh />}
+              variant="outlined"
+              className="!mt-6 !rounded-xl !border-white/10 !bg-white/5 !px-5 !py-3 !text-sm !font-semibold !normal-case !text-slate-200 hover:!border-white/20 hover:!bg-white/10"
             >
               Clear Filters
-            </button>
+            </Button>
+
           </section>
         )}
 
-        {/* Courses */}
+        {/* =======================================================
+            COURSE GRID
+        ======================================================= */}
         {!loading && !error && courses.length > 0 && (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
             {courses.map((course) => (
               <CourseCard
                 key={course.id}
                 course={course}
               />
             ))}
+
           </div>
         )}
 
-        {/* Pagination */}
+        {/* =======================================================
+            PAGINATION
+        ======================================================= */}
         {!loading &&
           !error &&
           pagination.totalPages > 1 && (
@@ -267,7 +415,9 @@ export default function Courses() {
               className="mt-10 flex items-center justify-center gap-3"
               aria-label="Course pagination"
             >
-              <button
+
+              {/* PREVIOUS */}
+              <Button
                 type="button"
                 disabled={!pagination.hasPreviousPage}
                 onClick={() =>
@@ -275,56 +425,78 @@ export default function Courses() {
                     Math.max(current - 1, 1)
                   )
                 }
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-semibold text-slate-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                startIcon={<ChevronLeft />}
+                variant="outlined"
+                className="!min-h-11 !rounded-xl !border-white/10 !bg-white/5 !px-4 !text-sm !font-semibold !normal-case !text-slate-300 hover:!border-white/20 hover:!bg-white/10 disabled:!opacity-40"
               >
-                <ChevronLeft size={17} />
                 Previous
-              </button>
+              </Button>
 
-              <div className="flex h-11 min-w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 text-sm font-bold text-cyan-300">
+              {/* CURRENT PAGE */}
+              <Box className="flex !min-h-11 !min-w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 text-sm font-bold text-cyan-300">
                 {pagination.page}
-              </div>
+              </Box>
 
-              <button
+              {/* NEXT */}
+              <Button
                 type="button"
                 disabled={!pagination.hasNextPage}
                 onClick={() =>
                   setPage((current) => current + 1)
                 }
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-semibold text-slate-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                endIcon={<ChevronRight />}
+                variant="outlined"
+                className="!min-h-11 !rounded-xl !border-white/10 !bg-white/5 !px-4 !text-sm !font-semibold !normal-case !text-slate-300 hover:!border-white/20 hover:!bg-white/10 disabled:!opacity-40"
               >
                 Next
-                <ChevronRight size={17} />
-              </button>
+              </Button>
+
             </nav>
           )}
 
-        {/* Bottom CTA */}
-        <section className="mt-16 overflow-hidden rounded-3xl border border-cyan-400/10 bg-gradient-to-br from-cyan-400/[0.08] via-blue-500/[0.05] to-violet-500/[0.08] p-8 sm:p-10">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-cyan-300">
+        {/* =======================================================
+            BOTTOM CTA
+        ======================================================= */}
+        <section className="mt-16 overflow-hidden rounded-[2rem] border border-cyan-400/10 bg-gradient-to-br from-cyan-400/[0.08] via-blue-500/[0.05] to-violet-500/[0.08] p-8 shadow-xl backdrop-blur-xl sm:p-10">
+
+          <div className="flex flex-col gap-7 md:flex-row md:items-center md:justify-between">
+
+            <div className="max-w-2xl">
+
+              <div className="flex items-center gap-2 text-sm font-semibold text-cyan-300">
+                <AutoAwesome fontSize="small" />
                 Build. Learn. Grow.
-              </p>
+              </div>
 
-              <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+              <Typography
+                component="h2"
+                className="!mt-2 !text-2xl !font-bold !text-white sm:!text-3xl"
+              >
                 Start your learning journey today.
-              </h2>
+              </Typography>
 
-              <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+              <Typography
+                component="p"
+                className="!mt-2 !text-sm !leading-6 !text-slate-400"
+              >
                 Choose a course and start building practical
                 skills with ApnaAcademy.
-              </p>
+              </Typography>
+
             </div>
 
             <Link
               to="/"
-              className="inline-flex shrink-0 items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-200"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-200"
             >
+              <ArrowBack fontSize="small" />
               Back to Home
             </Link>
+
           </div>
+
         </section>
+
       </div>
     </main>
   );

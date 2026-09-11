@@ -1,46 +1,125 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+
 import {
-  ArrowLeft,
-  BookOpen,
-  Clock3,
-  PlayCircle,
-  Video,
-} from "lucide-react";
+  Box,
+  Button,
+  Chip,
+  Divider,
+  Paper,
+  Skeleton,
+  Typography,
+} from "@mui/material";
+
+import {
+  ArrowBack,
+  Book,
+  CheckCircle,
+  Lock,
+  PlayArrow,
+  Schedule,
+  VideoLibrary,
+} from "@mui/icons-material";
 
 import api from "../services/api";
+
+const FALLBACK_THUMBNAIL =
+  "https://placehold.co/1600x900/0f172a/ffffff?text=ApnaAcademy";
+
+function formatDuration(seconds) {
+  if (!seconds || Number(seconds) <= 0) {
+    return "";
+  }
+
+  const totalSeconds = Number(seconds);
+
+  const hours = Math.floor(totalSeconds / 3600);
+
+  const minutes = Math.floor(
+    (totalSeconds % 3600) / 60
+  );
+
+  const remainingSeconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+
+  return `${minutes}:${String(
+    remainingSeconds
+  ).padStart(2, "0")}`;
+}
 
 export default function VideoPreview() {
   const { slug, videoId } = useParams();
 
   const [course, setCourse] = useState(null);
+
   const [video, setVideo] = useState(null);
+
   const [module, setModule] = useState(null);
 
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchCourse = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const response = await api.get(`/courses/${slug}`);
+        const response = await api.get(
+          `/courses/${slug}`
+        );
 
         if (!response.data?.success) {
-          throw new Error("Unable to load course.");
+          throw new Error(
+            response.data?.message ||
+              "Unable to load course."
+          );
         }
 
-        const courseData = response.data.data;
+        const apiData = response.data.data;
+
+        /*
+         * Backend compatibility:
+         *
+         * 1. data = course object
+         *
+         * 2. data = {
+         *      course: {...},
+         *      modules: [...]
+         *    }
+         */
+
+        let courseData;
+
+        if (apiData?.course) {
+          courseData = {
+            ...apiData.course,
+            modules:
+              apiData.modules ||
+              apiData.course.modules ||
+              [],
+          };
+        } else {
+          courseData = apiData;
+        }
 
         let foundVideo = null;
         let foundModule = null;
 
-        for (const currentModule of courseData.modules || []) {
-          const currentVideo = (currentModule.videos || []).find(
+        for (const currentModule of
+          courseData?.modules || []) {
+          const currentVideo = (
+            currentModule?.videos || []
+          ).find(
             (item) =>
-              String(item._id || item.id) === String(videoId)
+              String(item?._id || item?.id) ===
+              String(videoId)
           );
 
           if (currentVideo) {
@@ -51,240 +130,690 @@ export default function VideoPreview() {
         }
 
         if (!foundVideo) {
-          setError("Video not found.");
-          return;
+          throw new Error("Video not found.");
         }
+
+        /*
+         * IMPORTANT:
+         * Never trust frontend UI for locked content.
+         *
+         * Backend should already mark protected videos
+         * as locked and should avoid exposing their
+         * actual video source.
+         */
 
         if (foundVideo.isLocked) {
-          setError(
+          throw new Error(
             "This video is locked. Please enroll in the course to continue."
           );
-          return;
         }
 
-        setCourse(courseData);
-        setVideo(foundVideo);
-        setModule(foundModule);
+        if (isMounted) {
+          setCourse(courseData);
+          setVideo(foundVideo);
+          setModule(foundModule);
+        }
       } catch (err) {
-        console.error("Preview video error:", err);
-
-        setError(
-          err.response?.data?.message ||
-            err.message ||
-            "Unable to load preview video."
+        console.error(
+          "Preview video error:",
+          err
         );
+
+        if (isMounted) {
+          setError(
+            err?.response?.data?.message ||
+              err?.message ||
+              "Unable to load preview video."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     if (slug && videoId) {
       fetchCourse();
+    } else {
+      setLoading(false);
+      setError("Invalid video URL.");
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [slug, videoId]);
 
-  const formatDuration = (seconds) => {
-    if (!seconds || Number(seconds) <= 0) {
-      return "";
-    }
-
-    const totalSeconds = Number(seconds);
-
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const remainingSeconds = totalSeconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-
-    return `${minutes}:${String(remainingSeconds).padStart(
-      2,
-      "0"
-    )}`;
-  };
+  /* ============================================================
+     LOADING STATE
+  ============================================================ */
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 px-4 py-8 text-white">
-        <div className="mx-auto max-w-6xl animate-pulse">
-          <div className="mb-6 h-5 w-32 rounded bg-slate-800" />
+      <div className="min-h-screen bg-slate-950 text-white">
 
-          <div className="aspect-video rounded-3xl bg-slate-800" />
+        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
 
-          <div className="mt-7 h-8 w-2/3 rounded bg-slate-800" />
+          <Skeleton
+            variant="rounded"
+            animation="wave"
+            width={150}
+            height={24}
+            className="
+              !mb-6
+              !bg-white/[0.07]
+            "
+          />
 
-          <div className="mt-4 h-4 w-full rounded bg-slate-800" />
-          <div className="mt-2 h-4 w-4/5 rounded bg-slate-800" />
-        </div>
+          <Skeleton
+            variant="rounded"
+            animation="wave"
+            className="
+              !aspect-video
+              !h-auto
+              !w-full
+              !rounded-[1.75rem]
+              !bg-white/[0.07]
+            "
+          />
+
+          <div className="mt-7">
+
+            <div className="flex gap-2">
+
+              <Skeleton
+                variant="rounded"
+                animation="wave"
+                width={130}
+                height={28}
+                className="!bg-white/[0.07]"
+              />
+
+              <Skeleton
+                variant="rounded"
+                animation="wave"
+                width={110}
+                height={28}
+                className="!bg-white/[0.07]"
+              />
+
+            </div>
+
+            <Skeleton
+              variant="rounded"
+              animation="wave"
+              width="70%"
+              height={45}
+              className="
+                !mt-4
+                !bg-white/[0.07]
+              "
+            />
+
+            <Skeleton
+              variant="rounded"
+              animation="wave"
+              width="100%"
+              height={18}
+              className="
+                !mt-4
+                !bg-white/[0.07]
+              "
+            />
+
+            <Skeleton
+              variant="rounded"
+              animation="wave"
+              width="82%"
+              height={18}
+              className="
+                !mt-2
+                !bg-white/[0.07]
+              "
+            />
+
+          </div>
+
+        </main>
       </div>
     );
   }
+
+  /* ============================================================
+     ERROR STATE
+  ============================================================ */
 
   if (error || !video || !course) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
-        <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-slate-900 p-8 text-center shadow-2xl">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
-            <Video size={28} />
-          </div>
 
-          <h1 className="mt-5 text-2xl font-black">
-            Preview Unavailable
-          </h1>
+        <Paper
+          elevation={0}
+          className="
+            !w-full
+            !max-w-lg
+            !rounded-[1.75rem]
+            !border
+            !border-white/10
+            !bg-white/[0.035]
+            !p-8
+            !text-center
+            !shadow-2xl
+            !backdrop-blur-xl
+          "
+        >
 
-          <p className="mt-3 text-sm leading-6 text-slate-400">
-            {error || "This video is currently unavailable."}
-          </p>
-
-          <Link
-            to={`/courses/${slug}`}
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold transition hover:bg-blue-500"
+          <Box
+            className="
+              mx-auto
+              flex
+              h-16
+              w-16
+              items-center
+              justify-center
+              rounded-2xl
+              border
+              border-red-400/10
+              bg-red-400/10
+              text-red-300
+            "
           >
-            <ArrowLeft size={17} />
+            {error?.toLowerCase().includes("locked") ? (
+              <Lock fontSize="large" />
+            ) : (
+              <VideoLibrary fontSize="large" />
+            )}
+          </Box>
+
+          <Typography
+            component="h1"
+            className="
+              !mt-5
+              !text-2xl
+              !font-black
+              !text-white
+            "
+          >
+            {error?.toLowerCase().includes("locked")
+              ? "Video Locked"
+              : "Preview Unavailable"}
+          </Typography>
+
+          <Typography
+            component="p"
+            className="
+              !mt-3
+              !text-sm
+              !leading-6
+              !text-slate-400
+            "
+          >
+            {error ||
+              "This video is currently unavailable."}
+          </Typography>
+
+          <Button
+            component={Link}
+            to={`/courses/${slug}`}
+            variant="contained"
+            startIcon={<ArrowBack />}
+            className="
+              !mt-6
+              !rounded-xl
+              !bg-gradient-to-r
+              !from-cyan-400
+              !to-blue-500
+              !px-5
+              !py-3
+              !font-bold
+              !normal-case
+              !text-slate-950
+              hover:!from-cyan-300
+              hover:!to-blue-400
+            "
+          >
             Back to Course
-          </Link>
-        </div>
+          </Button>
+
+        </Paper>
+
       </div>
     );
   }
 
+  /* ============================================================
+     MAIN UI
+  ============================================================ */
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
-      {/* Background */}
-      <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
-        <div className="absolute left-[-200px] top-[-150px] h-[450px] w-[450px] rounded-full bg-blue-600/10 blur-[130px]" />
 
-        <div className="absolute bottom-[-180px] right-[-150px] h-[450px] w-[450px] rounded-full bg-indigo-600/10 blur-[130px]" />
+      {/* ========================================================
+          BACKGROUND
+      ======================================================== */}
+
+      <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
+
+        <div className="absolute -left-48 -top-40 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-[130px]" />
+
+        <div className="absolute -bottom-48 -right-40 h-[450px] w-[450px] rounded-full bg-blue-600/10 blur-[130px]" />
+
+        <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/5 blur-[130px]" />
+
       </div>
 
       <main className="relative z-10 mx-auto max-w-6xl px-4 py-7 sm:px-6 lg:px-8">
-        {/* Back */}
-        <Link
-          to={`/courses/${slug}`}
-          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white"
-        >
-          <ArrowLeft size={17} />
-          Back to Course
-        </Link>
 
-        {/* Video Player */}
-        <section className="overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl shadow-blue-950/20">
+        {/* ======================================================
+            BACK TO COURSE
+        ====================================================== */}
+
+        <Button
+          component={Link}
+          to={`/courses/${slug}`}
+          variant="text"
+          startIcon={<ArrowBack />}
+          className="
+            !mb-6
+            !rounded-xl
+            !px-3
+            !py-2
+            !text-sm
+            !font-semibold
+            !normal-case
+            !text-slate-400
+            hover:!bg-white/5
+            hover:!text-white
+          "
+        >
+          Back to Course
+        </Button>
+
+        {/* ======================================================
+            VIDEO PLAYER
+        ====================================================== */}
+
+        <Paper
+          elevation={0}
+          className="
+            !overflow-hidden
+            !rounded-[1.75rem]
+            !border
+            !border-white/10
+            !bg-black
+            !shadow-2xl
+            !shadow-cyan-950/20
+          "
+        >
+
           {video.videoUrl ? (
             <video
-              className="aspect-video w-full bg-black"
+              className="
+                aspect-video
+                w-full
+                bg-black
+                object-contain
+              "
               controls
               controlsList="nodownload"
               poster={
                 video.thumbnailUrl ||
                 course.thumbnail ||
-                undefined
+                FALLBACK_THUMBNAIL
               }
               preload="metadata"
               playsInline
+              onContextMenu={(event) =>
+                event.preventDefault()
+              }
             >
               <source
                 src={video.videoUrl}
                 type="video/mp4"
               />
 
-              Your browser does not support HTML5 video.
+              Your browser does not support
+              HTML5 video.
             </video>
           ) : (
-            <div className="flex aspect-video items-center justify-center bg-slate-900">
-              <div className="text-center">
-                <PlayCircle
-                  size={52}
-                  className="mx-auto text-slate-600"
-                />
+            <div
+              className="
+                flex
+                aspect-video
+                items-center
+                justify-center
+                bg-slate-900
+              "
+            >
+              <div className="px-6 text-center">
 
-                <p className="mt-4 text-sm text-slate-500">
+                <Box
+                  className="
+                    mx-auto
+                    flex
+                    h-16
+                    w-16
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white/5
+                    text-slate-600
+                  "
+                >
+                  <PlayArrow fontSize="large" />
+                </Box>
+
+                <Typography
+                  component="p"
+                  className="
+                    !mt-4
+                    !text-sm
+                    !text-slate-500
+                  "
+                >
                   Video source is not available yet.
-                </p>
+                </Typography>
+
               </div>
             </div>
           )}
-        </section>
 
-        {/* Video Information */}
+        </Paper>
+
+        {/* ======================================================
+            VIDEO INFORMATION
+        ====================================================== */}
+
         <section className="mt-7">
+
+          {/* Badges */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-400">
-              <PlayCircle size={14} />
-              Preview Lesson
-            </span>
+
+            <Chip
+              icon={<CheckCircle fontSize="small" />}
+              label="Preview Lesson"
+              size="small"
+              className="
+                !border-emerald-400/20
+                !bg-emerald-400/10
+                !font-bold
+                !text-emerald-400
+              "
+              variant="outlined"
+            />
 
             {module?.title && (
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-400">
-                {module.title}
-              </span>
+              <Chip
+                label={module.title}
+                size="small"
+                className="
+                  !border-white/10
+                  !bg-white/5
+                  !font-semibold
+                  !text-slate-400
+                "
+                variant="outlined"
+              />
             )}
+
           </div>
 
-          <h1 className="mt-4 text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
-            {video.title}
-          </h1>
+          {/* Title */}
+          <Typography
+            component="h1"
+            className="
+              !mt-4
+              !text-2xl
+              !font-black
+              !leading-tight
+              !tracking-tight
+              !text-white
+              sm:!text-3xl
+              lg:!text-4xl
+            "
+          >
+            {video.title || "Preview Lesson"}
+          </Typography>
 
+          {/* Description */}
           {video.description && (
-            <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-400 sm:text-base">
+            <Typography
+              component="p"
+              className="
+                !mt-4
+                !max-w-4xl
+                !text-sm
+                !leading-7
+                !text-slate-400
+                sm:!text-base
+              "
+            >
               {video.description}
-            </p>
+            </Typography>
           )}
 
-          <div className="mt-6 flex flex-wrap gap-5 border-y border-white/10 py-5">
+          {/* ====================================================
+              VIDEO META
+          ==================================================== */}
+
+          <div
+            className="
+              mt-6
+              flex
+              flex-wrap
+              gap-x-7
+              gap-y-4
+              border-y
+              border-white/10
+              py-5
+            "
+          >
+
             {module?.title && (
-              <div className="flex items-center gap-2 text-sm text-slate-400">
-                <BookOpen
-                  size={17}
-                  className="text-blue-400"
+              <div className="flex items-center gap-2">
+
+                <Book
+                  fontSize="small"
+                  className="!text-cyan-400"
                 />
-                {module.title}
+
+                <Typography
+                  component="span"
+                  className="
+                    !text-sm
+                    !font-medium
+                    !text-slate-400
+                  "
+                >
+                  {module.title}
+                </Typography>
+
               </div>
             )}
 
             {video.duration && (
-              <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Clock3
-                  size={17}
-                  className="text-blue-400"
+              <div className="flex items-center gap-2">
+
+                <Schedule
+                  fontSize="small"
+                  className="!text-cyan-400"
                 />
-                {formatDuration(video.duration)}
+
+                <Typography
+                  component="span"
+                  className="
+                    !text-sm
+                    !font-medium
+                    !text-slate-400
+                  "
+                >
+                  {formatDuration(
+                    video.duration
+                  )}
+                </Typography>
+
               </div>
             )}
 
-            <div className="flex items-center gap-2 text-sm text-slate-400">
-              <Video
-                size={17}
-                className="text-blue-400"
+            <div className="flex items-center gap-2">
+
+              <VideoLibrary
+                fontSize="small"
+                className="!text-cyan-400"
               />
-              Preview Access
+
+              <Typography
+                component="span"
+                className="
+                  !text-sm
+                  !font-medium
+                  !text-slate-400
+                "
+              >
+                Preview Access
+              </Typography>
+
             </div>
+
           </div>
+
         </section>
 
-        {/* Course CTA */}
-        <section className="mt-8 overflow-hidden rounded-3xl border border-blue-400/10 bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10 p-7 sm:p-9">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-xl font-black sm:text-2xl">
-                Want access to the complete course?
-              </h2>
+        {/* ======================================================
+            COURSE CTA
+        ====================================================== */}
 
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                Enroll in {course.title} to unlock the
-                complete learning experience.
-              </p>
+        <section
+          className="
+            mt-8
+            overflow-hidden
+            rounded-[1.75rem]
+            border
+            border-cyan-400/10
+            bg-gradient-to-br
+            from-cyan-400/[0.08]
+            via-blue-500/[0.05]
+            to-violet-500/[0.08]
+            p-7
+            shadow-2xl
+            backdrop-blur-xl
+            sm:p-9
+          "
+        >
+
+          <div
+            className="
+              flex
+              flex-col
+              gap-6
+              md:flex-row
+              md:items-center
+              md:justify-between
+            "
+          >
+
+            <div className="min-w-0">
+
+              <div className="flex items-center gap-2">
+
+                <SchoolIcon />
+
+                <Typography
+                  component="span"
+                  className="
+                    !text-xs
+                    !font-bold
+                    !uppercase
+                    !tracking-[0.18em]
+                    !text-cyan-300
+                  "
+                >
+                  Continue Learning
+                </Typography>
+
+              </div>
+
+              <Typography
+                component="h2"
+                className="
+                  !mt-3
+                  !text-xl
+                  !font-black
+                  !text-white
+                  sm:!text-2xl
+                "
+              >
+                Want access to the complete course?
+              </Typography>
+
+              <Typography
+                component="p"
+                className="
+                  !mt-2
+                  !max-w-2xl
+                  !text-sm
+                  !leading-6
+                  !text-slate-400
+                "
+              >
+                Enroll in{" "}
+                <span className="font-semibold text-slate-200">
+                  {course.title}
+                </span>{" "}
+                to unlock the complete learning
+                experience.
+              </Typography>
+
             </div>
 
-            <Link
+            <Button
+              component={Link}
               to={`/courses/${slug}`}
-              className="inline-flex shrink-0 items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-200"
+              variant="contained"
+              endIcon={<ArrowForwardIcon />}
+              className="
+                !shrink-0
+                !rounded-xl
+                !bg-white
+                !px-6
+                !py-3
+                !text-sm
+                !font-bold
+                !normal-case
+                !text-slate-950
+                hover:!bg-slate-200
+              "
             >
               View Course
-            </Link>
+            </Button>
+
           </div>
+
         </section>
+
       </main>
+
     </div>
   );
+}
+
+/*
+ * Small local icon wrappers keep the JSX readable
+ * while using only MUI icons.
+ */
+
+function SchoolIcon() {
+  return (
+    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-400/10">
+      <VideoLibrary
+        sx={{ fontSize: 16 }}
+        className="!text-cyan-400"
+      />
+    </span>
+  );
+}
+
+function ArrowForwardIcon() {
+  return <PlayArrow fontSize="small" />;
 }

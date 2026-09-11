@@ -1,4 +1,19 @@
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import {
+  FormControl,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Tooltip,
+} from "@mui/material";
+
+import {
+  Close,
+  FilterList,
+  Search,
+} from "@mui/icons-material";
 
 const categories = [
   "All Categories",
@@ -33,86 +48,225 @@ export default function CourseFilters({
     level !== "All Levels";
 
   return (
-    <section className="mb-8 rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-2xl shadow-black/10 backdrop-blur-xl sm:p-5">
+    <section
+      className="
+        mb-8
+        rounded-[1.75rem]
+        border border-white/10
+        bg-white/[0.035]
+        p-4
+        shadow-2xl shadow-black/20
+        backdrop-blur-xl
+        sm:p-5
+      "
+    >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search
-            size={19}
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
-          />
 
-          <input
+        {/* =======================================================
+            SEARCH
+        ======================================================= */}
+        <div className="min-w-0 flex-1">
+
+          <TextField
+            fullWidth
             type="search"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) =>
+              setSearch(event.target.value)
+            }
             placeholder="Search courses..."
             aria-label="Search courses"
-            className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/60 pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400/40 focus:ring-2 focus:ring-cyan-400/10"
+            variant="outlined"
+            size="medium"
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search
+                      fontSize="small"
+                      className="!text-slate-500"
+                    />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                minHeight: "48px",
+                borderRadius: "16px",
+              },
+            }}
+            className="
+              [&_.MuiOutlinedInput-root]:!bg-slate-950/60
+              [&_.MuiOutlinedInput-notchedOutline]:!border-white/10
+              [&_.MuiOutlinedInput-root:hover_.MuiOutlinedInput-notchedOutline]:!border-white/20
+              [&_.MuiOutlinedInput-root.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-cyan-400/40
+              [&_.MuiInputBase-input]:!text-sm
+              [&_.MuiInputBase-input]:!text-white
+              [&_.MuiInputBase-input::placeholder]:!text-slate-600
+            "
           />
+
         </div>
 
-        {/* Filters */}
+        {/* =======================================================
+            FILTER CONTROLS
+        ======================================================= */}
         <div className="flex flex-col gap-3 sm:flex-row">
-          <div className="relative">
-            <SlidersHorizontal
-              size={16}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
-            />
 
-            <select
+          {/* =====================================================
+              CATEGORY
+          ===================================================== */}
+          <FormControl
+            size="medium"
+            className="w-full sm:w-52"
+          >
+            <InputLabel
+              className="
+                !text-slate-500
+                [&.Mui-focused]:!text-cyan-400
+              "
+            >
+              Category
+            </InputLabel>
+
+            <Select
               value={category}
+              label="Category"
               onChange={(event) =>
                 setCategory(event.target.value)
               }
-              aria-label="Filter by category"
-              className="h-12 w-full appearance-none rounded-2xl border border-white/10 bg-slate-950/60 pl-10 pr-10 text-sm text-slate-200 outline-none transition focus:border-cyan-400/40 focus:ring-2 focus:ring-cyan-400/10 sm:w-52"
+              startAdornment={
+                <InputAdornment position="start">
+                  <FilterList
+                    fontSize="small"
+                    className="!text-slate-500"
+                  />
+                </InputAdornment>
+              }
+              className="
+                !min-h-12
+                !rounded-2xl
+                !bg-slate-950/60
+                !text-sm
+                !text-slate-200
+                [&_.MuiOutlinedInput-notchedOutline]:!border-white/10
+                hover:[&_.MuiOutlinedInput-notchedOutline]:!border-white/20
+                [&.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-cyan-400/40
+                [&_.MuiSelect-icon]:!text-slate-500
+              "
+              MenuProps={{
+                PaperProps: {
+                  className:
+                    "!mt-2 !rounded-2xl !border !border-white/10 !bg-slate-900 !text-slate-200 !shadow-2xl",
+                },
+              }}
             >
               {categories.map((item) => (
-                <option
+                <MenuItem
                   key={item}
                   value={item}
-                  className="bg-slate-900 text-white"
+                  className="
+                    !text-sm
+                    hover:!bg-white/5
+                    [&.Mui-selected]:!bg-cyan-400/10
+                  "
                 >
                   {item}
-                </option>
+                </MenuItem>
               ))}
-            </select>
-          </div>
+            </Select>
+          </FormControl>
 
-          <select
-            value={level}
-            onChange={(event) =>
-              setLevel(event.target.value)
-            }
-            aria-label="Filter by level"
-            className="h-12 w-full appearance-none rounded-2xl border border-white/10 bg-slate-950/60 px-4 text-sm text-slate-200 outline-none transition focus:border-cyan-400/40 focus:ring-2 focus:ring-cyan-400/10 sm:w-44"
+          {/* =====================================================
+              LEVEL
+          ===================================================== */}
+          <FormControl
+            size="medium"
+            className="w-full sm:w-44"
           >
-            {levels.map((item) => (
-              <option
-                key={item}
-                value={item}
-                className="bg-slate-900 text-white"
-              >
-                {item === "All Levels"
-                  ? item
-                  : item.replace("-", " ")}
-              </option>
-            ))}
-          </select>
+            <InputLabel
+              className="
+                !text-slate-500
+                [&.Mui-focused]:!text-cyan-400
+              "
+            >
+              Level
+            </InputLabel>
+
+            <Select
+              value={level}
+              label="Level"
+              onChange={(event) =>
+                setLevel(event.target.value)
+              }
+              className="
+                !min-h-12
+                !rounded-2xl
+                !bg-slate-950/60
+                !text-sm
+                !text-slate-200
+                [&_.MuiOutlinedInput-notchedOutline]:!border-white/10
+                hover:[&_.MuiOutlinedInput-notchedOutline]:!border-white/20
+                [&.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-cyan-400/40
+                [&_.MuiSelect-icon]:!text-slate-500
+              "
+              MenuProps={{
+                PaperProps: {
+                  className:
+                    "!mt-2 !rounded-2xl !border !border-white/10 !bg-slate-900 !text-slate-200 !shadow-2xl",
+                },
+              }}
+            >
+              {levels.map((item) => (
+                <MenuItem
+                  key={item}
+                  value={item}
+                  className="
+                    !text-sm
+                    capitalize
+                    hover:!bg-white/5
+                    [&.Mui-selected]:!bg-cyan-400/10
+                  "
+                >
+                  {item === "All Levels"
+                    ? item
+                    : item.replace("-", " ")}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
         </div>
 
-        {/* Reset */}
+        {/* =======================================================
+            RESET
+        ======================================================= */}
         {hasFilters && (
-          <button
-            type="button"
-            onClick={onReset}
-            className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-slate-300 transition hover:border-red-400/20 hover:bg-red-400/10 hover:text-red-300"
-          >
-            <X size={17} />
-            Reset
-          </button>
+          <Tooltip title="Reset filters" arrow>
+            <IconButton
+              type="button"
+              onClick={onReset}
+              aria-label="Reset course filters"
+              className="
+                !h-12
+                !w-12
+                !shrink-0
+                !rounded-2xl
+                !border
+                !border-white/10
+                !bg-white/5
+                !text-slate-400
+                hover:!border-red-400/20
+                hover:!bg-red-400/10
+                hover:!text-red-300
+              "
+            >
+              <Close fontSize="small" />
+            </IconButton>
+          </Tooltip>
         )}
+
       </div>
     </section>
   );

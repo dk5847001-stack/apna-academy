@@ -1,37 +1,116 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+
 import {
-  ArrowLeft,
-  BookOpen,
-  CheckCircle2,
-  Clock3,
+  Box,
+  Button,
+  Chip,
+  Divider,
+  Paper,
+  Skeleton,
+  Typography,
+} from "@mui/material";
+
+import {
+  ArrowBack,
+  AutoAwesome,
+  CheckCircle,
   Lock,
-  PlayCircle,
-  User,
-  Video,
-} from "lucide-react";
+  MenuBook,
+  PlayArrow,
+  Schedule,
+  School,
+  Person,
+  VideoLibrary,
+} from "@mui/icons-material";
 
 import api from "../services/api";
 
 const FALLBACK_THUMBNAIL =
   "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=85";
 
+const FALLBACK_COURSE_THUMBNAIL =
+  "https://placehold.co/1600x900/0f172a/ffffff?text=ApnaAcademy";
+
+function formatDuration(seconds) {
+  if (!seconds || Number(seconds) <= 0) {
+    return "";
+  }
+
+  const totalSeconds = Number(seconds);
+
+  const hours = Math.floor(totalSeconds / 3600);
+
+  const minutes = Math.floor(
+    (totalSeconds % 3600) / 60
+  );
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+
+  return `${minutes}m`;
+}
+
+function formatPrice(price) {
+  if (
+    price === undefined ||
+    price === null ||
+    price === ""
+  ) {
+    return "₹999";
+  }
+
+  const numericPrice = Number(price);
+
+  if (numericPrice <= 0) {
+    return "Free";
+  }
+
+  return `₹${numericPrice.toLocaleString("en-IN")}`;
+}
+
+function formatLevel(level) {
+  if (!level) {
+    return "";
+  }
+
+  return String(level)
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (character) =>
+      character.toUpperCase()
+    );
+}
+
+function getVideoId(video) {
+  return video?._id || video?.id;
+}
+
 export default function CourseDetails() {
   const { slug } = useParams();
 
   const [course, setCourse] = useState(null);
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchCourse = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const response = await api.get(`/courses/${slug}`);
+        const response = await api.get(
+          `/courses/${slug}`
+        );
 
-        console.log("COURSE DETAILS API:", response.data);
+        console.log(
+          "COURSE DETAILS API:",
+          response.data
+        );
 
         if (!response.data?.success) {
           throw new Error(
@@ -43,16 +122,15 @@ export default function CourseDetails() {
         const apiData = response.data.data;
 
         /*
-          Backend response compatibility.
-
-          Supported formats:
-
-          1. data = course object
-          2. data = {
-               course: {...},
-               modules: [...]
-             }
-        */
+         * Backend response compatibility:
+         *
+         * 1. data = course object
+         *
+         * 2. data = {
+         *      course: {...},
+         *      modules: [...]
+         *    }
+         */
 
         let courseData;
 
@@ -68,114 +146,238 @@ export default function CourseDetails() {
           courseData = apiData;
         }
 
-        setCourse(courseData);
+        if (isMounted) {
+          setCourse(courseData);
+        }
       } catch (err) {
-        console.error("Course details error:", err);
-
-        setError(
-          err.response?.data?.message ||
-            err.message ||
-            "Unable to load course details."
+        console.error(
+          "Course details error:",
+          err
         );
+
+        if (isMounted) {
+          setError(
+            err?.response?.data?.message ||
+              err?.message ||
+              "Unable to load course details."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     if (slug) {
       fetchCourse();
+    } else {
+      setLoading(false);
+      setError("Invalid course URL.");
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [slug]);
 
-  const formatDuration = (seconds) => {
-    if (!seconds || Number(seconds) <= 0) {
-      return "";
-    }
-
-    const totalSeconds = Number(seconds);
-
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor(
-      (totalSeconds % 3600) / 60
-    );
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-
-    return `${minutes}m`;
-  };
-
-  const formatPrice = (price) => {
-    if (
-      price === undefined ||
-      price === null ||
-      price === ""
-    ) {
-      return "₹999";
-    }
-
-    const numericPrice = Number(price);
-
-    if (numericPrice <= 0) {
-      return "Free";
-    }
-
-    return `₹${numericPrice.toLocaleString("en-IN")}`;
-  };
+  /* ============================================================
+     LOADING STATE
+  ============================================================ */
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 px-4 py-10 text-white">
-        <div className="mx-auto max-w-7xl animate-pulse">
-          <div className="mb-8 h-5 w-32 rounded bg-slate-800" />
+      <div className="min-h-screen overflow-hidden bg-slate-950 text-white">
 
-          <div className="grid gap-8 lg:grid-cols-[1.5fr_0.75fr]">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+          <Skeleton
+            variant="rounded"
+            animation="wave"
+            width={150}
+            height={24}
+            className="!mb-7 !bg-white/[0.07]"
+          />
+
+          <div className="grid gap-8 lg:grid-cols-[1.45fr_0.75fr]">
+
+            {/* Main skeleton */}
             <div>
-              <div className="h-72 rounded-3xl bg-slate-800 sm:h-80" />
 
-              <div className="mt-8 space-y-4">
-                <div className="h-9 w-2/3 rounded bg-slate-800" />
-                <div className="h-4 w-full rounded bg-slate-800" />
-                <div className="h-4 w-5/6 rounded bg-slate-800" />
+              <Skeleton
+                variant="rounded"
+                animation="wave"
+                className="
+                  !aspect-video
+                  !h-auto
+                  !w-full
+                  !bg-white/[0.07]
+                "
+              />
+
+              <div className="mt-7 space-y-4">
+
+                <div className="flex gap-2">
+                  <Skeleton
+                    variant="rounded"
+                    animation="wave"
+                    width={110}
+                    height={28}
+                    className="!bg-white/[0.07]"
+                  />
+
+                  <Skeleton
+                    variant="rounded"
+                    animation="wave"
+                    width={85}
+                    height={28}
+                    className="!bg-white/[0.07]"
+                  />
+                </div>
+
+                <Skeleton
+                  variant="rounded"
+                  animation="wave"
+                  width="75%"
+                  height={48}
+                  className="!bg-white/[0.07]"
+                />
+
+                <Skeleton
+                  variant="rounded"
+                  animation="wave"
+                  width="100%"
+                  height={18}
+                  className="!bg-white/[0.07]"
+                />
+
+                <Skeleton
+                  variant="rounded"
+                  animation="wave"
+                  width="85%"
+                  height={18}
+                  className="!bg-white/[0.07]"
+                />
+
               </div>
+
             </div>
 
-            <div className="h-96 rounded-3xl bg-slate-800" />
+            {/* Purchase skeleton */}
+            <Skeleton
+              variant="rounded"
+              animation="wave"
+              className="
+                !h-[420px]
+                !w-full
+                !bg-white/[0.07]
+              "
+            />
+
           </div>
+
         </div>
       </div>
     );
   }
+
+  /* ============================================================
+     ERROR STATE
+  ============================================================ */
 
   if (error || !course) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
-        <div className="w-full max-w-lg rounded-3xl border border-red-500/20 bg-slate-900 p-8 text-center shadow-2xl">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
-            <BookOpen size={28} />
-          </div>
 
-          <h1 className="mt-5 text-2xl font-black">
+        <Paper
+          elevation={0}
+          className="
+            !w-full
+            !max-w-lg
+            !rounded-[1.75rem]
+            !border
+            !border-red-400/10
+            !bg-white/[0.035]
+            !p-8
+            !text-center
+            !shadow-2xl
+            !backdrop-blur-xl
+          "
+        >
+
+          <Box
+            className="
+              mx-auto
+              flex
+              h-16
+              w-16
+              items-center
+              justify-center
+              rounded-2xl
+              border
+              border-red-400/10
+              bg-red-400/10
+              text-red-300
+            "
+          >
+            <MenuBook fontSize="large" />
+          </Box>
+
+          <Typography
+            component="h1"
+            className="
+              !mt-5
+              !text-2xl
+              !font-black
+              !text-white
+            "
+          >
             Course Not Found
-          </h1>
+          </Typography>
 
-          <p className="mt-3 text-sm leading-6 text-slate-400">
+          <Typography
+            component="p"
+            className="
+              !mt-3
+              !text-sm
+              !leading-6
+              !text-slate-400
+            "
+          >
             {error ||
               "The requested course could not be found."}
-          </p>
+          </Typography>
 
-          <Link
+          <Button
+            component={Link}
             to="/courses"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold transition hover:bg-blue-500"
+            variant="contained"
+            startIcon={<ArrowBack />}
+            className="
+              !mt-6
+              !rounded-xl
+              !bg-gradient-to-r
+              !from-cyan-400
+              !to-blue-500
+              !px-5
+              !py-3
+              !font-bold
+              !normal-case
+              !text-slate-950
+            "
           >
-            <ArrowLeft size={17} />
             Back to Courses
-          </Link>
-        </div>
+          </Button>
+
+        </Paper>
+
       </div>
     );
   }
+
+  /* ============================================================
+     COURSE DATA
+  ============================================================ */
 
   const modules = Array.isArray(course.modules)
     ? course.modules
@@ -192,296 +394,777 @@ export default function CourseDetails() {
       0
     );
 
+  /* ============================================================
+     MAIN UI
+  ============================================================ */
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
-      {/* Background */}
-      <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
-        <div className="absolute left-[-180px] top-[-150px] h-[450px] w-[450px] rounded-full bg-blue-600/10 blur-[130px]" />
 
-        <div className="absolute bottom-[-180px] right-[-120px] h-[450px] w-[450px] rounded-full bg-indigo-600/10 blur-[130px]" />
+      {/* ========================================================
+          BACKGROUND
+      ======================================================== */}
+
+      <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
+
+        <div className="absolute -left-40 -top-40 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-[130px]" />
+
+        <div className="absolute -bottom-40 -right-40 h-[450px] w-[450px] rounded-full bg-blue-600/10 blur-[130px]" />
+
+        <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/5 blur-[130px]" />
+
       </div>
 
       <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Back */}
-        <Link
-          to="/courses"
-          className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white"
-        >
-          <ArrowLeft size={17} />
-          Back to Courses
-        </Link>
 
-        {/* Hero */}
+        {/* ======================================================
+            BACK TO COURSES
+        ====================================================== */}
+
+        <Button
+          component={Link}
+          to="/courses"
+          variant="text"
+          startIcon={<ArrowBack />}
+          className="
+            !mb-7
+            !rounded-xl
+            !px-3
+            !py-2
+            !text-sm
+            !font-semibold
+            !normal-case
+            !text-slate-400
+            hover:!bg-white/5
+            hover:!text-white
+          "
+        >
+          Back to Courses
+        </Button>
+
+        {/* ======================================================
+            HERO
+        ====================================================== */}
+
         <section className="grid gap-8 lg:grid-cols-[1.45fr_0.75fr]">
-          {/* LEFT */}
+
+          {/* ====================================================
+              LEFT CONTENT
+          ==================================================== */}
+
           <div>
-            {/* Thumbnail */}
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 shadow-2xl">
+
+            {/* ==================================================
+                THUMBNAIL
+            ================================================== */}
+
+            <div
+              className="
+                group
+                relative
+                overflow-hidden
+                rounded-[1.75rem]
+                border
+                border-white/10
+                bg-slate-900
+                shadow-2xl
+              "
+            >
+
               <img
                 src={
                   course.thumbnail ||
                   FALLBACK_THUMBNAIL
                 }
-                alt={course.title || "Course thumbnail"}
-                className="h-64 w-full object-cover sm:h-80 lg:h-[390px]"
+                alt={
+                  course.title ||
+                  "Course thumbnail"
+                }
+                className="
+                  h-64
+                  w-full
+                  object-cover
+                  transition-transform
+                  duration-700
+                  group-hover:scale-[1.02]
+                  sm:h-80
+                  lg:h-[390px]
+                "
                 onError={(event) => {
+                  event.currentTarget.onerror = null;
                   event.currentTarget.src =
-                    FALLBACK_THUMBNAIL;
+                    FALLBACK_COURSE_THUMBNAIL;
                 }}
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+              <div
+                className="
+                  absolute
+                  inset-0
+                  bg-gradient-to-t
+                  from-slate-950/90
+                  via-slate-950/10
+                  to-transparent
+                "
+              />
 
+              {/* Featured */}
               {course.isFeatured && (
-                <div className="absolute left-5 top-5 rounded-full border border-blue-400/20 bg-blue-600/80 px-4 py-2 text-xs font-bold backdrop-blur">
-                  ⭐ Featured Course
+                <div className="absolute left-5 top-5">
+
+                  <Chip
+                    icon={
+                      <AutoAwesome fontSize="small" />
+                    }
+                    label="Featured Course"
+                    size="small"
+                    className="
+                      !border-amber-300/20
+                      !bg-slate-950/75
+                      !font-semibold
+                      !text-amber-200
+                      !backdrop-blur-md
+                    "
+                    variant="outlined"
+                  />
+
                 </div>
               )}
+
             </div>
 
-            {/* Course Information */}
+            {/* ==================================================
+                COURSE INFORMATION
+            ================================================== */}
+
             <div className="mt-7">
+
               {/* Badges */}
               <div className="mb-4 flex flex-wrap gap-2">
+
                 {course.category && (
-                  <span className="rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300">
-                    {course.category}
-                  </span>
+                  <Chip
+                    label={course.category}
+                    size="small"
+                    className="
+                      !border-cyan-400/15
+                      !bg-cyan-400/10
+                      !font-semibold
+                      !text-cyan-300
+                    "
+                  />
                 )}
 
                 {course.level && (
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold capitalize text-slate-300">
-                    {String(course.level).replace(
-                      "-",
-                      " "
-                    )}
-                  </span>
+                  <Chip
+                    label={formatLevel(course.level)}
+                    size="small"
+                    className="
+                      !border-white/10
+                      !bg-white/5
+                      !font-semibold
+                      !text-slate-300
+                    "
+                  />
                 )}
 
                 {course.language && (
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300">
-                    {course.language}
-                  </span>
+                  <Chip
+                    label={course.language}
+                    size="small"
+                    className="
+                      !border-white/10
+                      !bg-white/5
+                      !font-semibold
+                      !text-slate-300
+                    "
+                  />
                 )}
+
               </div>
 
-              {/* TITLE */}
-              <h1 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
+              {/* Title */}
+              <Typography
+                component="h1"
+                className="
+                  !text-3xl
+                  !font-black
+                  !leading-tight
+                  !tracking-tight
+                  !text-white
+                  sm:!text-4xl
+                  lg:!text-5xl
+                "
+              >
                 {course.title || "Course"}
-              </h1>
+              </Typography>
 
-              {/* SHORT DESCRIPTION */}
+              {/* Short description */}
               {course.shortDescription && (
-                <p className="mt-5 max-w-3xl text-base leading-7 text-slate-400 sm:text-lg">
+                <Typography
+                  component="p"
+                  className="
+                    !mt-5
+                    !max-w-3xl
+                    !text-base
+                    !leading-7
+                    !text-slate-400
+                    sm:!text-lg
+                  "
+                >
                   {course.shortDescription}
-                </p>
+                </Typography>
               )}
 
-              {/* STATS */}
-              <div className="mt-7 flex flex-wrap gap-x-7 gap-y-4 border-y border-white/10 py-5">
-                <div className="flex items-center gap-2 text-sm text-slate-300">
-                  <BookOpen
-                    size={18}
-                    className="text-blue-400"
+              {/* =================================================
+                  STATS
+              ================================================= */}
+
+              <div
+                className="
+                  mt-7
+                  flex
+                  flex-wrap
+                  gap-x-7
+                  gap-y-4
+                  border-y
+                  border-white/10
+                  py-5
+                "
+              >
+
+                {/* Modules */}
+                <div className="flex items-center gap-2">
+
+                  <MenuBook
+                    fontSize="small"
+                    className="!text-cyan-400"
                   />
-                  <span>
+
+                  <Typography
+                    component="span"
+                    className="!text-sm !font-medium !text-slate-300"
+                  >
                     {modules.length}{" "}
                     {modules.length === 1
                       ? "Module"
                       : "Modules"}
-                  </span>
+                  </Typography>
+
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-slate-300">
-                  <Video
-                    size={18}
-                    className="text-blue-400"
+                {/* Videos */}
+                <div className="flex items-center gap-2">
+
+                  <VideoLibrary
+                    fontSize="small"
+                    className="!text-cyan-400"
                   />
-                  <span>
+
+                  <Typography
+                    component="span"
+                    className="!text-sm !font-medium !text-slate-300"
+                  >
                     {totalVideos}{" "}
                     {totalVideos === 1
                       ? "Video"
                       : "Videos"}
-                  </span>
+                  </Typography>
+
                 </div>
 
+                {/* Duration */}
                 {course.durationDays && (
-                  <div className="flex items-center gap-2 text-sm text-slate-300">
-                    <Clock3
-                      size={18}
-                      className="text-blue-400"
+                  <div className="flex items-center gap-2">
+
+                    <Schedule
+                      fontSize="small"
+                      className="!text-cyan-400"
                     />
-                    <span>
+
+                    <Typography
+                      component="span"
+                      className="!text-sm !font-medium !text-slate-300"
+                    >
                       {course.durationDays} Days
-                    </span>
+                    </Typography>
+
                   </div>
                 )}
 
+                {/* Instructor */}
                 {course.instructor?.name && (
-                  <div className="flex items-center gap-2 text-sm text-slate-300">
-                    <User
-                      size={18}
-                      className="text-blue-400"
+                  <div className="flex items-center gap-2">
+
+                    <Person
+                      fontSize="small"
+                      className="!text-cyan-400"
                     />
-                    <span>
+
+                    <Typography
+                      component="span"
+                      className="!text-sm !font-medium !text-slate-300"
+                    >
                       {course.instructor.name}
-                    </span>
+                    </Typography>
+
                   </div>
                 )}
+
               </div>
 
-              {/* DESCRIPTION */}
+              {/* =================================================
+                  DESCRIPTION
+              ================================================= */}
+
               {course.description && (
                 <div className="mt-8">
-                  <h2 className="text-2xl font-bold">
-                    About this course
-                  </h2>
 
-                  <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-400 sm:text-base">
+                  <Typography
+                    component="h2"
+                    className="
+                      !text-2xl
+                      !font-black
+                      !text-white
+                    "
+                  >
+                    About this course
+                  </Typography>
+
+                  <Typography
+                    component="div"
+                    className="
+                      mt-4
+                      whitespace-pre-line
+                      !text-sm
+                      !leading-7
+                      !text-slate-400
+                      sm:!text-base
+                    "
+                  >
                     {course.description}
-                  </div>
+                  </Typography>
+
                 </div>
               )}
+
             </div>
+
           </div>
 
-          {/* PURCHASE CARD */}
+          {/* ====================================================
+              PURCHASE CARD
+          ==================================================== */}
+
           <aside className="lg:sticky lg:top-8 lg:self-start">
-            <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl backdrop-blur-xl">
-              <p className="text-sm text-slate-400">
+
+            <Paper
+              elevation={0}
+              className="
+                !overflow-hidden
+                !rounded-[1.75rem]
+                !border
+                !border-white/10
+                !bg-white/[0.035]
+                !p-6
+                !shadow-2xl
+                !backdrop-blur-xl
+                sm:!p-7
+              "
+            >
+
+              {/* Price */}
+              <Typography
+                component="p"
+                className="!text-sm !font-medium !text-slate-500"
+              >
                 Course Price
-              </p>
+              </Typography>
 
-              <div className="mt-2">
-                <span className="text-4xl font-black">
-                  {formatPrice(course.price)}
-                </span>
-              </div>
+              <Typography
+                component="div"
+                className="
+                  !mt-2
+                  !text-4xl
+                  !font-black
+                  !tracking-tight
+                  !text-white
+                "
+              >
+                {formatPrice(course.price)}
+              </Typography>
 
-              <p className="mt-3 text-sm leading-6 text-slate-400">
+              <Typography
+                component="p"
+                className="
+                  !mt-3
+                  !text-sm
+                  !leading-6
+                  !text-slate-400
+                "
+              >
                 Purchase this course to unlock your
                 structured learning journey and access
                 protected lessons.
-              </p>
+              </Typography>
 
-              <button
+              {/* Enroll */}
+              <Button
                 type="button"
-                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 text-sm font-bold shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:from-blue-500 hover:to-indigo-500"
+                fullWidth
+                variant="contained"
+                endIcon={<ArrowForwardIcon />}
+                className="
+                  !mt-6
+                  !min-h-14
+                  !rounded-2xl
+                  !bg-gradient-to-r
+                  !from-cyan-400
+                  !to-blue-500
+                  !text-sm
+                  !font-black
+                  !normal-case
+                  !text-slate-950
+                  !shadow-lg
+                  !shadow-cyan-500/10
+                  hover:!from-cyan-300
+                  hover:!to-blue-400
+                "
               >
                 Enroll Now
-              </button>
+              </Button>
 
-              <div className="mt-6 space-y-3 border-t border-white/10 pt-5">
-                <div className="flex items-center gap-3 text-sm text-slate-300">
-                  <CheckCircle2
-                    size={18}
-                    className="text-emerald-400"
-                  />
-                  Structured modules
+              {/* Benefits */}
+              <div className="mt-6">
+
+                <Divider className="!border-white/10" />
+
+                <div className="space-y-4 pt-5">
+
+                  <div className="flex items-center gap-3">
+
+                    <CheckCircle
+                      fontSize="small"
+                      className="!text-emerald-400"
+                    />
+
+                    <Typography
+                      component="span"
+                      className="!text-sm !text-slate-300"
+                    >
+                      Structured modules
+                    </Typography>
+
+                  </div>
+
+                  <div className="flex items-center gap-3">
+
+                    <CheckCircle
+                      fontSize="small"
+                      className="!text-emerald-400"
+                    />
+
+                    <Typography
+                      component="span"
+                      className="!text-sm !text-slate-300"
+                    >
+                      Progress tracking
+                    </Typography>
+
+                  </div>
+
+                  <div className="flex items-center gap-3">
+
+                    <CheckCircle
+                      fontSize="small"
+                      className="!text-emerald-400"
+                    />
+
+                    <Typography
+                      component="span"
+                      className="!text-sm !text-slate-300"
+                    >
+                      Certificate after completion
+                    </Typography>
+
+                  </div>
+
+                  <div className="flex items-center gap-3">
+
+                    <CheckCircle
+                      fontSize="small"
+                      className="!text-emerald-400"
+                    />
+
+                    <Typography
+                      component="span"
+                      className="!text-sm !text-slate-300"
+                    >
+                      Protected course lessons
+                    </Typography>
+
+                  </div>
+
                 </div>
 
-                <div className="flex items-center gap-3 text-sm text-slate-300">
-                  <CheckCircle2
-                    size={18}
-                    className="text-emerald-400"
-                  />
-                  Progress tracking
-                </div>
-
-                <div className="flex items-center gap-3 text-sm text-slate-300">
-                  <CheckCircle2
-                    size={18}
-                    className="text-emerald-400"
-                  />
-                  Certificate after completion
-                </div>
               </div>
-            </div>
+
+            </Paper>
+
           </aside>
+
         </section>
 
-        {/* CURRICULUM */}
+        {/* ======================================================
+            CURRICULUM
+        ====================================================== */}
+
         <section className="mt-14">
+
           <div className="mb-7">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-400">
-              Curriculum
-            </p>
 
-            <h2 className="mt-2 text-3xl font-black">
-              Course Modules
-            </h2>
+            <div className="flex items-center gap-2">
 
-            <p className="mt-2 text-sm text-slate-400">
-              Preview the first lesson of every module.
-              Other lessons remain locked until enrollment.
-            </p>
-          </div>
-
-          {modules.length === 0 ? (
-            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-10 text-center">
-              <BookOpen
-                size={32}
-                className="mx-auto text-slate-500"
+              <School
+                fontSize="small"
+                className="!text-cyan-400"
               />
 
-              <p className="mt-4 text-slate-400">
-                No modules available yet.
-              </p>
+              <Typography
+                component="p"
+                className="
+                  !text-sm
+                  !font-bold
+                  !uppercase
+                  !tracking-[0.2em]
+                  !text-cyan-400
+                "
+              >
+                Curriculum
+              </Typography>
+
             </div>
+
+            <Typography
+              component="h2"
+              className="
+                !mt-2
+                !text-3xl
+                !font-black
+                !text-white
+              "
+            >
+              Course Modules
+            </Typography>
+
+            <Typography
+              component="p"
+              className="
+                !mt-2
+                !max-w-2xl
+                !text-sm
+                !leading-6
+                !text-slate-400
+              "
+            >
+              Preview the first lesson of every module.
+              Other lessons remain locked until enrollment.
+            </Typography>
+
+          </div>
+
+          {/* ====================================================
+              NO MODULES
+          ==================================================== */}
+
+          {modules.length === 0 ? (
+            <Paper
+              elevation={0}
+              className="
+                !rounded-[1.75rem]
+                !border
+                !border-white/10
+                !bg-white/[0.03]
+                !p-10
+                !text-center
+              "
+            >
+
+              <MenuBook
+                fontSize="large"
+                className="!text-slate-500"
+              />
+
+              <Typography
+                component="p"
+                className="!mt-4 !text-sm !text-slate-400"
+              >
+                No modules available yet.
+              </Typography>
+
+            </Paper>
           ) : (
+
+            /* ==================================================
+               MODULE LIST
+            ================================================== */
+
             <div className="space-y-5">
+
               {modules.map((module, moduleIndex) => {
-                const videos = Array.isArray(module.videos)
+
+                const videos = Array.isArray(
+                  module.videos
+                )
                   ? module.videos
                   : [];
 
                 return (
-                  <div
+                  <Paper
                     key={
                       module._id ||
                       module.id ||
                       moduleIndex
                     }
-                    className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]"
+                    elevation={0}
+                    className="
+                      !overflow-hidden
+                      !rounded-[1.75rem]
+                      !border
+                      !border-white/10
+                      !bg-white/[0.025]
+                    "
                   >
-                    {/* MODULE HEADER */}
-                    <div className="flex flex-col gap-4 border-b border-white/10 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-500/10 font-bold text-blue-400">
-                          {moduleIndex + 1}
-                        </div>
 
-                        <div>
-                          <h3 className="text-lg font-bold">
-                            {module.title}
-                          </h3>
+                    {/* MODULE HEADER */}
+                    <div
+                      className="
+                        flex
+                        flex-col
+                        gap-4
+                        border-b
+                        border-white/10
+                        p-5
+                        sm:flex-row
+                        sm:items-center
+                        sm:justify-between
+                        sm:p-6
+                      "
+                    >
+
+                      <div className="flex min-w-0 items-start gap-4">
+
+                        {/* Module Number */}
+                        <Box
+                          className="
+                            flex
+                            h-11
+                            w-11
+                            shrink-0
+                            items-center
+                            justify-center
+                            rounded-2xl
+                            border
+                            border-cyan-400/10
+                            bg-cyan-400/10
+                            text-sm
+                            font-black
+                            text-cyan-300
+                          "
+                        >
+                          {String(moduleIndex + 1).padStart(
+                            2,
+                            "0"
+                          )}
+                        </Box>
+
+                        <div className="min-w-0">
+
+                          <Typography
+                            component="h3"
+                            className="
+                              !text-lg
+                              !font-bold
+                              !text-white
+                            "
+                          >
+                            {module.title ||
+                              `Module ${moduleIndex + 1}`}
+                          </Typography>
 
                           {module.description && (
-                            <p className="mt-1 text-sm text-slate-400">
+                            <Typography
+                              component="p"
+                              className="
+                                !mt-1
+                                !text-sm
+                                !leading-6
+                                !text-slate-400
+                              "
+                            >
                               {module.description}
-                            </p>
+                            </Typography>
                           )}
+
                         </div>
+
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Video size={15} />
-                        {videos.length}{" "}
-                        {videos.length === 1
-                          ? "Video"
-                          : "Videos"}
-                      </div>
+                      {/* Video Count */}
+                      <Chip
+                        icon={
+                          <VideoLibrary fontSize="small" />
+                        }
+                        label={`${videos.length} ${
+                          videos.length === 1
+                            ? "Video"
+                            : "Videos"
+                        }`}
+                        size="small"
+                        className="
+                          !w-fit
+                          !border-white/10
+                          !bg-white/5
+                          !text-slate-400
+                        "
+                        variant="outlined"
+                      />
+
                     </div>
 
-                    {/* VIDEOS */}
+                    {/* ==================================================
+                        VIDEOS
+                    ================================================== */}
+
                     <div className="divide-y divide-white/5">
+
                       {videos.length === 0 ? (
-                        <div className="p-5 text-sm text-slate-500">
-                          No videos available.
+
+                        <div className="p-5">
+
+                          <Typography
+                            component="p"
+                            className="!text-sm !text-slate-500"
+                          >
+                            No videos available.
+                          </Typography>
+
                         </div>
+
                       ) : (
+
                         videos.map(
                           (video, videoIndex) => {
+
+                            /*
+                             * IMPORTANT:
+                             * Backend already decides preview/locked.
+                             *
+                             * First video of each module is
+                             * also treated as preview for
+                             * backward compatibility.
+                             */
+
                             const isPreview =
                               video.isPreview === true ||
                               videoIndex === 0;
@@ -490,123 +1173,332 @@ export default function CourseDetails() {
                               video.isLocked === true ||
                               !isPreview;
 
+                            const videoId =
+                              getVideoId(video);
+
                             return (
                               <div
                                 key={
-                                  video._id ||
-                                  video.id ||
+                                  videoId ||
                                   videoIndex
                                 }
-                                className="group flex items-center gap-4 p-4 transition hover:bg-white/[0.03] sm:p-5"
+                                className="
+                                  group
+                                  flex
+                                  items-center
+                                  gap-4
+                                  p-4
+                                  transition
+                                  hover:bg-white/[0.025]
+                                  sm:p-5
+                                "
                               >
-                                {/* ICON */}
-                                <div
-                                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                                    isLocked
-                                      ? "bg-slate-800 text-slate-500"
-                                      : "bg-blue-500/10 text-blue-400"
-                                  }`}
+
+                                {/* Video Icon */}
+                                <Box
+                                  className={`
+                                    flex
+                                    h-11
+                                    w-11
+                                    shrink-0
+                                    items-center
+                                    justify-center
+                                    rounded-xl
+                                    ${
+                                      isLocked
+                                        ? "bg-slate-900 text-slate-600"
+                                        : "bg-cyan-400/10 text-cyan-300"
+                                    }
+                                  `}
                                 >
                                   {isLocked ? (
-                                    <Lock size={17} />
+                                    <Lock fontSize="small" />
                                   ) : (
-                                    <PlayCircle size={19} />
+                                    <PlayArrow fontSize="small" />
                                   )}
-                                </div>
+                                </Box>
 
-                                {/* INFO */}
+                                {/* Video Info */}
                                 <div className="min-w-0 flex-1">
+
                                   <div className="flex flex-wrap items-center gap-2">
-                                    <h4
-                                      className={`text-sm font-semibold ${
-                                        isLocked
-                                          ? "text-slate-500"
-                                          : "text-slate-200"
-                                      }`}
+
+                                    <Typography
+                                      component="h4"
+                                      className={`
+                                        !text-sm
+                                        !font-semibold
+                                        ${
+                                          isLocked
+                                            ? "!text-slate-500"
+                                            : "!text-slate-200"
+                                        }
+                                      `}
                                     >
                                       {videoIndex + 1}.{" "}
-                                      {video.title}
-                                    </h4>
+                                      {video.title ||
+                                        `Video ${
+                                          videoIndex + 1
+                                        }`}
+                                    </Typography>
 
                                     {isPreview && (
-                                      <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
-                                        Preview
-                                      </span>
+                                      <Chip
+                                        label="Preview"
+                                        size="small"
+                                        className="
+                                          !h-6
+                                          !bg-emerald-400/10
+                                          !text-[10px]
+                                          !font-bold
+                                          !uppercase
+                                          !tracking-wider
+                                          !text-emerald-400
+                                        "
+                                      />
                                     )}
 
                                     {isLocked && (
-                                      <span className="rounded-full bg-slate-800 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                                        Locked
-                                      </span>
+                                      <Chip
+                                        label="Locked"
+                                        size="small"
+                                        icon={
+                                          <Lock
+                                            sx={{
+                                              fontSize:
+                                                "12px !important",
+                                            }}
+                                          />
+                                        }
+                                        className="
+                                          !h-6
+                                          !bg-slate-900
+                                          !text-[10px]
+                                          !font-bold
+                                          !uppercase
+                                          !tracking-wider
+                                          !text-slate-600
+                                        "
+                                      />
                                     )}
+
                                   </div>
 
                                   {video.duration && (
-                                    <p className="mt-1 text-xs text-slate-500">
-                                      {formatDuration(
-                                        video.duration
-                                      )}
-                                    </p>
+                                    <div className="mt-1 flex items-center gap-1">
+
+                                      <Schedule
+                                        sx={{
+                                          fontSize: 13,
+                                        }}
+                                        className="!text-slate-600"
+                                      />
+
+                                      <Typography
+                                        component="span"
+                                        className="!text-xs !text-slate-500"
+                                      >
+                                        {formatDuration(
+                                          video.duration
+                                        )}
+                                      </Typography>
+
+                                    </div>
                                   )}
+
                                 </div>
 
-                                {/* ACTION */}
-                                {isPreview ? (
-                                  <Link
-                                    to={`/courses/${course.slug}/watch/${
-                                      video._id ||
-                                      video.id
-                                    }`}
-                                    className="flex shrink-0 items-center gap-2 rounded-xl border border-blue-400/20 bg-blue-500/10 px-3 py-2 text-xs font-semibold text-blue-300 transition hover:bg-blue-500/20 sm:px-4"
-                                  >
-                                    <PlayCircle size={15} />
+                                {/* =================================================
+                                    VIDEO ACTION
+                                ================================================= */}
 
-                                    <span>
+                                {isPreview && videoId ? (
+
+                                  <Button
+                                    component={Link}
+                                    to={`/courses/${course.slug}/watch/${videoId}`}
+                                    variant="outlined"
+                                    startIcon={
+                                      <PlayArrow />
+                                    }
+                                    className="
+                                      !min-h-10
+                                      !shrink-0
+                                      !rounded-xl
+                                      !border-cyan-400/20
+                                      !bg-cyan-400/5
+                                      !px-3
+                                      !text-xs
+                                      !font-bold
+                                      !normal-case
+                                      !text-cyan-300
+                                      hover:!border-cyan-400/30
+                                      hover:!bg-cyan-400/10
+                                    "
+                                  >
+                                    <span className="hidden sm:inline">
                                       Watch Preview
                                     </span>
-                                  </Link>
+                                    <span className="sm:hidden">
+                                      Watch
+                                    </span>
+                                  </Button>
+
                                 ) : (
-                                  <div className="flex shrink-0 items-center gap-2 rounded-xl border border-white/5 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-600">
-                                    <Lock size={14} />
+
+                                  <Box
+                                    className="
+                                      flex
+                                      h-10
+                                      shrink-0
+                                      items-center
+                                      gap-2
+                                      rounded-xl
+                                      border
+                                      border-white/5
+                                      bg-slate-900
+                                      px-3
+                                      text-xs
+                                      font-semibold
+                                      text-slate-600
+                                    "
+                                  >
+                                    <Lock
+                                      sx={{
+                                        fontSize: 15,
+                                      }}
+                                    />
 
                                     <span className="hidden sm:inline">
                                       Locked
                                     </span>
-                                  </div>
+                                  </Box>
+
                                 )}
+
                               </div>
                             );
                           }
                         )
+
                       )}
+
                     </div>
-                  </div>
+
+                  </Paper>
                 );
               })}
+
             </div>
           )}
+
         </section>
 
-        {/* CTA */}
-        <section className="mt-14 overflow-hidden rounded-3xl border border-blue-400/10 bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10 p-8 text-center sm:p-12">
-          <h2 className="text-2xl font-black sm:text-3xl">
-            Ready to start learning?
-          </h2>
+        {/* ======================================================
+            BOTTOM CTA
+        ====================================================== */}
 
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-            Start your learning journey with structured
-            modules, practical lessons and progress
-            tracking.
-          </p>
+        <section
+          className="
+            mt-14
+            overflow-hidden
+            rounded-[1.75rem]
+            border
+            border-cyan-400/10
+            bg-gradient-to-br
+            from-cyan-400/[0.08]
+            via-blue-500/[0.05]
+            to-violet-500/[0.08]
+            p-8
+            text-center
+            shadow-2xl
+            backdrop-blur-xl
+            sm:p-12
+          "
+        >
 
-          <button
-            type="button"
-            className="mt-6 rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-200"
-          >
-            Get Started
-          </button>
+          <div className="mx-auto max-w-2xl">
+
+            <div className="flex items-center justify-center gap-2">
+
+              <AutoAwesome
+                fontSize="small"
+                className="!text-cyan-400"
+              />
+
+              <Typography
+                component="span"
+                className="!text-sm !font-bold !text-cyan-300"
+              >
+                Start Learning
+              </Typography>
+
+            </div>
+
+            <Typography
+              component="h2"
+              className="
+                !mt-3
+                !text-2xl
+                !font-black
+                !text-white
+                sm:!text-3xl
+              "
+            >
+              Ready to start learning?
+            </Typography>
+
+            <Typography
+              component="p"
+              className="
+                !mx-auto
+                !mt-3
+                !max-w-xl
+                !text-sm
+                !leading-6
+                !text-slate-400
+              "
+            >
+              Start your learning journey with structured
+              modules, practical lessons and progress
+              tracking.
+            </Typography>
+
+            <Button
+              component={Link}
+              to="/courses"
+              variant="contained"
+              startIcon={<ArrowBack />}
+              className="
+                !mt-6
+                !rounded-xl
+                !bg-white
+                !px-6
+                !py-3
+                !text-sm
+                !font-bold
+                !normal-case
+                !text-slate-950
+                hover:!bg-slate-200
+              "
+            >
+              Explore More Courses
+            </Button>
+
+          </div>
+
         </section>
+
       </main>
+
     </div>
   );
+}
+
+/*
+ * Kept as a local alias so the CTA button remains
+ * readable without importing another icon separately.
+ */
+function ArrowForwardIcon() {
+  return <PlayArrow fontSize="small" />;
 }

@@ -1,66 +1,295 @@
+import {
+  Box,
+  Skeleton,
+} from "@mui/material";
+
 export default function CourseSkeleton() {
   return (
-    <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/10">
-      {/* Thumbnail Skeleton */}
-      <div className="aspect-video animate-pulse bg-white/10" />
+    <Box
+      component="article"
+      className="
+        group relative flex h-full flex-col overflow-hidden
+        rounded-[1.75rem]
+        border border-white/10
+        bg-white/[0.035]
+        shadow-2xl shadow-black/20
+        backdrop-blur-xl
+      "
+    >
+      {/* =========================================================
+          THUMBNAIL
+      ========================================================= */}
+      <Skeleton
+        variant="rectangular"
+        animation="wave"
+        className="
+          !h-auto
+          !aspect-video
+          !w-full
+          !transform-none
+          !bg-white/[0.07]
+        "
+      />
 
+      {/* =========================================================
+          CONTENT
+      ========================================================= */}
       <div className="p-5">
-        {/* Category / Level */}
+
+        {/* =======================================================
+            LEVEL + LANGUAGE
+        ======================================================= */}
         <div className="flex gap-2">
-          <div className="h-6 w-24 animate-pulse rounded-full bg-white/10" />
-          <div className="h-6 w-16 animate-pulse rounded-full bg-white/10" />
+          <Skeleton
+            variant="rounded"
+            animation="wave"
+            width={92}
+            height={26}
+            className="!bg-white/[0.07]"
+          />
+
+          <Skeleton
+            variant="rounded"
+            animation="wave"
+            width={68}
+            height={26}
+            className="!bg-white/[0.07]"
+          />
         </div>
 
-        {/* Title */}
+        {/* =======================================================
+            TITLE
+        ======================================================= */}
         <div className="mt-4 space-y-2">
-          <div className="h-6 w-4/5 animate-pulse rounded-lg bg-white/10" />
-          <div className="h-6 w-3/5 animate-pulse rounded-lg bg-white/10" />
+
+          <Skeleton
+            variant="rounded"
+            animation="wave"
+            height={24}
+            width="82%"
+            className="!bg-white/[0.07]"
+          />
+
+          <Skeleton
+            variant="rounded"
+            animation="wave"
+            height={24}
+            width="62%"
+            className="!bg-white/[0.07]"
+          />
+
         </div>
 
-        {/* Description */}
+        {/* =======================================================
+            DESCRIPTION
+        ======================================================= */}
         <div className="mt-4 space-y-2">
-          <div className="h-3 w-full animate-pulse rounded bg-white/10" />
-          <div className="h-3 w-5/6 animate-pulse rounded bg-white/10" />
+
+          <Skeleton
+            variant="rounded"
+            animation="wave"
+            height={12}
+            width="100%"
+            className="!bg-white/[0.07]"
+          />
+
+          <Skeleton
+            variant="rounded"
+            animation="wave"
+            height={12}
+            width="84%"
+            className="!bg-white/[0.07]"
+          />
+
         </div>
 
-        {/* Instructor */}
+        {/* =======================================================
+            INSTRUCTOR
+        ======================================================= */}
         <div className="mt-5 flex items-center gap-3">
-          <div className="h-9 w-9 animate-pulse rounded-full bg-white/10" />
+
+          <Skeleton
+            variant="circular"
+            animation="wave"
+            width={40}
+            height={40}
+            className="!bg-white/[0.07]"
+          />
 
           <div className="space-y-2">
-            <div className="h-2.5 w-16 animate-pulse rounded bg-white/10" />
-            <div className="h-3 w-28 animate-pulse rounded bg-white/10" />
+
+            <Skeleton
+              variant="rounded"
+              animation="wave"
+              width={62}
+              height={10}
+              className="!bg-white/[0.07]"
+            />
+
+            <Skeleton
+              variant="rounded"
+              animation="wave"
+              width={112}
+              height={14}
+              className="!bg-white/[0.07]"
+            />
+
+          </div>
+
+        </div>
+
+        {/* =======================================================
+            COURSE STATS
+        ======================================================= */}
+        <div
+          className="
+            mt-5
+            rounded-2xl
+            border border-white/10
+            bg-black/10
+            px-3
+            py-4
+          "
+        >
+          <div className="grid grid-cols-3">
+
+            {/* Modules */}
+            <div className="flex items-center gap-2 px-1">
+
+              <Skeleton
+                variant="rounded"
+                animation="wave"
+                width={18}
+                height={18}
+                className="!bg-white/[0.07]"
+              />
+
+              <div className="space-y-2">
+                <Skeleton
+                  variant="rounded"
+                  animation="wave"
+                  width={28}
+                  height={14}
+                  className="!bg-white/[0.07]"
+                />
+
+                <Skeleton
+                  variant="rounded"
+                  animation="wave"
+                  width={48}
+                  height={9}
+                  className="!bg-white/[0.07]"
+                />
+              </div>
+
+            </div>
+
+            {/* Videos */}
+            <div className="flex items-center gap-2 border-x border-white/10 px-3">
+
+              <Skeleton
+                variant="rounded"
+                animation="wave"
+                width={18}
+                height={18}
+                className="!bg-white/[0.07]"
+              />
+
+              <div className="space-y-2">
+                <Skeleton
+                  variant="rounded"
+                  animation="wave"
+                  width={28}
+                  height={14}
+                  className="!bg-white/[0.07]"
+                />
+
+                <Skeleton
+                  variant="rounded"
+                  animation="wave"
+                  width={44}
+                  height={9}
+                  className="!bg-white/[0.07]"
+                />
+              </div>
+
+            </div>
+
+            {/* Duration */}
+            <div className="flex items-center gap-2 px-3">
+
+              <Skeleton
+                variant="rounded"
+                animation="wave"
+                width={18}
+                height={18}
+                className="!bg-white/[0.07]"
+              />
+
+              <div className="space-y-2">
+                <Skeleton
+                  variant="rounded"
+                  animation="wave"
+                  width={30}
+                  height={14}
+                  className="!bg-white/[0.07]"
+                />
+
+                <Skeleton
+                  variant="rounded"
+                  animation="wave"
+                  width={50}
+                  height={9}
+                  className="!bg-white/[0.07]"
+                />
+              </div>
+
+            </div>
+
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="mt-5 grid grid-cols-3 gap-2 border-y border-white/10 py-4">
-          <div className="space-y-2">
-            <div className="h-4 w-8 animate-pulse rounded bg-white/10" />
-            <div className="h-2.5 w-14 animate-pulse rounded bg-white/10" />
-          </div>
+        {/* =======================================================
+            DIVIDER
+        ======================================================= */}
+        <div className="mt-5 border-t border-white/10" />
 
-          <div className="space-y-2 border-x border-white/10 px-2">
-            <div className="h-4 w-8 animate-pulse rounded bg-white/10" />
-            <div className="h-2.5 w-14 animate-pulse rounded bg-white/10" />
-          </div>
+        {/* =======================================================
+            PRICE + BUTTON
+        ======================================================= */}
+        <div className="mt-5 flex items-end justify-between gap-4">
 
           <div className="space-y-2">
-            <div className="h-4 w-8 animate-pulse rounded bg-white/10" />
-            <div className="h-2.5 w-14 animate-pulse rounded bg-white/10" />
+
+            <Skeleton
+              variant="rounded"
+              animation="wave"
+              width={78}
+              height={10}
+              className="!bg-white/[0.07]"
+            />
+
+            <Skeleton
+              variant="rounded"
+              animation="wave"
+              width={82}
+              height={22}
+              className="!bg-white/[0.07]"
+            />
+
           </div>
+
+          <Skeleton
+            variant="rounded"
+            animation="wave"
+            width={120}
+            height={42}
+            className="!bg-white/[0.07]"
+          />
+
         </div>
 
-        {/* Bottom */}
-        <div className="mt-5 flex items-end justify-between">
-          <div className="space-y-2">
-            <div className="h-2.5 w-20 animate-pulse rounded bg-white/10" />
-            <div className="h-5 w-20 animate-pulse rounded bg-white/10" />
-          </div>
-
-          <div className="h-10 w-28 animate-pulse rounded-xl bg-white/10" />
-        </div>
       </div>
-    </div>
+    </Box>
   );
 }
