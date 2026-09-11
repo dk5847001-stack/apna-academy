@@ -26,30 +26,33 @@ import {
 } from "@mui/material";
 
 import {
-  Notifications,
-  KeyboardArrowDown,
-  School,
+  Close,
+  ContactSupport,
+  Dashboard,
+  DarkMode,
+  InfoOutlined,
+  LightMode,
   Login,
   Logout,
   Menu as MenuIcon,
-  DarkMode,
-  LightMode,
+  MenuBook,
+  Notifications,
+  Person,
+  School,
   Search,
   Settings,
-  Person,
-  Close,
-  Dashboard,
-  MenuBook,
   SupportAgent,
-  InfoOutlined,
-  ContactSupport,
+  KeyboardArrowDown,
 } from "@mui/icons-material";
 
-const DASHBOARD_URL =
-  import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5175";
+import {
+  COURSE_URL,
+  DASHBOARD_URL,
+} from "../constants/config";
 
-const COURSE_URL =
-  import.meta.env.VITE_COURSE_URL || "http://localhost:5174";
+/* ============================================================
+   NAVIGATION
+============================================================ */
 
 const navItems = [
   {
@@ -69,6 +72,10 @@ const navItems = [
     path: "/contact",
   },
 ];
+
+/* ============================================================
+   HELPERS
+============================================================ */
 
 function getStoredUser() {
   try {
@@ -102,8 +109,14 @@ function getInitials(user) {
     return parts[0].slice(0, 2).toUpperCase();
   }
 
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  return `${parts[0][0]}${parts[
+    parts.length - 1
+  ][0]}`.toUpperCase();
 }
+
+/* ============================================================
+   FOOTER COMPONENTS
+============================================================ */
 
 function FooterColumn({ title, children }) {
   return (
@@ -121,7 +134,9 @@ function FooterColumn({ title, children }) {
         {title}
       </Typography>
 
-      <div className="space-y-1">{children}</div>
+      <div className="space-y-1">
+        {children}
+      </div>
     </div>
   );
 }
@@ -130,30 +145,27 @@ function FooterLink({ to, children }) {
   return (
     <Link
       to={to}
-      className="
-        block
-        w-fit
-        rounded-md
-        py-1
-        text-sm
-        text-slate-600
-        no-underline
-        transition-colors
-        duration-200
-        hover:text-blue-700
-      "
+      className="block w-fit rounded-md py-1 text-sm text-slate-600 no-underline transition-colors duration-200 hover:text-blue-700"
     >
       {children}
     </Link>
   );
 }
 
+/* ============================================================
+   MAIN LAYOUT
+============================================================ */
+
 export default function MainLayout() {
   const navigate = useNavigate();
 
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [profileAnchor, setProfileAnchor] = useState(null);
-  const [notificationAnchor, setNotificationAnchor] = useState(null);
+
+  const [profileAnchor, setProfileAnchor] =
+    useState(null);
+
+  const [notificationAnchor, setNotificationAnchor] =
+    useState(null);
 
   const [user, setUser] = useState(getStoredUser);
 
@@ -161,9 +173,23 @@ export default function MainLayout() {
     return localStorage.getItem("theme") === "dark";
   });
 
+  /*
+   * Authentication is determined from BOTH token and
+   * locally stored user information.
+   */
   const isLoggedIn = Boolean(
     localStorage.getItem("token") && user
   );
+
+  const profileOpen = Boolean(profileAnchor);
+
+  const notificationOpen = Boolean(
+    notificationAnchor
+  );
+
+  /* ==========================================================
+     AUTH STATE SYNC
+  ========================================================== */
 
   useEffect(() => {
     const syncAuth = () => {
@@ -173,9 +199,40 @@ export default function MainLayout() {
     window.addEventListener("storage", syncAuth);
 
     return () => {
-      window.removeEventListener("storage", syncAuth);
+      window.removeEventListener(
+        "storage",
+        syncAuth
+      );
     };
   }, []);
+
+  /*
+   * Custom event support.
+   *
+   * Login/Register in the same browser tab can dispatch
+   * "apnaacademy-auth-change" after updating localStorage.
+   */
+  useEffect(() => {
+    const syncCurrentAuth = () => {
+      setUser(getStoredUser());
+    };
+
+    window.addEventListener(
+      "apnaacademy-auth-change",
+      syncCurrentAuth
+    );
+
+    return () => {
+      window.removeEventListener(
+        "apnaacademy-auth-change",
+        syncCurrentAuth
+      );
+    };
+  }, []);
+
+  /* ==========================================================
+     THEME
+  ========================================================== */
 
   useEffect(() => {
     const root = document.documentElement;
@@ -189,77 +246,138 @@ export default function MainLayout() {
     }
   }, [isDarkMode]);
 
+  /* ==========================================================
+     CLOSE MOBILE MENU WHEN ROUTE CHANGES
+  ========================================================== */
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  /* ==========================================================
+     NAVIGATION HELPERS
+  ========================================================== */
+
+  const closeMobileMenu = () => {
+    setMobileOpen(false);
+  };
+
+  const closeProfileMenu = () => {
+    setProfileAnchor(null);
+  };
+
+  const closeNotificationMenu = () => {
+    setNotificationAnchor(null);
+  };
+
+  const handleCourses = () => {
+    closeMobileMenu();
+    navigate("/courses");
+  };
+
+  const handleLogin = () => {
+    closeMobileMenu();
+    navigate("/login");
+  };
+
+  const handleRegister = () => {
+    closeMobileMenu();
+    navigate("/register");
+  };
+
+  /* ==========================================================
+     EXTERNAL APP NAVIGATION
+  ========================================================== */
+
+  const handleDashboard = () => {
+    closeProfileMenu();
+    closeMobileMenu();
+    closeNotificationMenu();
+
+    window.location.href = DASHBOARD_URL;
+  };
+
+  const handleProfile = () => {
+    closeProfileMenu();
+    closeMobileMenu();
+
+    window.location.href =
+      `${DASHBOARD_URL}/profile`;
+  };
+
+  const handleMyCourses = () => {
+    closeProfileMenu();
+    closeMobileMenu();
+
+    window.location.href =
+      `${DASHBOARD_URL}/courses`;
+  };
+
+  const handleNotifications = () => {
+    closeNotificationMenu();
+    closeMobileMenu();
+
+    window.location.href =
+      `${DASHBOARD_URL}/notifications`;
+  };
+
+  const handleLearningApp = () => {
+    closeMobileMenu();
+
+    window.location.href = COURSE_URL;
+  };
+
+  /* ==========================================================
+     SUPPORT
+  ========================================================== */
+
+  const handleSupport = () => {
+    closeProfileMenu();
+    closeMobileMenu();
+
+    navigate("/contact");
+  };
+
+  /* ==========================================================
+     LOGOUT
+  ========================================================== */
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
     setUser(null);
-    setProfileAnchor(null);
-    setMobileOpen(false);
 
-    navigate("/login");
+    closeProfileMenu();
+    closeNotificationMenu();
+    closeMobileMenu();
+
+    /*
+     * Notify components in the same tab.
+     */
+    window.dispatchEvent(
+      new Event("apnaacademy-auth-change")
+    );
+
+    navigate("/login", {
+      replace: true,
+    });
   };
 
-  const handleDashboard = () => {
-    setProfileAnchor(null);
-    setMobileOpen(false);
+  /* ==========================================================
+     SEARCH
+  ========================================================== */
 
-    window.location.href = DASHBOARD_URL;
-  };
-
-  const handleCourses = () => {
-    setMobileOpen(false);
+  const handleSearch = () => {
+    closeMobileMenu();
     navigate("/courses");
   };
 
-  const handleLogin = () => {
-    setMobileOpen(false);
-    navigate("/login");
-  };
-
-  const handleRegister = () => {
-    setMobileOpen(false);
-    navigate("/register");
-  };
-
-  const handleProfile = () => {
-    setProfileAnchor(null);
-    setMobileOpen(false);
-
-    window.location.href = `${DASHBOARD_URL}/profile`;
-  };
-
-  const handleMyCourses = () => {
-    setProfileAnchor(null);
-    setMobileOpen(false);
-
-    window.location.href = `${DASHBOARD_URL}/courses`;
-  };
-
-  const handleNotifications = () => {
-    setNotificationAnchor(null);
-    setMobileOpen(false);
-
-    window.location.href = `${DASHBOARD_URL}/notifications`;
-  };
-
-  const handleSupport = () => {
-    setMobileOpen(false);
-    navigate("/contact");
-  };
-
-  const handleNavClick = () => {
-    setMobileOpen(false);
-  };
-
-  const profileOpen = Boolean(profileAnchor);
-  const notificationOpen = Boolean(notificationAnchor);
-
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      {/* =========================================================
+      {/* ======================================================
           NAVBAR
-      ========================================================= */}
+      ======================================================= */}
 
       <AppBar
         position="sticky"
@@ -267,53 +385,27 @@ export default function MainLayout() {
         sx={{
           backgroundColor: "#ffffff",
           color: "#0f172a",
-          borderBottom: "1px solid #e2e8f0",
-          boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
+          borderBottom:
+            "1px solid #e2e8f0",
+          boxShadow:
+            "0 1px 3px rgba(15, 23, 42, 0.04)",
           zIndex: 1200,
         }}
       >
         <Toolbar
           disableGutters
-          className="
-            mx-auto
-            flex
-            min-h-[68px]
-            w-full
-            max-w-7xl
-            px-4
-            sm:px-6
-            lg:px-8
-          "
+          className="mx-auto flex min-h-[68px] w-full max-w-7xl px-4 sm:px-6 lg:px-8"
         >
-          {/* =====================================================
-              LOGO
-          ===================================================== */}
+          {/* ==================================================
+              BRAND
+          =================================================== */}
 
           <Link
             to="/"
-            onClick={handleNavClick}
-            className="
-              flex
-              shrink-0
-              items-center
-              gap-2.5
-              no-underline
-            "
+            onClick={closeMobileMenu}
+            className="flex shrink-0 items-center gap-2.5 no-underline"
           >
-            <div
-              className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-                rounded-xl
-                border
-                border-blue-100
-                bg-blue-50
-                text-blue-700
-              "
-            >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-700">
               <School fontSize="small" />
             </div>
 
@@ -345,40 +437,22 @@ export default function MainLayout() {
             </div>
           </Link>
 
-          {/* =====================================================
+          {/* ==================================================
               DESKTOP NAVIGATION
-          ===================================================== */}
+          =================================================== */}
 
-          <nav
-            className="
-              ml-8
-              hidden
-              items-center
-              gap-1
-              lg:flex
-            "
-          >
+          <nav className="ml-8 hidden items-center gap-1 lg:flex">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 end={item.path === "/"}
                 className={({ isActive }) =>
-                  `
-                    rounded-lg
-                    px-3.5
-                    py-2
-                    text-sm
-                    font-semibold
-                    no-underline
-                    transition-colors
-                    duration-200
-                    ${
-                      isActive
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-blue-700"
-                    }
-                  `
+                  `rounded-lg px-3.5 py-2 text-sm font-semibold no-underline transition-colors duration-200 ${
+                    isActive
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-blue-700"
+                  }`
                 }
               >
                 {item.label}
@@ -386,14 +460,16 @@ export default function MainLayout() {
             ))}
           </nav>
 
+          {/* ==================================================
+              RIGHT NAVBAR ACTIONS
+          =================================================== */}
+
           <div className="ml-auto flex items-center gap-1.5">
-            {/* ===================================================
-                SEARCH
-            =================================================== */}
+            {/* Search */}
 
             <Tooltip title="Search courses">
               <IconButton
-                onClick={handleCourses}
+                onClick={handleSearch}
                 aria-label="Search courses"
                 sx={{
                   width: 40,
@@ -410,9 +486,9 @@ export default function MainLayout() {
               </IconButton>
             </Tooltip>
 
-            {/* ===================================================
-                THEME
-            =================================================== */}
+            {/* =================================================
+                THEME TOGGLE
+            ================================================== */}
 
             <Tooltip
               title={
@@ -422,7 +498,11 @@ export default function MainLayout() {
               }
             >
               <IconButton
-                onClick={() => setIsDarkMode((previous) => !previous)}
+                onClick={() =>
+                  setIsDarkMode(
+                    (previous) => !previous
+                  )
+                }
                 aria-label="Toggle theme"
                 sx={{
                   display: {
@@ -447,15 +527,17 @@ export default function MainLayout() {
               </IconButton>
             </Tooltip>
 
-            {/* ===================================================
+            {/* =================================================
                 NOTIFICATIONS
-            =================================================== */}
+            ================================================== */}
 
             {isLoggedIn && (
               <Tooltip title="Notifications">
                 <IconButton
                   onClick={(event) =>
-                    setNotificationAnchor(event.currentTarget)
+                    setNotificationAnchor(
+                      event.currentTarget
+                    )
                   }
                   aria-label="Notifications"
                   sx={{
@@ -474,16 +556,18 @@ export default function MainLayout() {
               </Tooltip>
             )}
 
-            {/* ===================================================
+            {/* =================================================
                 DESKTOP AUTH
-            =================================================== */}
+            ================================================== */}
 
             {!isLoggedIn ? (
               <div className="ml-1 hidden items-center gap-2 md:flex">
                 <Button
                   onClick={handleLogin}
                   variant="text"
-                  startIcon={<Login fontSize="small" />}
+                  startIcon={
+                    <Login fontSize="small" />
+                  }
                   sx={{
                     minHeight: 40,
                     px: 1.5,
@@ -525,7 +609,9 @@ export default function MainLayout() {
               <div className="ml-1 hidden md:block">
                 <Button
                   onClick={(event) =>
-                    setProfileAnchor(event.currentTarget)
+                    setProfileAnchor(
+                      event.currentTarget
+                    )
                   }
                   endIcon={
                     <KeyboardArrowDown
@@ -571,12 +657,14 @@ export default function MainLayout() {
               </div>
             )}
 
-            {/* ===================================================
+            {/* =================================================
                 MOBILE MENU
-            =================================================== */}
+            ================================================== */}
 
             <IconButton
-              onClick={() => setMobileOpen(true)}
+              onClick={() =>
+                setMobileOpen(true)
+              }
               aria-label="Open menu"
               sx={{
                 ml: 0.5,
@@ -588,7 +676,8 @@ export default function MainLayout() {
                 height: 42,
                 color: "#0f172a",
                 backgroundColor: "#ffffff",
-                border: "1px solid #e2e8f0",
+                border:
+                  "1px solid #e2e8f0",
                 borderRadius: "10px",
                 "&:hover": {
                   backgroundColor: "#f8fafc",
@@ -602,14 +691,14 @@ export default function MainLayout() {
         </Toolbar>
       </AppBar>
 
-      {/* =========================================================
+      {/* ======================================================
           PROFILE MENU
-      ========================================================= */}
+      ======================================================= */}
 
       <Menu
         anchorEl={profileAnchor}
         open={profileOpen}
-        onClose={() => setProfileAnchor(null)}
+        onClose={closeProfileMenu}
         anchorOrigin={{
           vertical: "bottom",
           horizontal: "right",
@@ -624,7 +713,8 @@ export default function MainLayout() {
               mt: 1,
               width: 250,
               borderRadius: "12px",
-              border: "1px solid #e2e8f0",
+              border:
+                "1px solid #e2e8f0",
               backgroundColor: "#ffffff",
               boxShadow:
                 "0 14px 35px rgba(15, 23, 42, 0.12)",
@@ -633,7 +723,7 @@ export default function MainLayout() {
           },
         }}
       >
-        {/* Profile Header */}
+        {/* Profile header */}
 
         <Box
           sx={{
@@ -677,13 +767,16 @@ export default function MainLayout() {
                 }}
                 noWrap
               >
-                {user?.email || "Student account"}
+                {user?.email ||
+                  "Student account"}
               </Typography>
             </div>
           </div>
         </Box>
 
         <Divider />
+
+        {/* Profile */}
 
         <MenuItem
           onClick={handleProfile}
@@ -710,6 +803,8 @@ export default function MainLayout() {
           Profile
         </MenuItem>
 
+        {/* My Courses */}
+
         <MenuItem
           onClick={handleMyCourses}
           sx={{
@@ -735,6 +830,8 @@ export default function MainLayout() {
           My Courses
         </MenuItem>
 
+        {/* Dashboard */}
+
         <MenuItem
           onClick={handleDashboard}
           sx={{
@@ -759,6 +856,8 @@ export default function MainLayout() {
 
           Dashboard
         </MenuItem>
+
+        {/* Support */}
 
         <MenuItem
           onClick={handleSupport}
@@ -787,6 +886,8 @@ export default function MainLayout() {
 
         <Divider />
 
+        {/* Logout */}
+
         <MenuItem
           onClick={handleLogout}
           sx={{
@@ -813,14 +914,14 @@ export default function MainLayout() {
         </MenuItem>
       </Menu>
 
-      {/* =========================================================
+      {/* ======================================================
           NOTIFICATION MENU
-      ========================================================= */}
+      ======================================================= */}
 
       <Menu
         anchorEl={notificationAnchor}
         open={notificationOpen}
-        onClose={() => setNotificationAnchor(null)}
+        onClose={closeNotificationMenu}
         anchorOrigin={{
           vertical: "bottom",
           horizontal: "right",
@@ -833,12 +934,15 @@ export default function MainLayout() {
           paper: {
             sx: {
               mt: 1,
-              width: 300,
+              width: 310,
+              maxWidth: "calc(100vw - 24px)",
               borderRadius: "12px",
-              border: "1px solid #e2e8f0",
+              border:
+                "1px solid #e2e8f0",
               backgroundColor: "#ffffff",
               boxShadow:
                 "0 14px 35px rgba(15, 23, 42, 0.12)",
+              overflow: "hidden",
             },
           },
         }}
@@ -849,24 +953,35 @@ export default function MainLayout() {
             py: 1.5,
           }}
         >
-          <Typography
-            sx={{
-              color: "#0f172a",
-              fontWeight: 800,
-              fontSize: "0.9rem",
-            }}
-          >
-            Notifications
-          </Typography>
+          <div className="flex items-center gap-2">
+            <Notifications
+              sx={{
+                color: "#2563eb",
+                fontSize: 20,
+              }}
+            />
+
+            <Typography
+              sx={{
+                color: "#0f172a",
+                fontWeight: 800,
+                fontSize: "0.9rem",
+              }}
+            >
+              Notifications
+            </Typography>
+          </div>
 
           <Typography
             sx={{
-              mt: 0.3,
+              mt: 0.5,
               color: "#64748b",
               fontSize: "0.75rem",
+              lineHeight: 1.5,
             }}
           >
-            Stay updated with your learning activity.
+            Stay updated with your learning
+            activity and new course updates.
           </Typography>
         </Box>
 
@@ -875,8 +990,10 @@ export default function MainLayout() {
         <MenuItem
           onClick={handleNotifications}
           sx={{
-            minHeight: 52,
+            minHeight: 54,
             color: "#334155",
+            fontSize: "0.875rem",
+            fontWeight: 600,
             "&:hover": {
               backgroundColor: "#eff6ff",
               color: "#1d4ed8",
@@ -896,14 +1013,14 @@ export default function MainLayout() {
         </MenuItem>
       </Menu>
 
-      {/* =========================================================
+      {/* ======================================================
           MOBILE DRAWER
-      ========================================================= */}
+      ======================================================= */}
 
       <Drawer
         anchor="right"
         open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
+        onClose={closeMobileMenu}
         slotProps={{
           paper: {
             sx: {
@@ -914,32 +1031,22 @@ export default function MainLayout() {
               maxWidth: 380,
               backgroundColor: "#ffffff",
               color: "#0f172a",
-              borderLeft: "1px solid #e2e8f0",
+              borderLeft:
+                "1px solid #e2e8f0",
             },
           },
         }}
       >
         <div className="flex h-full flex-col bg-white">
-          {/* Drawer Header */}
+          {/* Drawer header */}
 
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
             <Link
               to="/"
-              onClick={() => setMobileOpen(false)}
+              onClick={closeMobileMenu}
               className="flex items-center gap-2.5 no-underline"
             >
-              <div
-                className="
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-lg
-                  bg-blue-50
-                  text-blue-700
-                "
-              >
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
                 <School fontSize="small" />
               </div>
 
@@ -968,7 +1075,7 @@ export default function MainLayout() {
             </Link>
 
             <IconButton
-              onClick={() => setMobileOpen(false)}
+              onClick={closeMobileMenu}
               aria-label="Close menu"
               sx={{
                 width: 40,
@@ -984,7 +1091,7 @@ export default function MainLayout() {
             </IconButton>
           </div>
 
-          {/* User Section */}
+          {/* User section */}
 
           {isLoggedIn && (
             <div className="border-b border-slate-200 bg-slate-50 px-4 py-4">
@@ -1023,22 +1130,30 @@ export default function MainLayout() {
                     }}
                     noWrap
                   >
-                    {user?.email || "Student account"}
+                    {user?.email ||
+                      "Student account"}
                   </Typography>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Mobile Navigation */}
+          {/* Mobile navigation */}
 
-          <List sx={{ px: 1.5, py: 2 }}>
+          <List
+            sx={{
+              px: 1.5,
+              py: 2,
+              flex: 1,
+              overflowY: "auto",
+            }}
+          >
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 end={item.path === "/"}
-                onClick={handleNavClick}
+                onClick={closeMobileMenu}
                 className="no-underline"
               >
                 {({ isActive }) => (
@@ -1047,23 +1162,48 @@ export default function MainLayout() {
                       minHeight: 46,
                       mb: 0.5,
                       borderRadius: "9px",
-                      color: isActive ? "#1d4ed8" : "#334155",
-                      backgroundColor: isActive
-                        ? "#eff6ff"
-                        : "transparent",
+                      color: isActive
+                        ? "#1d4ed8"
+                        : "#334155",
+                      backgroundColor:
+                        isActive
+                          ? "#eff6ff"
+                          : "transparent",
                       "&:hover": {
-                        backgroundColor: "#f8fafc",
+                        backgroundColor:
+                          "#f8fafc",
                         color: "#1d4ed8",
                       },
                     }}
                   >
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 38,
+                        color: "inherit",
+                      }}
+                    >
+                      {item.path === "/" ? (
+                        <School fontSize="small" />
+                      ) : item.path ===
+                        "/courses" ? (
+                        <MenuBook fontSize="small" />
+                      ) : item.path ===
+                        "/about" ? (
+                        <InfoOutlined fontSize="small" />
+                      ) : (
+                        <ContactSupport fontSize="small" />
+                      )}
+                    </ListItemIcon>
+
                     <ListItemText
                       primary={item.label}
                       slotProps={{
                         primary: {
                           sx: {
                             fontSize: "0.9rem",
-                            fontWeight: isActive ? 800 : 600,
+                            fontWeight: isActive
+                              ? 800
+                              : 600,
                           },
                         },
                       }}
@@ -1073,8 +1213,10 @@ export default function MainLayout() {
               </NavLink>
             ))}
 
+            {/* Search */}
+
             <ListItemButton
-              onClick={handleCourses}
+              onClick={handleSearch}
               sx={{
                 minHeight: 46,
                 mb: 0.5,
@@ -1108,8 +1250,14 @@ export default function MainLayout() {
               />
             </ListItemButton>
 
+            {/* Theme */}
+
             <ListItemButton
-              onClick={() => setIsDarkMode((previous) => !previous)}
+              onClick={() =>
+                setIsDarkMode(
+                  (previous) => !previous
+                )
+              }
               sx={{
                 minHeight: 46,
                 mb: 0.5,
@@ -1155,6 +1303,8 @@ export default function MainLayout() {
               <>
                 <Divider sx={{ my: 1.5 }} />
 
+                {/* Dashboard */}
+
                 <ListItemButton
                   onClick={handleDashboard}
                   sx={{
@@ -1189,6 +1339,8 @@ export default function MainLayout() {
                     }}
                   />
                 </ListItemButton>
+
+                {/* Profile */}
 
                 <ListItemButton
                   onClick={handleProfile}
@@ -1225,6 +1377,8 @@ export default function MainLayout() {
                   />
                 </ListItemButton>
 
+                {/* My Courses */}
+
                 <ListItemButton
                   onClick={handleMyCourses}
                   sx={{
@@ -1260,6 +1414,8 @@ export default function MainLayout() {
                   />
                 </ListItemButton>
 
+                {/* Notifications */}
+
                 <ListItemButton
                   onClick={handleNotifications}
                   sx={{
@@ -1294,6 +1450,45 @@ export default function MainLayout() {
                     }}
                   />
                 </ListItemButton>
+
+                {/* Support */}
+
+                <ListItemButton
+                  onClick={handleSupport}
+                  sx={{
+                    minHeight: 46,
+                    mb: 0.5,
+                    borderRadius: "9px",
+                    color: "#334155",
+                    "&:hover": {
+                      backgroundColor: "#eff6ff",
+                      color: "#1d4ed8",
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 38,
+                      color: "inherit",
+                    }}
+                  >
+                    <SupportAgent fontSize="small" />
+                  </ListItemIcon>
+
+                  <ListItemText
+                    primary="Support"
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: "0.9rem",
+                          fontWeight: 600,
+                        },
+                      },
+                    }}
+                  />
+                </ListItemButton>
+
+                {/* Logout */}
 
                 <ListItemButton
                   onClick={handleLogout}
@@ -1333,14 +1528,19 @@ export default function MainLayout() {
             )}
           </List>
 
-          {/* Mobile Auth */}
+          {/* ==================================================
+              MOBILE AUTH
+          =================================================== */}
 
           {!isLoggedIn && (
-            <div className="mt-auto border-t border-slate-200 p-4">
+            <div className="border-t border-slate-200 p-4">
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   onClick={handleLogin}
                   variant="outlined"
+                  startIcon={
+                    <Login fontSize="small" />
+                  }
                   sx={{
                     minHeight: 44,
                     borderRadius: "9px",
@@ -1383,60 +1583,31 @@ export default function MainLayout() {
         </div>
       </Drawer>
 
-      {/* =========================================================
+      {/* ======================================================
           MAIN CONTENT
-      ========================================================= */}
+      ======================================================= */}
 
       <main className="min-h-[calc(100vh-68px)] bg-white">
         <Outlet />
       </main>
 
-      {/* =========================================================
+      {/* ======================================================
           FOOTER
-      ========================================================= */}
+      ======================================================= */}
 
       <footer className="border-t border-slate-200 bg-white">
-        <div
-          className="
-            mx-auto
-            w-full
-            max-w-7xl
-            px-4
-            py-12
-            sm:px-6
-            lg:px-8
-          "
-        >
-          {/* Footer Top */}
-
-          <div
-            className="
-              grid
-              grid-cols-1
-              gap-10
-              md:grid-cols-2
-              lg:grid-cols-[1.5fr_1fr_1fr_1fr]
-            "
-          >
-            {/* Brand */}
+        <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+            {/* =================================================
+                BRAND
+            ================================================== */}
 
             <div className="max-w-md">
               <Link
                 to="/"
                 className="inline-flex items-center gap-2.5 no-underline"
               >
-                <div
-                  className="
-                    flex
-                    h-10
-                    w-10
-                    items-center
-                    justify-center
-                    rounded-xl
-                    bg-blue-50
-                    text-blue-700
-                  "
-                >
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
                   <School fontSize="small" />
                 </div>
 
@@ -1460,46 +1631,26 @@ export default function MainLayout() {
                   lineHeight: 1.7,
                 }}
               >
-                Build practical skills through structured courses,
-                hands-on learning and outcome-focused education.
+                Build practical skills through
+                structured courses, hands-on
+                learning and outcome-focused
+                education.
               </Typography>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <span
-                  className="
-                    rounded-full
-                    border
-                    border-slate-200
-                    bg-slate-50
-                    px-3
-                    py-1
-                    text-xs
-                    font-semibold
-                    text-slate-600
-                  "
-                >
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
                   Practical Learning
                 </span>
 
-                <span
-                  className="
-                    rounded-full
-                    border
-                    border-slate-200
-                    bg-slate-50
-                    px-3
-                    py-1
-                    text-xs
-                    font-semibold
-                    text-slate-600
-                  "
-                >
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
                   Career Focused
                 </span>
               </div>
             </div>
 
-            {/* Platform */}
+            {/* =================================================
+                PLATFORM
+            ================================================== */}
 
             <FooterColumn title="Platform">
               <FooterLink to="/courses">
@@ -1516,29 +1667,16 @@ export default function MainLayout() {
 
               <button
                 type="button"
-                onClick={() => {
-                  window.location.href = COURSE_URL;
-                }}
-                className="
-                  block
-                  w-fit
-                  rounded-md
-                  border-0
-                  bg-transparent
-                  py-1
-                  text-left
-                  text-sm
-                  text-slate-600
-                  transition-colors
-                  duration-200
-                  hover:text-blue-700
-                "
+                onClick={handleLearningApp}
+                className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
               >
                 Learning App
               </button>
             </FooterColumn>
 
-            {/* Support */}
+            {/* =================================================
+                SUPPORT
+            ================================================== */}
 
             <FooterColumn title="Support">
               <FooterLink to="/contact">
@@ -1549,16 +1687,14 @@ export default function MainLayout() {
                 Contact Support
               </FooterLink>
 
-              <FooterLink to="/privacy">
-                Privacy Policy
-              </FooterLink>
-
-              <FooterLink to="/terms">
-                Terms & Conditions
+              <FooterLink to="/about">
+                About ApnaAcademy
               </FooterLink>
             </FooterColumn>
 
-            {/* Account */}
+            {/* =================================================
+                ACCOUNT
+            ================================================== */}
 
             <FooterColumn title="Account">
               {isLoggedIn ? (
@@ -1566,20 +1702,7 @@ export default function MainLayout() {
                   <button
                     type="button"
                     onClick={handleDashboard}
-                    className="
-                      block
-                      w-fit
-                      rounded-md
-                      border-0
-                      bg-transparent
-                      py-1
-                      text-left
-                      text-sm
-                      text-slate-600
-                      transition-colors
-                      duration-200
-                      hover:text-blue-700
-                    "
+                    className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
                   >
                     Dashboard
                   </button>
@@ -1587,20 +1710,7 @@ export default function MainLayout() {
                   <button
                     type="button"
                     onClick={handleMyCourses}
-                    className="
-                      block
-                      w-fit
-                      rounded-md
-                      border-0
-                      bg-transparent
-                      py-1
-                      text-left
-                      text-sm
-                      text-slate-600
-                      transition-colors
-                      duration-200
-                      hover:text-blue-700
-                    "
+                    className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
                   >
                     My Courses
                   </button>
@@ -1608,20 +1718,7 @@ export default function MainLayout() {
                   <button
                     type="button"
                     onClick={handleProfile}
-                    className="
-                      block
-                      w-fit
-                      rounded-md
-                      border-0
-                      bg-transparent
-                      py-1
-                      text-left
-                      text-sm
-                      text-slate-600
-                      transition-colors
-                      duration-200
-                      hover:text-blue-700
-                    "
+                    className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
                   >
                     Profile
                   </button>
@@ -1629,20 +1726,7 @@ export default function MainLayout() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="
-                      block
-                      w-fit
-                      rounded-md
-                      border-0
-                      bg-transparent
-                      py-1
-                      text-left
-                      text-sm
-                      text-red-600
-                      transition-colors
-                      duration-200
-                      hover:text-red-700
-                    "
+                    className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-red-600 transition-colors duration-200 hover:text-red-700"
                   >
                     Logout
                   </button>
@@ -1661,85 +1745,50 @@ export default function MainLayout() {
             </FooterColumn>
           </div>
 
-          {/* Footer Bottom */}
+          {/* =================================================
+              FOOTER BOTTOM
+          ================================================== */}
 
-          <div
-            className="
-              mt-10
-              flex
-              flex-col
-              gap-3
-              border-t
-              border-slate-200
-              pt-6
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
-            "
-          >
+          <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
             <Typography
               sx={{
                 color: "#64748b",
                 fontSize: "0.75rem",
               }}
             >
-              © {new Date().getFullYear()} ApnaAcademy. All
-              rights reserved.
+              © {new Date().getFullYear()}{" "}
+              ApnaAcademy. All rights reserved.
             </Typography>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <Link
                 to="/about"
-                className="
-                  inline-flex
-                  items-center
-                  gap-1
-                  text-xs
-                  font-semibold
-                  text-slate-500
-                  no-underline
-                  transition-colors
-                  hover:text-blue-700
-                "
+                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"
               >
-                <InfoOutlined sx={{ fontSize: 15 }} />
+                <InfoOutlined
+                  sx={{ fontSize: 15 }}
+                />
                 About
               </Link>
 
               <Link
                 to="/contact"
-                className="
-                  inline-flex
-                  items-center
-                  gap-1
-                  text-xs
-                  font-semibold
-                  text-slate-500
-                  no-underline
-                  transition-colors
-                  hover:text-blue-700
-                "
+                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"
               >
-                <ContactSupport sx={{ fontSize: 15 }} />
+                <ContactSupport
+                  sx={{ fontSize: 15 }}
+                />
                 Support
               </Link>
 
               <Link
                 to="/contact"
-                className="
-                  inline-flex
-                  items-center
-                  gap-1
-                  text-xs
-                  font-semibold
-                  text-slate-500
-                  no-underline
-                  transition-colors
-                  hover:text-blue-700
-                "
+                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"
               >
-                <Settings sx={{ fontSize: 15 }} />
-                Settings
+                <Settings
+                  sx={{ fontSize: 15 }}
+                />
+                Contact
               </Link>
             </div>
           </div>

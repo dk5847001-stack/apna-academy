@@ -1,4 +1,10 @@
 import {
+  Close,
+  FilterList,
+  Search,
+} from "@mui/icons-material";
+
+import {
   FormControl,
   IconButton,
   InputAdornment,
@@ -8,12 +14,6 @@ import {
   TextField,
   Tooltip,
 } from "@mui/material";
-
-import {
-  Close,
-  FilterList,
-  Search,
-} from "@mui/icons-material";
 
 const categories = [
   "All Categories",
@@ -43,39 +43,34 @@ export default function CourseFilters({
   onReset,
 }) {
   const hasFilters =
-    search.trim() ||
+    search.trim().length > 0 ||
     category !== "All Categories" ||
     level !== "All Levels";
 
   return (
     <section
+      aria-label="Course filters"
       className="
         mb-8
-        rounded-[1.75rem]
-        border border-white/10
-        bg-white/[0.035]
+        rounded-3xl
+        border border-slate-200
+        bg-white
         p-4
-        shadow-2xl shadow-black/20
-        backdrop-blur-xl
+        shadow-sm
         sm:p-5
       "
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-
-        {/* =======================================================
-            SEARCH
-        ======================================================= */}
+        {/* Search */}
         <div className="min-w-0 flex-1">
-
           <TextField
             fullWidth
             type="search"
             value={search}
-            onChange={(event) =>
-              setSearch(event.target.value)
-            }
+            onChange={(event) => setSearch(event.target.value)}
             placeholder="Search courses..."
             aria-label="Search courses"
+            autoComplete="off"
             variant="outlined"
             size="medium"
             slotProps={{
@@ -97,26 +92,20 @@ export default function CourseFilters({
               },
             }}
             className="
-              [&_.MuiOutlinedInput-root]:!bg-white
+              [&_.MuiOutlinedInput-root]:!bg-slate-50
               [&_.MuiOutlinedInput-notchedOutline]:!border-slate-200
               [&_.MuiOutlinedInput-root:hover_.MuiOutlinedInput-notchedOutline]:!border-slate-300
-              [&_.MuiOutlinedInput-root.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-blue-400
+              [&_.MuiOutlinedInput-root.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-blue-500
               [&_.MuiInputBase-input]:!text-sm
               [&_.MuiInputBase-input]:!text-slate-900
-              [&_.MuiInputBase-input::placeholder]:!text-slate-500
+              [&_.MuiInputBase-input::placeholder]:!text-slate-400
             "
           />
-
         </div>
 
-        {/* =======================================================
-            FILTER CONTROLS
-        ======================================================= */}
-        <div className="flex flex-col gap-3 sm:flex-row">
-
-          {/* =====================================================
-              CATEGORY
-          ===================================================== */}
+        {/* Filters */}
+        <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+          {/* Category */}
           <FormControl
             size="medium"
             className="w-full sm:w-52"
@@ -147,19 +136,19 @@ export default function CourseFilters({
               className="
                 !min-h-12
                 !rounded-2xl
-                !bg-white
+                !bg-slate-50
                 !text-sm
                 !text-slate-800
                 [&_.MuiOutlinedInput-notchedOutline]:!border-slate-200
                 hover:[&_.MuiOutlinedInput-notchedOutline]:!border-slate-300
-                [&.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-blue-400
+                [&.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-blue-500
                 [&_.MuiSelect-icon]:!text-slate-500
               "
               MenuProps={{
                 slotProps: {
                   paper: {
                     className:
-                      "!mt-2 !rounded-2xl !border !border-slate-200 !bg-white !text-slate-800 !shadow-2xl",
+                      "!mt-2 !rounded-2xl !border !border-slate-200 !bg-white !text-slate-800 !shadow-xl",
                   },
                 },
               }}
@@ -172,6 +161,7 @@ export default function CourseFilters({
                     !text-sm
                     hover:!bg-slate-50
                     [&.Mui-selected]:!bg-blue-50
+                    [&.Mui-selected]:!text-blue-700
                   "
                 >
                   {item}
@@ -180,9 +170,7 @@ export default function CourseFilters({
             </Select>
           </FormControl>
 
-          {/* =====================================================
-              LEVEL
-          ===================================================== */}
+          {/* Level */}
           <FormControl
             size="medium"
             className="w-full sm:w-44"
@@ -205,19 +193,19 @@ export default function CourseFilters({
               className="
                 !min-h-12
                 !rounded-2xl
-                !bg-white
+                !bg-slate-50
                 !text-sm
                 !text-slate-800
                 [&_.MuiOutlinedInput-notchedOutline]:!border-slate-200
                 hover:[&_.MuiOutlinedInput-notchedOutline]:!border-slate-300
-                [&.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-blue-400
+                [&.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-blue-500
                 [&_.MuiSelect-icon]:!text-slate-500
               "
               MenuProps={{
                 slotProps: {
                   paper: {
                     className:
-                      "!mt-2 !rounded-2xl !border !border-slate-200 !bg-white !text-slate-800 !shadow-2xl",
+                      "!mt-2 !rounded-2xl !border !border-slate-200 !bg-white !text-slate-800 !shadow-xl",
                   },
                 },
               }}
@@ -231,6 +219,7 @@ export default function CourseFilters({
                     capitalize
                     hover:!bg-slate-50
                     [&.Mui-selected]:!bg-blue-50
+                    [&.Mui-selected]:!text-blue-700
                   "
                 >
                   {item === "All Levels"
@@ -240,12 +229,9 @@ export default function CourseFilters({
               ))}
             </Select>
           </FormControl>
-
         </div>
 
-        {/* =======================================================
-            RESET
-        ======================================================= */}
+        {/* Reset */}
         {hasFilters && (
           <Tooltip title="Reset filters" arrow>
             <IconButton
@@ -256,21 +242,22 @@ export default function CourseFilters({
                 !h-12
                 !w-12
                 !shrink-0
+                !self-end
                 !rounded-2xl
                 !border
                 !border-slate-200
-                !bg-white/5
+                !bg-white
                 !text-slate-500
                 hover:!border-red-200
                 hover:!bg-red-50
                 hover:!text-red-600
+                lg:!self-auto
               "
             >
               <Close fontSize="small" />
             </IconButton>
           </Tooltip>
         )}
-
       </div>
     </section>
   );

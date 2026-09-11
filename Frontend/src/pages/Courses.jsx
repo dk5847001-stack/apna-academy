@@ -1,503 +1,638 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Alert,
   Box,
   Button,
   Chip,
+  CircularProgress,
+  Container,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 
 import {
-  ArrowBack,
   AutoAwesome,
-  AutoStories,
-  Book,
-  ChevronLeft,
-  ChevronRight,
-  Refresh,
-  School,
-  SearchOff,
+  FilterAltOff,
+  Search,
+  Tune,
 } from "@mui/icons-material";
 
 import api from "../services/api";
-
 import CourseCard from "../components/courses/CourseCard";
-import CourseSkeleton from "../components/courses/CourseSkeleton";
-import CourseFilters from "../components/courses/CourseFilters";
+
+const normalizeText = (value) =>
+  String(value || "").trim().toLowerCase();
+
+function getCourseLevel(course) {
+  return course?.level
+    ? String(course.level).replace(/[-_]/g, " ")
+    : "All Levels";
+}
+
+function getCourseCategory(course) {
+  return course?.category || "Other";
+}
 
 export default function Courses() {
   const [courses, setCourses] = useState([]);
 
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All Categories");
-  const [level, setLevel] = useState("All Levels");
-
-  const [page, setPage] = useState(1);
-
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 12,
-    total: 0,
-    totalPages: 0,
-    hasNextPage: false,
-    hasPreviousPage: false,
-  });
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  /*
-   * Fetch courses from backend
-   */
-  const fetchCourses = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError("");
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
+  const [level, setLevel] = useState("all");
+  const [sort, setSort] = useState("featured");
 
-      const params = {
-        page,
-        limit: 12,
-      };
-
-      if (search.trim()) {
-        params.search = search.trim();
-      }
-
-      if (category !== "All Categories") {
-        params.category = category;
-      }
-
-      if (level !== "All Levels") {
-        params.level = level;
-      }
-
-      const response = await api.get("/courses", {
-        params,
-      });
-
-      const result = response?.data?.data;
-
-      setCourses(result?.courses || []);
-
-      setPagination(
-        result?.pagination || {
-          page: 1,
-          limit: 12,
-          total: 0,
-          totalPages: 0,
-          hasNextPage: false,
-          hasPreviousPage: false,
-        }
-      );
-    } catch (err) {
-      console.error("Course fetch error:", err);
-
-      setCourses([]);
-
-      setError(
-        err?.response?.data?.message ||
-          "Unable to load courses. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [page, search, category, level]);
-
-  /*
-   * Fetch whenever page/filter changes
-   */
   useEffect(() => {
+    let mounted = true;
+
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await api.get("/courses");
+
+        if (!mounted) return;
+
+        const data = response.data?.data;
+
+        const courseList = Array.isArray(data)
+          ? data
+          : Array.isArray(response.data?.courses)
+          ? response.data.courses
+          : Array.isArray(data?.courses)
+          ? data.courses
+          : [];
+
+        setCourses(courseList);
+      } catch (err) {
+        console.error("Courses fetch error:", err);
+
+        if (mounted) {
+          setError(
+            err.response?.data?.message ||
+              "Unable to load courses right now. Please try again."
+          );
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchCourses();
-  }, [fetchCourses]);
 
-  /*
-   * Reset all filters
-   */
-  const handleReset = () => {
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const categories = useMemo(() => {
+    const values = courses
+      .map(getCourseCategory)
+      .filter(Boolean);
+
+    return [...new Set(values)].sort((a, b) =>
+      String(a).localeCompare(String(b))
+    );
+  }, [courses]);
+
+  const levels = useMemo(() => {
+    const values = courses
+      .map(getCourseLevel)
+      .filter(Boolean);
+
+    return [...new Set(values)].sort((a, b) =>
+      String(a).localeCompare(String(b))
+    );
+  }, [courses]);
+
+  const filteredCourses = useMemo(() => {
+    const searchValue = normalizeText(search);
+
+    const result = courses.filter((course) => {
+      const title = normalizeText(course?.title);
+      const description = normalizeText(
+        course?.shortDescription || course?.description
+      );
+      const courseCategory = normalizeText(
+        getCourseCategory(course)
+      );
+      const courseLevel = normalizeText(
+        getCourseLevel(course)
+      );
+      const instructor =
+        typeof course?.instructor === "string"
+          ? normalizeText(course.instructor)
+          : normalizeText(
+              course?.instructor?.name ||
+                course?.instructor?.fullName
+            );
+
+      const matchesSearch =
+        !searchValue ||
+        title.includes(searchValue) ||
+        description.includes(searchValue) ||
+        courseCategory.includes(searchValue) ||
+        instructor.includes(searchValue);
+
+      const matchesCategory =
+        category === "all" ||
+        normalizeText(courseCategory) ===
+          normalizeText(category);
+
+      const matchesLevel =
+        level === "all" ||
+        normalizeText(courseLevel) ===
+          normalizeText(level);
+
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesLevel
+      );
+    });
+
+    if (sort === "price-low") {
+      result.sort(
+        (a, b) =>
+          Number(a?.price || 0) -
+          Number(b?.price || 0)
+      );
+    }
+
+    if (sort === "price-high") {
+      result.sort(
+        (a, b) =>
+          Number(b?.price || 0) -
+          Number(a?.price || 0)
+      );
+    }
+
+    if (sort === "newest") {
+      result.sort(
+        (a, b) =>
+          new Date(b?.createdAt || 0) -
+          new Date(a?.createdAt || 0)
+      );
+    }
+
+    if (sort === "featured") {
+      result.sort(
+        (a, b) =>
+          Number(Boolean(b?.isFeatured)) -
+          Number(Boolean(a?.isFeatured))
+      );
+    }
+
+    return result;
+  }, [
+    courses,
+    search,
+    category,
+    level,
+    sort,
+  ]);
+
+  const clearFilters = () => {
     setSearch("");
-    setCategory("All Categories");
-    setLevel("All Levels");
-    setPage(1);
+    setCategory("all");
+    setLevel("all");
+    setSort("featured");
   };
 
-  /*
-   * Search change
-   */
-  const handleSearchChange = (value) => {
-    setSearch(value);
-    setPage(1);
-  };
-
-  /*
-   * Category change
-   */
-  const handleCategoryChange = (value) => {
-    setCategory(value);
-    setPage(1);
-  };
-
-  /*
-   * Level change
-   */
-  const handleLevelChange = (value) => {
-    setLevel(value);
-    setPage(1);
-  };
+  const hasActiveFilters =
+    search.trim() ||
+    category !== "all" ||
+    level !== "all" ||
+    sort !== "featured";
 
   return (
-    <main className="min-h-screen overflow-hidden bg-white text-slate-900">
+    <main className="min-h-screen bg-white text-slate-900">
+      {/* =====================================================
+          PAGE HERO
+      ====================================================== */}
 
-      {/* =========================================================
-          BACKGROUND
-      ========================================================= */}
-      <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden opacity-0">
-
-        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
-
-        <div className="absolute -right-40 top-1/4 h-[28rem] w-[28rem] rounded-full bg-blue-600/10 blur-3xl" />
-
-        <div className="absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-violet-500/10 blur-3xl" />
-
-        <div className="absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/5 blur-3xl" />
-
-      </div>
-
-      {/* =========================================================
-          MAIN CONTAINER
-      ========================================================= */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-
-        {/* =======================================================
-            HERO SECTION
-        ======================================================= */}
-        <section className="mb-10">
-
-          <div className="grid items-end gap-8 lg:grid-cols-[1fr_auto]">
-
-            {/* HERO CONTENT */}
+      <section className="border-b border-slate-200 bg-slate-50/70">
+        <Container maxWidth="lg">
+          <div className="py-12 sm:py-16">
             <div className="max-w-3xl">
-
               <Chip
-                icon={<AutoStories fontSize="small" />}
-                label="Explore ApnaAcademy"
-                variant="outlined"
-                className="!mb-5 !border-blue-200 !bg-blue-50 !text-blue-700"
+                icon={<AutoAwesome />}
+                label="Learning Library"
+                size="small"
+                className="
+                  !rounded-full
+                  !bg-blue-50
+                  !font-bold
+                  !text-blue-700
+                "
               />
 
               <Typography
                 component="h1"
-                className="!text-4xl !font-black !leading-tight !tracking-tight !text-slate-950 sm:!text-5xl lg:!text-6xl"
+                className="
+                  !mt-4
+                  !text-3xl
+                  !font-black
+                  !tracking-tight
+                  !text-slate-950
+                  sm:!text-4xl
+                  lg:!text-5xl
+                "
               >
-                Learn skills that
-
-                <span className="block bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">
-                  move you forward.
+                Explore courses built
+                <span className="text-blue-600">
+                  {" "}for practical growth.
                 </span>
               </Typography>
 
               <Typography
                 component="p"
-                className="!mt-5 !max-w-2xl !text-base !leading-7 !text-slate-600 sm:!text-lg"
+                className="
+                  !mt-4
+                  !max-w-2xl
+                  !text-sm
+                  !leading-7
+                  !text-slate-600
+                  sm:!text-base
+                "
               >
-                Explore practical courses designed to help you
-                build real-world technology skills and grow your
-                career.
+                Discover structured courses designed to help
+                you learn useful skills, build practical
+                knowledge and move closer to your goals.
               </Typography>
-
             </div>
 
-            {/* COURSE COUNT */}
-            {!loading && !error && (
-              <div className="hidden rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-xl backdrop-blur-xl sm:block">
+            {/* =================================================
+                SEARCH
+            ================================================== */}
 
-                <div className="flex items-center gap-3">
-
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <School />
-                  </div>
-
-                  <div>
-                    <p className="text-2xl font-black text-slate-900">
-                      {pagination.total}
-                    </p>
-
-                    <p className="text-xs text-slate-500">
-                      Courses available
-                    </p>
-                  </div>
-
-                </div>
-
-              </div>
-            )}
-
-          </div>
-
-        </section>
-
-        {/* =======================================================
-            FILTERS
-        ======================================================= */}
-        <CourseFilters
-          search={search}
-          setSearch={handleSearchChange}
-          category={category}
-          setCategory={handleCategoryChange}
-          level={level}
-          setLevel={handleLevelChange}
-          onReset={handleReset}
-        />
-
-        {/* =======================================================
-            RESULT SUMMARY
-        ======================================================= */}
-        {!loading && !error && (
-          <div className="mb-6 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-            <div className="flex items-center gap-2">
-
-              <Book
-                fontSize="small"
-                className="!text-slate-500"
+            <div className="mt-8">
+              <TextField
+                fullWidth
+                value={search}
+                onChange={(event) =>
+                  setSearch(event.target.value)
+                }
+                placeholder="Search courses, skills, topics..."
+                aria-label="Search courses"
+                InputProps={{
+                  startAdornment: (
+                    <Search className="mr-2 !text-slate-400" />
+                  ),
+                }}
+                className="
+                  !rounded-2xl
+                  !bg-white
+                "
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "16px",
+                  },
+                }}
               />
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* =====================================================
+          FILTERS
+      ====================================================== */}
+
+      <section className="border-b border-slate-200 bg-white">
+        <Container maxWidth="lg">
+          <div className="flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-2">
+              <Tune className="!text-[20px] !text-blue-600" />
 
               <Typography
-                component="p"
-                className="!text-sm !text-slate-600"
+                component="span"
+                className="!text-sm !font-black !text-slate-900"
               >
-                Showing{" "}
-
-                <span className="font-bold text-slate-900">
-                  {courses.length}
-                </span>{" "}
-
-                of{" "}
-
-                <span className="font-bold text-slate-900">
-                  {pagination.total}
-                </span>{" "}
-
-                courses
+                Find your course
               </Typography>
 
+              <Chip
+                label={`${filteredCourses.length} ${
+                  filteredCourses.length === 1
+                    ? "course"
+                    : "courses"
+                }`}
+                size="small"
+                className="
+                  !ml-1
+                  !bg-slate-100
+                  !font-bold
+                  !text-slate-600
+                "
+              />
             </div>
 
-            {pagination.totalPages > 0 && (
-              <Typography
-                component="p"
-                className="!text-sm !font-medium !text-slate-500"
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[650px]">
+              <FormControl
+                fullWidth
+                size="small"
               >
-                Page {pagination.page} of{" "}
-                {pagination.totalPages}
-              </Typography>
-            )}
+                <InputLabel>Category</InputLabel>
 
+                <Select
+                  value={category}
+                  label="Category"
+                  onChange={(event) =>
+                    setCategory(event.target.value)
+                  }
+                  className="!rounded-xl"
+                >
+                  <MenuItem value="all">
+                    All Categories
+                  </MenuItem>
+
+                  {categories.map((item) => (
+                    <MenuItem
+                      key={item}
+                      value={item}
+                    >
+                      {item}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl
+                fullWidth
+                size="small"
+              >
+                <InputLabel>Level</InputLabel>
+
+                <Select
+                  value={level}
+                  label="Level"
+                  onChange={(event) =>
+                    setLevel(event.target.value)
+                  }
+                  className="!rounded-xl"
+                >
+                  <MenuItem value="all">
+                    All Levels
+                  </MenuItem>
+
+                  {levels.map((item) => (
+                    <MenuItem
+                      key={item}
+                      value={item}
+                    >
+                      {item}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl
+                fullWidth
+                size="small"
+              >
+                <InputLabel>Sort By</InputLabel>
+
+                <Select
+                  value={sort}
+                  label="Sort By"
+                  onChange={(event) =>
+                    setSort(event.target.value)
+                  }
+                  className="!rounded-xl"
+                >
+                  <MenuItem value="featured">
+                    Featured
+                  </MenuItem>
+
+                  <MenuItem value="newest">
+                    Newest
+                  </MenuItem>
+
+                  <MenuItem value="price-low">
+                    Price: Low to High
+                  </MenuItem>
+
+                  <MenuItem value="price-high">
+                    Price: High to Low
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </div>
           </div>
-        )}
 
-        {/* =======================================================
-            LOADING STATE
-        ======================================================= */}
-        {loading && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2 pb-5">
+              {search.trim() && (
+                <Chip
+                  label={`Search: ${search}`}
+                  size="small"
+                  onDelete={() => setSearch("")}
+                  className="!bg-blue-50 !font-semibold !text-blue-700"
+                />
+              )}
 
-            {Array.from({ length: 6 }).map((_, index) => (
-              <CourseSkeleton key={index} />
-            ))}
+              {category !== "all" && (
+                <Chip
+                  label={`Category: ${category}`}
+                  size="small"
+                  onDelete={() =>
+                    setCategory("all")
+                  }
+                  className="!bg-blue-50 !font-semibold !text-blue-700"
+                />
+              )}
 
-          </div>
-        )}
+              {level !== "all" && (
+                <Chip
+                  label={`Level: ${level}`}
+                  size="small"
+                  onDelete={() => setLevel("all")}
+                  className="!bg-blue-50 !font-semibold !text-blue-700"
+                />
+              )}
 
-        {/* =======================================================
-            ERROR STATE
-        ======================================================= */}
-        {!loading && error && (
-          <section className="rounded-[2rem] border border-red-200 bg-red-50 p-8 shadow-xl backdrop-blur-xl sm:p-14">
+              <Button
+                size="small"
+                startIcon={<FilterAltOff />}
+                onClick={clearFilters}
+                className="
+                  !rounded-lg
+                  !font-bold
+                  !normal-case
+                  !text-slate-500
+                "
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
+        </Container>
+      </section>
 
-            <div className="mx-auto max-w-md text-center">
+      {/* =====================================================
+          COURSE LIST
+      ====================================================== */}
 
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-red-200 bg-red-100 text-2xl font-black text-red-600">
-                !
+      <section className="bg-white py-10 sm:py-14">
+        <Container maxWidth="lg">
+          {loading ? (
+            <div className="flex min-h-[360px] items-center justify-center">
+              <Stack
+                alignItems="center"
+                spacing={2}
+              >
+                <CircularProgress size={34} />
+
+                <Typography
+                  component="p"
+                  className="!text-sm !font-semibold !text-slate-500"
+                >
+                  Loading courses...
+                </Typography>
+              </Stack>
+            </div>
+          ) : error ? (
+            <div className="mx-auto max-w-2xl">
+              <Alert
+                severity="error"
+                className="!rounded-2xl"
+                action={
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      window.location.reload();
+                    }}
+                    className="!font-bold !normal-case"
+                  >
+                    Retry
+                  </Button>
+                }
+              >
+                {error}
+              </Alert>
+            </div>
+          ) : filteredCourses.length > 0 ? (
+            <>
+              <div className="mb-7 flex items-end justify-between gap-4">
+                <div>
+                  <Typography
+                    component="h2"
+                    className="!text-xl !font-black !text-slate-950 sm:!text-2xl"
+                  >
+                    Available Courses
+                  </Typography>
+
+                  <Typography
+                    component="p"
+                    className="!mt-1 !text-xs !text-slate-500 sm:!text-sm"
+                  >
+                    Choose a course and start building
+                    practical skills.
+                  </Typography>
+                </div>
               </div>
+
+              <div
+                className="
+                  grid
+                  grid-cols-2
+                  gap-3
+                  sm:grid-cols-2
+                  sm:gap-5
+                  lg:grid-cols-3
+                "
+              >
+                {filteredCourses.map((course) => (
+                  <CourseCard
+                    key={
+                      course?._id ||
+                      course?.id ||
+                      course?.slug
+                    }
+                    course={course}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="mx-auto max-w-xl rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center">
+              <Box className="mx-auto flex !h-12 !w-12 items-center justify-center !rounded-2xl !bg-white !text-slate-400 !shadow-sm">
+                <Search />
+              </Box>
 
               <Typography
                 component="h2"
-                className="!mt-5 !text-xl !font-bold !text-slate-950"
+                className="!mt-5 !text-lg !font-black !text-slate-950"
               >
-                Unable to load courses
+                No courses found
               </Typography>
 
               <Typography
                 component="p"
-                className="!mt-2 !text-sm !leading-6 !text-slate-600"
+                className="!mt-2 !text-sm !leading-6 !text-slate-500"
               >
-                {error}
+                Try changing your search or filters to find
+                available courses.
               </Typography>
 
-              <Button
-                type="button"
-                onClick={fetchCourses}
-                startIcon={<Refresh />}
-                variant="contained"
-                className="!mt-6 !rounded-xl !bg-blue-600 !px-5 !py-3 !text-sm !font-bold !normal-case !text-white hover:!bg-blue-700"
-              >
-                Try Again
-              </Button>
-
+              {hasActiveFilters && (
+                <Button
+                  variant="contained"
+                  startIcon={<FilterAltOff />}
+                  onClick={clearFilters}
+                  className="
+                    !mt-5
+                    !rounded-xl
+                    !bg-blue-600
+                    !font-bold
+                    !normal-case
+                    hover:!bg-blue-700
+                  "
+                >
+                  Clear Filters
+                </Button>
+              )}
             </div>
+          )}
+        </Container>
+      </section>
 
-          </section>
-        )}
+      {/* =====================================================
+          BOTTOM CTA
+      ====================================================== */}
 
-        {/* =======================================================
-            EMPTY STATE
-        ======================================================= */}
-        {!loading && !error && courses.length === 0 && (
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-10 text-center shadow-xl backdrop-blur-xl sm:p-16">
-
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500">
-              <SearchOff fontSize="large" />
-            </div>
-
+      <section className="border-t border-slate-200 bg-slate-50 py-14">
+        <Container maxWidth="md">
+          <div className="rounded-3xl border border-blue-100 bg-blue-50 px-6 py-9 text-center sm:px-10">
             <Typography
               component="h2"
-              className="!mt-6 !text-2xl !font-bold !text-slate-950"
+              className="!text-2xl !font-black !text-slate-950"
             >
-              No courses found
+              Your next skill starts here.
             </Typography>
 
             <Typography
               component="p"
-              className="mx-auto !mt-3 !max-w-md !text-sm !leading-6 !text-slate-500"
+              className="!mx-auto !mt-3 !max-w-xl !text-sm !leading-6 !text-slate-600"
             >
-              We couldn't find any courses matching your
-              current search or filters.
+              Explore the learning library and choose a
+              practical path that matches your goals.
             </Typography>
-
-            <Button
-              type="button"
-              onClick={handleReset}
-              startIcon={<Refresh />}
-              variant="outlined"
-              className="!mt-6 !rounded-xl !border-slate-300 !bg-white !px-5 !py-3 !text-sm !font-semibold !normal-case !text-slate-700 hover:!border-blue-300 hover:!bg-blue-50"
-            >
-              Clear Filters
-            </Button>
-
-          </section>
-        )}
-
-        {/* =======================================================
-            COURSE GRID
-        ======================================================= */}
-        {!loading && !error && courses.length > 0 && (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-
-            {courses.map((course) => (
-              <CourseCard
-                key={course.id}
-                course={course}
-              />
-            ))}
-
           </div>
-        )}
-
-        {/* =======================================================
-            PAGINATION
-        ======================================================= */}
-        {!loading &&
-          !error &&
-          pagination.totalPages > 1 && (
-            <nav
-              className="mt-10 flex items-center justify-center gap-3"
-              aria-label="Course pagination"
-            >
-
-              {/* PREVIOUS */}
-              <Button
-                type="button"
-                disabled={!pagination.hasPreviousPage}
-                onClick={() =>
-                  setPage((current) =>
-                    Math.max(current - 1, 1)
-                  )
-                }
-                startIcon={<ChevronLeft />}
-                variant="outlined"
-                className="!min-h-11 !rounded-xl !border-slate-300 !bg-white !px-4 !text-sm !font-semibold !normal-case !text-slate-700 hover:!border-blue-300 hover:!bg-blue-50 disabled:!opacity-40"
-              >
-                Previous
-              </Button>
-
-              {/* CURRENT PAGE */}
-              <Box className="flex !min-h-11 !min-w-11 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-700">
-                {pagination.page}
-              </Box>
-
-              {/* NEXT */}
-              <Button
-                type="button"
-                disabled={!pagination.hasNextPage}
-                onClick={() =>
-                  setPage((current) => current + 1)
-                }
-                endIcon={<ChevronRight />}
-                variant="outlined"
-                className="!min-h-11 !rounded-xl !border-slate-300 !bg-white !px-4 !text-sm !font-semibold !normal-case !text-slate-700 hover:!border-blue-300 hover:!bg-blue-50 disabled:!opacity-40"
-              >
-                Next
-              </Button>
-
-            </nav>
-          )}
-
-        {/* =======================================================
-            BOTTOM CTA
-        ======================================================= */}
-        <section className="mt-16 overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-8 shadow-xl backdrop-blur-xl sm:p-10">
-
-          <div className="flex flex-col gap-7 md:flex-row md:items-center md:justify-between">
-
-            <div className="max-w-2xl">
-
-              <div className="flex items-center gap-2 text-sm font-semibold text-blue-700">
-                <AutoAwesome fontSize="small" />
-                Build. Learn. Grow.
-              </div>
-
-              <Typography
-                component="h2"
-                className="!mt-2 !text-2xl !font-bold !text-slate-950 sm:!text-3xl"
-              >
-                Start your learning journey today.
-              </Typography>
-
-              <Typography
-                component="p"
-                className="!mt-2 !text-sm !leading-6 !text-slate-600"
-              >
-                Choose a course and start building practical
-                skills with ApnaAcademy.
-              </Typography>
-
-            </div>
-
-            <Link
-              to="/"
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-slate-900 transition hover:bg-blue-700"
-            >
-              <ArrowBack fontSize="small" />
-              Back to Home
-            </Link>
-
-          </div>
-
-        </section>
-
-      </div>
+        </Container>
+      </section>
     </main>
   );
 }

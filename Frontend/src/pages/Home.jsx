@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
-  Alert,
+  Avatar,
   Box,
   Button,
   Card,
@@ -11,6 +11,7 @@ import {
   CircularProgress,
   Container,
   Divider,
+  IconButton,
   Stack,
   Typography,
 } from "@mui/material";
@@ -20,130 +21,402 @@ import {
   AutoAwesome,
   CheckCircle,
   Code,
+  Groups,
   MenuBook,
-  Refresh,
-  School,
+  PlayArrow,
+  RocketLaunch,
   Security,
-  TrendingUp,
+  Star,
   Verified,
+  WorkspacePremium,
 } from "@mui/icons-material";
 
 import api from "../services/api";
 
+const FALLBACK_THUMBNAIL =
+  "https://placehold.co/1280x720/e2e8f0/334155?text=ApnaAcademy";
+
 const COURSE_APP_URL =
   import.meta.env.VITE_COURSE_URL || "http://localhost:5174";
 
-const FALLBACK_THUMBNAIL =
-  "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=85";
+function formatPrice(price) {
+  const numericPrice = Number(price);
 
-function getCourseThumbnail(course) {
+  if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
+    return "Free";
+  }
+
+  return `₹${numericPrice.toLocaleString("en-IN")}`;
+}
+
+function getInstructorName(instructor) {
+  if (!instructor) return "ApnaAcademy Instructor";
+
+  if (typeof instructor === "string") {
+    return instructor;
+  }
+
   return (
-    course?.thumbnailUrl ||
-    course?.thumbnail ||
-    course?.imageUrl ||
-    FALLBACK_THUMBNAIL
+    instructor.name ||
+    instructor.fullName ||
+    instructor.username ||
+    "ApnaAcademy Instructor"
   );
 }
 
-function getCoursePrice(course) {
-  const price =
-    course?.price ??
-    course?.pricing?.price ??
-    course?.amount ??
-    0;
-
-  return Number(price) > 0 ? `₹${Number(price).toLocaleString("en-IN")}` : "Free";
+function getInitial(name) {
+  return (
+    name?.trim()?.charAt(0)?.toUpperCase() ||
+    "A"
+  );
 }
 
-function getCourseSlug(course) {
-  return course?.slug || course?._id || course?.id;
+const features = [
+  {
+    icon: <MenuBook />,
+    title: "Structured Learning",
+    description:
+      "Learn through carefully organized modules, lessons and practical learning paths.",
+  },
+  {
+    icon: <Code />,
+    title: "Practical Skills",
+    description:
+      "Focus on real-world skills, projects and hands-on learning instead of only theory.",
+  },
+  {
+    icon: <Verified />,
+    title: "Verified Achievement",
+    description:
+      "Complete your learning journey and earn verifiable digital certificates.",
+  },
+  {
+    icon: <Security />,
+    title: "Secure Platform",
+    description:
+      "Your account, purchases and learning progress are handled through secure systems.",
+  },
+];
+
+const learningSteps = [
+  {
+    number: "01",
+    title: "Choose a Course",
+    description:
+      "Explore practical courses designed around useful and career-focused skills.",
+  },
+  {
+    number: "02",
+    title: "Learn at Your Pace",
+    description:
+      "Follow structured modules and continue your learning from where you stopped.",
+  },
+  {
+    number: "03",
+    title: "Build & Complete",
+    description:
+      "Watch lessons, complete your learning journey and demonstrate your progress.",
+  },
+  {
+    number: "04",
+    title: "Earn Your Certificate",
+    description:
+      "Meet the course requirements and unlock your verified certificate.",
+  },
+];
+
+function CoursePreviewCard({ course }) {
+  const title = course?.title || "Learning Course";
+  const instructor = getInstructorName(course?.instructor);
+  const slug = course?.slug;
+
+  const courseUrl = slug
+    ? `${COURSE_APP_URL}/courses/${slug}`
+    : COURSE_APP_URL;
+
+  return (
+    <Card
+      elevation={0}
+      className="
+        group
+        h-full
+        overflow-hidden
+        !rounded-2xl
+        !border
+        !border-slate-200
+        !bg-white
+        transition-all
+        duration-200
+        hover:-translate-y-1
+        hover:!border-blue-200
+        hover:shadow-xl
+        hover:shadow-slate-200/60
+      "
+    >
+      <Box className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+        <img
+          src={course?.thumbnail || FALLBACK_THUMBNAIL}
+          alt={`${title} course`}
+          loading="lazy"
+          className="
+            h-full
+            w-full
+            object-cover
+            transition-transform
+            duration-300
+            group-hover:scale-[1.03]
+          "
+          onError={(event) => {
+            event.currentTarget.src = FALLBACK_THUMBNAIL;
+          }}
+        />
+
+        {course?.isFeatured && (
+          <Chip
+            icon={<Star className="!text-[15px]" />}
+            label="Featured"
+            size="small"
+            className="
+              !absolute
+              !left-3
+              !top-3
+              !bg-white
+              !font-bold
+              !text-blue-700
+              !shadow-md
+            "
+          />
+        )}
+      </Box>
+
+      <CardContent className="!p-4 sm:!p-5">
+        <Stack spacing={1.25}>
+          <div className="flex flex-wrap gap-2">
+            {course?.category && (
+              <Chip
+                label={course.category}
+                size="small"
+                className="
+                  !h-6
+                  !rounded-lg
+                  !bg-blue-50
+                  !text-[11px]
+                  !font-bold
+                  !text-blue-700
+                "
+              />
+            )}
+
+            {course?.level && (
+              <Chip
+                label={String(course.level).replace(/[-_]/g, " ")}
+                size="small"
+                variant="outlined"
+                className="
+                  !h-6
+                  !rounded-lg
+                  !border-slate-200
+                  !text-[11px]
+                  !font-semibold
+                  !capitalize
+                  !text-slate-600
+                "
+              />
+            )}
+          </div>
+
+          <Typography
+            component="h3"
+            className="
+              !line-clamp-2
+              !text-base
+              !font-black
+              !leading-6
+              !text-slate-950
+              sm:!text-lg
+            "
+          >
+            {title}
+          </Typography>
+
+          <Typography
+            component="p"
+            className="
+              !line-clamp-2
+              !text-xs
+              !leading-5
+              !text-slate-500
+              sm:!text-sm
+            "
+          >
+            {course?.shortDescription ||
+              course?.description ||
+              "Build practical skills through structured learning."}
+          </Typography>
+
+          <div className="flex items-center gap-2 pt-1">
+            <Avatar
+              sx={{
+                width: 28,
+                height: 28,
+                fontSize: 12,
+              }}
+              className="!bg-blue-100 !font-bold !text-blue-700"
+            >
+              {getInitial(instructor)}
+            </Avatar>
+
+            <Typography
+              component="span"
+              className="!truncate !text-xs !font-semibold !text-slate-600"
+            >
+              {instructor}
+            </Typography>
+          </div>
+
+          <Divider className="!my-1 !border-slate-100" />
+
+          <div className="flex items-center justify-between gap-3">
+            <Typography
+              component="span"
+              className="!text-base !font-black !text-slate-950"
+            >
+              {formatPrice(course?.price)}
+            </Typography>
+
+            <Button
+              href={courseUrl}
+              variant="outlined"
+              size="small"
+              endIcon={<ArrowForward />}
+              className="
+                !rounded-xl
+                !border-slate-200
+                !px-3
+                !py-2
+                !text-xs
+                !font-bold
+                !normal-case
+                !text-slate-700
+                hover:!border-blue-300
+                hover:!bg-blue-50
+                hover:!text-blue-700
+              "
+            >
+              View Course
+            </Button>
+          </div>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function Home() {
-  const [courses, setCourses] = useState([]);
+  const navigate = useNavigate();
+
+  const [featuredCourses, setFeaturedCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
-  const [courseError, setCourseError] = useState("");
-
-  const fetchCourses = async () => {
-    try {
-      setLoadingCourses(true);
-      setCourseError("");
-
-      const response = await api.get("/courses");
-
-      const payload = response?.data;
-
-      const courseList = Array.isArray(payload)
-        ? payload
-        : Array.isArray(payload?.courses)
-          ? payload.courses
-          : Array.isArray(payload?.data)
-            ? payload.data
-            : Array.isArray(payload?.data?.courses)
-              ? payload.data.courses
-              : [];
-
-      setCourses(courseList);
-    } catch (error) {
-      console.error("Home courses fetch error:", error);
-
-      setCourses([]);
-      setCourseError(
-        error?.response?.data?.message ||
-          "Courses could not be loaded right now."
-      );
-    } finally {
-      setLoadingCourses(false);
-    }
-  };
 
   useEffect(() => {
-    fetchCourses();
+    let mounted = true;
+
+    const fetchFeaturedCourses = async () => {
+      try {
+        setLoadingCourses(true);
+
+        const response = await api.get("/courses");
+
+        if (!mounted) return;
+
+        const courses = Array.isArray(response.data?.data)
+          ? response.data.data
+          : Array.isArray(response.data?.courses)
+          ? response.data.courses
+          : [];
+
+        const featured = courses.filter(
+          (course) => course?.isFeatured
+        );
+
+        setFeaturedCourses(
+          (featured.length > 0 ? featured : courses).slice(0, 3)
+        );
+      } catch (error) {
+        console.error(
+          "Home courses fetch error:",
+          error
+        );
+
+        if (mounted) {
+          setFeaturedCourses([]);
+        }
+      } finally {
+        if (mounted) {
+          setLoadingCourses(false);
+        }
+      }
+    };
+
+    fetchFeaturedCourses();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const featuredCourses = useMemo(() => {
-    return courses
-      .filter((course) => course?.isPublished !== false)
-      .slice(0, 3);
-  }, [courses]);
-
   return (
-    <main className="min-h-screen bg-white text-slate-900">
+    <main className="overflow-hidden bg-white text-slate-900">
       {/* =====================================================
           HERO
       ====================================================== */}
-      <section className="relative overflow-hidden border-b border-slate-100 bg-white">
-        <div className="pointer-events-none absolute -right-32 -top-32 h-72 w-72 rounded-full bg-blue-50 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-40 -left-32 h-80 w-80 rounded-full bg-slate-50 blur-3xl" />
 
-        <Container
-          maxWidth="lg"
-          className="relative"
-          sx={{ py: { xs: 8, md: 12 } }}
-        >
-          <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
-            {/* Hero Content */}
+      <section className="relative border-b border-slate-200 bg-white">
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            right-0
+            top-0
+            h-72
+            w-72
+            rounded-full
+            bg-blue-100/60
+            blur-3xl
+          "
+        />
+
+        <Container maxWidth="lg" className="relative">
+          <div className="grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-24">
             <div>
               <Chip
-                icon={<AutoAwesome fontSize="small" />}
-                label="Practical learning for modern careers"
-                size="small"
-                className="mb-5 border border-blue-100 bg-blue-50 font-semibold text-blue-700"
+                icon={<AutoAwesome />}
+                label="Learn • Build • Grow"
+                className="
+                  !mb-5
+                  !rounded-full
+                  !border
+                  !border-blue-100
+                  !bg-blue-50
+                  !px-2
+                  !font-bold
+                  !text-blue-700
+                "
               />
 
               <Typography
                 component="h1"
-                sx={{
-                  fontWeight: 800,
-                  letterSpacing: "-0.04em",
-                  lineHeight: 1.05,
-                  fontSize: {
-                    xs: "2.5rem",
-                    sm: "3.5rem",
-                    md: "4.35rem",
-                  },
-                }}
-                className="max-w-4xl text-slate-950"
+                className="
+                  !max-w-3xl
+                  !text-4xl
+                  !font-black
+                  !leading-[1.08]
+                  !tracking-tight
+                  !text-slate-950
+                  sm:!text-5xl
+                  lg:!text-6xl
+                "
               >
                 Learn skills that
                 <span className="block text-blue-600">
@@ -152,185 +425,351 @@ export default function Home() {
               </Typography>
 
               <Typography
-                sx={{
-                  fontSize: { xs: "1rem", md: "1.12rem" },
-                  lineHeight: 1.8,
-                }}
-                className="mt-6 max-w-2xl text-slate-600"
+                component="p"
+                className="
+                  !mt-5
+                  !max-w-2xl
+                  !text-base
+                  !leading-7
+                  !text-slate-600
+                  sm:!text-lg
+                "
               >
-                Build practical skills through structured courses,
-                real-world projects and an outcome-focused learning
-                experience designed for today's learners.
+                ApnaAcademy helps you build practical,
+                career-focused skills through structured
+                courses, real-world learning and verified
+                achievements.
               </Typography>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Button
-                  component={Link}
-                  to="/courses"
                   variant="contained"
                   size="large"
                   endIcon={<ArrowForward />}
-                  className="!rounded-xl !bg-blue-600 !px-6 !py-3 !font-bold !normal-case !shadow-none hover:!bg-blue-700"
+                  onClick={() => navigate("/courses")}
+                  className="
+                    !rounded-xl
+                    !bg-blue-600
+                    !px-6
+                    !py-3
+                    !font-bold
+                    !normal-case
+                    !shadow-lg
+                    !shadow-blue-600/20
+                    hover:!bg-blue-700
+                  "
                 >
                   Explore Courses
                 </Button>
 
                 <Button
-                  component={Link}
-                  to="/about"
                   variant="outlined"
                   size="large"
-                  className="!rounded-xl !border-slate-300 !px-6 !py-3 !font-bold !normal-case !text-slate-700 hover:!border-blue-300 hover:!bg-blue-50 hover:!text-blue-700"
+                  startIcon={<PlayArrow />}
+                  onClick={() => navigate("/register")}
+                  className="
+                    !rounded-xl
+                    !border-slate-200
+                    !px-6
+                    !py-3
+                    !font-bold
+                    !normal-case
+                    !text-slate-700
+                    hover:!border-blue-300
+                    hover:!bg-blue-50
+                    hover:!text-blue-700
+                  "
                 >
-                  Why ApnaAcademy?
+                  Start Learning
                 </Button>
               </div>
 
               <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3">
                 {[
-                  "Structured learning",
-                  "Practical projects",
-                  "Verified achievement",
+                  "Structured courses",
+                  "Practical learning",
+                  "Verified certificates",
                 ].map((item) => (
                   <div
                     key={item}
-                    className="flex items-center gap-2 text-sm font-medium text-slate-600"
+                    className="flex items-center gap-2"
                   >
-                    <CheckCircle
-                      sx={{ fontSize: 18 }}
-                      className="text-blue-600"
-                    />
-                    {item}
+                    <CheckCircle className="!text-[18px] !text-blue-600" />
+
+                    <Typography
+                      component="span"
+                      className="!text-xs !font-semibold !text-slate-600 sm:!text-sm"
+                    >
+                      {item}
+                    </Typography>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Hero Side Card */}
-            <div className="lg:pl-8">
-              <Card
-                elevation={0}
-                className="overflow-hidden !rounded-3xl border !border-slate-200 !bg-slate-50"
-              >
-                <CardContent className="!p-6 sm:!p-8">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm ring-1 ring-slate-200">
-                      <School />
+            {/* Hero visual */}
+            <div className="relative mx-auto w-full max-w-xl">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3 shadow-2xl shadow-slate-200/70 sm:p-4">
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                  <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+                      <div className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+                      <div className="h-2.5 w-2.5 rounded-full bg-slate-300" />
                     </div>
 
                     <Chip
-                      label="Learning Platform"
+                      label="Learning Dashboard"
                       size="small"
-                      className="!bg-white !font-semibold !text-slate-600"
+                      className="!h-6 !bg-blue-50 !text-[10px] !font-bold !text-blue-700"
                     />
                   </div>
 
-                  <Typography
-                    variant="h5"
-                    sx={{ fontWeight: 800 }}
-                    className="mt-6 !text-slate-950"
-                  >
-                    Learn. Practice. Progress.
-                  </Typography>
+                  <div className="p-5 sm:p-7">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <Typography
+                          component="p"
+                          className="!text-xs !font-semibold !text-slate-500"
+                        >
+                          Your learning journey
+                        </Typography>
 
-                  <Typography
-                    sx={{ lineHeight: 1.75 }}
-                    className="mt-3 !text-slate-600"
-                  >
-                    Everything you need to turn knowledge into practical
-                    skills — organized in one focused learning journey.
-                  </Typography>
-
-                  <Divider className="!my-6" />
-
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      {
-                        icon: <MenuBook />,
-                        title: "Structured",
-                        text: "Course modules",
-                      },
-                      {
-                        icon: <TrendingUp />,
-                        title: "Progress",
-                        text: "Track learning",
-                      },
-                      {
-                        icon: <Verified />,
-                        title: "Verified",
-                        text: "Achievements",
-                      },
-                      {
-                        icon: <Security />,
-                        title: "Secure",
-                        text: "Protected access",
-                      },
-                    ].map((item) => (
-                      <div
-                        key={item.title}
-                        className="rounded-2xl border border-slate-200 bg-white p-4"
-                      >
-                        <div className="text-blue-600">{item.icon}</div>
-
-                        <p className="mt-3 text-sm font-bold text-slate-900">
-                          {item.title}
-                        </p>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                          {item.text}
-                        </p>
+                        <Typography
+                          component="h2"
+                          className="!mt-1 !text-xl !font-black !text-slate-950"
+                        >
+                          Keep learning.
+                        </Typography>
                       </div>
-                    ))}
+
+                      <Avatar className="!bg-blue-600 !font-bold">
+                        A
+                      </Avatar>
+                    </div>
+
+                    <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex items-center justify-between">
+                        <Typography
+                          component="span"
+                          className="!text-xs !font-bold !text-slate-700"
+                        >
+                          Full Stack Development
+                        </Typography>
+
+                        <Typography
+                          component="span"
+                          className="!text-xs !font-black !text-blue-600"
+                        >
+                          68%
+                        </Typography>
+                      </div>
+
+                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                        <div className="h-full w-[68%] rounded-full bg-blue-600" />
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <Typography
+                          component="span"
+                          className="!text-[11px] !font-medium !text-slate-500"
+                        >
+                          Continue your course
+                        </Typography>
+
+                        <PlayArrow className="!text-[18px] !text-blue-600" />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <div className="rounded-2xl border border-slate-200 p-4">
+                        <RocketLaunch className="!text-blue-600" />
+
+                        <Typography
+                          component="p"
+                          className="!mt-3 !text-xs !font-bold !text-slate-500"
+                        >
+                          Skills
+                        </Typography>
+
+                        <Typography
+                          component="p"
+                          className="!mt-1 !text-lg !font-black !text-slate-950"
+                        >
+                          Practical
+                        </Typography>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 p-4">
+                        <WorkspacePremium className="!text-blue-600" />
+
+                        <Typography
+                          component="p"
+                          className="!mt-3 !text-xs !font-bold !text-slate-500"
+                        >
+                          Achievement
+                        </Typography>
+
+                        <Typography
+                          component="p"
+                          className="!mt-1 !text-lg !font-black !text-slate-950"
+                        >
+                          Verified
+                        </Typography>
+                      </div>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+
+              <div className="absolute -bottom-5 -left-3 hidden rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-xl sm:block">
+                <div className="flex items-center gap-3">
+                  <Box className="flex !h-9 !w-9 items-center justify-center !rounded-xl !bg-blue-50 !text-blue-600">
+                    <Verified fontSize="small" />
+                  </Box>
+
+                  <div>
+                    <Typography
+                      component="p"
+                      className="!text-[10px] !font-semibold !text-slate-500"
+                    >
+                      Achievement
+                    </Typography>
+
+                    <Typography
+                      component="p"
+                      className="!text-xs !font-black !text-slate-950"
+                    >
+                      Certificate Ready
+                    </Typography>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </Container>
       </section>
 
       {/* =====================================================
-          VALUE STRIP
+          FEATURE STRIP
       ====================================================== */}
-      <section className="border-b border-slate-100 bg-white">
-        <Container maxWidth="lg" sx={{ py: { xs: 5, md: 6 } }}>
-          <div className="grid gap-4 sm:grid-cols-3">
+
+      <section className="border-b border-slate-200 bg-slate-50/70">
+        <Container maxWidth="lg">
+          <div className="grid grid-cols-2 divide-x divide-slate-200 md:grid-cols-4">
             {[
               {
-                icon: <Code />,
-                title: "Learn by doing",
-                text: "Focus on practical and applicable skills.",
+                value: "Practical",
+                label: "Learning approach",
               },
               {
-                icon: <TrendingUp />,
-                title: "Track your progress",
-                text: "Keep your learning journey organized.",
+                value: "Structured",
+                label: "Course experience",
               },
               {
-                icon: <Verified />,
-                title: "Build credibility",
-                text: "Complete learning and earn achievements.",
+                value: "Progress",
+                label: "Learning tracking",
+              },
+              {
+                value: "Verified",
+                label: "Digital achievement",
               },
             ].map((item) => (
               <div
-                key={item.title}
-                className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-blue-200 hover:shadow-sm"
+                key={item.value}
+                className="px-4 py-6 text-center sm:px-6"
               >
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    {item.icon}
-                  </div>
+                <Typography
+                  component="p"
+                  className="!text-sm !font-black !text-slate-950 sm:!text-base"
+                >
+                  {item.value}
+                </Typography>
 
-                  <div>
-                    <p className="font-bold text-slate-900">
-                      {item.title}
-                    </p>
-                    <p className="mt-1 text-sm leading-6 text-slate-500">
-                      {item.text}
-                    </p>
-                  </div>
-                </div>
+                <Typography
+                  component="p"
+                  className="!mt-1 !text-[10px] !font-medium !text-slate-500 sm:!text-xs"
+                >
+                  {item.label}
+                </Typography>
               </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* =====================================================
+          FEATURES
+      ====================================================== */}
+
+      <section className="bg-white py-16 sm:py-20">
+        <Container maxWidth="lg">
+          <div className="mx-auto max-w-2xl text-center">
+            <Chip
+              label="Why ApnaAcademy"
+              size="small"
+              className="!bg-blue-50 !font-bold !text-blue-700"
+            />
+
+            <Typography
+              component="h2"
+              className="
+                !mt-4
+                !text-3xl
+                !font-black
+                !tracking-tight
+                !text-slate-950
+                sm:!text-4xl
+              "
+            >
+              Learning designed around outcomes.
+            </Typography>
+
+            <Typography
+              component="p"
+              className="!mt-3 !text-sm !leading-6 !text-slate-500 sm:!text-base"
+            >
+              Everything is designed to keep learning simple,
+              structured and focused on building useful skills.
+            </Typography>
+          </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {features.map((feature) => (
+              <Card
+                key={feature.title}
+                elevation={0}
+                className="
+                  !rounded-2xl
+                  !border
+                  !border-slate-200
+                  !bg-white
+                  transition-all
+                  duration-200
+                  hover:-translate-y-1
+                  hover:shadow-lg
+                "
+              >
+                <CardContent className="!p-5">
+                  <Box className="flex !h-11 !w-11 items-center justify-center !rounded-xl !bg-blue-50 !text-blue-600">
+                    {feature.icon}
+                  </Box>
+
+                  <Typography
+                    component="h3"
+                    className="!mt-5 !text-base !font-black !text-slate-950"
+                  >
+                    {feature.title}
+                  </Typography>
+
+                  <Typography
+                    component="p"
+                    className="!mt-2 !text-sm !leading-6 !text-slate-500"
+                  >
+                    {feature.description}
+                  </Typography>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </Container>
@@ -339,217 +778,249 @@ export default function Home() {
       {/* =====================================================
           FEATURED COURSES
       ====================================================== */}
-      <section className="bg-slate-50/70">
-        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+
+      <section className="border-y border-slate-200 bg-slate-50/60 py-16 sm:py-20">
+        <Container maxWidth="lg">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <Typography
-                component="p"
-                className="!font-bold !uppercase !tracking-[0.16em] !text-blue-600"
-                sx={{ fontSize: "0.72rem" }}
-              >
-                Featured learning
-              </Typography>
+              <Chip
+                label="Featured Courses"
+                size="small"
+                className="!bg-blue-50 !font-bold !text-blue-700"
+              />
 
               <Typography
                 component="h2"
-                sx={{
-                  fontWeight: 800,
-                  letterSpacing: "-0.03em",
-                  fontSize: { xs: "1.8rem", md: "2.4rem" },
-                }}
-                className="mt-2 !text-slate-950"
+                className="!mt-3 !text-3xl !font-black !tracking-tight !text-slate-950"
               >
-                Start learning today
+                Start learning today.
               </Typography>
 
-              <Typography className="mt-2 !max-w-2xl !text-slate-600">
-                Explore courses published on ApnaAcademy and choose the
-                learning path that fits your goals.
+              <Typography
+                component="p"
+                className="!mt-2 !max-w-2xl !text-sm !leading-6 !text-slate-500"
+              >
+                Explore our latest learning opportunities and
+                choose the path that fits your goals.
               </Typography>
             </div>
 
             <Button
-              component={Link}
-              to="/courses"
+              variant="outlined"
               endIcon={<ArrowForward />}
-              className="!w-fit !rounded-xl !font-bold !normal-case !text-blue-600 hover:!bg-blue-50"
+              onClick={() => navigate("/courses")}
+              className="
+                !w-fit
+                !rounded-xl
+                !border-slate-200
+                !px-4
+                !py-2.5
+                !font-bold
+                !normal-case
+                !text-slate-700
+                hover:!border-blue-300
+                hover:!bg-blue-50
+                hover:!text-blue-700
+              "
             >
-              View all courses
+              View All Courses
             </Button>
           </div>
 
-          {courseError && (
-            <Alert
-              severity="error"
-              action={
-                <Button
-                  color="inherit"
-                  size="small"
-                  startIcon={<Refresh />}
-                  onClick={fetchCourses}
-                >
-                  Retry
-                </Button>
-              }
-              className="!mb-6 !rounded-2xl"
-            >
-              {courseError}
-            </Alert>
-          )}
-
           {loadingCourses ? (
-            <Box className="flex min-h-60 items-center justify-center rounded-3xl border border-slate-200 bg-white">
-              <Stack alignItems="center" spacing={2}>
-                <CircularProgress
-                  size={34}
-                  thickness={4}
-                  className="!text-blue-600"
+            <div className="flex min-h-64 items-center justify-center">
+              <CircularProgress size={32} />
+            </div>
+          ) : featuredCourses.length > 0 ? (
+            <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredCourses.map((course) => (
+                <CoursePreviewCard
+                  key={course._id || course.id || course.slug}
+                  course={course}
                 />
-                <Typography className="!text-sm !font-medium !text-slate-500">
-                  Loading courses...
-                </Typography>
-              </Stack>
-            </Box>
-          ) : featuredCourses.length === 0 ? (
-            <div className="rounded-3xl border border-slate-200 bg-white px-6 py-14 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
-                <MenuBook />
-              </div>
-
+              ))}
+            </div>
+          ) : (
+            <div className="mt-9 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
               <Typography
-                variant="h6"
-                sx={{ fontWeight: 800 }}
-                className="mt-5 !text-slate-900"
+                component="h3"
+                className="!text-base !font-black !text-slate-900"
               >
-                Courses are coming soon
+                Courses are being prepared.
               </Typography>
 
-              <Typography className="mx-auto mt-2 !max-w-lg !text-slate-500">
-                We are preparing practical learning experiences for
-                the platform. Please check back soon.
+              <Typography
+                component="p"
+                className="!mt-2 !text-sm !text-slate-500"
+              >
+                Explore the courses section to see the latest
+                available learning programs.
               </Typography>
 
               <Button
-                component={Link}
-                to="/courses"
-                variant="outlined"
-                className="!mt-6 !rounded-xl !border-slate-300 !font-bold !normal-case"
+                variant="contained"
+                onClick={() => navigate("/courses")}
+                className="!mt-5 !rounded-xl !bg-blue-600 !font-bold !normal-case hover:!bg-blue-700"
               >
-                Browse Courses
+                Explore Courses
               </Button>
-            </div>
-          ) : (
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {featuredCourses.map((course) => {
-                const slug = getCourseSlug(course);
-
-                return (
-                  <Card
-                    key={course?._id || course?.id || slug}
-                    elevation={0}
-                    className="group flex h-full flex-col overflow-hidden !rounded-3xl !border !border-slate-200 !bg-white transition duration-200 hover:-translate-y-1 hover:!border-blue-200 hover:shadow-lg"
-                  >
-                    <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
-                      <img
-                        src={getCourseThumbnail(course)}
-                        alt={course?.title || "ApnaAcademy course"}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                        loading="lazy"
-                        onError={(event) => {
-                          event.currentTarget.src = FALLBACK_THUMBNAIL;
-                        }}
-                      />
-
-                      <div className="absolute left-4 top-4">
-                        <Chip
-                          label={getCoursePrice(course)}
-                          size="small"
-                          className="!bg-white !font-bold !text-slate-900 shadow-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <CardContent className="flex flex-1 flex-col !p-6">
-                      <Typography
-                        component="h3"
-                        variant="h6"
-                        sx={{
-                          fontWeight: 800,
-                          lineHeight: 1.3,
-                        }}
-                        className="!text-slate-950"
-                      >
-                        {course?.title || "Untitled Course"}
-                      </Typography>
-
-                      <Typography
-                        className="mt-3 line-clamp-3 !text-sm !leading-6 !text-slate-600"
-                      >
-                        {course?.shortDescription ||
-                          course?.description ||
-                          "Explore this course and build practical skills through structured learning."}
-                      </Typography>
-
-                      <div className="mt-auto pt-6">
-                        <Button
-                          component="a"
-                          href={`${COURSE_APP_URL}/courses/${slug}`}
-                          endIcon={<ArrowForward />}
-                          fullWidth
-                          variant="outlined"
-                          className="!rounded-xl !border-slate-200 !py-2.5 !font-bold !normal-case !text-slate-800 hover:!border-blue-300 hover:!bg-blue-50 hover:!text-blue-700"
-                        >
-                          View Course
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
             </div>
           )}
         </Container>
       </section>
 
       {/* =====================================================
-          FINAL CTA
+          HOW IT WORKS
       ====================================================== */}
-      <section className="bg-white">
-        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 10 } }}>
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-7 sm:p-10 lg:p-12">
-            <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
-              <div className="max-w-2xl">
-                <Typography
-                  component="h2"
-                  sx={{
-                    fontWeight: 800,
-                    letterSpacing: "-0.03em",
-                    fontSize: { xs: "1.8rem", md: "2.3rem" },
-                  }}
-                  className="!text-slate-950"
-                >
-                  Ready to build your next skill?
-                </Typography>
 
-                <Typography
-                  sx={{ lineHeight: 1.8 }}
-                  className="mt-3 !text-slate-600"
-                >
-                  Explore the course catalog and start building skills
-                  with a structured learning experience.
-                </Typography>
-              </div>
+      <section className="bg-white py-16 sm:py-20">
+        <Container maxWidth="lg">
+          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+            <div>
+              <Chip
+                label="How It Works"
+                size="small"
+                className="!bg-blue-50 !font-bold !text-blue-700"
+              />
+
+              <Typography
+                component="h2"
+                className="!mt-4 !text-3xl !font-black !leading-tight !text-slate-950 sm:!text-4xl"
+              >
+                A simple path from learning to achievement.
+              </Typography>
+
+              <Typography
+                component="p"
+                className="!mt-4 !max-w-xl !text-sm !leading-7 !text-slate-500 sm:!text-base"
+              >
+                Choose your course, learn through structured
+                content, track your progress and complete the
+                requirements for your achievement.
+              </Typography>
 
               <Button
-                component={Link}
-                to="/courses"
                 variant="contained"
-                size="large"
                 endIcon={<ArrowForward />}
-                className="!w-fit !rounded-xl !bg-blue-600 !px-6 !py-3 !font-bold !normal-case !shadow-none hover:!bg-blue-700"
+                onClick={() => navigate("/courses")}
+                className="
+                  !mt-6
+                  !rounded-xl
+                  !bg-blue-600
+                  !px-5
+                  !py-2.5
+                  !font-bold
+                  !normal-case
+                  hover:!bg-blue-700
+                "
+              >
+                Find Your Course
+              </Button>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {learningSteps.map((step) => (
+                <Card
+                  key={step.number}
+                  elevation={0}
+                  className="
+                    !rounded-2xl
+                    !border
+                    !border-slate-200
+                    !bg-white
+                  "
+                >
+                  <CardContent className="!p-5">
+                    <Typography
+                      component="span"
+                      className="!text-xs !font-black !tracking-widest !text-blue-600"
+                    >
+                      {step.number}
+                    </Typography>
+
+                    <Typography
+                      component="h3"
+                      className="!mt-3 !text-base !font-black !text-slate-950"
+                    >
+                      {step.title}
+                    </Typography>
+
+                    <Typography
+                      component="p"
+                      className="!mt-2 !text-sm !leading-6 !text-slate-500"
+                    >
+                      {step.description}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* =====================================================
+          CTA
+      ====================================================== */}
+
+      <section className="bg-slate-50 py-16 sm:py-20">
+        <Container maxWidth="md">
+          <div className="rounded-3xl border border-blue-100 bg-blue-50 px-6 py-10 text-center sm:px-10">
+            <Box className="mx-auto flex !h-12 !w-12 items-center justify-center !rounded-2xl !bg-white !text-blue-600 !shadow-sm">
+              <Groups />
+            </Box>
+
+            <Typography
+              component="h2"
+              className="!mt-5 !text-2xl !font-black !text-slate-950 sm:!text-3xl"
+            >
+              Ready to start your learning journey?
+            </Typography>
+
+            <Typography
+              component="p"
+              className="!mx-auto !mt-3 !max-w-xl !text-sm !leading-6 !text-slate-600 sm:!text-base"
+            >
+              Join ApnaAcademy and start building practical
+              skills with a structured learning experience.
+            </Typography>
+
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button
+                variant="contained"
+                endIcon={<ArrowForward />}
+                onClick={() => navigate("/courses")}
+                className="
+                  !rounded-xl
+                  !bg-blue-600
+                  !px-6
+                  !py-3
+                  !font-bold
+                  !normal-case
+                  hover:!bg-blue-700
+                "
               >
                 Explore Courses
+              </Button>
+
+              <Button
+                variant="outlined"
+                onClick={() => navigate("/register")}
+                className="
+                  !rounded-xl
+                  !border-slate-300
+                  !bg-white
+                  !px-6
+                  !py-3
+                  !font-bold
+                  !normal-case
+                  !text-slate-700
+                  hover:!border-blue-300
+                  hover:!bg-white
+                  hover:!text-blue-700
+                "
+              >
+                Create Account
               </Button>
             </div>
           </div>
