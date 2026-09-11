@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
 import {
   Alert,
@@ -26,10 +25,67 @@ import {
   VisibilityOff,
 } from "@mui/icons-material";
 
-import { API_BASE_URL } from "../constants/config";
+import api from "../services/api";
+
+const DASHBOARD_URL =
+  import.meta.env.VITE_DASHBOARD_URL ||
+  "http://localhost:5175";
+
+const getDashboardUrl = () => {
+  return DASHBOARD_URL.replace(/\/+$/, "");
+};
+
+const getErrorMessage = (error) => {
+  const status = error?.response?.status;
+  const data = error?.response?.data;
+
+  if (
+    error?.code === "ERR_NETWORK" ||
+    error?.message === "Network Error"
+  ) {
+    return "Unable to connect to the server. Please make sure the backend is running.";
+  }
+
+  if (status === 409) {
+    return (
+      data?.message ||
+      "An account with this email already exists."
+    );
+  }
+
+  if (status === 400) {
+    return (
+      data?.message ||
+      data?.error?.message ||
+      "Please check your details and try again."
+    );
+  }
+
+  if (status === 401) {
+    return (
+      data?.message ||
+      "Unable to authenticate this request."
+    );
+  }
+
+  if (status === 429) {
+    return "Too many requests. Please wait a moment and try again.";
+  }
+
+  if (status >= 500) {
+    return "Something went wrong on the server. Please try again.";
+  }
+
+  return (
+    data?.message ||
+    data?.error?.message ||
+    error?.message ||
+    "Unable to create your account. Please try again."
+  );
+};
 
 export default function Register() {
-  const navigate = useNavigate();
+  const authCheckStarted = useRef(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -42,9 +98,55 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState(false);
 
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Check whether the user is already logged in.
+  useEffect(() => {
+    if (authCheckStarted.current) {
+      return;
+    }
+
+    authCheckStarted.current = true;
+
+    const verifyExistingSession = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setCheckingAuth(false);
+        return;
+      }
+
+      try {
+        const response = await api.get("/auth/me");
+
+        const currentUser = response?.data?.data;
+
+        if (!currentUser) {
+          throw new Error(
+            "Invalid authentication response."
+          );
+        }
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(currentUser)
+        );
+
+        window.location.replace(getDashboardUrl());
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        setCheckingAuth(false);
+      }
+    };
+
+    verifyExistingSession();
+  }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -65,7 +167,7 @@ export default function Register() {
 
   const validateForm = () => {
     const name = formData.name.trim();
-    const email = formData.email.trim();
+    const email = formData.email.trim().toLowerCase();
     const password = formData.password;
     const confirmPassword = formData.confirmPassword;
 
@@ -75,6 +177,10 @@ export default function Register() {
 
     if (name.length < 2) {
       return "Name must contain at least 2 characters.";
+    }
+
+    if (name.length > 100) {
+      return "Name must not exceed 100 characters.";
     }
 
     if (!email) {
@@ -93,6 +199,10 @@ export default function Register() {
       return "Password must contain at least 6 characters.";
     }
 
+    if (password.length > 128) {
+      return "Password must not exceed 128 characters.";
+    }
+
     if (!confirmPassword) {
       return "Please confirm your password.";
     }
@@ -107,6 +217,10 @@ export default function Register() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (loading) {
+      return;
+    }
+
     setError("");
     setSuccess("");
 
@@ -120,246 +234,290 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/auth/register`,
-        {
-          name: formData.name.trim(),
-          email: formData.email.trim().toLowerCase(),
-          password: formData.password,
-        }
-      );
+      const response = await api.post("/auth/register", {
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      });
 
-      const responseData = response?.data;
-      const registerData = responseData?.data;
+      const registerData = response?.data?.data;
 
-      if (!registerData?.token || !registerData?.user) {
+      const token = registerData?.token;
+      const user = registerData?.user;
+
+      if (!token || !user) {
         throw new Error(
-          "Registration succeeded, but the server returned an invalid response."
+          "Registration succeeded, but the server returned an invalid authentication response."
         );
       }
 
-      localStorage.setItem("token", registerData.token);
+      localStorage.setItem("token", token);
 
       localStorage.setItem(
         "user",
-        JSON.stringify(registerData.user)
+        JSON.stringify(user)
       );
 
       setSuccess(
-        "Account created successfully. Redirecting..."
+        "Account created successfully. Opening your dashboard..."
       );
 
-      const dashboardUrl =
-        import.meta.env.VITE_DASHBOARD_URL ||
-        "http://localhost:5175";
-
-      setTimeout(() => {
-        window.location.href = dashboardUrl;
+      window.setTimeout(() => {
+        window.location.replace(getDashboardUrl());
       }, 700);
     } catch (requestError) {
-      const status = requestError?.response?.status;
-      const serverData = requestError?.response?.data;
-
-      const serverMessage =
-        serverData?.message ||
-        serverData?.error?.message ||
-        serverData?.errors?.message;
-
-      if (serverMessage) {
-        setError(serverMessage);
-      } else if (status === 409) {
-        setError(
-          "An account with this email already exists."
-        );
-      } else if (status === 400) {
-        setError(
-          "Please check your details and try again."
-        );
-      } else if (status >= 500) {
-        setError(
-          "Something went wrong on the server. Please try again."
-        );
-      } else if (
-        requestError?.code === "ERR_NETWORK" ||
-        requestError?.message === "Network Error"
-      ) {
-        setError(
-          "Unable to connect to the server. Please make sure the backend is running."
-        );
-      } else {
-        setError(
-          requestError?.message ||
-            "Unable to create your account. Please try again."
-        );
-      }
+      setError(getErrorMessage(requestError));
     } finally {
       setLoading(false);
     }
   };
 
+  if (checkingAuth) {
+    return (
+      <main className="flex min-h-[calc(100vh-72px)] items-center justify-center bg-white px-4">
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
+            <School />
+          </div>
+
+          <CircularProgress
+            size={24}
+            thickness={4}
+            className="!text-blue-600"
+          />
+
+          <Typography
+            component="p"
+            className="!text-sm !font-semibold !text-slate-500"
+          >
+            Checking your account...
+          </Typography>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-[calc(100vh-72px)] bg-slate-50 px-4 py-8 text-slate-900 sm:px-6 sm:py-12 lg:px-8">
-      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_30px_100px_-35px_rgba(15,23,42,0.35)] lg:grid-cols-2">
+      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_24px_80px_-32px_rgba(15,23,42,0.3)] lg:grid-cols-2">
 
-        {/* LEFT BRAND PANEL */}
-        <section className="relative hidden min-h-[720px] overflow-hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+        {/* LEFT BRAND SECTION */}
+        <section className="relative hidden min-h-[700px] overflow-hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
+          <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-blue-600/10 blur-3xl" />
 
-          <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
-
-          <div className="absolute -bottom-40 -left-24 h-[28rem] w-[28rem] rounded-full bg-indigo-500/20 blur-3xl" />
-
-          <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-indigo-600/10 blur-3xl" />
 
           <div className="relative z-10">
-
             {/* BRAND */}
-            <div className="mb-12 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-2xl backdrop-blur-xl">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-600/30">
+            <div className="mb-12 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg">
                 <School fontSize="small" />
               </div>
 
               <div>
-                <p className="text-sm font-bold tracking-wide">
+                <Typography
+                  component="p"
+                  className="!text-sm !font-bold !tracking-wide !text-white"
+                >
                   ApnaAcademy
-                </p>
+                </Typography>
 
-                <p className="text-xs text-slate-400">
+                <Typography
+                  component="p"
+                  className="!text-xs !text-slate-400"
+                >
                   Learn. Build. Grow.
-                </p>
+                </Typography>
               </div>
             </div>
 
-            {/* HERO */}
-            <div className="max-w-xl">
-
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1.5 text-xs font-semibold text-blue-300">
-                <Security fontSize="inherit" />
-                Start your learning journey
-              </div>
-
-              <h1 className="text-4xl font-black leading-tight tracking-tight xl:text-5xl">
-                Build skills.
-
-                <span className="block bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
-                  Build your future.
-                </span>
-              </h1>
-
-              <p className="mt-6 max-w-lg text-base leading-7 text-slate-400">
-                Create your ApnaAcademy account and get access
-                to structured courses, practical learning and
-                your personal learning dashboard.
-              </p>
-
+            {/* BADGE */}
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1.5 text-xs font-semibold text-blue-300">
+              <Security fontSize="inherit" />
+              Start your learning journey
             </div>
+
+            {/* HEADING */}
+            <Typography
+              component="h1"
+              className="!text-4xl !font-black !leading-tight !tracking-tight !text-white xl:!text-5xl"
+            >
+              Build skills.
+              <span className="block text-blue-400">
+                Build your future.
+              </span>
+            </Typography>
+
+            <Typography
+              component="p"
+              className="!mt-6 !max-w-lg !text-base !leading-7 !text-slate-400"
+            >
+              Create your ApnaAcademy account
+              and get access to structured
+              courses, practical learning and
+              your personal learning dashboard.
+            </Typography>
 
             {/* BENEFITS */}
-            <div className="mt-10 space-y-3">
-
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
+            <div className="mt-10 grid gap-3">
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
                   <Security fontSize="small" />
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold">
+                  <Typography
+                    component="p"
+                    className="!text-sm !font-bold !text-white"
+                  >
                     Secure account
-                  </p>
+                  </Typography>
 
-                  <p className="mt-1 text-xs text-slate-400">
-                    Your authentication is securely handled.
-                  </p>
+                  <Typography
+                    component="p"
+                    className="!mt-1 !text-xs !text-slate-400"
+                  >
+                    Secure authentication for
+                    your learning account.
+                  </Typography>
                 </div>
-
               </div>
 
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
-                  <School fontSize="small" />
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300">
+                  <CheckCircle fontSize="small" />
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold">
+                  <Typography
+                    component="p"
+                    className="!text-sm !font-bold !text-white"
+                  >
                     Structured learning
-                  </p>
+                  </Typography>
 
-                  <p className="mt-1 text-xs text-slate-400">
-                    Learn through organized courses and modules.
-                  </p>
+                  <Typography
+                    component="p"
+                    className="!mt-1 !text-xs !text-slate-400"
+                  >
+                    Learn through organized
+                    courses and modules.
+                  </Typography>
                 </div>
-
               </div>
 
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-300">
+                  <Star fontSize="small" />
+                </div>
+
+                <div>
+                  <Typography
+                    component="p"
+                    className="!text-sm !font-bold !text-white"
+                  >
+                    Track your growth
+                  </Typography>
+
+                  <Typography
+                    component="p"
+                    className="!mt-1 !text-xs !text-slate-400"
+                  >
+                    Build skills and progress
+                    toward your goals.
+                  </Typography>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* LEARNING JOURNEY */}
+          {/* JOURNEY */}
           <div className="relative z-10 grid grid-cols-3 gap-3">
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <p className="text-xl font-black">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Typography
+                component="p"
+                className="!text-xl !font-black !text-white"
+              >
                 Learn
-              </p>
+              </Typography>
 
-              <p className="mt-1 text-xs text-slate-400">
+              <Typography
+                component="p"
+                className="!mt-1 !text-xs !text-slate-400"
+              >
                 Courses
-              </p>
+              </Typography>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <p className="text-xl font-black">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Typography
+                component="p"
+                className="!text-xl !font-black !text-white"
+              >
                 Build
-              </p>
+              </Typography>
 
-              <p className="mt-1 text-xs text-slate-400">
+              <Typography
+                component="p"
+                className="!mt-1 !text-xs !text-slate-400"
+              >
                 Projects
-              </p>
+              </Typography>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <p className="text-xl font-black">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Typography
+                component="p"
+                className="!text-xl !font-black !text-white"
+              >
                 Grow
-              </p>
+              </Typography>
 
-              <p className="mt-1 text-xs text-slate-400">
+              <Typography
+                component="p"
+                className="!mt-1 !text-xs !text-slate-400"
+              >
                 Skills
-              </p>
+              </Typography>
             </div>
-
           </div>
         </section>
 
-        {/* REGISTER PANEL */}
+        {/* REGISTER FORM */}
         <section className="flex items-center p-6 sm:p-10 xl:p-14">
           <div className="mx-auto w-full max-w-md">
 
             {/* MOBILE BRAND */}
             <div className="mb-8 flex items-center gap-3 lg:hidden">
-
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg">
                 <School />
               </div>
 
               <div>
-                <p className="font-bold text-slate-950">
+                <Typography
+                  component="p"
+                  className="!font-bold !text-slate-950"
+                >
                   ApnaAcademy
-                </p>
+                </Typography>
 
-                <p className="text-xs text-slate-500">
+                <Typography
+                  component="p"
+                  className="!text-xs !text-slate-500"
+                >
                   Learn. Build. Grow.
-                </p>
+                </Typography>
               </div>
-
             </div>
 
             {/* HEADER */}
-            <div className="mb-7">
-
+            <div className="mb-8">
               <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-600">
-                <Star fontSize="small" />
-                Get started
+                <Security fontSize="small" />
+
+                <span>
+                  Secure registration
+                </span>
               </div>
 
               <Typography
@@ -371,19 +529,20 @@ export default function Register() {
 
               <Typography
                 component="p"
-                className="!mt-3 !text-sm !leading-6 !text-slate-500"
+                className="!mt-2 !text-sm !leading-6 !text-slate-500"
               >
-                Join ApnaAcademy and start building your skills
-                today.
+                Join ApnaAcademy and start
+                building your skills today.
               </Typography>
-
             </div>
 
             {/* ERROR */}
             {error && (
               <Alert
                 severity="error"
-                className="!mb-5 !rounded-2xl !border !border-red-200 !bg-red-50"
+                variant="outlined"
+                onClose={() => setError("")}
+                className="!mb-5 !rounded-2xl"
               >
                 {error}
               </Alert>
@@ -393,8 +552,9 @@ export default function Register() {
             {success && (
               <Alert
                 severity="success"
+                variant="outlined"
                 icon={<CheckCircle />}
-                className="!mb-5 !rounded-2xl !border !border-emerald-200 !bg-emerald-50"
+                className="!mb-5 !rounded-2xl"
               >
                 {success}
               </Alert>
@@ -407,7 +567,6 @@ export default function Register() {
               noValidate
               className="space-y-4"
             >
-
               {/* NAME */}
               <TextField
                 fullWidth
@@ -420,6 +579,7 @@ export default function Register() {
                 onChange={handleChange}
                 disabled={loading}
                 autoComplete="name"
+                autoFocus
                 required
                 InputLabelProps={{
                   shrink: true,
@@ -475,7 +635,11 @@ export default function Register() {
                 fullWidth
                 id="password"
                 name="password"
-                type={showPassword ? "text" : "password"}
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
                 label="Password"
                 placeholder="Create a password"
                 value={formData.password}
@@ -492,16 +656,17 @@ export default function Register() {
                       <Lock className="!text-slate-400" />
                     </InputAdornment>
                   ),
-
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
                         type="button"
-                        onClick={() =>
-                          setShowPassword((value) => !value)
-                        }
-                        disabled={loading}
                         edge="end"
+                        disabled={loading}
+                        onClick={() =>
+                          setShowPassword(
+                            (value) => !value
+                          )
+                        }
                         aria-label={
                           showPassword
                             ? "Hide password"
@@ -531,7 +696,9 @@ export default function Register() {
                 id="confirmPassword"
                 name="confirmPassword"
                 type={
-                  showConfirmPassword ? "text" : "password"
+                  showConfirmPassword
+                    ? "text"
+                    : "password"
                 }
                 label="Confirm password"
                 placeholder="Confirm your password"
@@ -549,18 +716,17 @@ export default function Register() {
                       <Lock className="!text-slate-400" />
                     </InputAdornment>
                   ),
-
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
                         type="button"
+                        edge="end"
+                        disabled={loading}
                         onClick={() =>
                           setShowConfirmPassword(
                             (value) => !value
                           )
                         }
-                        disabled={loading}
-                        edge="end"
                         aria-label={
                           showConfirmPassword
                             ? "Hide password"
@@ -584,12 +750,30 @@ export default function Register() {
                 }}
               />
 
+              {/* SECURITY INFO */}
+              <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
+                <Security
+                  sx={{
+                    fontSize: 17,
+                  }}
+                  className="!text-blue-600"
+                />
+
+                <Typography
+                  component="p"
+                  className="!text-xs !font-medium !text-slate-500"
+                >
+                  Your account information is
+                  securely handled.
+                </Typography>
+              </div>
+
               {/* SUBMIT */}
               <Button
                 type="submit"
                 fullWidth
-                disabled={loading}
                 variant="contained"
+                disabled={loading}
                 endIcon={
                   loading ? (
                     <CircularProgress
@@ -600,24 +784,21 @@ export default function Register() {
                     <ArrowForward />
                   )
                 }
-                className="!mt-2 !min-h-[54px] !rounded-2xl !bg-slate-950 !px-5 !text-sm !font-bold !normal-case !shadow-xl !shadow-slate-950/15 transition-all hover:!-translate-y-0.5 hover:!bg-blue-600 hover:!shadow-blue-600/20 disabled:!cursor-not-allowed disabled:!opacity-60"
+                className="!min-h-[54px] !rounded-2xl !bg-blue-600 !px-5 !text-sm !font-bold !normal-case !text-white !shadow-lg !shadow-blue-600/20 transition-all hover:!-translate-y-0.5 hover:!bg-blue-700 hover:!shadow-blue-600/30 disabled:!cursor-not-allowed disabled:!opacity-60"
               >
                 {loading
                   ? "Creating account..."
                   : "Create account"}
               </Button>
-
             </Box>
 
-            {/* LOGIN */}
+            {/* LOGIN LINK */}
             <div className="mt-8 text-center">
-
               <Typography
                 component="p"
                 className="!text-sm !text-slate-500"
               >
                 Already have an account?{" "}
-
                 <Link
                   to="/login"
                   className="font-bold text-blue-600 transition hover:text-blue-700 hover:underline"
@@ -625,18 +806,19 @@ export default function Register() {
                   Sign in
                 </Link>
               </Typography>
-
             </div>
 
-            {/* SECURITY */}
+            {/* TRUST */}
             <div className="mt-7 flex items-center justify-center gap-2 text-xs text-slate-400">
               <Security fontSize="small" />
-              Secure authentication powered by ApnaAcademy
-            </div>
 
+              <span>
+                Secure authentication powered by
+                ApnaAcademy
+              </span>
+            </div>
           </div>
         </section>
-
       </div>
     </main>
   );

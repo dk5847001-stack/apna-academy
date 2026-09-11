@@ -1,16 +1,21 @@
 import axios from "axios";
-
 import { API_BASE_URL } from "../constants/config";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
   },
-  timeout: 15000,
 });
 
-// Attach JWT automatically to every authenticated request.
+/*
+|--------------------------------------------------------------------------
+| Request Interceptor
+|--------------------------------------------------------------------------
+| Automatically attaches JWT token to authenticated requests.
+*/
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -24,11 +29,19 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle authentication expiry centrally.
+/*
+|--------------------------------------------------------------------------
+| Response Interceptor
+|--------------------------------------------------------------------------
+| Handles authentication expiry globally.
+*/
 api.interceptors.response.use(
   (response) => response,
+
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error?.response?.status;
+
+    if (status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
     }

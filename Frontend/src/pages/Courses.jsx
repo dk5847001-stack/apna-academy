@@ -147,12 +147,12 @@ export default function Courses() {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
+    <main className="min-h-screen overflow-hidden bg-white text-slate-900">
 
       {/* =========================================================
           BACKGROUND
       ========================================================= */}
-      <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
+      <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden opacity-0">
 
         <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
 
@@ -183,23 +183,23 @@ export default function Courses() {
                 icon={<AutoStories fontSize="small" />}
                 label="Explore ApnaAcademy"
                 variant="outlined"
-                className="!mb-5 !border-cyan-400/20 !bg-cyan-400/10 !text-cyan-300"
+                className="!mb-5 !border-blue-200 !bg-blue-50 !text-blue-700"
               />
 
               <Typography
                 component="h1"
-                className="!text-4xl !font-black !leading-tight !tracking-tight !text-white sm:!text-5xl lg:!text-6xl"
+                className="!text-4xl !font-black !leading-tight !tracking-tight !text-slate-950 sm:!text-5xl lg:!text-6xl"
               >
                 Learn skills that
 
-                <span className="block bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">
                   move you forward.
                 </span>
               </Typography>
 
               <Typography
                 component="p"
-                className="!mt-5 !max-w-2xl !text-base !leading-7 !text-slate-400 sm:!text-lg"
+                className="!mt-5 !max-w-2xl !text-base !leading-7 !text-slate-600 sm:!text-lg"
               >
                 Explore practical courses designed to help you
                 build real-world technology skills and grow your
@@ -210,16 +210,16 @@ export default function Courses() {
 
             {/* COURSE COUNT */}
             {!loading && !error && (
-              <div className="hidden rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-5 shadow-xl backdrop-blur-xl sm:block">
+              <div className="hidden rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-xl backdrop-blur-xl sm:block">
 
                 <div className="flex items-center gap-3">
 
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                     <School />
                   </div>
 
                   <div>
-                    <p className="text-2xl font-black text-white">
+                    <p className="text-2xl font-black text-slate-900">
                       {pagination.total}
                     </p>
 
@@ -265,17 +265,17 @@ export default function Courses() {
 
               <Typography
                 component="p"
-                className="!text-sm !text-slate-400"
+                className="!text-sm !text-slate-600"
               >
                 Showing{" "}
 
-                <span className="font-bold text-slate-200">
+                <span className="font-bold text-slate-900">
                   {courses.length}
                 </span>{" "}
 
                 of{" "}
 
-                <span className="font-bold text-slate-200">
+                <span className="font-bold text-slate-900">
                   {pagination.total}
                 </span>{" "}
 
@@ -314,24 +314,24 @@ export default function Courses() {
             ERROR STATE
         ======================================================= */}
         {!loading && error && (
-          <section className="rounded-[2rem] border border-red-400/15 bg-red-400/[0.05] p-8 shadow-xl backdrop-blur-xl sm:p-14">
+          <section className="rounded-[2rem] border border-red-200 bg-red-50 p-8 shadow-xl backdrop-blur-xl sm:p-14">
 
             <div className="mx-auto max-w-md text-center">
 
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-red-400/10 bg-red-400/10 text-2xl font-black text-red-300">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-red-200 bg-red-100 text-2xl font-black text-red-600">
                 !
               </div>
 
               <Typography
                 component="h2"
-                className="!mt-5 !text-xl !font-bold !text-white"
+                className="!mt-5 !text-xl !font-bold !text-slate-950"
               >
                 Unable to load courses
               </Typography>
 
               <Typography
                 component="p"
-                className="!mt-2 !text-sm !leading-6 !text-slate-400"
+                className="!mt-2 !text-sm !leading-6 !text-slate-600"
               >
                 {error}
               </Typography>
@@ -341,7 +341,7 @@ export default function Courses() {
                 onClick={fetchCourses}
                 startIcon={<Refresh />}
                 variant="contained"
-                className="!mt-6 !rounded-xl !bg-white !px-5 !py-3 !text-sm !font-bold !normal-case !text-slate-950 hover:!bg-slate-200"
+                className="!mt-6 !rounded-xl !bg-blue-600 !px-5 !py-3 !text-sm !font-bold !normal-case !text-white hover:!bg-blue-700"
               >
                 Try Again
               </Button>
@@ -355,15 +355,15 @@ export default function Courses() {
             EMPTY STATE
         ======================================================= */}
         {!loading && !error && courses.length === 0 && (
-          <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-10 text-center shadow-xl backdrop-blur-xl sm:p-16">
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-10 text-center shadow-xl backdrop-blur-xl sm:p-16">
 
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-500">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500">
               <SearchOff fontSize="large" />
             </div>
 
             <Typography
               component="h2"
-              className="!mt-6 !text-2xl !font-bold !text-white"
+              className="!mt-6 !text-2xl !font-bold !text-slate-950"
             >
               No courses found
             </Typography>
@@ -381,7 +381,7 @@ export default function Courses() {
               onClick={handleReset}
               startIcon={<Refresh />}
               variant="outlined"
-              className="!mt-6 !rounded-xl !border-white/10 !bg-white/5 !px-5 !py-3 !text-sm !font-semibold !normal-case !text-slate-200 hover:!border-white/20 hover:!bg-white/10"
+              className="!mt-6 !rounded-xl !border-slate-300 !bg-white !px-5 !py-3 !text-sm !font-semibold !normal-case !text-slate-700 hover:!border-blue-300 hover:!bg-blue-50"
             >
               Clear Filters
             </Button>
@@ -427,13 +427,13 @@ export default function Courses() {
                 }
                 startIcon={<ChevronLeft />}
                 variant="outlined"
-                className="!min-h-11 !rounded-xl !border-white/10 !bg-white/5 !px-4 !text-sm !font-semibold !normal-case !text-slate-300 hover:!border-white/20 hover:!bg-white/10 disabled:!opacity-40"
+                className="!min-h-11 !rounded-xl !border-slate-300 !bg-white !px-4 !text-sm !font-semibold !normal-case !text-slate-700 hover:!border-blue-300 hover:!bg-blue-50 disabled:!opacity-40"
               >
                 Previous
               </Button>
 
               {/* CURRENT PAGE */}
-              <Box className="flex !min-h-11 !min-w-11 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 text-sm font-bold text-cyan-300">
+              <Box className="flex !min-h-11 !min-w-11 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-700">
                 {pagination.page}
               </Box>
 
@@ -446,7 +446,7 @@ export default function Courses() {
                 }
                 endIcon={<ChevronRight />}
                 variant="outlined"
-                className="!min-h-11 !rounded-xl !border-white/10 !bg-white/5 !px-4 !text-sm !font-semibold !normal-case !text-slate-300 hover:!border-white/20 hover:!bg-white/10 disabled:!opacity-40"
+                className="!min-h-11 !rounded-xl !border-slate-300 !bg-white !px-4 !text-sm !font-semibold !normal-case !text-slate-700 hover:!border-blue-300 hover:!bg-blue-50 disabled:!opacity-40"
               >
                 Next
               </Button>
@@ -457,27 +457,27 @@ export default function Courses() {
         {/* =======================================================
             BOTTOM CTA
         ======================================================= */}
-        <section className="mt-16 overflow-hidden rounded-[2rem] border border-cyan-400/10 bg-gradient-to-br from-cyan-400/[0.08] via-blue-500/[0.05] to-violet-500/[0.08] p-8 shadow-xl backdrop-blur-xl sm:p-10">
+        <section className="mt-16 overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-8 shadow-xl backdrop-blur-xl sm:p-10">
 
           <div className="flex flex-col gap-7 md:flex-row md:items-center md:justify-between">
 
             <div className="max-w-2xl">
 
-              <div className="flex items-center gap-2 text-sm font-semibold text-cyan-300">
+              <div className="flex items-center gap-2 text-sm font-semibold text-blue-700">
                 <AutoAwesome fontSize="small" />
                 Build. Learn. Grow.
               </div>
 
               <Typography
                 component="h2"
-                className="!mt-2 !text-2xl !font-bold !text-white sm:!text-3xl"
+                className="!mt-2 !text-2xl !font-bold !text-slate-950 sm:!text-3xl"
               >
                 Start your learning journey today.
               </Typography>
 
               <Typography
                 component="p"
-                className="!mt-2 !text-sm !leading-6 !text-slate-400"
+                className="!mt-2 !text-sm !leading-6 !text-slate-600"
               >
                 Choose a course and start building practical
                 skills with ApnaAcademy.
@@ -487,7 +487,7 @@ export default function Courses() {
 
             <Link
               to="/"
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-200"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-slate-900 transition hover:bg-blue-700"
             >
               <ArrowBack fontSize="small" />
               Back to Home

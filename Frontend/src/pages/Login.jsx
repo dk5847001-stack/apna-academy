@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useEffect, useRef, useState } from "react";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import {
   Alert,
@@ -25,32 +28,147 @@ import {
   VisibilityOff,
 } from "@mui/icons-material";
 
-import { API_BASE_URL } from "../constants/config";
+import api from "../services/api";
+
+const DASHBOARD_URL =
+  import.meta.env.VITE_DASHBOARD_URL ||
+  "http://localhost:5175";
+
+const getDashboardUrl = () => {
+  return DASHBOARD_URL.replace(/\/+$/, "");
+};
+
+const getErrorMessage = (error) => {
+  const status = error?.response?.status;
+  const data = error?.response?.data;
+
+  if (
+    error?.code === "ERR_NETWORK" ||
+    error?.message === "Network Error"
+  ) {
+    return "Unable to connect to the server. Please make sure the backend is running.";
+  }
+
+  if (status === 401) {
+    return (
+      data?.message ||
+      "Invalid email or password."
+    );
+  }
+
+  if (status === 403) {
+    return (
+      data?.message ||
+      "Your account is not active."
+    );
+  }
+
+  if (status === 429) {
+    return "Too many requests. Please wait a moment and try again.";
+  }
+
+  if (status >= 500) {
+    return "Something went wrong on the server. Please try again.";
+  }
+
+  return (
+    data?.message ||
+    data?.error?.message ||
+    error?.message ||
+    "Unable to login. Please try again."
+  );
+};
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const authCheckStarted = useRef(false);
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [checkingAuth, setCheckingAuth] =
+    useState(true);
+
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
+
   const [success, setSuccess] = useState("");
 
-  const redirectTo = location.state?.from || "/";
-
+  /*
+   * =====================================================
+   * CHECK EXISTING AUTHENTICATION
+   * =====================================================
+   *
+   * Do not trust localStorage token blindly.
+   * Verify the token with backend /auth/me.
+   */
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (token) {
-      navigate(redirectTo, { replace: true });
+    if (authCheckStarted.current) {
+      return;
     }
-  }, [navigate, redirectTo]);
 
+    authCheckStarted.current = true;
+
+    const verifyExistingSession = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setCheckingAuth(false);
+        return;
+      }
+
+      try {
+        const response = await api.get("/auth/me");
+
+        const currentUser =
+          response?.data?.data;
+
+        if (!currentUser) {
+          throw new Error(
+            "Invalid authentication response."
+          );
+        }
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(currentUser)
+        );
+
+        /*
+         * User is already authenticated.
+         * Login page is not needed.
+         */
+        window.location.replace(
+          getDashboardUrl()
+        );
+      } catch {
+        /*
+         * api interceptor removes invalid/expired token.
+         * Remove user as an extra safety measure.
+         */
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        setCheckingAuth(false);
+      }
+    };
+
+    verifyExistingSession();
+  }, []);
+
+  /*
+   * =====================================================
+   * INPUT CHANGE
+   * =====================================================
+   */
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -68,15 +186,24 @@ export default function Login() {
     }
   };
 
+  /*
+   * =====================================================
+   * FORM VALIDATION
+   * =====================================================
+   */
   const validateForm = () => {
-    const email = formData.email.trim();
+    const email =
+      formData.email.trim().toLowerCase();
+
     const password = formData.password;
 
     if (!email) {
       return "Please enter your email address.";
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
       return "Please enter a valid email address.";
     }
 
@@ -87,13 +214,23 @@ export default function Login() {
     return "";
   };
 
+  /*
+   * =====================================================
+   * LOGIN
+   * =====================================================
+   */
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (loading) {
+      return;
+    }
 
     setError("");
     setSuccess("");
 
-    const validationError = validateForm();
+    const validationError =
+      validateForm();
 
     if (validationError) {
       setError(validationError);
@@ -103,168 +240,245 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/auth/login`,
+      const response = await api.post(
+        "/auth/login",
         {
-          email: formData.email.trim().toLowerCase(),
-          password: formData.password,
+          email:
+            formData.email
+              .trim()
+              .toLowerCase(),
+
+          password:
+            formData.password,
         }
       );
 
-      const responseData = response?.data;
-      const loginData = responseData?.data;
+      const loginData =
+        response?.data?.data;
 
-      if (!loginData?.token || !loginData?.user) {
+      /*
+       * Backend contract:
+       *
+       * {
+       *   success: true,
+       *   message: "...",
+       *   data: {
+       *     token: "...",
+       *     user: {...}
+       *   }
+       * }
+       */
+      const token = loginData?.token;
+      const user = loginData?.user;
+
+      if (!token || !user) {
         throw new Error(
-          "Login succeeded, but the server returned an invalid response."
+          "Login succeeded, but the server returned an invalid authentication response."
         );
       }
 
-      localStorage.setItem("token", loginData.token);
+      /*
+       * Store authentication data.
+       */
+      localStorage.setItem(
+        "token",
+        token
+      );
 
       localStorage.setItem(
         "user",
-        JSON.stringify(loginData.user)
+        JSON.stringify(user)
       );
 
-      setSuccess("Login successful. Redirecting...");
+      setSuccess(
+        "Login successful. Opening your dashboard..."
+      );
 
-      const dashboardUrl =
-        import.meta.env.VITE_DASHBOARD_URL ||
-        "http://localhost:5175";
-
-      setTimeout(() => {
-        window.location.href = dashboardUrl;
+      /*
+       * Give the success message a moment to render,
+       * then move to the separate Dashboard application.
+       */
+      window.setTimeout(() => {
+        window.location.replace(
+          getDashboardUrl()
+        );
       }, 500);
     } catch (requestError) {
-      const status = requestError?.response?.status;
-      const serverData = requestError?.response?.data;
-
-      const serverMessage =
-        serverData?.message ||
-        serverData?.error?.message ||
-        serverData?.errors?.message;
-
-      if (serverMessage) {
-        setError(serverMessage);
-      } else if (status === 401) {
-        setError("Invalid email or password.");
-      } else if (status === 403) {
-        setError("Your account is not active.");
-      } else if (status >= 500) {
-        setError(
-          "Something went wrong on the server. Please try again."
-        );
-      } else if (
-        requestError?.code === "ERR_NETWORK" ||
-        requestError?.message === "Network Error"
-      ) {
-        setError(
-          "Unable to connect to the server. Please make sure the backend is running."
-        );
-      } else {
-        setError(
-          requestError?.message ||
-            "Unable to login. Please try again."
-        );
-      }
+      setError(
+        getErrorMessage(requestError)
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  /*
+   * =====================================================
+   * LOADING / EXISTING SESSION CHECK
+   * =====================================================
+   */
+  if (checkingAuth) {
+    return (
+      <main className="flex min-h-[calc(100vh-72px)] items-center justify-center bg-white px-4">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
+            <School />
+          </div>
+
+          <CircularProgress
+            size={24}
+            thickness={4}
+            className="!text-blue-600"
+          />
+
+          <Typography
+            component="p"
+            className="!text-sm !font-semibold !text-slate-500"
+          >
+            Checking your account...
+          </Typography>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-[calc(100vh-72px)] bg-slate-50 px-4 py-8 text-slate-900 sm:px-6 sm:py-12 lg:px-8">
-      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_30px_100px_-35px_rgba(15,23,42,0.35)] lg:grid-cols-2">
+      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_24px_80px_-32px_rgba(15,23,42,0.3)] lg:grid-cols-2">
 
-        {/* LEFT BRAND PANEL */}
+        {/* =================================================
+            LEFT BRAND SECTION
+        ================================================== */}
         <section className="relative hidden min-h-[680px] overflow-hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
 
-          <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+          {/* Subtle decorative elements */}
+          <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-blue-600/10 blur-3xl" />
 
-          <div className="absolute -bottom-40 -left-24 h-[28rem] w-[28rem] rounded-full bg-indigo-500/20 blur-3xl" />
-
-          <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-indigo-600/10 blur-3xl" />
 
           <div className="relative z-10">
 
             {/* BRAND */}
-            <div className="mb-12 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-2xl backdrop-blur-xl">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-600/30">
+            <div className="mb-12 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg">
                 <School fontSize="small" />
               </div>
 
               <div>
-                <p className="text-sm font-bold tracking-wide">
+                <Typography
+                  component="p"
+                  className="!text-sm !font-bold !tracking-wide !text-white"
+                >
                   ApnaAcademy
-                </p>
+                </Typography>
 
-                <p className="text-xs text-slate-400">
+                <Typography
+                  component="p"
+                  className="!text-xs !text-slate-400"
+                >
                   Learn. Build. Grow.
-                </p>
+                </Typography>
               </div>
             </div>
 
-            {/* HERO */}
-            <div className="max-w-xl">
-
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1.5 text-xs font-semibold text-blue-300">
-                <Security fontSize="inherit" />
-                Secure learning platform
-              </div>
-
-              <h1 className="text-4xl font-black leading-tight tracking-tight xl:text-5xl">
-                Continue your
-
-                <span className="block bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400 bg-clip-text text-transparent">
-                  learning journey.
-                </span>
-              </h1>
-
-              <p className="mt-6 max-w-lg text-base leading-7 text-slate-400">
-                Sign in to access your courses, track your progress,
-                continue learning and unlock your achievements.
-              </p>
-
+            {/* BADGE */}
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1.5 text-xs font-semibold text-blue-300">
+              <Security fontSize="inherit" />
+              Secure learning platform
             </div>
+
+            {/* HEADING */}
+            <Typography
+              component="h1"
+              className="!text-4xl !font-black !leading-tight !tracking-tight !text-white xl:!text-5xl"
+            >
+              Continue your
+              <span className="block text-blue-400">
+                learning journey.
+              </span>
+            </Typography>
+
+            {/* DESCRIPTION */}
+            <Typography
+              component="p"
+              className="!mt-6 !max-w-lg !text-base !leading-7 !text-slate-400"
+            >
+              Sign in to access your courses,
+              track your progress, continue
+              learning and unlock your
+              achievements.
+            </Typography>
 
             {/* FEATURES */}
             <div className="mt-10 grid gap-3">
 
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-300">
                   <School fontSize="small" />
                 </div>
 
                 <div>
-                  <p className="text-sm font-bold">
+                  <Typography
+                    component="p"
+                    className="!text-sm !font-bold !text-white"
+                  >
                     Structured Learning
-                  </p>
+                  </Typography>
 
-                  <p className="mt-1 text-xs text-slate-400">
-                    Learn through organized courses and modules.
-                  </p>
+                  <Typography
+                    component="p"
+                    className="!mt-1 !text-xs !text-slate-400"
+                  >
+                    Learn through organized
+                    courses and modules.
+                  </Typography>
                 </div>
-
               </div>
 
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-300">
-                  <Security fontSize="small" />
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300">
+                  <CheckCircle fontSize="small" />
                 </div>
 
                 <div>
-                  <p className="text-sm font-bold">
-                    Secure Account
-                  </p>
+                  <Typography
+                    component="p"
+                    className="!text-sm !font-bold !text-white"
+                  >
+                    Track Your Progress
+                  </Typography>
 
-                  <p className="mt-1 text-xs text-slate-400">
-                    Your account and learning data stay protected.
-                  </p>
+                  <Typography
+                    component="p"
+                    className="!mt-1 !text-xs !text-slate-400"
+                  >
+                    Continue exactly where
+                    you stopped learning.
+                  </Typography>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-300">
+                  <Star fontSize="small" />
                 </div>
 
+                <div>
+                  <Typography
+                    component="p"
+                    className="!text-sm !font-bold !text-white"
+                  >
+                    Earn Achievements
+                  </Typography>
+
+                  <Typography
+                    component="p"
+                    className="!mt-1 !text-xs !text-slate-400"
+                  >
+                    Complete your learning
+                    journey and earn certificates.
+                  </Typography>
+                </div>
               </div>
 
             </div>
@@ -273,103 +487,136 @@ export default function Login() {
           {/* STEPS */}
           <div className="relative z-10 grid grid-cols-3 gap-3">
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <p className="text-xl font-black">01</p>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Typography
+                component="p"
+                className="!text-xl !font-black !text-white"
+              >
+                01
+              </Typography>
 
-              <p className="mt-1 text-xs text-slate-400">
+              <Typography
+                component="p"
+                className="!mt-1 !text-xs !text-slate-400"
+              >
                 Learn
-              </p>
+              </Typography>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <p className="text-xl font-black">02</p>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Typography
+                component="p"
+                className="!text-xl !font-black !text-white"
+              >
+                02
+              </Typography>
 
-              <p className="mt-1 text-xs text-slate-400">
+              <Typography
+                component="p"
+                className="!mt-1 !text-xs !text-slate-400"
+              >
                 Practice
-              </p>
+              </Typography>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
-              <p className="text-xl font-black">03</p>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Typography
+                component="p"
+                className="!text-xl !font-black !text-white"
+              >
+                03
+              </Typography>
 
-              <p className="mt-1 text-xs text-slate-400">
+              <Typography
+                component="p"
+                className="!mt-1 !text-xs !text-slate-400"
+              >
                 Achieve
-              </p>
+              </Typography>
             </div>
 
           </div>
         </section>
 
-        {/* LOGIN PANEL */}
+        {/* =================================================
+            LOGIN SECTION
+        ================================================== */}
         <section className="flex items-center p-6 sm:p-10 xl:p-14">
           <div className="mx-auto w-full max-w-md">
 
             {/* MOBILE BRAND */}
             <div className="mb-8 flex items-center gap-3 lg:hidden">
-
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg">
                 <School />
               </div>
 
               <div>
-                <p className="font-bold text-slate-950">
+                <Typography
+                  component="p"
+                  className="!font-bold !text-slate-950"
+                >
                   ApnaAcademy
-                </p>
+                </Typography>
 
-                <p className="text-xs text-slate-500">
+                <Typography
+                  component="p"
+                  className="!text-xs !text-slate-500"
+                >
                   Learn. Build. Grow.
-                </p>
+                </Typography>
               </div>
-
             </div>
 
             {/* HEADER */}
             <div className="mb-8">
-
               <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-600">
-                <Star fontSize="small" />
-                Welcome back
+                <Security fontSize="small" />
+
+                <span>
+                  Secure sign in
+                </span>
               </div>
 
               <Typography
                 component="h2"
                 className="!text-3xl !font-black !tracking-tight !text-slate-950 sm:!text-4xl"
               >
-                Sign in to your account
+                Welcome back.
               </Typography>
 
               <Typography
                 component="p"
-                className="!mt-3 !text-sm !leading-6 !text-slate-500"
+                className="!mt-2 !text-sm !leading-6 !text-slate-500"
               >
-                Enter your credentials to continue to your
-                ApnaAcademy dashboard.
+                Sign in to continue your
+                learning journey with
+                ApnaAcademy.
               </Typography>
-
             </div>
 
-            {/* ERROR */}
+            {/* ALERTS */}
             {error && (
               <Alert
                 severity="error"
-                className="!mb-5 !rounded-2xl !border !border-red-200 !bg-red-50"
+                variant="outlined"
+                onClose={() => setError("")}
+                className="!mb-5 !rounded-2xl"
               >
                 {error}
               </Alert>
             )}
 
-            {/* SUCCESS */}
             {success && (
               <Alert
                 severity="success"
-                icon={<CheckCircle />}
-                className="!mb-5 !rounded-2xl !border !border-emerald-200 !bg-emerald-50"
+                variant="outlined"
+                className="!mb-5 !rounded-2xl"
               >
                 {success}
               </Alert>
             )}
 
-            {/* LOGIN FORM */}
+            {/* FORM */}
             <Box
               component="form"
               onSubmit={handleSubmit}
@@ -389,6 +636,7 @@ export default function Login() {
                 onChange={handleChange}
                 disabled={loading}
                 autoComplete="email"
+                autoFocus
                 required
                 InputLabelProps={{
                   shrink: true,
@@ -409,88 +657,91 @@ export default function Login() {
               />
 
               {/* PASSWORD */}
-              <div>
+              <TextField
+                fullWidth
+                id="password"
+                name="password"
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
+                label="Password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                disabled={loading}
+                autoComplete="current-password"
+                required
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Lock className="!text-slate-400" />
+                    </InputAdornment>
+                  ),
 
-                <div className="mb-2 flex items-center justify-between">
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        type="button"
+                        edge="end"
+                        disabled={loading}
+                        onClick={() =>
+                          setShowPassword(
+                            (value) =>
+                              !value
+                          )
+                        }
+                        aria-label={
+                          showPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
+                      >
+                        {showPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "1rem",
+                    backgroundColor: "#f8fafc",
+                  },
+                }}
+              />
 
-                  <Typography
-                    component="label"
-                    htmlFor="password"
-                    className="!text-sm !font-semibold !text-slate-700"
-                  >
-                    Password
-                  </Typography>
+              {/* EXTRA OPTIONS */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <CheckCircle
+                    sx={{
+                      fontSize: 16,
+                    }}
+                    className="!text-emerald-500"
+                  />
 
-                  <Link
-                    to="/forgot-password"
-                    className="text-xs font-semibold text-blue-600 transition hover:text-blue-700 hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-
+                  <span>
+                    Secure authentication
+                  </span>
                 </div>
 
-                <TextField
-                  fullWidth
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={loading}
-                  autoComplete="current-password"
-                  required
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Lock className="!text-slate-400" />
-                      </InputAdornment>
-                    ),
-
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          type="button"
-                          onClick={() =>
-                            setShowPassword((value) => !value)
-                          }
-                          disabled={loading}
-                          edge="end"
-                          aria-label={
-                            showPassword
-                              ? "Hide password"
-                              : "Show password"
-                          }
-                        >
-                          {showPassword ? (
-                            <VisibilityOff />
-                          ) : (
-                            <Visibility />
-                          )}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: "1rem",
-                      backgroundColor: "#f8fafc",
-                    },
-                  }}
-                />
-
+                {/* Password reset intentionally skipped for now */}
               </div>
 
               {/* SUBMIT */}
               <Button
                 type="submit"
                 fullWidth
-                disabled={loading}
                 variant="contained"
+                disabled={loading}
                 endIcon={
                   loading ? (
                     <CircularProgress
@@ -501,16 +752,17 @@ export default function Login() {
                     <ArrowForward />
                   )
                 }
-                className="!mt-2 !min-h-[54px] !rounded-2xl !bg-slate-950 !px-5 !text-sm !font-bold !normal-case !shadow-xl !shadow-slate-950/15 transition-all hover:!-translate-y-0.5 hover:!bg-blue-600 hover:!shadow-blue-600/20 disabled:!cursor-not-allowed disabled:!opacity-60"
+                className="!min-h-[54px] !rounded-2xl !bg-blue-600 !px-5 !text-sm !font-bold !normal-case !text-white !shadow-lg !shadow-blue-600/20 transition-all hover:!-translate-y-0.5 hover:!bg-blue-700 hover:!shadow-blue-600/30 disabled:!cursor-not-allowed disabled:!opacity-60"
               >
-                {loading ? "Signing in..." : "Sign in"}
+                {loading
+                  ? "Signing in..."
+                  : "Sign in"}
               </Button>
 
             </Box>
 
-            {/* SIGN UP */}
+            {/* REGISTER */}
             <div className="mt-8 text-center">
-
               <Typography
                 component="p"
                 className="!text-sm !text-slate-500"
@@ -521,16 +773,25 @@ export default function Login() {
                   to="/register"
                   className="font-bold text-blue-600 transition hover:text-blue-700 hover:underline"
                 >
-                  Create account
+                  Create an account
                 </Link>
               </Typography>
-
             </div>
 
-            {/* SECURITY NOTE */}
-            <div className="mt-8 flex items-center justify-center gap-2 text-xs text-slate-400">
-              <Security fontSize="small" />
-              Secure authentication powered by ApnaAcademy
+            {/* TRUST */}
+            <div className="mt-8 border-t border-slate-100 pt-6">
+              <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+                <Security
+                  sx={{
+                    fontSize: 16,
+                  }}
+                />
+
+                <span>
+                  Your authentication is securely
+                  handled by ApnaAcademy.
+                </span>
+              </div>
             </div>
 
           </div>

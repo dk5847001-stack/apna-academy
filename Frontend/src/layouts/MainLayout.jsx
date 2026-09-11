@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import {
   Link,
   NavLink,
@@ -39,11 +38,18 @@ import {
   Settings,
   Person,
   Close,
+  Dashboard,
+  MenuBook,
+  SupportAgent,
+  InfoOutlined,
+  ContactSupport,
 } from "@mui/icons-material";
 
 const DASHBOARD_URL =
-  import.meta.env.VITE_DASHBOARD_URL ||
-  "http://localhost:5175";
+  import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5175";
+
+const COURSE_URL =
+  import.meta.env.VITE_COURSE_URL || "http://localhost:5174";
 
 const navItems = [
   {
@@ -64,272 +70,376 @@ const navItems = [
   },
 ];
 
+function getStoredUser() {
+  try {
+    const storedUser = localStorage.getItem("user");
+
+    if (!storedUser) {
+      return null;
+    }
+
+    return JSON.parse(storedUser);
+  } catch {
+    return null;
+  }
+}
+
+function getInitials(user) {
+  if (!user) {
+    return "U";
+  }
+
+  const name =
+    user.name ||
+    user.fullName ||
+    user.username ||
+    user.email ||
+    "User";
+
+  const parts = name.trim().split(/\s+/);
+
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+function FooterColumn({ title, children }) {
+  return (
+    <div className="min-w-0">
+      <Typography
+        component="h3"
+        variant="subtitle2"
+        sx={{
+          mb: 1.5,
+          color: "#0f172a",
+          fontWeight: 800,
+          letterSpacing: "0.01em",
+        }}
+      >
+        {title}
+      </Typography>
+
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+function FooterLink({ to, children }) {
+  return (
+    <Link
+      to={to}
+      className="
+        block
+        w-fit
+        rounded-md
+        py-1
+        text-sm
+        text-slate-600
+        no-underline
+        transition-colors
+        duration-200
+        hover:text-blue-700
+      "
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default function MainLayout() {
   const navigate = useNavigate();
 
-  const [mobileMenuOpen, setMobileMenuOpen] =
-    useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileAnchor, setProfileAnchor] = useState(null);
+  const [notificationAnchor, setNotificationAnchor] = useState(null);
 
-  const [profileAnchorEl, setProfileAnchorEl] =
-    useState(null);
+  const [user, setUser] = useState(getStoredUser);
 
-  const [darkMode, setDarkMode] = useState(() => {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem("theme") === "dark";
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return Boolean(localStorage.getItem("token"));
-  });
+  const isLoggedIn = Boolean(
+    localStorage.getItem("token") && user
+  );
 
-  const [user, setUser] = useState(() => {
-    try {
-      const storedUser = localStorage.getItem("user");
+  useEffect(() => {
+    const syncAuth = () => {
+      setUser(getStoredUser());
+    };
 
-      return storedUser
-        ? JSON.parse(storedUser)
-        : null;
-    } catch {
-      return null;
-    }
-  });
+    window.addEventListener("storage", syncAuth);
 
-  const profileOpen = Boolean(profileAnchorEl);
-
-  /* =====================================================
-     THEME
-  ====================================================== */
+    return () => {
+      window.removeEventListener("storage", syncAuth);
+    };
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
 
-    if (darkMode) {
+    if (isDarkMode) {
       root.classList.add("dark");
       localStorage.setItem("theme", "dark");
     } else {
       root.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
-  }, [darkMode]);
-
-  /* =====================================================
-     AUTH STATE
-  ====================================================== */
-
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("token");
-
-      setIsLoggedIn(Boolean(token));
-
-      try {
-        const storedUser =
-          localStorage.getItem("user");
-
-        setUser(
-          storedUser
-            ? JSON.parse(storedUser)
-            : null
-        );
-      } catch {
-        setUser(null);
-      }
-    };
-
-    window.addEventListener(
-      "storage",
-      checkAuth
-    );
-
-    return () => {
-      window.removeEventListener(
-        "storage",
-        checkAuth
-      );
-    };
-  }, []);
-
-  /* =====================================================
-     LOGOUT
-  ====================================================== */
+  }, [isDarkMode]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    setIsLoggedIn(false);
     setUser(null);
-
-    setProfileAnchorEl(null);
-    setMobileMenuOpen(false);
+    setProfileAnchor(null);
+    setMobileOpen(false);
 
     navigate("/login");
   };
 
-  /* =====================================================
-     MOBILE MENU
-  ====================================================== */
+  const handleDashboard = () => {
+    setProfileAnchor(null);
+    setMobileOpen(false);
 
-  const closeMobileMenu = () => {
-    setMobileMenuOpen(false);
+    window.location.href = DASHBOARD_URL;
   };
 
-  /* =====================================================
-     PROFILE MENU
-  ====================================================== */
-
-  const openProfileMenu = (event) => {
-    setProfileAnchorEl(event.currentTarget);
+  const handleCourses = () => {
+    setMobileOpen(false);
+    navigate("/courses");
   };
 
-  const closeProfileMenu = () => {
-    setProfileAnchorEl(null);
+  const handleLogin = () => {
+    setMobileOpen(false);
+    navigate("/login");
   };
 
-  /* =====================================================
-     USER INITIAL
-  ====================================================== */
+  const handleRegister = () => {
+    setMobileOpen(false);
+    navigate("/register");
+  };
 
-  const userInitial = (
-    user?.name ||
-    user?.email ||
-    "U"
-  )
-    .charAt(0)
-    .toUpperCase();
+  const handleProfile = () => {
+    setProfileAnchor(null);
+    setMobileOpen(false);
 
-  /* =====================================================
-     NAVIGATION LINK
-  ====================================================== */
+    window.location.href = `${DASHBOARD_URL}/profile`;
+  };
 
-  const navLinkClass = ({ isActive }) =>
-    [
-      "rounded-xl px-3 py-2 text-sm font-semibold",
-      "transition-all duration-200",
+  const handleMyCourses = () => {
+    setProfileAnchor(null);
+    setMobileOpen(false);
 
-      isActive
-        ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
-        : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white",
-    ].join(" ");
+    window.location.href = `${DASHBOARD_URL}/courses`;
+  };
+
+  const handleNotifications = () => {
+    setNotificationAnchor(null);
+    setMobileOpen(false);
+
+    window.location.href = `${DASHBOARD_URL}/notifications`;
+  };
+
+  const handleSupport = () => {
+    setMobileOpen(false);
+    navigate("/contact");
+  };
+
+  const handleNavClick = () => {
+    setMobileOpen(false);
+  };
+
+  const profileOpen = Boolean(profileAnchor);
+  const notificationOpen = Boolean(notificationAnchor);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-white">
-
-      {/* =====================================================
+    <div className="min-h-screen bg-white text-slate-900">
+      {/* =========================================================
           NAVBAR
-      ====================================================== */}
+      ========================================================= */}
 
       <AppBar
         position="sticky"
         elevation={0}
-        className="!border-b !border-slate-200/80 !bg-white/90 !text-slate-900 backdrop-blur-xl dark:!border-white/10 dark:!bg-slate-950/90 dark:!text-white"
+        sx={{
+          backgroundColor: "#ffffff",
+          color: "#0f172a",
+          borderBottom: "1px solid #e2e8f0",
+          boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
+          zIndex: 1200,
+        }}
       >
         <Toolbar
           disableGutters
-          className="mx-auto flex !min-h-[72px] w-full max-w-7xl justify-between px-4 sm:px-6 lg:px-8"
+          className="
+            mx-auto
+            flex
+            min-h-[68px]
+            w-full
+            max-w-7xl
+            px-4
+            sm:px-6
+            lg:px-8
+          "
         >
-
-          {/* =================================================
+          {/* =====================================================
               LOGO
-          ================================================== */}
+          ===================================================== */}
 
           <Link
             to="/"
-            onClick={closeMobileMenu}
-            className="group flex shrink-0 items-center gap-3 no-underline"
+            onClick={handleNavClick}
+            className="
+              flex
+              shrink-0
+              items-center
+              gap-2.5
+              no-underline
+            "
           >
-            <Box className="relative flex !h-10 !w-10 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 transition duration-300 group-hover:scale-105">
+            <div
+              className="
+                flex
+                h-10
+                w-10
+                items-center
+                justify-center
+                rounded-xl
+                border
+                border-blue-100
+                bg-blue-50
+                text-blue-700
+              "
+            >
               <School fontSize="small" />
+            </div>
 
-              <span className="absolute inset-0 bg-white/10 opacity-0 transition group-hover:opacity-100" />
-            </Box>
-
-            <Box className="hidden sm:block">
+            <div className="hidden sm:block">
               <Typography
-                component="p"
-                className="!text-base !font-black !tracking-tight !text-slate-950 dark:!text-white"
+                component="div"
+                sx={{
+                  color: "#0f172a",
+                  fontWeight: 900,
+                  fontSize: "1.08rem",
+                  lineHeight: 1.1,
+                  letterSpacing: "-0.02em",
+                }}
               >
                 ApnaAcademy
               </Typography>
 
               <Typography
-                component="p"
-                className="!text-[10px] !font-semibold !tracking-wide !text-slate-500"
+                component="div"
+                sx={{
+                  color: "#64748b",
+                  fontSize: "0.67rem",
+                  lineHeight: 1.2,
+                  fontWeight: 600,
+                }}
               >
-                LEARN • BUILD • GROW
+                Learn. Build. Grow.
               </Typography>
-            </Box>
+            </div>
           </Link>
 
-          {/* =================================================
+          {/* =====================================================
               DESKTOP NAVIGATION
-          ================================================== */}
+          ===================================================== */}
 
-          <Box className="hidden items-center gap-1 lg:flex">
+          <nav
+            className="
+              ml-8
+              hidden
+              items-center
+              gap-1
+              lg:flex
+            "
+          >
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={navLinkClass}
+                end={item.path === "/"}
+                className={({ isActive }) =>
+                  `
+                    rounded-lg
+                    px-3.5
+                    py-2
+                    text-sm
+                    font-semibold
+                    no-underline
+                    transition-colors
+                    duration-200
+                    ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-blue-700"
+                    }
+                  `
+                }
               >
                 {item.label}
               </NavLink>
             ))}
-          </Box>
+          </nav>
 
-          {/* =================================================
-              DESKTOP ACTIONS
-          ================================================== */}
+          <div className="ml-auto flex items-center gap-1.5">
+            {/* ===================================================
+                SEARCH
+            =================================================== */}
 
-          <Box className="hidden items-center gap-1 md:flex">
-
-            {/* Search */}
-
-            <Tooltip title="Search">
+            <Tooltip title="Search courses">
               <IconButton
-                aria-label="Search"
-                className="!h-10 !w-10 !rounded-xl !text-slate-500 hover:!bg-slate-100 hover:!text-slate-950 dark:!text-slate-400 dark:hover:!bg-white/5 dark:hover:!text-white"
+                onClick={handleCourses}
+                aria-label="Search courses"
+                sx={{
+                  width: 40,
+                  height: 40,
+                  color: "#475569",
+                  backgroundColor: "#ffffff",
+                  "&:hover": {
+                    color: "#1d4ed8",
+                    backgroundColor: "#eff6ff",
+                  },
+                }}
               >
                 <Search fontSize="small" />
               </IconButton>
             </Tooltip>
 
-            {/* Notifications */}
-
-            {isLoggedIn && (
-              <Tooltip title="Notifications">
-                <IconButton
-                  aria-label="Notifications"
-                  onClick={() =>
-                    navigate("/notifications")
-                  }
-                  className="relative !h-10 !w-10 !rounded-xl !text-slate-500 hover:!bg-slate-100 hover:!text-slate-950 dark:!text-slate-400 dark:hover:!bg-white/5 dark:hover:!text-white"
-                >
-                  <Notifications fontSize="small" />
-
-                  <span className="absolute right-2.5 top-2 h-2 w-2 rounded-full bg-blue-600 ring-2 ring-white dark:ring-slate-950" />
-                </IconButton>
-              </Tooltip>
-            )}
-
-            {/* Theme */}
+            {/* ===================================================
+                THEME
+            =================================================== */}
 
             <Tooltip
               title={
-                darkMode
+                isDarkMode
                   ? "Switch to light mode"
                   : "Switch to dark mode"
               }
             >
               <IconButton
-                aria-label="Theme"
-                onClick={() =>
-                  setDarkMode(
-                    (previous) => !previous
-                  )
-                }
-                className="!h-10 !w-10 !rounded-xl !text-slate-500 hover:!bg-slate-100 hover:!text-slate-950 dark:!text-slate-400 dark:hover:!bg-white/5 dark:hover:!text-white"
+                onClick={() => setIsDarkMode((previous) => !previous)}
+                aria-label="Toggle theme"
+                sx={{
+                  display: {
+                    xs: "none",
+                    sm: "inline-flex",
+                  },
+                  width: 40,
+                  height: 40,
+                  color: "#475569",
+                  backgroundColor: "#ffffff",
+                  "&:hover": {
+                    color: "#1d4ed8",
+                    backgroundColor: "#eff6ff",
+                  },
+                }}
               >
-                {darkMode ? (
+                {isDarkMode ? (
                   <LightMode fontSize="small" />
                 ) : (
                   <DarkMode fontSize="small" />
@@ -337,442 +447,1065 @@ export default function MainLayout() {
               </IconButton>
             </Tooltip>
 
-            {/* =================================================
-                GUEST ACTIONS
-            ================================================== */}
+            {/* ===================================================
+                NOTIFICATIONS
+            =================================================== */}
 
-            {!isLoggedIn ? (
-              <>
-                <Button
-                  component={Link}
-                  to="/login"
-                  startIcon={
-                    <Login fontSize="small" />
+            {isLoggedIn && (
+              <Tooltip title="Notifications">
+                <IconButton
+                  onClick={(event) =>
+                    setNotificationAnchor(event.currentTarget)
                   }
-                  className="!ml-1 !rounded-xl !px-4 !py-2.5 !text-sm !font-bold !normal-case !text-slate-700 hover:!bg-slate-100 dark:!text-slate-200 dark:hover:!bg-white/5"
-                >
-                  Login
-                </Button>
-
-                <Button
-                  component={Link}
-                  to="/register"
-                  variant="contained"
-                  className="!rounded-xl !bg-slate-950 !px-5 !py-2.5 !text-sm !font-bold !normal-case !shadow-lg !shadow-slate-950/10 hover:!bg-blue-600 dark:!bg-white dark:!text-slate-950 dark:hover:!bg-blue-500 dark:hover:!text-white"
-                >
-                  Get Started
-                </Button>
-              </>
-            ) : (
-
-              /* =================================================
-                 LOGGED-IN PROFILE
-              ================================================== */
-
-              <>
-                <Button
-                  onClick={openProfileMenu}
-                  endIcon={
-                    <KeyboardArrowDown fontSize="small" />
-                  }
-                  className="!ml-1 !rounded-xl !border !border-slate-200 !bg-white !px-2 !py-1.5 !normal-case hover:!border-slate-300 hover:!shadow-sm dark:!border-white/10 dark:!bg-white/5 dark:hover:!border-white/20"
-                >
-                  <Avatar className="!h-8 !w-8 !bg-gradient-to-br !from-blue-500 !to-indigo-600 !text-xs !font-black !text-white">
-                    {userInitial}
-                  </Avatar>
-
-                  <Box className="ml-2 hidden max-w-[100px] text-left xl:block">
-                    <Typography
-                      component="p"
-                      className="truncate !text-xs !font-bold !text-slate-900 dark:!text-white"
-                    >
-                      {user?.name || "Student"}
-                    </Typography>
-
-                    <Typography
-                      component="p"
-                      className="truncate !text-[10px] !text-slate-500"
-                    >
-                      Student
-                    </Typography>
-                  </Box>
-                </Button>
-
-                {/* Profile Dropdown */}
-
-                <Menu
-                  anchorEl={profileAnchorEl}
-                  open={profileOpen}
-                  onClose={closeProfileMenu}
-                  elevation={10}
-                  slotProps={{
-                    paper: {
-                      className:
-                        "!mt-2 !w-60 !rounded-2xl !border !border-slate-200 !bg-white !shadow-2xl dark:!border-white/10 dark:!bg-slate-900",
+                  aria-label="Notifications"
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    color: "#475569",
+                    backgroundColor: "#ffffff",
+                    "&:hover": {
+                      color: "#1d4ed8",
+                      backgroundColor: "#eff6ff",
                     },
                   }}
                 >
-                  <Box className="px-4 py-3">
-                    <Typography
-                      className="truncate !text-sm !font-bold !text-slate-900 dark:!text-white"
-                    >
-                      {user?.name || "Student"}
-                    </Typography>
-
-                    <Typography
-                      className="mt-0.5 truncate !text-xs !text-slate-500"
-                    >
-                      {user?.email || ""}
-                    </Typography>
-                  </Box>
-
-                  <Divider className="!border-slate-100 dark:!border-white/5" />
-
-                  <MenuItem
-                    component={Link}
-                    to="/profile"
-                    onClick={closeProfileMenu}
-                    className="!mx-2 !mt-1 !rounded-xl !text-sm !font-semibold"
-                  >
-                    <ListItemIcon>
-                      <Person fontSize="small" />
-                    </ListItemIcon>
-
-                    Profile
-                  </MenuItem>
-
-                  <MenuItem
-                    component="a"
-                    href={DASHBOARD_URL}
-                    onClick={closeProfileMenu}
-                    className="!mx-2 !rounded-xl !text-sm !font-semibold"
-                  >
-                    <ListItemIcon>
-                      <School fontSize="small" />
-                    </ListItemIcon>
-
-                    Dashboard
-                  </MenuItem>
-
-                  <MenuItem
-                    component={Link}
-                    to="/settings"
-                    onClick={closeProfileMenu}
-                    className="!mx-2 !rounded-xl !text-sm !font-semibold"
-                  >
-                    <ListItemIcon>
-                      <Settings fontSize="small" />
-                    </ListItemIcon>
-
-                    Settings
-                  </MenuItem>
-
-                  <Divider className="!my-1 !border-slate-100 dark:!border-white/5" />
-
-                  <MenuItem
-                    onClick={handleLogout}
-                    className="!mx-2 !rounded-xl !text-sm !font-semibold !text-red-600"
-                  >
-                    <ListItemIcon>
-                      <Logout
-                        fontSize="small"
-                        className="!text-red-600"
-                      />
-                    </ListItemIcon>
-
-                    Logout
-                  </MenuItem>
-                </Menu>
-              </>
+                  <Notifications fontSize="small" />
+                </IconButton>
+              </Tooltip>
             )}
-          </Box>
 
-          {/* =================================================
-              MOBILE ACTIONS
-          ================================================== */}
-
-          <Box className="flex items-center gap-1 md:hidden">
-
-            <Tooltip title="Theme">
-              <IconButton
-                onClick={() =>
-                  setDarkMode(
-                    (previous) => !previous
-                  )
-                }
-                className="!h-10 !w-10 !rounded-xl !text-slate-500 hover:!bg-slate-100 dark:!text-slate-400 dark:hover:!bg-white/5"
-              >
-                {darkMode ? (
-                  <LightMode fontSize="small" />
-                ) : (
-                  <DarkMode fontSize="small" />
-                )}
-              </IconButton>
-            </Tooltip>
-
-            <IconButton
-              aria-label={
-                mobileMenuOpen
-                  ? "Close menu"
-                  : "Open menu"
-              }
-              onClick={() =>
-                setMobileMenuOpen(
-                  (previous) => !previous
-                )
-              }
-              className="!h-10 !w-10 !rounded-xl !text-slate-700 hover:!bg-slate-100 dark:!text-slate-300 dark:hover:!bg-white/5"
-            >
-              {mobileMenuOpen ? (
-                <Close fontSize="small" />
-              ) : (
-                <MenuIcon fontSize="small" />
-              )}
-            </IconButton>
-          </Box>
-        </Toolbar>
-
-        {/* ===================================================
-            MOBILE DRAWER
-        ==================================================== */}
-
-        <Drawer
-          anchor="top"
-          open={mobileMenuOpen}
-          onClose={closeMobileMenu}
-          ModalProps={{
-            keepMounted: true,
-          }}
-          PaperProps={{
-            className:
-              "!top-[72px] !border-t !border-slate-200 !bg-white dark:!border-white/10 dark:!bg-slate-950",
-          }}
-        >
-          <Box className="px-4 py-4 md:hidden">
-
-            <List disablePadding>
-              {navItems.map((item) => (
-                <ListItemButton
-                  key={item.path}
-                  component={NavLink}
-                  to={item.path}
-                  onClick={closeMobileMenu}
-                  className="!mb-1 !rounded-xl"
-                >
-                  <ListItemText
-                    primary={item.label}
-                    primaryTypographyProps={{
-                      className:
-                        "!text-sm !font-semibold",
-                    }}
-                  />
-                </ListItemButton>
-              ))}
-
-              {isLoggedIn && (
-                <>
-                  <ListItemButton
-                    component="a"
-                    href={DASHBOARD_URL}
-                    onClick={closeMobileMenu}
-                    className="!mb-1 !rounded-xl"
-                  >
-                    <ListItemIcon>
-                      <School fontSize="small" />
-                    </ListItemIcon>
-
-                    <ListItemText
-                      primary="Dashboard"
-                      primaryTypographyProps={{
-                        className:
-                          "!text-sm !font-semibold",
-                      }}
-                    />
-                  </ListItemButton>
-
-                  <ListItemButton
-                    component={Link}
-                    to="/profile"
-                    onClick={closeMobileMenu}
-                    className="!mb-1 !rounded-xl"
-                  >
-                    <ListItemIcon>
-                      <Person fontSize="small" />
-                    </ListItemIcon>
-
-                    <ListItemText
-                      primary="Profile"
-                      primaryTypographyProps={{
-                        className:
-                          "!text-sm !font-semibold",
-                      }}
-                    />
-                  </ListItemButton>
-
-                  <ListItemButton
-                    component={Link}
-                    to="/notifications"
-                    onClick={closeMobileMenu}
-                    className="!mb-1 !rounded-xl"
-                  >
-                    <ListItemIcon>
-                      <Notifications fontSize="small" />
-                    </ListItemIcon>
-
-                    <ListItemText
-                      primary="Notifications"
-                      primaryTypographyProps={{
-                        className:
-                          "!text-sm !font-semibold",
-                      }}
-                    />
-                  </ListItemButton>
-                </>
-              )}
-            </List>
-
-            <Divider className="!my-4 !border-slate-200 dark:!border-white/10" />
+            {/* ===================================================
+                DESKTOP AUTH
+            =================================================== */}
 
             {!isLoggedIn ? (
-              <Box className="grid grid-cols-2 gap-2">
-
+              <div className="ml-1 hidden items-center gap-2 md:flex">
                 <Button
-                  component={Link}
-                  to="/login"
-                  onClick={closeMobileMenu}
-                  variant="outlined"
-                  className="!rounded-xl !border-slate-200 !py-3 !text-sm !font-bold !normal-case dark:!border-white/10 dark:!text-white"
+                  onClick={handleLogin}
+                  variant="text"
+                  startIcon={<Login fontSize="small" />}
+                  sx={{
+                    minHeight: 40,
+                    px: 1.5,
+                    borderRadius: "9px",
+                    color: "#334155",
+                    fontWeight: 700,
+                    textTransform: "none",
+                    "&:hover": {
+                      color: "#1d4ed8",
+                      backgroundColor: "#eff6ff",
+                    },
+                  }}
                 >
                   Login
                 </Button>
 
                 <Button
-                  component={Link}
-                  to="/register"
-                  onClick={closeMobileMenu}
+                  onClick={handleRegister}
                   variant="contained"
-                  className="!rounded-xl !bg-slate-950 !py-3 !text-sm !font-bold !normal-case dark:!bg-white dark:!text-slate-950"
+                  sx={{
+                    minHeight: 40,
+                    px: 2,
+                    borderRadius: "9px",
+                    backgroundColor: "#2563eb",
+                    color: "#ffffff",
+                    fontWeight: 700,
+                    textTransform: "none",
+                    boxShadow: "none",
+                    "&:hover": {
+                      backgroundColor: "#1d4ed8",
+                      boxShadow: "none",
+                    },
+                  }}
                 >
                   Get Started
                 </Button>
-
-              </Box>
+              </div>
             ) : (
-              <Button
-                fullWidth
-                startIcon={
-                  <Logout fontSize="small" />
-                }
-                onClick={handleLogout}
-                className="!rounded-xl !bg-red-50 !py-3 !text-sm !font-bold !normal-case !text-red-600 dark:!bg-red-500/10 dark:!text-red-400"
-              >
-                Logout
-              </Button>
+              <div className="ml-1 hidden md:block">
+                <Button
+                  onClick={(event) =>
+                    setProfileAnchor(event.currentTarget)
+                  }
+                  endIcon={
+                    <KeyboardArrowDown
+                      sx={{
+                        color: "#64748b",
+                      }}
+                    />
+                  }
+                  sx={{
+                    minHeight: 42,
+                    px: 1,
+                    borderRadius: "10px",
+                    color: "#0f172a",
+                    backgroundColor: "#ffffff",
+                    textTransform: "none",
+                    "&:hover": {
+                      color: "#0f172a",
+                      backgroundColor: "#f8fafc",
+                    },
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      mr: 1,
+                      backgroundColor: "#dbeafe",
+                      color: "#1d4ed8",
+                      fontSize: "0.8rem",
+                      fontWeight: 800,
+                    }}
+                  >
+                    {getInitials(user)}
+                  </Avatar>
+
+                  <span className="max-w-[110px] truncate text-sm font-bold">
+                    {user?.name ||
+                      user?.fullName ||
+                      user?.username ||
+                      "Student"}
+                  </span>
+                </Button>
+              </div>
             )}
-          </Box>
-        </Drawer>
+
+            {/* ===================================================
+                MOBILE MENU
+            =================================================== */}
+
+            <IconButton
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open menu"
+              sx={{
+                ml: 0.5,
+                display: {
+                  xs: "inline-flex",
+                  md: "none",
+                },
+                width: 42,
+                height: 42,
+                color: "#0f172a",
+                backgroundColor: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: "10px",
+                "&:hover": {
+                  backgroundColor: "#f8fafc",
+                  color: "#1d4ed8",
+                },
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
+          </div>
+        </Toolbar>
       </AppBar>
 
-      {/* =====================================================
-          PAGE CONTENT
-      ====================================================== */}
+      {/* =========================================================
+          PROFILE MENU
+      ========================================================= */}
 
-      <main className="min-h-[calc(100vh-72px)]">
+      <Menu
+        anchorEl={profileAnchor}
+        open={profileOpen}
+        onClose={() => setProfileAnchor(null)}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 1,
+              width: 250,
+              borderRadius: "12px",
+              border: "1px solid #e2e8f0",
+              backgroundColor: "#ffffff",
+              boxShadow:
+                "0 14px 35px rgba(15, 23, 42, 0.12)",
+              overflow: "hidden",
+            },
+          },
+        }}
+      >
+        {/* Profile Header */}
+
+        <Box
+          sx={{
+            px: 2,
+            py: 1.75,
+            backgroundColor: "#f8fafc",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <Avatar
+              sx={{
+                width: 40,
+                height: 40,
+                backgroundColor: "#dbeafe",
+                color: "#1d4ed8",
+                fontWeight: 800,
+              }}
+            >
+              {getInitials(user)}
+            </Avatar>
+
+            <div className="min-w-0">
+              <Typography
+                sx={{
+                  color: "#0f172a",
+                  fontSize: "0.9rem",
+                  fontWeight: 800,
+                }}
+                noWrap
+              >
+                {user?.name ||
+                  user?.fullName ||
+                  user?.username ||
+                  "Student"}
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: "#64748b",
+                  fontSize: "0.72rem",
+                }}
+                noWrap
+              >
+                {user?.email || "Student account"}
+              </Typography>
+            </div>
+          </div>
+        </Box>
+
+        <Divider />
+
+        <MenuItem
+          onClick={handleProfile}
+          sx={{
+            minHeight: 44,
+            color: "#334155",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            "&:hover": {
+              backgroundColor: "#eff6ff",
+              color: "#1d4ed8",
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 36,
+              color: "inherit",
+            }}
+          >
+            <Person fontSize="small" />
+          </ListItemIcon>
+
+          Profile
+        </MenuItem>
+
+        <MenuItem
+          onClick={handleMyCourses}
+          sx={{
+            minHeight: 44,
+            color: "#334155",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            "&:hover": {
+              backgroundColor: "#eff6ff",
+              color: "#1d4ed8",
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 36,
+              color: "inherit",
+            }}
+          >
+            <MenuBook fontSize="small" />
+          </ListItemIcon>
+
+          My Courses
+        </MenuItem>
+
+        <MenuItem
+          onClick={handleDashboard}
+          sx={{
+            minHeight: 44,
+            color: "#334155",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            "&:hover": {
+              backgroundColor: "#eff6ff",
+              color: "#1d4ed8",
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 36,
+              color: "inherit",
+            }}
+          >
+            <Dashboard fontSize="small" />
+          </ListItemIcon>
+
+          Dashboard
+        </MenuItem>
+
+        <MenuItem
+          onClick={handleSupport}
+          sx={{
+            minHeight: 44,
+            color: "#334155",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            "&:hover": {
+              backgroundColor: "#eff6ff",
+              color: "#1d4ed8",
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 36,
+              color: "inherit",
+            }}
+          >
+            <SupportAgent fontSize="small" />
+          </ListItemIcon>
+
+          Support
+        </MenuItem>
+
+        <Divider />
+
+        <MenuItem
+          onClick={handleLogout}
+          sx={{
+            minHeight: 44,
+            color: "#dc2626",
+            fontSize: "0.875rem",
+            fontWeight: 700,
+            "&:hover": {
+              backgroundColor: "#fef2f2",
+              color: "#b91c1c",
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 36,
+              color: "inherit",
+            }}
+          >
+            <Logout fontSize="small" />
+          </ListItemIcon>
+
+          Logout
+        </MenuItem>
+      </Menu>
+
+      {/* =========================================================
+          NOTIFICATION MENU
+      ========================================================= */}
+
+      <Menu
+        anchorEl={notificationAnchor}
+        open={notificationOpen}
+        onClose={() => setNotificationAnchor(null)}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 1,
+              width: 300,
+              borderRadius: "12px",
+              border: "1px solid #e2e8f0",
+              backgroundColor: "#ffffff",
+              boxShadow:
+                "0 14px 35px rgba(15, 23, 42, 0.12)",
+            },
+          },
+        }}
+      >
+        <Box
+          sx={{
+            px: 2,
+            py: 1.5,
+          }}
+        >
+          <Typography
+            sx={{
+              color: "#0f172a",
+              fontWeight: 800,
+              fontSize: "0.9rem",
+            }}
+          >
+            Notifications
+          </Typography>
+
+          <Typography
+            sx={{
+              mt: 0.3,
+              color: "#64748b",
+              fontSize: "0.75rem",
+            }}
+          >
+            Stay updated with your learning activity.
+          </Typography>
+        </Box>
+
+        <Divider />
+
+        <MenuItem
+          onClick={handleNotifications}
+          sx={{
+            minHeight: 52,
+            color: "#334155",
+            "&:hover": {
+              backgroundColor: "#eff6ff",
+              color: "#1d4ed8",
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 36,
+              color: "inherit",
+            }}
+          >
+            <Notifications fontSize="small" />
+          </ListItemIcon>
+
+          View all notifications
+        </MenuItem>
+      </Menu>
+
+      {/* =========================================================
+          MOBILE DRAWER
+      ========================================================= */}
+
+      <Drawer
+        anchor="right"
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        slotProps={{
+          paper: {
+            sx: {
+              width: {
+                xs: "88%",
+                sm: 360,
+              },
+              maxWidth: 380,
+              backgroundColor: "#ffffff",
+              color: "#0f172a",
+              borderLeft: "1px solid #e2e8f0",
+            },
+          },
+        }}
+      >
+        <div className="flex h-full flex-col bg-white">
+          {/* Drawer Header */}
+
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
+            <Link
+              to="/"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2.5 no-underline"
+            >
+              <div
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-blue-50
+                  text-blue-700
+                "
+              >
+                <School fontSize="small" />
+              </div>
+
+              <div>
+                <Typography
+                  sx={{
+                    color: "#0f172a",
+                    fontWeight: 900,
+                    fontSize: "1rem",
+                    lineHeight: 1.1,
+                  }}
+                >
+                  ApnaAcademy
+                </Typography>
+
+                <Typography
+                  sx={{
+                    color: "#64748b",
+                    fontSize: "0.65rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  Learn. Build. Grow.
+                </Typography>
+              </div>
+            </Link>
+
+            <IconButton
+              onClick={() => setMobileOpen(false)}
+              aria-label="Close menu"
+              sx={{
+                width: 40,
+                height: 40,
+                color: "#475569",
+                "&:hover": {
+                  backgroundColor: "#f8fafc",
+                  color: "#1d4ed8",
+                },
+              }}
+            >
+              <Close fontSize="small" />
+            </IconButton>
+          </div>
+
+          {/* User Section */}
+
+          {isLoggedIn && (
+            <div className="border-b border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="flex items-center gap-3">
+                <Avatar
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    backgroundColor: "#dbeafe",
+                    color: "#1d4ed8",
+                    fontWeight: 800,
+                  }}
+                >
+                  {getInitials(user)}
+                </Avatar>
+
+                <div className="min-w-0">
+                  <Typography
+                    sx={{
+                      color: "#0f172a",
+                      fontWeight: 800,
+                      fontSize: "0.9rem",
+                    }}
+                    noWrap
+                  >
+                    {user?.name ||
+                      user?.fullName ||
+                      user?.username ||
+                      "Student"}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      color: "#64748b",
+                      fontSize: "0.72rem",
+                    }}
+                    noWrap
+                  >
+                    {user?.email || "Student account"}
+                  </Typography>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile Navigation */}
+
+          <List sx={{ px: 1.5, py: 2 }}>
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === "/"}
+                onClick={handleNavClick}
+                className="no-underline"
+              >
+                {({ isActive }) => (
+                  <ListItemButton
+                    sx={{
+                      minHeight: 46,
+                      mb: 0.5,
+                      borderRadius: "9px",
+                      color: isActive ? "#1d4ed8" : "#334155",
+                      backgroundColor: isActive
+                        ? "#eff6ff"
+                        : "transparent",
+                      "&:hover": {
+                        backgroundColor: "#f8fafc",
+                        color: "#1d4ed8",
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={item.label}
+                      slotProps={{
+                        primary: {
+                          sx: {
+                            fontSize: "0.9rem",
+                            fontWeight: isActive ? 800 : 600,
+                          },
+                        },
+                      }}
+                    />
+                  </ListItemButton>
+                )}
+              </NavLink>
+            ))}
+
+            <ListItemButton
+              onClick={handleCourses}
+              sx={{
+                minHeight: 46,
+                mb: 0.5,
+                borderRadius: "9px",
+                color: "#334155",
+                "&:hover": {
+                  backgroundColor: "#f8fafc",
+                  color: "#1d4ed8",
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 38,
+                  color: "inherit",
+                }}
+              >
+                <Search fontSize="small" />
+              </ListItemIcon>
+
+              <ListItemText
+                primary="Search Courses"
+                slotProps={{
+                  primary: {
+                    sx: {
+                      fontSize: "0.9rem",
+                      fontWeight: 600,
+                    },
+                  },
+                }}
+              />
+            </ListItemButton>
+
+            <ListItemButton
+              onClick={() => setIsDarkMode((previous) => !previous)}
+              sx={{
+                minHeight: 46,
+                mb: 0.5,
+                borderRadius: "9px",
+                color: "#334155",
+                "&:hover": {
+                  backgroundColor: "#f8fafc",
+                  color: "#1d4ed8",
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 38,
+                  color: "inherit",
+                }}
+              >
+                {isDarkMode ? (
+                  <LightMode fontSize="small" />
+                ) : (
+                  <DarkMode fontSize="small" />
+                )}
+              </ListItemIcon>
+
+              <ListItemText
+                primary={
+                  isDarkMode
+                    ? "Light Mode"
+                    : "Dark Mode"
+                }
+                slotProps={{
+                  primary: {
+                    sx: {
+                      fontSize: "0.9rem",
+                      fontWeight: 600,
+                    },
+                  },
+                }}
+              />
+            </ListItemButton>
+
+            {isLoggedIn && (
+              <>
+                <Divider sx={{ my: 1.5 }} />
+
+                <ListItemButton
+                  onClick={handleDashboard}
+                  sx={{
+                    minHeight: 46,
+                    mb: 0.5,
+                    borderRadius: "9px",
+                    color: "#334155",
+                    "&:hover": {
+                      backgroundColor: "#eff6ff",
+                      color: "#1d4ed8",
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 38,
+                      color: "inherit",
+                    }}
+                  >
+                    <Dashboard fontSize="small" />
+                  </ListItemIcon>
+
+                  <ListItemText
+                    primary="Dashboard"
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: "0.9rem",
+                          fontWeight: 600,
+                        },
+                      },
+                    }}
+                  />
+                </ListItemButton>
+
+                <ListItemButton
+                  onClick={handleProfile}
+                  sx={{
+                    minHeight: 46,
+                    mb: 0.5,
+                    borderRadius: "9px",
+                    color: "#334155",
+                    "&:hover": {
+                      backgroundColor: "#eff6ff",
+                      color: "#1d4ed8",
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 38,
+                      color: "inherit",
+                    }}
+                  >
+                    <Person fontSize="small" />
+                  </ListItemIcon>
+
+                  <ListItemText
+                    primary="Profile"
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: "0.9rem",
+                          fontWeight: 600,
+                        },
+                      },
+                    }}
+                  />
+                </ListItemButton>
+
+                <ListItemButton
+                  onClick={handleMyCourses}
+                  sx={{
+                    minHeight: 46,
+                    mb: 0.5,
+                    borderRadius: "9px",
+                    color: "#334155",
+                    "&:hover": {
+                      backgroundColor: "#eff6ff",
+                      color: "#1d4ed8",
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 38,
+                      color: "inherit",
+                    }}
+                  >
+                    <MenuBook fontSize="small" />
+                  </ListItemIcon>
+
+                  <ListItemText
+                    primary="My Courses"
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: "0.9rem",
+                          fontWeight: 600,
+                        },
+                      },
+                    }}
+                  />
+                </ListItemButton>
+
+                <ListItemButton
+                  onClick={handleNotifications}
+                  sx={{
+                    minHeight: 46,
+                    mb: 0.5,
+                    borderRadius: "9px",
+                    color: "#334155",
+                    "&:hover": {
+                      backgroundColor: "#eff6ff",
+                      color: "#1d4ed8",
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 38,
+                      color: "inherit",
+                    }}
+                  >
+                    <Notifications fontSize="small" />
+                  </ListItemIcon>
+
+                  <ListItemText
+                    primary="Notifications"
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: "0.9rem",
+                          fontWeight: 600,
+                        },
+                      },
+                    }}
+                  />
+                </ListItemButton>
+
+                <ListItemButton
+                  onClick={handleLogout}
+                  sx={{
+                    minHeight: 46,
+                    mb: 0.5,
+                    borderRadius: "9px",
+                    color: "#dc2626",
+                    "&:hover": {
+                      backgroundColor: "#fef2f2",
+                      color: "#b91c1c",
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 38,
+                      color: "inherit",
+                    }}
+                  >
+                    <Logout fontSize="small" />
+                  </ListItemIcon>
+
+                  <ListItemText
+                    primary="Logout"
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: "0.9rem",
+                          fontWeight: 700,
+                        },
+                      },
+                    }}
+                  />
+                </ListItemButton>
+              </>
+            )}
+          </List>
+
+          {/* Mobile Auth */}
+
+          {!isLoggedIn && (
+            <div className="mt-auto border-t border-slate-200 p-4">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={handleLogin}
+                  variant="outlined"
+                  sx={{
+                    minHeight: 44,
+                    borderRadius: "9px",
+                    borderColor: "#cbd5e1",
+                    color: "#334155",
+                    fontWeight: 700,
+                    textTransform: "none",
+                    "&:hover": {
+                      borderColor: "#2563eb",
+                      backgroundColor: "#eff6ff",
+                      color: "#1d4ed8",
+                    },
+                  }}
+                >
+                  Login
+                </Button>
+
+                <Button
+                  onClick={handleRegister}
+                  variant="contained"
+                  sx={{
+                    minHeight: 44,
+                    borderRadius: "9px",
+                    backgroundColor: "#2563eb",
+                    color: "#ffffff",
+                    fontWeight: 700,
+                    textTransform: "none",
+                    boxShadow: "none",
+                    "&:hover": {
+                      backgroundColor: "#1d4ed8",
+                      boxShadow: "none",
+                    },
+                  }}
+                >
+                  Register
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Drawer>
+
+      {/* =========================================================
+          MAIN CONTENT
+      ========================================================= */}
+
+      <main className="min-h-[calc(100vh-68px)] bg-white">
         <Outlet />
       </main>
 
-      {/* =====================================================
+      {/* =========================================================
           FOOTER
-      ====================================================== */}
+      ========================================================= */}
 
-      <Box
-        component="footer"
-        className="border-t border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-900"
-      >
-        <Box className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <footer className="border-t border-slate-200 bg-white">
+        <div
+          className="
+            mx-auto
+            w-full
+            max-w-7xl
+            px-4
+            py-12
+            sm:px-6
+            lg:px-8
+          "
+        >
+          {/* Footer Top */}
 
-          <Box className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
-
+          <div
+            className="
+              grid
+              grid-cols-1
+              gap-10
+              md:grid-cols-2
+              lg:grid-cols-[1.5fr_1fr_1fr_1fr]
+            "
+          >
             {/* Brand */}
 
-            <Box className="lg:col-span-2">
-
+            <div className="max-w-md">
               <Link
                 to="/"
-                className="inline-flex items-center gap-3 no-underline"
+                className="inline-flex items-center gap-2.5 no-underline"
               >
-                <Box className="flex !h-11 !w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20">
-                  <School />
-                </Box>
+                <div
+                  className="
+                    flex
+                    h-10
+                    w-10
+                    items-center
+                    justify-center
+                    rounded-xl
+                    bg-blue-50
+                    text-blue-700
+                  "
+                >
+                  <School fontSize="small" />
+                </div>
 
-                <Box>
-                  <Typography
-                    component="p"
-                    className="!font-black !text-slate-950 dark:!text-white"
-                  >
-                    ApnaAcademy
-                  </Typography>
-
-                  <Typography
-                    component="p"
-                    className="!text-[10px] !font-semibold !tracking-wide !text-slate-500"
-                  >
-                    LEARN • BUILD • GROW
-                  </Typography>
-                </Box>
+                <Typography
+                  sx={{
+                    color: "#0f172a",
+                    fontWeight: 900,
+                    fontSize: "1.1rem",
+                  }}
+                >
+                  ApnaAcademy
+                </Typography>
               </Link>
 
               <Typography
-                component="p"
-                className="!mt-5 !max-w-md !text-sm !leading-7 !text-slate-500 dark:!text-slate-400"
+                sx={{
+                  mt: 2,
+                  maxWidth: 430,
+                  color: "#64748b",
+                  fontSize: "0.875rem",
+                  lineHeight: 1.7,
+                }}
               >
-                Build practical skills through
-                structured learning, real-world
-                projects and an outcome-focused
-                learning experience.
+                Build practical skills through structured courses,
+                hands-on learning and outcome-focused education.
               </Typography>
 
-              <Box className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span
+                  className="
+                    rounded-full
+                    border
+                    border-slate-200
+                    bg-slate-50
+                    px-3
+                    py-1
+                    text-xs
+                    font-semibold
+                    text-slate-600
+                  "
+                >
+                  Practical Learning
+                </span>
 
-                {[
-                  "LinkedIn",
-                  "GitHub",
-                  "Instagram",
-                ].map((social) => (
-                  <Button
-                    key={social}
-                    variant="outlined"
-                    size="small"
-                    className="!rounded-xl !border-slate-200 !bg-white !px-3 !py-2 !text-xs !font-bold !normal-case !text-slate-500 hover:!border-blue-200 hover:!text-blue-600 dark:!border-white/10 dark:!bg-white/5 dark:!text-slate-400"
-                  >
-                    {social}
-                  </Button>
-                ))}
-
-              </Box>
-            </Box>
+                <span
+                  className="
+                    rounded-full
+                    border
+                    border-slate-200
+                    bg-slate-50
+                    px-3
+                    py-1
+                    text-xs
+                    font-semibold
+                    text-slate-600
+                  "
+                >
+                  Career Focused
+                </span>
+              </div>
+            </div>
 
             {/* Platform */}
 
             <FooterColumn title="Platform">
-              <FooterLink to="/">
-                Home
-              </FooterLink>
-
               <FooterLink to="/courses">
                 Courses
               </FooterLink>
 
-              <FooterExternalLink
-                href={DASHBOARD_URL}
-              >
-                Dashboard
-              </FooterExternalLink>
-            </FooterColumn>
-
-            {/* Company */}
-
-            <FooterColumn title="Company">
               <FooterLink to="/about">
                 About Us
               </FooterLink>
@@ -781,14 +1514,41 @@ export default function MainLayout() {
                 Contact
               </FooterLink>
 
-              <FooterLink to="/support">
-                Support
-              </FooterLink>
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = COURSE_URL;
+                }}
+                className="
+                  block
+                  w-fit
+                  rounded-md
+                  border-0
+                  bg-transparent
+                  py-1
+                  text-left
+                  text-sm
+                  text-slate-600
+                  transition-colors
+                  duration-200
+                  hover:text-blue-700
+                "
+              >
+                Learning App
+              </button>
             </FooterColumn>
 
-            {/* Legal */}
+            {/* Support */}
 
-            <FooterColumn title="Legal">
+            <FooterColumn title="Support">
+              <FooterLink to="/contact">
+                Help Center
+              </FooterLink>
+
+              <FooterLink to="/contact">
+                Contact Support
+              </FooterLink>
+
               <FooterLink to="/privacy">
                 Privacy Policy
               </FooterLink>
@@ -796,87 +1556,195 @@ export default function MainLayout() {
               <FooterLink to="/terms">
                 Terms & Conditions
               </FooterLink>
-
-              <FooterLink to="/refund">
-                Refund Policy
-              </FooterLink>
             </FooterColumn>
-          </Box>
 
-          {/* Bottom */}
+            {/* Account */}
 
-          <Box className="mt-12 flex flex-col gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between dark:border-white/10">
+            <FooterColumn title="Account">
+              {isLoggedIn ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleDashboard}
+                    className="
+                      block
+                      w-fit
+                      rounded-md
+                      border-0
+                      bg-transparent
+                      py-1
+                      text-left
+                      text-sm
+                      text-slate-600
+                      transition-colors
+                      duration-200
+                      hover:text-blue-700
+                    "
+                  >
+                    Dashboard
+                  </button>
 
+                  <button
+                    type="button"
+                    onClick={handleMyCourses}
+                    className="
+                      block
+                      w-fit
+                      rounded-md
+                      border-0
+                      bg-transparent
+                      py-1
+                      text-left
+                      text-sm
+                      text-slate-600
+                      transition-colors
+                      duration-200
+                      hover:text-blue-700
+                    "
+                  >
+                    My Courses
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleProfile}
+                    className="
+                      block
+                      w-fit
+                      rounded-md
+                      border-0
+                      bg-transparent
+                      py-1
+                      text-left
+                      text-sm
+                      text-slate-600
+                      transition-colors
+                      duration-200
+                      hover:text-blue-700
+                    "
+                  >
+                    Profile
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="
+                      block
+                      w-fit
+                      rounded-md
+                      border-0
+                      bg-transparent
+                      py-1
+                      text-left
+                      text-sm
+                      text-red-600
+                      transition-colors
+                      duration-200
+                      hover:text-red-700
+                    "
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <FooterLink to="/login">
+                    Login
+                  </FooterLink>
+
+                  <FooterLink to="/register">
+                    Create Account
+                  </FooterLink>
+                </>
+              )}
+            </FooterColumn>
+          </div>
+
+          {/* Footer Bottom */}
+
+          <div
+            className="
+              mt-10
+              flex
+              flex-col
+              gap-3
+              border-t
+              border-slate-200
+              pt-6
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
             <Typography
-              component="p"
-              className="!text-xs !text-slate-500"
+              sx={{
+                color: "#64748b",
+                fontSize: "0.75rem",
+              }}
             >
-              © {new Date().getFullYear()}{" "}
-              ApnaAcademy. All rights reserved.
+              © {new Date().getFullYear()} ApnaAcademy. All
+              rights reserved.
             </Typography>
 
-            <Typography
-              component="p"
-              className="!text-xs !font-medium !text-slate-500"
-            >
-              Designed for modern learners.
-            </Typography>
+            <div className="flex items-center gap-4">
+              <Link
+                to="/about"
+                className="
+                  inline-flex
+                  items-center
+                  gap-1
+                  text-xs
+                  font-semibold
+                  text-slate-500
+                  no-underline
+                  transition-colors
+                  hover:text-blue-700
+                "
+              >
+                <InfoOutlined sx={{ fontSize: 15 }} />
+                About
+              </Link>
 
-          </Box>
-        </Box>
-      </Box>
+              <Link
+                to="/contact"
+                className="
+                  inline-flex
+                  items-center
+                  gap-1
+                  text-xs
+                  font-semibold
+                  text-slate-500
+                  no-underline
+                  transition-colors
+                  hover:text-blue-700
+                "
+              >
+                <ContactSupport sx={{ fontSize: 15 }} />
+                Support
+              </Link>
+
+              <Link
+                to="/contact"
+                className="
+                  inline-flex
+                  items-center
+                  gap-1
+                  text-xs
+                  font-semibold
+                  text-slate-500
+                  no-underline
+                  transition-colors
+                  hover:text-blue-700
+                "
+              >
+                <Settings sx={{ fontSize: 15 }} />
+                Settings
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
-  );
-}
-
-/* =========================================================
-   FOOTER COMPONENTS
-========================================================= */
-
-function FooterColumn({
-  title,
-  children,
-}) {
-  return (
-    <Box>
-      <Typography
-        component="h3"
-        className="!text-sm !font-black !text-slate-900 dark:!text-white"
-      >
-        {title}
-      </Typography>
-
-      <Box className="mt-5 space-y-3">
-        {children}
-      </Box>
-    </Box>
-  );
-}
-
-function FooterLink({
-  to,
-  children,
-}) {
-  return (
-    <Link
-      to={to}
-      className="block text-sm text-slate-500 no-underline transition hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
-    >
-      {children}
-    </Link>
-  );
-}
-
-function FooterExternalLink({
-  href,
-  children,
-}) {
-  return (
-    <a
-      href={href}
-      className="block text-sm text-slate-500 no-underline transition hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
-    >
-      {children}
-    </a>
   );
 }

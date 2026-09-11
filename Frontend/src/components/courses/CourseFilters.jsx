@@ -97,13 +97,13 @@ export default function CourseFilters({
               },
             }}
             className="
-              [&_.MuiOutlinedInput-root]:!bg-slate-950/60
-              [&_.MuiOutlinedInput-notchedOutline]:!border-white/10
-              [&_.MuiOutlinedInput-root:hover_.MuiOutlinedInput-notchedOutline]:!border-white/20
-              [&_.MuiOutlinedInput-root.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-cyan-400/40
+              [&_.MuiOutlinedInput-root]:!bg-white
+              [&_.MuiOutlinedInput-notchedOutline]:!border-slate-200
+              [&_.MuiOutlinedInput-root:hover_.MuiOutlinedInput-notchedOutline]:!border-slate-300
+              [&_.MuiOutlinedInput-root.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-blue-400
               [&_.MuiInputBase-input]:!text-sm
-              [&_.MuiInputBase-input]:!text-white
-              [&_.MuiInputBase-input::placeholder]:!text-slate-600
+              [&_.MuiInputBase-input]:!text-slate-900
+              [&_.MuiInputBase-input::placeholder]:!text-slate-500
             "
           />
 
@@ -124,7 +124,7 @@ export default function CourseFilters({
             <InputLabel
               className="
                 !text-slate-500
-                [&.Mui-focused]:!text-cyan-400
+                [&.Mui-focused]:!text-blue-600
               "
             >
               Category
@@ -147,18 +147,20 @@ export default function CourseFilters({
               className="
                 !min-h-12
                 !rounded-2xl
-                !bg-slate-950/60
+                !bg-white
                 !text-sm
-                !text-slate-200
-                [&_.MuiOutlinedInput-notchedOutline]:!border-white/10
-                hover:[&_.MuiOutlinedInput-notchedOutline]:!border-white/20
-                [&.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-cyan-400/40
+                !text-slate-800
+                [&_.MuiOutlinedInput-notchedOutline]:!border-slate-200
+                hover:[&_.MuiOutlinedInput-notchedOutline]:!border-slate-300
+                [&.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-blue-400
                 [&_.MuiSelect-icon]:!text-slate-500
               "
               MenuProps={{
-                PaperProps: {
-                  className:
-                    "!mt-2 !rounded-2xl !border !border-white/10 !bg-slate-900 !text-slate-200 !shadow-2xl",
+                slotProps: {
+                  paper: {
+                    className:
+                      "!mt-2 !rounded-2xl !border !border-slate-200 !bg-white !text-slate-800 !shadow-2xl",
+                  },
                 },
               }}
             >
@@ -168,8 +170,8 @@ export default function CourseFilters({
                   value={item}
                   className="
                     !text-sm
-                    hover:!bg-white/5
-                    [&.Mui-selected]:!bg-cyan-400/10
+                    hover:!bg-slate-50
+                    [&.Mui-selected]:!bg-blue-50
                   "
                 >
                   {item}
@@ -188,7 +190,7 @@ export default function CourseFilters({
             <InputLabel
               className="
                 !text-slate-500
-                [&.Mui-focused]:!text-cyan-400
+                [&.Mui-focused]:!text-blue-600
               "
             >
               Level
@@ -203,18 +205,20 @@ export default function CourseFilters({
               className="
                 !min-h-12
                 !rounded-2xl
-                !bg-slate-950/60
+                !bg-white
                 !text-sm
-                !text-slate-200
-                [&_.MuiOutlinedInput-notchedOutline]:!border-white/10
-                hover:[&_.MuiOutlinedInput-notchedOutline]:!border-white/20
-                [&.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-cyan-400/40
+                !text-slate-800
+                [&_.MuiOutlinedInput-notchedOutline]:!border-slate-200
+                hover:[&_.MuiOutlinedInput-notchedOutline]:!border-slate-300
+                [&.Mui-focused_.MuiOutlinedInput-notchedOutline]:!border-blue-400
                 [&_.MuiSelect-icon]:!text-slate-500
               "
               MenuProps={{
-                PaperProps: {
-                  className:
-                    "!mt-2 !rounded-2xl !border !border-white/10 !bg-slate-900 !text-slate-200 !shadow-2xl",
+                slotProps: {
+                  paper: {
+                    className:
+                      "!mt-2 !rounded-2xl !border !border-slate-200 !bg-white !text-slate-800 !shadow-2xl",
+                  },
                 },
               }}
             >
@@ -225,8 +229,8 @@ export default function CourseFilters({
                   className="
                     !text-sm
                     capitalize
-                    hover:!bg-white/5
-                    [&.Mui-selected]:!bg-cyan-400/10
+                    hover:!bg-slate-50
+                    [&.Mui-selected]:!bg-blue-50
                   "
                 >
                   {item === "All Levels"
@@ -254,12 +258,12 @@ export default function CourseFilters({
                 !shrink-0
                 !rounded-2xl
                 !border
-                !border-white/10
+                !border-slate-200
                 !bg-white/5
-                !text-slate-400
-                hover:!border-red-400/20
-                hover:!bg-red-400/10
-                hover:!text-red-300
+                !text-slate-500
+                hover:!border-red-200
+                hover:!bg-red-50
+                hover:!text-red-600
               "
             >
               <Close fontSize="small" />
