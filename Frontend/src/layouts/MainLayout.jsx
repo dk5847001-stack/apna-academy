@@ -3,6 +3,7 @@ import {
   Link,
   NavLink,
   Outlet,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
 
@@ -158,6 +159,7 @@ function FooterLink({ to, children }) {
 
 export default function MainLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
