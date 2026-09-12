@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import { API_PREFIX } from "./constants/index.js";
 import apiRoutes from "./routes/index.js";
@@ -9,6 +11,15 @@ import { notFoundMiddleware } from "./middleware/notFound.middleware.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 
 const app = express();
+
+/*
+|--------------------------------------------------------------------------
+| Path Configuration
+|--------------------------------------------------------------------------
+*/
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +87,38 @@ app.use(
 if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
+
+/*
+|--------------------------------------------------------------------------
+| Static Certificate Files
+|--------------------------------------------------------------------------
+|
+| Generated certificate PDFs and QR images are stored in:
+|
+| Backend/public/certificates/
+|
+| They are exposed through:
+|
+| http://localhost:5000/certificates/<filename>
+|
+*/
+
+app.use(
+  "/certificates",
+  express.static(
+    path.resolve(
+      __dirname,
+      "../public/certificates"
+    ),
+    {
+      fallthrough: false,
+      index: false,
+      dotfiles: "deny",
+      etag: true,
+      maxAge: "1h",
+    }
+  )
+);
 
 /*
 |--------------------------------------------------------------------------
