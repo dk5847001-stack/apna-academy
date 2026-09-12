@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   Check,
-  ChevronDown,
+  ExpandMore,
   ChevronLeft,
   ChevronRight,
   Lock,
@@ -454,7 +454,7 @@ export default function CoursePlayerLayout({
                       </Typography>
                     </Box>
 
-                    <ChevronDown
+                    <ExpandMore
                       sx={{
                         flexShrink: 0,
                         transform:

@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   Route,
   Routes,
@@ -36,6 +42,8 @@ import {
 import {
   getCourseProgress,
 } from "./services/progress.service";
+
+import useVideoProgress from "./hooks/useVideoProgress";
 
 /* =========================================================
    COURSE HOME
@@ -104,12 +112,58 @@ function hasAuthenticationToken() {
 }
 
 /* =========================================================
+   VIDEO ID HELPER
+========================================================= */
+
+function getVideoId(video) {
+  if (!video) {
+    return "";
+  }
+
+  return (
+    video._id ||
+    video.id ||
+    ""
+  );
+}
+
+/* =========================================================
+   LAST WATCHED VIDEO ID
+========================================================= */
+
+function getLastWatchedVideoId(
+  lastWatchedVideo
+) {
+  if (!lastWatchedVideo) {
+    return "";
+  }
+
+  if (
+    typeof lastWatchedVideo ===
+    "object"
+  ) {
+    return (
+      lastWatchedVideo._id ||
+      lastWatchedVideo.id ||
+      ""
+    );
+  }
+
+  return lastWatchedVideo;
+}
+
+/* =========================================================
    LEARNING PAGE
 ========================================================= */
 
 function CourseLearningPage() {
-  const { slug, videoId } = useParams();
-  const navigate = useNavigate();
+  const {
+    slug,
+    videoId,
+  } = useParams();
+
+  const navigate =
+    useNavigate();
 
   const [course, setCourse] =
     useState(null);
@@ -120,8 +174,10 @@ function CourseLearningPage() {
   const [progress, setProgress] =
     useState(null);
 
-  const [currentVideo, setCurrentVideo] =
-    useState(null);
+  const [
+    currentVideo,
+    setCurrentVideo,
+  ] = useState(null);
 
   const [loading, setLoading] =
     useState(true);
@@ -146,28 +202,35 @@ function CourseLearningPage() {
              Authentication
           ----------------------------------------------- */
 
-          if (!hasAuthenticationToken()) {
-            navigate("/login", {
-              replace: true,
-              state: {
-                message:
-                  "Please login to continue learning.",
-                redirectTo:
-                  COURSE_ROUTES.LEARN(
-                    slug
-                  ),
-              },
-            });
+          if (
+            !hasAuthenticationToken()
+          ) {
+            navigate(
+              "/login",
+              {
+                replace: true,
+                state: {
+                  message:
+                    "Please login to continue learning.",
+                  redirectTo:
+                    COURSE_ROUTES.LEARN(
+                      slug
+                    ),
+                },
+              }
+            );
 
             return;
           }
 
           /* -----------------------------------------------
-             Get course details first
+             Get public course details
           ----------------------------------------------- */
 
           const courseResult =
-            await getCourseBySlug(slug);
+            await getCourseBySlug(
+              slug
+            );
 
           if (!mounted) {
             return;
@@ -211,7 +274,7 @@ function CourseLearningPage() {
             );
 
           /* -----------------------------------------------
-             Check purchase/access
+             Purchase/access check
           ----------------------------------------------- */
 
           if (
@@ -235,7 +298,7 @@ function CourseLearningPage() {
           }
 
           /* -----------------------------------------------
-             Save course/modules/progress
+             Save course data
           ----------------------------------------------- */
 
           setCourse(
@@ -252,28 +315,32 @@ function CourseLearningPage() {
           );
 
           /* -----------------------------------------------
-             Find requested/current video
+             Find all videos
           ----------------------------------------------- */
 
           const availableVideos =
             normalized.modules.flatMap(
               (module) =>
                 Array.isArray(
-                  module.videos
+                  module?.videos
                 )
                   ? module.videos
                   : []
             );
 
-          let selectedVideo = null;
+          let selectedVideo =
+            null;
+
+          /* -----------------------------------------------
+             Requested video
+          ----------------------------------------------- */
 
           if (videoId) {
             selectedVideo =
               availableVideos.find(
                 (video) =>
                   String(
-                    video._id ||
-                      video.id
+                    getVideoId(video)
                   ) ===
                   String(videoId)
               ) || null;
@@ -283,25 +350,25 @@ function CourseLearningPage() {
              Continue Learning
           ----------------------------------------------- */
 
-          if (!selectedVideo) {
+          if (
+            !selectedVideo
+          ) {
             const lastVideoId =
-              normalized.progress
-                .lastWatchedVideo;
+              getLastWatchedVideoId(
+                normalized
+                  .progress
+                  .lastWatchedVideo
+              );
 
             if (lastVideoId) {
               selectedVideo =
                 availableVideos.find(
                   (video) =>
                     String(
-                      video._id ||
-                        video.id
+                      getVideoId(video)
                     ) ===
                     String(
-                      typeof lastVideoId ===
-                        "object"
-                        ? lastVideoId._id ||
-                            lastVideoId.id
-                        : lastVideoId
+                      lastVideoId
                     )
                 ) || null;
             }
@@ -311,11 +378,13 @@ function CourseLearningPage() {
              First unlocked video fallback
           ----------------------------------------------- */
 
-          if (!selectedVideo) {
+          if (
+            !selectedVideo
+          ) {
             selectedVideo =
               availableVideos.find(
                 (video) =>
-                  !video.isLocked
+                  !video?.isLocked
               ) || null;
           }
 
@@ -336,6 +405,10 @@ function CourseLearningPage() {
             return;
           }
 
+          /* ---------------------------------------------
+             Session expired
+          --------------------------------------------- */
+
           if (
             err?.response?.status ===
             401
@@ -348,17 +421,20 @@ function CourseLearningPage() {
               STORAGE_KEYS.USER
             );
 
-            navigate("/login", {
-              replace: true,
-              state: {
-                message:
-                  "Your session has expired. Please login again.",
-                redirectTo:
-                  COURSE_ROUTES.LEARN(
-                    slug
-                  ),
-              },
-            });
+            navigate(
+              "/login",
+              {
+                replace: true,
+                state: {
+                  message:
+                    "Your session has expired. Please login again.",
+                  redirectTo:
+                    COURSE_ROUTES.LEARN(
+                      slug
+                    ),
+                },
+              }
+            );
 
             return;
           }
@@ -383,158 +459,330 @@ function CourseLearningPage() {
     return () => {
       mounted = false;
     };
-  }, [slug, videoId, navigate]);
+  }, [
+    slug,
+    videoId,
+    navigate,
+  ]);
 
   /* =======================================================
-     REFRESH PROGRESS
+     ALL VIDEOS
   ======================================================= */
 
-  const refreshProgress =
-    async () => {
-      if (!course) {
-        return;
-      }
-
-      const courseId =
-        course._id || course.id;
-
-      if (!courseId) {
-        return;
-      }
-
-      try {
-        const latestProgress =
-          await getCourseProgress(
-            courseId
-          );
-
-        setProgress(
-          latestProgress
-        );
-      } catch (err) {
-        console.warn(
-          "Unable to refresh progress:",
-          err
-        );
-      }
-    };
+  const allVideos =
+    useMemo(
+      () =>
+        modules.flatMap(
+          (module) =>
+            Array.isArray(
+              module?.videos
+            )
+              ? module.videos
+              : []
+        ),
+      [modules]
+    );
 
   /* =======================================================
-     VIDEO SELECTION
+     CURRENT VIDEO INDEX
   ======================================================= */
-
-  const handleVideoSelect =
-    (video) => {
-      if (!video || video.isLocked) {
-        return;
-      }
-
-      const id =
-        video._id || video.id;
-
-      if (!id) {
-        return;
-      }
-
-      navigate(
-        COURSE_ROUTES.VIDEO(
-          slug,
-          id
-        )
-      );
-    };
-
-  /* =======================================================
-     PREVIOUS VIDEO
-  ======================================================= */
-
-  const allVideos = useMemo(
-    () =>
-      modules.flatMap(
-        (module) =>
-          Array.isArray(
-            module.videos
-          )
-            ? module.videos
-            : []
-      ),
-    [modules]
-  );
 
   const currentIndex =
     currentVideo
       ? allVideos.findIndex(
           (video) =>
             String(
-              video._id ||
-                video.id
+              getVideoId(video)
             ) ===
             String(
-              currentVideo._id ||
-                currentVideo.id
+              getVideoId(
+                currentVideo
+              )
             )
         )
       : -1;
 
-  const handlePrevious = (
-    video
-  ) => {
-    if (!video) {
-      return;
-    }
+  /* =======================================================
+     CURRENT VIDEO RESUME POSITION
+  ======================================================= */
 
-    const id =
-      video._id || video.id;
+  const currentPosition =
+    useMemo(() => {
+      if (
+        !progress ||
+        !currentVideo
+      ) {
+        return 0;
+      }
 
-    if (!id) {
-      return;
-    }
+      const lastVideoId =
+        getLastWatchedVideoId(
+          progress.lastWatchedVideo
+        );
 
-    navigate(
-      COURSE_ROUTES.VIDEO(
-        slug,
-        id
-      )
+      if (!lastVideoId) {
+        return 0;
+      }
+
+      if (
+        String(lastVideoId) !==
+        String(
+          getVideoId(
+            currentVideo
+          )
+        )
+      ) {
+        return 0;
+      }
+
+      return Math.max(
+        0,
+        Number(
+          progress.lastWatchedPosition
+        ) || 0
+      );
+    }, [
+      progress,
+      currentVideo,
+    ]);
+
+  /* =======================================================
+     UPDATE LOCAL PROGRESS
+
+     Also updates the completed state of videos in the
+     sidebar immediately after the backend responds.
+  ======================================================= */
+
+  const handleProgressUpdated =
+    useCallback(
+      (updatedProgress) => {
+        if (!updatedProgress) {
+          return;
+        }
+
+        setProgress(
+          updatedProgress
+        );
+
+        const completedIds =
+          new Set(
+            Array.isArray(
+              updatedProgress.completedVideos
+            )
+              ? updatedProgress.completedVideos.map(
+                  (item) =>
+                    String(
+                      getVideoId(
+                        item
+                      )
+                    )
+                )
+              : []
+          );
+
+        setModules(
+          (previousModules) =>
+            previousModules.map(
+              (module) => ({
+                ...module,
+
+                videos:
+                  Array.isArray(
+                    module?.videos
+                  )
+                    ? module.videos.map(
+                        (video) => ({
+                          ...video,
+
+                          isCompleted:
+                            completedIds.has(
+                              String(
+                                getVideoId(
+                                  video
+                                )
+                              )
+                            ),
+                        })
+                      )
+                    : [],
+              })
+            )
+        );
+
+        setCurrentVideo(
+          (previousVideo) => {
+            if (
+              !previousVideo
+            ) {
+              return previousVideo;
+            }
+
+            const currentId =
+              String(
+                getVideoId(
+                  previousVideo
+                )
+              );
+
+            return {
+              ...previousVideo,
+              isCompleted:
+                completedIds.has(
+                  currentId
+                ),
+            };
+          }
+        );
+      },
+      []
     );
-  };
+
+  /* =======================================================
+     VIDEO COMPLETED
+  ======================================================= */
+
+  const handleVideoCompleted =
+    useCallback(
+      (updatedProgress) => {
+        if (!updatedProgress) {
+          return;
+        }
+
+        handleProgressUpdated(
+          updatedProgress
+        );
+      },
+      [handleProgressUpdated]
+    );
+
+  /* =======================================================
+     VIDEO PROGRESS TRACKER
+  ======================================================= */
+
+  const {
+    handleTimeUpdate,
+    handleEnded,
+    handlePause,
+    handleLoadedMetadata,
+  } =
+    useVideoProgress({
+      courseId:
+        course?._id ||
+        course?.id ||
+        null,
+
+      video:
+        currentVideo,
+
+      initialPosition:
+        currentPosition,
+
+      onProgressUpdated:
+        handleProgressUpdated,
+
+      onCompleted:
+        handleVideoCompleted,
+    });
+
+  /* =======================================================
+     VIDEO SELECTION
+  ======================================================= */
+
+  const handleVideoSelect =
+    useCallback(
+      (video) => {
+        if (
+          !video ||
+          video.isLocked
+        ) {
+          return;
+        }
+
+        const id =
+          getVideoId(video);
+
+        if (!id) {
+          return;
+        }
+
+        navigate(
+          COURSE_ROUTES.VIDEO(
+            slug,
+            id
+          )
+        );
+      },
+      [navigate, slug]
+    );
+
+  /* =======================================================
+     PREVIOUS VIDEO
+  ======================================================= */
+
+  const handlePrevious =
+    useCallback(
+      (video) => {
+        if (!video) {
+          return;
+        }
+
+        const id =
+          getVideoId(video);
+
+        if (!id) {
+          return;
+        }
+
+        navigate(
+          COURSE_ROUTES.VIDEO(
+            slug,
+            id
+          )
+        );
+      },
+      [navigate, slug]
+    );
 
   /* =======================================================
      NEXT VIDEO
   ======================================================= */
 
-  const handleNext = (
-    video
-  ) => {
-    if (!video) {
-      return;
-    }
+  const handleNext =
+    useCallback(
+      (video) => {
+        if (!video) {
+          return;
+        }
 
-    const id =
-      video._id || video.id;
+        const id =
+          getVideoId(video);
 
-    if (!id) {
-      return;
-    }
+        if (!id) {
+          return;
+        }
 
-    navigate(
-      COURSE_ROUTES.VIDEO(
-        slug,
-        id
-      )
+        navigate(
+          COURSE_ROUTES.VIDEO(
+            slug,
+            id
+          )
+        );
+      },
+      [navigate, slug]
     );
-  };
 
   /* =======================================================
      BACK TO COURSE
   ======================================================= */
 
-  const handleBack = () => {
-    navigate(
-      COURSE_ROUTES.DETAILS(
-        slug
-      )
-    );
-  };
+  const handleBack =
+    useCallback(() => {
+      navigate(
+        COURSE_ROUTES.DETAILS(
+          slug
+        )
+      );
+    }, [navigate, slug]);
 
   /* =======================================================
      LOADING
@@ -614,7 +862,8 @@ function CourseLearningPage() {
               )
             }
             sx={{
-              alignSelf: "flex-start",
+              alignSelf:
+                "flex-start",
               borderRadius: 2,
               fontWeight: 800,
               textTransform:
@@ -635,10 +884,19 @@ function CourseLearningPage() {
   return (
     <CoursePlayerLayout
       course={course}
+      courseTitle={
+        course?.title || ""
+      }
       modules={modules}
-      progress={progress}
+      progress={
+        progress?.overallProgress ||
+        0
+      }
       currentVideo={
         currentVideo
+      }
+      currentPosition={
+        currentPosition
       }
       onBack={
         handleBack
@@ -651,6 +909,18 @@ function CourseLearningPage() {
       }
       onVideoSelect={
         handleVideoSelect
+      }
+      onTimeUpdate={
+        handleTimeUpdate
+      }
+      onLoadedMetadata={
+        handleLoadedMetadata
+      }
+      onEnded={
+        handleEnded
+      }
+      onPause={
+        handlePause
       }
     />
   );
