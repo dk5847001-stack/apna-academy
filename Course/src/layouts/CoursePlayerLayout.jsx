@@ -1,463 +1,1085 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
 import {
   ArrowLeft,
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Check,
   Lock,
   Menu,
   PlayCircle,
   X,
-  Settings,
-  Volume2,
-  Maximize,
-} from "lucide-react";
+} from "@mui/icons-material";
 
-const demoModules = [
-  {
-    id: 1,
-    title: "HTML Fundamentals",
-    videos: [
-      {
-        id: 1,
-        title: "Introduction to HTML",
-        duration: "04:42",
-        completed: true,
-        locked: false,
-      },
-      {
-        id: 2,
-        title: "HTML Elements & Tags",
-        duration: "04:29",
-        completed: true,
-        locked: false,
-      },
-      {
-        id: 3,
-        title: "Hello World",
-        duration: "07:46",
-        completed: false,
-        locked: false,
-      },
-      {
-        id: 4,
-        title: "Paragraph Element",
-        duration: "04:22",
-        completed: false,
-        locked: false,
-      },
-      {
-        id: 5,
-        title: "Heading Elements",
-        duration: "04:38",
-        completed: false,
-        locked: true,
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Live Session (Recordings)",
-    videos: [],
-  },
-  {
-    id: 3,
-    title: "Introduction",
-    videos: [],
-  },
-  {
-    id: 4,
-    title: "Prerequisites",
-    videos: [],
-  },
-  {
-    id: 5,
-    title: "CSS Fundamentals",
-    videos: [],
-  },
-];
+import {
+  Box,
+  Button,
+  Chip,
+  Divider,
+  Drawer,
+  IconButton,
+  LinearProgress,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
 
-function CoursePlayerLayout({
-  courseTitle = "Full Stack Web Development",
-  currentVideo = demoModules[0].videos[0],
-  modules = demoModules,
-  progress = 80,
+import BunnyVideoPlayer from "../components/BunnyVideoPlayer";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const getVideoId = (video) =>
+  video?._id ||
+  video?.id ||
+  "";
+
+const getVideoTitle = (video) =>
+  video?.title ||
+  "Untitled lesson";
+
+const getVideoDuration = (video) => {
+  const duration = Number(
+    video?.duration
+  );
+
+  if (!Number.isFinite(duration) || duration <= 0) {
+    return "";
+  }
+
+  const minutes = Math.floor(
+    duration / 60
+  );
+
+  const seconds = Math.floor(
+    duration % 60
+  );
+
+  return `${minutes}:${String(
+    seconds
+  ).padStart(2, "0")}`;
+};
+
+const isVideoLocked = (video) =>
+  Boolean(
+    video?.isLocked ??
+      video?.locked
+  );
+
+const isVideoCompleted = (video) =>
+  Boolean(
+    video?.isCompleted ??
+      video?.completed
+  );
+
+/* =========================================================
+   COURSE PLAYER LAYOUT
+========================================================= */
+
+export default function CoursePlayerLayout({
+  course = null,
+  courseTitle = "",
+  modules = [],
+  progress = 0,
+  currentVideo = null,
+  currentPosition = 0,
+
   onBack,
   onPrevious,
   onNext,
   onVideoSelect,
-}) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [openModule, setOpenModule] = useState(1);
 
-  const handleVideoClick = (video) => {
-    if (video.locked) return;
+  onTimeUpdate,
+  onLoadedMetadata,
+  onEnded,
+  onPlay,
+  onPause,
+}) {
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false);
+
+  const [openModule, setOpenModule] =
+    useState(
+      modules?.[0]?.order ??
+        modules?.[0]?.id ??
+        null
+    );
+
+  const normalizedProgress =
+    Math.min(
+      100,
+      Math.max(
+        0,
+        Number(progress) || 0
+      )
+    );
+
+  const safeModules = Array.isArray(
+    modules
+  )
+    ? modules
+    : [];
+
+  const allVideos = useMemo(() => {
+    return safeModules.flatMap(
+      (module) =>
+        Array.isArray(module?.videos)
+          ? module.videos
+          : []
+    );
+  }, [safeModules]);
+
+  const currentVideoIndex =
+    currentVideo
+      ? allVideos.findIndex(
+          (video) =>
+            String(
+              getVideoId(video)
+            ) ===
+            String(
+              getVideoId(currentVideo)
+            )
+        )
+      : -1;
+
+  const hasPrevious =
+    currentVideoIndex > 0;
+
+  const hasNext =
+    currentVideoIndex >= 0 &&
+    currentVideoIndex <
+      allVideos.length - 1;
+
+  const handleVideoClick = (
+    video
+  ) => {
+    if (!video) {
+      return;
+    }
+
+    if (isVideoLocked(video)) {
+      return;
+    }
 
     onVideoSelect?.(video);
+
+    setSidebarOpen(false);
   };
 
-  return (
-    <div className="min-h-screen overflow-hidden bg-[#0b0f17] text-white">
-      {/* =========================================================
-          MOBILE TOP BAR
-      ========================================================= */}
-      <header className="flex h-16 items-center justify-between border-b border-white/10 bg-[#111722] px-4 lg:hidden">
-        <button
-          type="button"
-          onClick={() => setSidebarOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-300 transition hover:bg-white/10"
-          aria-label="Open course menu"
+  const handlePreviousClick = () => {
+    if (!hasPrevious) {
+      return;
+    }
+
+    const previousVideo =
+      allVideos[
+        currentVideoIndex - 1
+      ];
+
+    if (
+      previousVideo &&
+      !isVideoLocked(previousVideo)
+    ) {
+      onPrevious?.(
+        previousVideo
+      );
+    }
+  };
+
+  const handleNextClick = () => {
+    if (!hasNext) {
+      return;
+    }
+
+    const nextVideo =
+      allVideos[
+        currentVideoIndex + 1
+      ];
+
+    if (
+      nextVideo &&
+      !isVideoLocked(nextVideo)
+    ) {
+      onNext?.(nextVideo);
+    }
+  };
+
+  const renderSidebarContent = (
+    mobile = false
+  ) => (
+    <Box
+      sx={{
+        width: mobile
+          ? "min(390px, 90vw)"
+          : 370,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "#ffffff",
+      }}
+    >
+      {/* =====================================================
+          SIDEBAR HEADER
+      ===================================================== */}
+
+      <Box
+        sx={{
+          px: 2.5,
+          py: 2.5,
+          borderBottom:
+            "1px solid #e5e7eb",
+        }}
+      >
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          spacing={2}
         >
-          <Menu size={21} />
-        </button>
+          <Button
+            variant="text"
+            startIcon={
+              <ArrowLeft />
+            }
+            onClick={onBack}
+            sx={{
+              textTransform: "none",
+              fontWeight: 700,
+              color: "#334155",
+              px: 0,
+              "&:hover": {
+                backgroundColor:
+                  "transparent",
+                color: "#2563eb",
+              },
+            }}
+          >
+            Back to course
+          </Button>
 
-        <div className="max-w-[65%] truncate text-sm font-semibold">
-          {courseTitle}
-        </div>
+          {mobile && (
+            <IconButton
+              onClick={() =>
+                setSidebarOpen(false)
+              }
+              aria-label="Close course menu"
+            >
+              <X />
+            </IconButton>
+          )}
+        </Stack>
 
-        <div className="text-sm font-semibold text-blue-400">
-          {progress}%
-        </div>
-      </header>
+        <Typography
+          sx={{
+            mt: 2,
+            fontSize: {
+              xs: "1.05rem",
+              sm: "1.15rem",
+            },
+            fontWeight: 800,
+            lineHeight: 1.35,
+            color: "#0f172a",
+          }}
+        >
+          {courseTitle ||
+            course?.title ||
+            "Course"}
+        </Typography>
 
-      <div className="flex h-[calc(100vh-4rem)] lg:h-screen">
-        {/* =======================================================
-            SIDEBAR OVERLAY — MOBILE
-        ======================================================= */}
-        {sidebarOpen && (
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-            aria-label="Close sidebar"
+        {/* ===================================================
+            SINGLE OVERALL PROGRESS
+        =================================================== */}
+
+        <Box sx={{ mt: 2.25 }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ mb: 0.8 }}
+          >
+            <Typography
+              variant="caption"
+              fontWeight={700}
+              color="text.secondary"
+            >
+              Overall progress
+            </Typography>
+
+            <Typography
+              variant="caption"
+              fontWeight={800}
+              color="primary.main"
+            >
+              {Math.round(
+                normalizedProgress
+              )}
+              %
+            </Typography>
+          </Stack>
+
+          <LinearProgress
+            variant="determinate"
+            value={
+              normalizedProgress
+            }
+            sx={{
+              height: 7,
+              borderRadius: 99,
+              backgroundColor:
+                "#e2e8f0",
+              "& .MuiLinearProgress-bar":
+                {
+                  borderRadius: 99,
+                },
+            }}
           />
-        )}
+        </Box>
+      </Box>
 
-        {/* =======================================================
-            SIDEBAR
-        ======================================================= */}
-        <aside
-          className={`
-            fixed inset-y-0 left-0 z-50 flex w-[330px] max-w-[88vw]
-            flex-col border-r border-white/10 bg-[#151c28]
-            shadow-2xl transition-transform duration-300
-            lg:static lg:z-auto lg:w-[390px] lg:max-w-none
-            lg:translate-x-0 lg:shadow-none
-            ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          `}
-        >
-          {/* Sidebar Header */}
-          <div className="border-b border-white/10 bg-[#171f2c] px-5 pb-5 pt-5">
-            <div className="mb-5 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={onBack}
-                className="flex items-center gap-2 text-sm font-medium text-slate-300 transition hover:text-white"
-              >
-                <ArrowLeft size={18} />
-                Back to course
-              </button>
+      {/* =====================================================
+          MODULES
+      ===================================================== */}
 
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white lg:hidden"
-                aria-label="Close course menu"
-              >
-                <X size={19} />
-              </button>
-            </div>
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+        }}
+      >
+        {safeModules.length === 0 ? (
+          <Box sx={{ p: 3 }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+            >
+              No course modules available.
+            </Typography>
+          </Box>
+        ) : (
+          safeModules.map(
+            (module, moduleIndex) => {
+              const moduleKey =
+                module?.order ??
+                module?.id ??
+                moduleIndex + 1;
 
-            <h1 className="line-clamp-2 text-xl font-bold tracking-tight text-white">
-              {courseTitle}
-            </h1>
+              const isOpen =
+                String(
+                  openModule
+                ) ===
+                String(moduleKey);
 
-            {/* Single Overall Progress */}
-            <div className="mt-5 flex items-center gap-4">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-400 transition-all"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-
-              <span className="shrink-0 text-sm font-bold text-blue-400">
-                {progress}%
-              </span>
-            </div>
-          </div>
-
-          {/* Module List */}
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            {modules.map((module) => {
-              const isOpen = openModule === module.id;
+              const moduleVideos =
+                Array.isArray(
+                  module?.videos
+                )
+                  ? module.videos
+                  : [];
 
               return (
-                <div
-                  key={module.id}
-                  className="border-b border-black/10"
+                <Box
+                  key={
+                    module?._id ||
+                    moduleKey
+                  }
+                  sx={{
+                    borderBottom:
+                      "1px solid #e5e7eb",
+                  }}
                 >
-                  <button
-                    type="button"
+                  <Button
+                    fullWidth
                     onClick={() =>
-                      setOpenModule(isOpen ? null : module.id)
-                    }
-                    className={`
-                      flex w-full items-center justify-between px-5 py-5
-                      text-left transition
-                      ${
+                      setOpenModule(
                         isOpen
-                          ? "bg-indigo-500/10 text-white"
-                          : "text-slate-300 hover:bg-white/[0.03]"
-                      }
-                    `}
+                          ? null
+                          : moduleKey
+                      )
+                    }
+                    sx={{
+                      px: 2.5,
+                      py: 2,
+                      justifyContent:
+                        "space-between",
+                      textAlign: "left",
+                      textTransform:
+                        "none",
+                      color: "#0f172a",
+                      backgroundColor:
+                        isOpen
+                          ? "#eff6ff"
+                          : "#ffffff",
+                      borderRadius: 0,
+                      "&:hover": {
+                        backgroundColor:
+                          "#f8fafc",
+                      },
+                    }}
                   >
-                    <span className="pr-4 text-sm font-semibold leading-6">
-                      {module.id}. {module.title}
-                    </span>
+                    <Box
+                      sx={{
+                        minWidth: 0,
+                        pr: 1,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize:
+                            "0.92rem",
+                          fontWeight: 800,
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        {moduleIndex +
+                          1}
+                        .{" "}
+                        {module?.title ||
+                          "Module"}
+                      </Typography>
+
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                      >
+                        {
+                          moduleVideos.length
+                        }{" "}
+                        lesson
+                        {moduleVideos.length ===
+                        1
+                          ? ""
+                          : "s"}
+                      </Typography>
+                    </Box>
 
                     <ChevronDown
-                      size={17}
-                      className={`shrink-0 transition-transform ${
-                        isOpen ? "rotate-180 text-indigo-400" : ""
-                      }`}
+                      sx={{
+                        flexShrink: 0,
+                        transform:
+                          isOpen
+                            ? "rotate(180deg)"
+                            : "rotate(0deg)",
+                        transition:
+                          "transform 180ms ease",
+                        color:
+                          isOpen
+                            ? "#2563eb"
+                            : "#64748b",
+                      }}
                     />
-                  </button>
+                  </Button>
 
-                  {/* Videos */}
-                  {isOpen && module.videos.length > 0 && (
-                    <div className="bg-[#101620]">
-                      {module.videos.map((video) => {
-                        const active = currentVideo?.id === video.id;
+                  {isOpen &&
+                    moduleVideos.length >
+                      0 && (
+                      <Box
+                        sx={{
+                          backgroundColor:
+                            "#f8fafc",
+                        }}
+                      >
+                        {moduleVideos.map(
+                          (video) => {
+                            const active =
+                              String(
+                                getVideoId(
+                                  currentVideo
+                                )
+                              ) ===
+                              String(
+                                getVideoId(
+                                  video
+                                )
+                              );
 
-                        return (
-                          <button
-                            type="button"
-                            key={video.id}
-                            disabled={video.locked}
-                            onClick={() => handleVideoClick(video)}
-                            className={`
-                              group flex w-full items-start gap-3
-                              border-l-2 px-5 py-4 text-left
-                              transition
-                              ${
-                                active
-                                  ? "border-indigo-400 bg-indigo-500/15"
-                                  : "border-transparent hover:bg-white/[0.035]"
-                              }
-                              ${
-                                video.locked
-                                  ? "cursor-not-allowed opacity-50"
-                                  : "cursor-pointer"
-                              }
-                            `}
-                          >
-                            {/* Video Icon */}
-                            <div
-                              className={`
-                                mt-0.5 flex h-7 w-7 shrink-0
-                                items-center justify-center rounded-full
-                                ${
-                                  video.locked
-                                    ? "bg-white/5 text-slate-500"
-                                    : active
-                                    ? "bg-indigo-500 text-white"
-                                    : "bg-white/10 text-slate-300"
+                            const locked =
+                              isVideoLocked(
+                                video
+                              );
+
+                            const completed =
+                              isVideoCompleted(
+                                video
+                              );
+
+                            return (
+                              <Button
+                                key={
+                                  getVideoId(
+                                    video
+                                  )
                                 }
-                              `}
-                            >
-                              {video.locked ? (
-                                <Lock size={13} />
-                              ) : (
-                                <PlayCircle size={15} />
-                              )}
-                            </div>
-
-                            {/* Video Information */}
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-start justify-between gap-3">
-                                <span
-                                  className={`
-                                    line-clamp-2 text-sm font-medium leading-5
-                                    ${
-                                      active
-                                        ? "text-white"
-                                        : "text-slate-300"
-                                    }
-                                  `}
+                                fullWidth
+                                disabled={
+                                  locked
+                                }
+                                onClick={() =>
+                                  handleVideoClick(
+                                    video
+                                  )
+                                }
+                                sx={{
+                                  minHeight: 68,
+                                  px: 2.5,
+                                  py: 1.25,
+                                  justifyContent:
+                                    "flex-start",
+                                  alignItems:
+                                    "flex-start",
+                                  gap: 1.25,
+                                  textAlign:
+                                    "left",
+                                  textTransform:
+                                    "none",
+                                  borderRadius: 0,
+                                  borderLeft:
+                                    active
+                                      ? "3px solid #2563eb"
+                                      : "3px solid transparent",
+                                  backgroundColor:
+                                    active
+                                      ? "#dbeafe"
+                                      : "transparent",
+                                  color:
+                                    locked
+                                      ? "#94a3b8"
+                                      : "#334155",
+                                  "&:hover":
+                                    {
+                                      backgroundColor:
+                                        locked
+                                          ? "transparent"
+                                          : "#eef2ff",
+                                    },
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    width: 30,
+                                    height: 30,
+                                    mt: 0.1,
+                                    flexShrink: 0,
+                                    borderRadius:
+                                      "50%",
+                                    display:
+                                      "flex",
+                                    alignItems:
+                                      "center",
+                                    justifyContent:
+                                      "center",
+                                    backgroundColor:
+                                      completed
+                                        ? "#dcfce7"
+                                        : locked
+                                          ? "#e2e8f0"
+                                          : active
+                                            ? "#dbeafe"
+                                            : "#ffffff",
+                                    border:
+                                      "1px solid",
+                                    borderColor:
+                                      completed
+                                        ? "#bbf7d0"
+                                        : active
+                                          ? "#bfdbfe"
+                                          : "#e2e8f0",
+                                  }}
                                 >
-                                  {video.title}
-                                </span>
-
-                                <span className="shrink-0 text-[11px] text-slate-500">
-                                  {video.duration}
-                                </span>
-                              </div>
-
-                              <div className="mt-1.5 flex items-center gap-1.5 text-xs">
-                                {video.completed && !video.locked ? (
-                                  <>
+                                  {completed ? (
                                     <Check
-                                      size={13}
-                                      className="text-emerald-400"
-                                      strokeWidth={3}
+                                      sx={{
+                                        fontSize: 17,
+                                        color:
+                                          "#16a34a",
+                                      }}
                                     />
-                                    <span className="text-emerald-400">
-                                      Completed
-                                    </span>
-                                  </>
-                                ) : video.locked ? (
-                                  <span className="text-slate-500">
-                                    Locked
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-500">
-                                    Video
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                                  ) : locked ? (
+                                    <Lock
+                                      sx={{
+                                        fontSize: 16,
+                                        color:
+                                          "#64748b",
+                                      }}
+                                    />
+                                  ) : (
+                                    <PlayCircle
+                                      sx={{
+                                        fontSize: 18,
+                                        color:
+                                          active
+                                            ? "#2563eb"
+                                            : "#64748b",
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+
+                                <Box
+                                  sx={{
+                                    minWidth: 0,
+                                    flex: 1,
+                                  }}
+                                >
+                                  <Typography
+                                    sx={{
+                                      fontSize:
+                                        "0.86rem",
+                                      fontWeight:
+                                        active
+                                          ? 800
+                                          : 600,
+                                      lineHeight:
+                                        1.4,
+                                      color:
+                                        locked
+                                          ? "#94a3b8"
+                                          : active
+                                            ? "#1d4ed8"
+                                            : "#334155",
+                                    }}
+                                  >
+                                    {getVideoTitle(
+                                      video
+                                    )}
+                                  </Typography>
+
+                                  <Stack
+                                    direction="row"
+                                    spacing={
+                                      0.75
+                                    }
+                                    alignItems="center"
+                                    sx={{
+                                      mt: 0.4,
+                                    }}
+                                  >
+                                    {video?.isPreview && (
+                                      <Chip
+                                        label="Preview"
+                                        size="small"
+                                        sx={{
+                                          height: 20,
+                                          fontSize:
+                                            "0.65rem",
+                                          fontWeight:
+                                            800,
+                                          backgroundColor:
+                                            "#eff6ff",
+                                          color:
+                                            "#2563eb",
+                                        }}
+                                      />
+                                    )}
+
+                                    {getVideoDuration(
+                                      video
+                                    ) && (
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                      >
+                                        {getVideoDuration(
+                                          video
+                                        )}
+                                      </Typography>
+                                    )}
+                                  </Stack>
+                                </Box>
+                              </Button>
+                            );
+                          }
+                        )}
+                      </Box>
+                    )}
+                </Box>
               );
-            })}
-          </div>
-        </aside>
+            }
+          )
+        )}
+      </Box>
+    </Box>
+  );
 
-        {/* =======================================================
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "#f8fafc",
+        color: "#0f172a",
+      }}
+    >
+      {/* =====================================================
+          MOBILE TOP BAR
+      ===================================================== */}
+
+      <Box
+        sx={{
+          display: {
+            xs: "flex",
+            lg: "none",
+          },
+          height: 64,
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 1.5,
+          backgroundColor: "#ffffff",
+          borderBottom:
+            "1px solid #e5e7eb",
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+        }}
+      >
+        <IconButton
+          onClick={() =>
+            setSidebarOpen(true)
+          }
+          aria-label="Open course menu"
+        >
+          <Menu />
+        </IconButton>
+
+        <Typography
+          sx={{
+            maxWidth: "65%",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            fontSize: "0.9rem",
+            fontWeight: 800,
+          }}
+        >
+          {courseTitle ||
+            course?.title ||
+            "Course"}
+        </Typography>
+
+        <Typography
+          sx={{
+            fontSize: "0.85rem",
+            fontWeight: 800,
+            color: "#2563eb",
+          }}
+        >
+          {Math.round(
+            normalizedProgress
+          )}
+          %
+        </Typography>
+      </Box>
+
+      {/* =====================================================
+          MOBILE DRAWER
+      ===================================================== */}
+
+      <Drawer
+        anchor="left"
+        open={sidebarOpen}
+        onClose={() =>
+          setSidebarOpen(false)
+        }
+        sx={{
+          display: {
+            xs: "block",
+            lg: "none",
+          },
+        }}
+      >
+        {renderSidebarContent(true)}
+      </Drawer>
+
+      {/* =====================================================
+          DESKTOP LAYOUT
+      ===================================================== */}
+
+      <Box
+        sx={{
+          display: "flex",
+          minHeight: {
+            xs: "calc(100vh - 64px)",
+            lg: "100vh",
+          },
+        }}
+      >
+        {/* ===================================================
+            DESKTOP SIDEBAR
+        =================================================== */}
+
+        <Box
+          component="aside"
+          sx={{
+            display: {
+              xs: "none",
+              lg: "block",
+            },
+            width: 370,
+            flexShrink: 0,
+            borderRight:
+              "1px solid #e5e7eb",
+            backgroundColor:
+              "#ffffff",
+          }}
+        >
+          {renderSidebarContent(
+            false
+          )}
+        </Box>
+
+        {/* ===================================================
             MAIN PLAYER AREA
-        ======================================================= */}
-        <main className="flex min-w-0 flex-1 flex-col bg-[#080b11]">
-          {/* Desktop Navigation */}
-          <div className="hidden h-16 shrink-0 items-center justify-between border-b border-white/10 bg-[#151a22] px-7 lg:flex">
-            <button
-              type="button"
-              onClick={onPrevious}
-              className="flex items-center gap-2 text-sm font-medium text-slate-300 transition hover:text-white"
+        =================================================== */}
+
+        <Box
+          component="main"
+          sx={{
+            minWidth: 0,
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* =================================================
+              VIDEO
+          ================================================= */}
+
+          <Box
+            sx={{
+              width: "100%",
+              backgroundColor:
+                "#020617",
+            }}
+          >
+            <BunnyVideoPlayer
+              video={currentVideo}
+              currentTime={
+                currentPosition
+              }
+              onTimeUpdate={
+                onTimeUpdate
+              }
+              onLoadedMetadata={
+                onLoadedMetadata
+              }
+              onEnded={onEnded}
+              onPlay={onPlay}
+              onPause={onPause}
+            />
+          </Box>
+
+          {/* =================================================
+              VIDEO INFORMATION
+          ================================================= */}
+
+          <Box
+            sx={{
+              px: {
+                xs: 2,
+                sm: 3,
+                lg: 4,
+              },
+              py: {
+                xs: 2.5,
+                sm: 3,
+              },
+              backgroundColor:
+                "#ffffff",
+              borderBottom:
+                "1px solid #e5e7eb",
+            }}
+          >
+            <Stack
+              spacing={1.25}
             >
-              <ChevronLeft size={18} />
-              Previous
-            </button>
+              <Stack
+                direction={{
+                  xs: "column",
+                  sm: "row",
+                }}
+                alignItems={{
+                  xs: "flex-start",
+                  sm: "center",
+                }}
+                justifyContent="space-between"
+                spacing={1}
+              >
+                <Typography
+                  sx={{
+                    fontSize: {
+                      xs: "1.1rem",
+                      sm: "1.3rem",
+                    },
+                    fontWeight: 800,
+                    lineHeight: 1.35,
+                    color: "#0f172a",
+                  }}
+                >
+                  {getVideoTitle(
+                    currentVideo
+                  )}
+                </Typography>
 
-            <div className="max-w-[45%] truncate text-sm font-semibold text-slate-200">
-              {currentVideo?.title || "Course Player"}
-            </div>
+                {currentVideo?.isPreview && (
+                  <Chip
+                    label="Preview"
+                    size="small"
+                    sx={{
+                      fontWeight: 800,
+                      backgroundColor:
+                        "#eff6ff",
+                      color: "#2563eb",
+                    }}
+                  />
+                )}
+              </Stack>
 
-            <button
-              type="button"
-              onClick={onNext}
-              className="flex items-center gap-2 text-sm font-medium text-slate-300 transition hover:text-white"
+              {currentVideo?.description && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {
+                    currentVideo.description
+                  }
+                </Typography>
+              )}
+            </Stack>
+          </Box>
+
+          {/* =================================================
+              NAVIGATION
+          ================================================= */}
+
+          <Box
+            sx={{
+              px: {
+                xs: 2,
+                sm: 3,
+                lg: 4,
+              },
+              py: 2,
+              backgroundColor:
+                "#ffffff",
+            }}
+          >
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              spacing={2}
             >
-              Next
-              <ChevronRight size={18} />
-            </button>
-          </div>
+              <Button
+                variant="outlined"
+                startIcon={
+                  <ChevronLeft />
+                }
+                disabled={!hasPrevious}
+                onClick={
+                  handlePreviousClick
+                }
+                sx={{
+                  minHeight: 42,
+                  px: 2,
+                  borderRadius: 2,
+                  textTransform:
+                    "none",
+                  fontWeight: 800,
+                }}
+              >
+                Previous
+              </Button>
 
-          {/* Video Container */}
-          <div className="flex min-h-0 flex-1 items-center justify-center">
-            <div className="flex h-full w-full flex-col bg-black">
-              {/* Video */}
-              <div className="relative flex min-h-0 flex-1 items-center justify-center bg-black">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-white/5 shadow-2xl">
-                      <PlayCircle
-                        size={42}
-                        strokeWidth={1.4}
-                        className="text-indigo-400"
-                      />
-                    </div>
+              <Button
+                variant="contained"
+                endIcon={
+                  <ChevronRight />
+                }
+                disabled={!hasNext}
+                onClick={
+                  handleNextClick
+                }
+                sx={{
+                  minHeight: 42,
+                  px: 2.25,
+                  borderRadius: 2,
+                  textTransform:
+                    "none",
+                  fontWeight: 800,
+                  boxShadow: "none",
+                  "&:hover": {
+                    boxShadow: "none",
+                  },
+                }}
+              >
+                Next lesson
+              </Button>
+            </Stack>
+          </Box>
 
-                    <p className="mt-5 text-sm font-medium text-slate-400">
-                      {currentVideo?.title || "Select a video"}
-                    </p>
+          <Divider />
 
-                    <p className="mt-1 text-xs text-slate-600">
-                      Course video player
-                    </p>
-                  </div>
-                </div>
-              </div>
+          {/* =================================================
+              MOBILE OVERALL PROGRESS
+          ================================================= */}
 
-              {/* Player Controls */}
-              <div className="border-t border-white/5 bg-black px-4 py-3 sm:px-6">
-                {/* Progress timeline */}
-                <div className="mb-3 h-1 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full w-[3%] rounded-full bg-indigo-500" />
-                </div>
+          <Paper
+            elevation={0}
+            sx={{
+              display: {
+                xs: "block",
+                lg: "none",
+              },
+              mx: 2,
+              my: 2,
+              p: 2,
+              border:
+                "1px solid #e5e7eb",
+              borderRadius: 2,
+              backgroundColor:
+                "#ffffff",
+            }}
+          >
+            <Stack spacing={1}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+              >
+                <Typography
+                  variant="caption"
+                  fontWeight={800}
+                >
+                  Overall progress
+                </Typography>
 
-                <div className="flex items-center gap-3 text-slate-400">
-                  <button
-                    type="button"
-                    className="transition hover:text-white"
-                    aria-label="Play"
-                  >
-                    <PlayCircle size={22} />
-                  </button>
+                <Typography
+                  variant="caption"
+                  fontWeight={800}
+                  color="primary.main"
+                >
+                  {Math.round(
+                    normalizedProgress
+                  )}
+                  %
+                </Typography>
+              </Stack>
 
-                  <span className="hidden text-xs sm:block">
-                    00:01 / {currentVideo?.duration || "00:00"}
-                  </span>
-
-                  <div className="flex-1" />
-
-                  <button
-                    type="button"
-                    className="transition hover:text-white"
-                    aria-label="Settings"
-                  >
-                    <Settings size={19} />
-                  </button>
-
-                  <button
-                    type="button"
-                    className="hidden transition hover:text-white sm:block"
-                    aria-label="Volume"
-                  >
-                    <Volume2 size={19} />
-                  </button>
-
-                  <button
-                    type="button"
-                    className="transition hover:text-white"
-                    aria-label="Fullscreen"
-                  >
-                    <Maximize size={19} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Previous / Next */}
-          <div className="flex shrink-0 items-center justify-between border-t border-white/10 bg-[#111722] px-4 py-3 lg:hidden">
-            <button
-              type="button"
-              onClick={onPrevious}
-              className="flex items-center gap-1 text-sm text-slate-300 transition hover:text-white"
-            >
-              <ChevronLeft size={17} />
-              Previous
-            </button>
-
-            <button
-              type="button"
-              onClick={onNext}
-              className="flex items-center gap-1 text-sm text-slate-300 transition hover:text-white"
-            >
-              Next
-              <ChevronRight size={17} />
-            </button>
-          </div>
-        </main>
-      </div>
-    </div>
+              <LinearProgress
+                variant="determinate"
+                value={
+                  normalizedProgress
+                }
+                sx={{
+                  height: 7,
+                  borderRadius: 99,
+                }}
+              />
+            </Stack>
+          </Paper>
+        </Box>
+      </Box>
+    </Box>
   );
 }
-
-export default CoursePlayerLayout;

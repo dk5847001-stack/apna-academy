@@ -1,100 +1,761 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Route,
+  Routes,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  Typography,
+} from "@mui/material";
 
 import CourseDetails from "./pages/CourseDetails";
 import CoursePlayerLayout from "./layouts/CoursePlayerLayout";
 
+import {
+  COURSE_ROUTES,
+  STORAGE_KEYS,
+} from "./constants/config";
+
+import {
+  getCourseBySlug,
+} from "./services/course.service";
+
+import {
+  getLearningCourse,
+  normalizeLearningCourse,
+  normalizeLearningVideo,
+} from "./services/learning.service";
+
+import {
+  getCourseProgress,
+} from "./services/progress.service";
+
+/* =========================================================
+   COURSE HOME
+========================================================= */
+
 function CourseHome() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
-      <div className="text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-400">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "#ffffff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        px: 3,
+      }}
+    >
+      <Stack
+        spacing={2}
+        alignItems="center"
+        textAlign="center"
+      >
+        <Typography
+          variant="overline"
+          color="primary.main"
+          fontWeight={900}
+          letterSpacing={3}
+        >
           ApnaAcademy
-        </p>
+        </Typography>
 
-        <h1 className="mt-4 text-4xl font-black sm:text-6xl">
+        <Typography
+          variant="h2"
+          fontWeight={900}
+          sx={{
+            fontSize: {
+              xs: "2.2rem",
+              sm: "3.5rem",
+            },
+          }}
+        >
           Courses
-        </h1>
+        </Typography>
 
-        <p className="mt-4 text-slate-400">
+        <Typography
+          color="text.secondary"
+          maxWidth={500}
+        >
           Select a course to start learning.
-        </p>
-      </div>
-    </div>
+        </Typography>
+      </Stack>
+    </Box>
   );
 }
 
-function CoursePlayerPage() {
+/* =========================================================
+   AUTH CHECK
+========================================================= */
+
+function hasAuthenticationToken() {
+  return Boolean(
+    localStorage.getItem(
+      STORAGE_KEYS.TOKEN
+    )
+  );
+}
+
+/* =========================================================
+   LEARNING PAGE
+========================================================= */
+
+function CourseLearningPage() {
+  const { slug, videoId } = useParams();
+  const navigate = useNavigate();
+
+  const [course, setCourse] =
+    useState(null);
+
+  const [modules, setModules] =
+    useState([]);
+
+  const [progress, setProgress] =
+    useState(null);
+
+  const [currentVideo, setCurrentVideo] =
+    useState(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  /* =======================================================
+     LOAD LEARNING DATA
+  ======================================================= */
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadLearningData =
+      async () => {
+        try {
+          setLoading(true);
+          setError("");
+
+          /* -----------------------------------------------
+             Authentication
+          ----------------------------------------------- */
+
+          if (!hasAuthenticationToken()) {
+            navigate("/login", {
+              replace: true,
+              state: {
+                message:
+                  "Please login to continue learning.",
+                redirectTo:
+                  COURSE_ROUTES.LEARN(
+                    slug
+                  ),
+              },
+            });
+
+            return;
+          }
+
+          /* -----------------------------------------------
+             Get course details first
+          ----------------------------------------------- */
+
+          const courseResult =
+            await getCourseBySlug(slug);
+
+          if (!mounted) {
+            return;
+          }
+
+          const courseData =
+            courseResult?.course;
+
+          if (!courseData) {
+            throw new Error(
+              "Course information could not be loaded."
+            );
+          }
+
+          const courseId =
+            courseData._id ||
+            courseData.id;
+
+          if (!courseId) {
+            throw new Error(
+              "Course ID is missing."
+            );
+          }
+
+          /* -----------------------------------------------
+             Get protected learning data
+          ----------------------------------------------- */
+
+          const learningResult =
+            await getLearningCourse(
+              courseId
+            );
+
+          if (!mounted) {
+            return;
+          }
+
+          const normalized =
+            normalizeLearningCourse(
+              learningResult
+            );
+
+          /* -----------------------------------------------
+             Check purchase/access
+          ----------------------------------------------- */
+
+          if (
+            !normalized.access
+              .isPurchased
+          ) {
+            navigate(
+              COURSE_ROUTES.DETAILS(
+                slug
+              ),
+              {
+                replace: true,
+                state: {
+                  message:
+                    "Please enroll in this course to start learning.",
+                },
+              }
+            );
+
+            return;
+          }
+
+          /* -----------------------------------------------
+             Save course/modules/progress
+          ----------------------------------------------- */
+
+          setCourse(
+            normalized.course ||
+              courseData
+          );
+
+          setModules(
+            normalized.modules
+          );
+
+          setProgress(
+            normalized.progress
+          );
+
+          /* -----------------------------------------------
+             Find requested/current video
+          ----------------------------------------------- */
+
+          const availableVideos =
+            normalized.modules.flatMap(
+              (module) =>
+                Array.isArray(
+                  module.videos
+                )
+                  ? module.videos
+                  : []
+            );
+
+          let selectedVideo = null;
+
+          if (videoId) {
+            selectedVideo =
+              availableVideos.find(
+                (video) =>
+                  String(
+                    video._id ||
+                      video.id
+                  ) ===
+                  String(videoId)
+              ) || null;
+          }
+
+          /* -----------------------------------------------
+             Continue Learning
+          ----------------------------------------------- */
+
+          if (!selectedVideo) {
+            const lastVideoId =
+              normalized.progress
+                .lastWatchedVideo;
+
+            if (lastVideoId) {
+              selectedVideo =
+                availableVideos.find(
+                  (video) =>
+                    String(
+                      video._id ||
+                        video.id
+                    ) ===
+                    String(
+                      typeof lastVideoId ===
+                        "object"
+                        ? lastVideoId._id ||
+                            lastVideoId.id
+                        : lastVideoId
+                    )
+                ) || null;
+            }
+          }
+
+          /* -----------------------------------------------
+             First unlocked video fallback
+          ----------------------------------------------- */
+
+          if (!selectedVideo) {
+            selectedVideo =
+              availableVideos.find(
+                (video) =>
+                  !video.isLocked
+              ) || null;
+          }
+
+          if (selectedVideo) {
+            setCurrentVideo(
+              normalizeLearningVideo({
+                video: selectedVideo,
+              })
+            );
+          }
+        } catch (err) {
+          console.error(
+            "Learning page error:",
+            err
+          );
+
+          if (!mounted) {
+            return;
+          }
+
+          if (
+            err?.response?.status ===
+            401
+          ) {
+            localStorage.removeItem(
+              STORAGE_KEYS.TOKEN
+            );
+
+            localStorage.removeItem(
+              STORAGE_KEYS.USER
+            );
+
+            navigate("/login", {
+              replace: true,
+              state: {
+                message:
+                  "Your session has expired. Please login again.",
+                redirectTo:
+                  COURSE_ROUTES.LEARN(
+                    slug
+                  ),
+              },
+            });
+
+            return;
+          }
+
+          setError(
+            err?.response?.data
+              ?.message ||
+              err?.message ||
+              "Unable to load your course."
+          );
+        } finally {
+          if (mounted) {
+            setLoading(false);
+          }
+        }
+      };
+
+    if (slug) {
+      loadLearningData();
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [slug, videoId, navigate]);
+
+  /* =======================================================
+     REFRESH PROGRESS
+  ======================================================= */
+
+  const refreshProgress =
+    async () => {
+      if (!course) {
+        return;
+      }
+
+      const courseId =
+        course._id || course.id;
+
+      if (!courseId) {
+        return;
+      }
+
+      try {
+        const latestProgress =
+          await getCourseProgress(
+            courseId
+          );
+
+        setProgress(
+          latestProgress
+        );
+      } catch (err) {
+        console.warn(
+          "Unable to refresh progress:",
+          err
+        );
+      }
+    };
+
+  /* =======================================================
+     VIDEO SELECTION
+  ======================================================= */
+
+  const handleVideoSelect =
+    (video) => {
+      if (!video || video.isLocked) {
+        return;
+      }
+
+      const id =
+        video._id || video.id;
+
+      if (!id) {
+        return;
+      }
+
+      navigate(
+        COURSE_ROUTES.VIDEO(
+          slug,
+          id
+        )
+      );
+    };
+
+  /* =======================================================
+     PREVIOUS VIDEO
+  ======================================================= */
+
+  const allVideos = useMemo(
+    () =>
+      modules.flatMap(
+        (module) =>
+          Array.isArray(
+            module.videos
+          )
+            ? module.videos
+            : []
+      ),
+    [modules]
+  );
+
+  const currentIndex =
+    currentVideo
+      ? allVideos.findIndex(
+          (video) =>
+            String(
+              video._id ||
+                video.id
+            ) ===
+            String(
+              currentVideo._id ||
+                currentVideo.id
+            )
+        )
+      : -1;
+
+  const handlePrevious = (
+    video
+  ) => {
+    if (!video) {
+      return;
+    }
+
+    const id =
+      video._id || video.id;
+
+    if (!id) {
+      return;
+    }
+
+    navigate(
+      COURSE_ROUTES.VIDEO(
+        slug,
+        id
+      )
+    );
+  };
+
+  /* =======================================================
+     NEXT VIDEO
+  ======================================================= */
+
+  const handleNext = (
+    video
+  ) => {
+    if (!video) {
+      return;
+    }
+
+    const id =
+      video._id || video.id;
+
+    if (!id) {
+      return;
+    }
+
+    navigate(
+      COURSE_ROUTES.VIDEO(
+        slug,
+        id
+      )
+    );
+  };
+
+  /* =======================================================
+     BACK TO COURSE
+  ======================================================= */
+
+  const handleBack = () => {
+    navigate(
+      COURSE_ROUTES.DETAILS(
+        slug
+      )
+    );
+  };
+
+  /* =======================================================
+     LOADING
+  ======================================================= */
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          backgroundColor:
+            "#ffffff",
+          display: "flex",
+          alignItems:
+            "center",
+          justifyContent:
+            "center",
+          px: 2,
+        }}
+      >
+        <Stack
+          spacing={2}
+          alignItems="center"
+        >
+          <CircularProgress />
+
+          <Typography
+            color="text.secondary"
+          >
+            Loading your course...
+          </Typography>
+        </Stack>
+      </Box>
+    );
+  }
+
+  /* =======================================================
+     ERROR
+  ======================================================= */
+
+  if (error) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          backgroundColor:
+            "#ffffff",
+          display: "flex",
+          alignItems:
+            "center",
+          justifyContent:
+            "center",
+          px: 2,
+        }}
+      >
+        <Stack
+          spacing={2}
+          maxWidth={520}
+          width="100%"
+        >
+          <Alert
+            severity="error"
+            sx={{
+              borderRadius: 3,
+            }}
+          >
+            {error}
+          </Alert>
+
+          <Button
+            variant="contained"
+            onClick={() =>
+              navigate(
+                COURSE_ROUTES.DETAILS(
+                  slug
+                )
+              )
+            }
+            sx={{
+              alignSelf: "flex-start",
+              borderRadius: 2,
+              fontWeight: 800,
+              textTransform:
+                "none",
+            }}
+          >
+            Back to Course
+          </Button>
+        </Stack>
+      </Box>
+    );
+  }
+
+  /* =======================================================
+     PLAYER
+  ======================================================= */
+
   return (
     <CoursePlayerLayout
-      courseTitle="Full Stack Web Development"
-      progress={80}
-      onBack={() => window.history.back()}
-      onPrevious={() => console.log("Previous video")}
-      onNext={() => console.log("Next video")}
-      onVideoSelect={(video) => {
-        console.log("Selected video:", video);
-      }}
+      course={course}
+      modules={modules}
+      progress={progress}
+      currentVideo={
+        currentVideo
+      }
+      onBack={
+        handleBack
+      }
+      onPrevious={
+        handlePrevious
+      }
+      onNext={
+        handleNext
+      }
+      onVideoSelect={
+        handleVideoSelect
+      }
     />
   );
 }
 
+/* =========================================================
+   NOT FOUND
+========================================================= */
+
 function NotFound() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
-      <div className="text-center">
-        <p className="text-6xl font-black text-blue-500">
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor:
+          "#ffffff",
+        display: "flex",
+        alignItems:
+          "center",
+        justifyContent:
+          "center",
+        px: 3,
+      }}
+    >
+      <Stack
+        spacing={2}
+        alignItems="center"
+        textAlign="center"
+      >
+        <Typography
+          sx={{
+            fontSize: "4rem",
+            fontWeight: 900,
+            color:
+              "primary.main",
+          }}
+        >
           404
-        </p>
+        </Typography>
 
-        <h1 className="mt-4 text-2xl font-bold">
+        <Typography
+          variant="h5"
+          fontWeight={900}
+        >
           Page not found
-        </h1>
+        </Typography>
 
-        <p className="mt-2 text-slate-400">
-          The page you are looking for does not exist.
-        </p>
-      </div>
-    </div>
+        <Typography
+          color="text.secondary"
+        >
+          The page you are looking for
+          does not exist.
+        </Typography>
+      </Stack>
+    </Box>
   );
 }
+
+/* =========================================================
+   APP
+========================================================= */
 
 export default function App() {
   return (
     <Routes>
-      {/* Course Home */}
       <Route
         path="/"
-        element={<CourseHome />}
+        element={
+          <CourseHome />
+        }
       />
 
-      {/* Course Details */}
       <Route
         path="/courses/:slug"
-        element={<CourseDetails />}
+        element={
+          <CourseDetails />
+        }
       />
 
-      {/* Course Player */}
       <Route
         path="/courses/:slug/learn"
-        element={<CoursePlayerPage />}
+        element={
+          <CourseLearningPage />
+        }
       />
 
-      {/* Specific Video */}
       <Route
         path="/courses/:slug/learn/:videoId"
-        element={<CoursePlayerPage />}
+        element={
+          <CourseLearningPage />
+        }
       />
 
-      {/* Certificate */}
       <Route
         path="/courses/:slug/certificate"
-        element={<CoursePlayerPage />}
+        element={
+          <CourseLearningPage />
+        }
       />
 
-      {/* 404 */}
       <Route
         path="*"
-        element={<NotFound />}
+        element={
+          <NotFound />
+        }
       />
     </Routes>
   );
