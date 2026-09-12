@@ -1,34 +1,78 @@
 import axios from "axios";
-import { API_BASE_URL } from "../constants/config";
+
+import {
+  API_BASE_URL,
+  API_TIMEOUT,
+  STORAGE_KEYS,
+} from "../constants/config";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT,
+
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 15000,
 });
 
-// Automatically attach logged-in user's JWT
+/* =========================================================
+   REQUEST INTERCEPTOR
+   Attach authentication token when available
+========================================================= */
+
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem(
+      STORAGE_KEYS.TOKEN
+    );
 
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization =
+        `Bearer ${token}`;
     }
 
     return config;
   },
-  (error) => Promise.reject(error)
+
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Handle expired/invalid authentication
+/* =========================================================
+   RESPONSE INTERCEPTOR
+========================================================= */
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
+
   (error) => {
-    if (error?.response?.status === 401) {
-      console.warn("Authentication required or token expired.");
+    const status = error?.response?.status;
+
+    if (status === 401) {
+      console.warn(
+        "Authentication required or session expired."
+      );
+    }
+
+    if (status === 403) {
+      console.warn(
+        "You are not authorized to access this resource."
+      );
+    }
+
+    if (status === 404) {
+      console.warn(
+        "Requested resource was not found."
+      );
+    }
+
+    if (status >= 500) {
+      console.error(
+        "ApnaAcademy server error."
+      );
     }
 
     return Promise.reject(error);

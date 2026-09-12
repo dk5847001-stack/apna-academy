@@ -1,22 +1,102 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft,
-  BookOpen,
-  CheckCircle2,
-  ChevronDown,
-  Clock3,
-  GraduationCap,
+  Link,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+
+import {
+  ArrowBack,
+  Book,
+  CheckCircle,
+  ExpandMore,
   Lock,
   PlayCircle,
-  ShieldCheck,
-  Sparkles,
-  Users,
-  Zap,
-} from "lucide-react";
+  School,
+  Security,
+  ShoppingCart,
+  Star,
+  AccessTime,
+  People,
+  Bolt,
+} from "@mui/icons-material";
 
-import api from "../services/api";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Divider,
+  IconButton,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
+
+import {
+  COURSE_ROUTES,
+  DASHBOARD_URL,
+  STORAGE_KEYS,
+} from "../constants/config";
+
+import {
+  getCourseBySlug,
+  normalizeCourse,
+} from "../services/course.service";
+
 import { startCoursePayment } from "../services/payment";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const formatDuration = (seconds = 0) => {
+  const totalSeconds = Number(seconds) || 0;
+
+  if (!totalSeconds) {
+    return "—";
+  }
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds =
+    Math.floor(totalSeconds % 60);
+
+  if (minutes < 60) {
+    return `${minutes}m${
+      remainingSeconds
+        ? ` ${remainingSeconds}s`
+        : ""
+    }`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  return `${hours}h${
+    remainingMinutes
+      ? ` ${remainingMinutes}m`
+      : ""
+  }`;
+};
+
+const getInitial = (name = "") => {
+  return (
+    name
+      .trim()
+      .charAt(0)
+      .toUpperCase() || "A"
+  );
+};
+
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function CourseDetails() {
   const { slug } = useParams();
@@ -24,62 +104,130 @@ export default function CourseDetails() {
 
   const [course, setCourse] = useState(null);
   const [modules, setModules] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [paymentLoading, setPaymentLoading] = useState(false);
-  const [paymentMessage, setPaymentMessage] = useState("");
-  const [paymentError, setPaymentError] = useState("");
+  const [paymentLoading, setPaymentLoading] =
+    useState(false);
 
-  const [openModules, setOpenModules] = useState({});
+  const [paymentMessage, setPaymentMessage] =
+    useState("");
+
+  const [paymentError, setPaymentError] =
+    useState("");
+
+  const [expandedModule, setExpandedModule] =
+    useState(null);
+
+  /* =======================================================
+     LOAD COURSE
+  ======================================================= */
 
   useEffect(() => {
-    const fetchCourse = async () => {
+    let mounted = true;
+
+    const loadCourse = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const response = await api.get(`/courses/${slug}`);
+        const result =
+          await getCourseBySlug(slug);
 
-        const data = response.data;
+        if (!mounted) {
+          return;
+        }
 
-        if (data?.course) {
-          setCourse(data.course);
-          setModules(data.modules || []);
-        } else {
-          setCourse(data);
-          setModules(data?.modules || []);
+        const normalizedCourse =
+          normalizeCourse(result?.course);
+
+        setCourse(normalizedCourse);
+        setModules(
+          Array.isArray(result?.modules)
+            ? result.modules
+            : []
+        );
+
+        if (result?.modules?.length) {
+          setExpandedModule(
+            result.modules[0].id
+          );
         }
       } catch (err) {
-        console.error("Course fetch error:", err);
+        console.error(
+          "Course details error:",
+          err
+        );
+
+        if (!mounted) {
+          return;
+        }
 
         setError(
           err?.response?.data?.message ||
-            "Unable to load this course. Please try again."
+            err?.message ||
+            "Unable to load this course."
         );
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchCourse();
+    if (slug) {
+      loadCourse();
+    }
+
+    return () => {
+      mounted = false;
+    };
   }, [slug]);
 
+  /* =======================================================
+     USER
+  ======================================================= */
+
   const getToken = () => {
-    return localStorage.getItem("token");
+    return localStorage.getItem(
+      STORAGE_KEYS.TOKEN
+    );
   };
 
   const getUser = () => {
     try {
       const storedUser =
-        localStorage.getItem("user") ||
-        localStorage.getItem("currentUser");
+        localStorage.getItem(
+          STORAGE_KEYS.USER
+        );
 
-      return storedUser ? JSON.parse(storedUser) : null;
+      return storedUser
+        ? JSON.parse(storedUser)
+        : null;
     } catch {
       return null;
     }
   };
+
+  /* =======================================================
+     LOGIN REDIRECT
+  ======================================================= */
+
+  const redirectToLogin = () => {
+    navigate("/login", {
+      state: {
+        message:
+          "Please login to continue.",
+        redirectTo:
+          COURSE_ROUTES.DETAILS(slug),
+      },
+    });
+  };
+
+  /* =======================================================
+     COURSE PAYMENT
+  ======================================================= */
 
   const handleEnroll = async () => {
     setPaymentMessage("");
@@ -88,18 +236,14 @@ export default function CourseDetails() {
     const token = getToken();
 
     if (!token) {
-      navigate("/login", {
-        state: {
-          message: "Please login to enroll in this course.",
-          redirectTo: `/courses/${slug}`,
-        },
-      });
-
+      redirectToLogin();
       return;
     }
 
-    if (!course?._id) {
-      setPaymentError("Course information is unavailable.");
+    if (!course?.id) {
+      setPaymentError(
+        "Course information is unavailable."
+      );
       return;
     }
 
@@ -109,19 +253,21 @@ export default function CourseDetails() {
       const user = getUser();
 
       await startCoursePayment({
-        courseId: course._id,
+        courseId: course.id,
         courseTitle: course.title,
         purchaseType: "course",
         user,
 
         onSuccess: () => {
           setPaymentMessage(
-            "Payment successful! Your course access is now active."
+            "Payment successful. Your course access is now active."
           );
 
-          setTimeout(() => {
-            navigate(`/courses/${slug}/learn`);
-          }, 1200);
+          window.setTimeout(() => {
+            navigate(
+              COURSE_ROUTES.LEARN(slug)
+            );
+          }, 1000);
         },
 
         onFailure: (result) => {
@@ -132,7 +278,10 @@ export default function CourseDetails() {
         },
       });
     } catch (err) {
-      console.error("Payment error:", err);
+      console.error(
+        "Course payment error:",
+        err
+      );
 
       setPaymentError(
         err?.response?.data?.message ||
@@ -144,6 +293,10 @@ export default function CourseDetails() {
     }
   };
 
+  /* =======================================================
+     ALL ACCESS PAYMENT
+  ======================================================= */
+
   const handleAllAccess = async () => {
     setPaymentMessage("");
     setPaymentError("");
@@ -151,18 +304,14 @@ export default function CourseDetails() {
     const token = getToken();
 
     if (!token) {
-      navigate("/login", {
-        state: {
-          message: "Please login to unlock all modules.",
-          redirectTo: `/courses/${slug}`,
-        },
-      });
-
+      redirectToLogin();
       return;
     }
 
-    if (!course?._id) {
-      setPaymentError("Course information is unavailable.");
+    if (!course?.id) {
+      setPaymentError(
+        "Course information is unavailable."
+      );
       return;
     }
 
@@ -172,19 +321,21 @@ export default function CourseDetails() {
       const user = getUser();
 
       await startCoursePayment({
-        courseId: course._id,
+        courseId: course.id,
         courseTitle: course.title,
         purchaseType: "all-access",
         user,
 
         onSuccess: () => {
           setPaymentMessage(
-            "All modules unlocked successfully!"
+            "All modules unlocked successfully."
           );
 
-          setTimeout(() => {
-            navigate(`/courses/${slug}/learn`);
-          }, 1200);
+          window.setTimeout(() => {
+            navigate(
+              COURSE_ROUTES.LEARN(slug)
+            );
+          }, 1000);
         },
 
         onFailure: (result) => {
@@ -195,7 +346,10 @@ export default function CourseDetails() {
         },
       });
     } catch (err) {
-      console.error("All-access payment error:", err);
+      console.error(
+        "All-access payment error:",
+        err
+      );
 
       setPaymentError(
         err?.response?.data?.message ||
@@ -207,522 +361,1134 @@ export default function CourseDetails() {
     }
   };
 
-  const toggleModule = (moduleId) => {
-    setOpenModules((previous) => ({
-      ...previous,
-      [moduleId]: !previous[moduleId],
-    }));
-  };
-
-  const formatDuration = (seconds = 0) => {
-    const totalSeconds = Number(seconds) || 0;
-
-    if (!totalSeconds) {
-      return "—";
-    }
-
-    const minutes = Math.floor(totalSeconds / 60);
-    const remainingSeconds = Math.floor(totalSeconds % 60);
-
-    if (minutes < 60) {
-      return `${minutes}m ${
-        remainingSeconds ? `${remainingSeconds}s` : ""
-      }`.trim();
-    }
-
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-
-    return `${hours}h ${
-      remainingMinutes ? `${remainingMinutes}m` : ""
-    }`.trim();
-  };
+  /* =======================================================
+     LOADING
+  ======================================================= */
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 px-4 py-8 text-white">
-        <div className="mx-auto max-w-7xl animate-pulse">
-          <div className="h-5 w-32 rounded bg-slate-800" />
+      <Box
+        sx={{
+          minHeight: "100vh",
+          backgroundColor: "#ffffff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: 2,
+        }}
+      >
+        <Stack
+          spacing={2}
+          alignItems="center"
+        >
+          <CircularProgress
+            size={38}
+            thickness={4}
+          />
 
-          <div className="mt-8 grid gap-8 lg:grid-cols-[1.5fr_0.8fr]">
-            <div>
-              <div className="h-12 max-w-3xl rounded bg-slate-800" />
-              <div className="mt-5 h-5 max-w-2xl rounded bg-slate-800" />
-              <div className="mt-3 h-5 max-w-xl rounded bg-slate-800" />
-            </div>
-
-            <div className="h-80 rounded-3xl bg-slate-800" />
-          </div>
-
-          <div className="mt-12 h-96 rounded-3xl bg-slate-900" />
-        </div>
-      </div>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+          >
+            Loading course...
+          </Typography>
+        </Stack>
+      </Box>
     );
   }
+
+  /* =======================================================
+     ERROR
+  ======================================================= */
 
   if (error || !course) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
-        <div className="w-full max-w-lg rounded-3xl border border-red-500/20 bg-red-500/5 p-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
-            <Lock size={26} />
-          </div>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          backgroundColor: "#ffffff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: 2,
+        }}
+      >
+        <Card
+          elevation={0}
+          sx={{
+            width: "100%",
+            maxWidth: 520,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 4,
+          }}
+        >
+          <CardContent sx={{ p: { xs: 3, sm: 5 } }}>
+            <Stack
+              spacing={2.5}
+              alignItems="center"
+              textAlign="center"
+            >
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 3,
+                  backgroundColor:
+                    "rgba(25,118,210,0.08)",
+                  color: "primary.main",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <School />
+              </Box>
 
-          <h1 className="mt-5 text-2xl font-black">
-            Course unavailable
-          </h1>
+              <Typography
+                variant="h5"
+                fontWeight={800}
+              >
+                Course unavailable
+              </Typography>
 
-          <p className="mt-3 text-sm leading-6 text-slate-400">
-            {error || "This course could not be found."}
-          </p>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+              >
+                {error ||
+                  "This course could not be found."}
+              </Typography>
 
-          <Link
-            to="/"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-slate-200"
-          >
-            <ArrowLeft size={17} />
-            Back to Courses
-          </Link>
-        </div>
-      </div>
+              <Button
+                component={Link}
+                to="/"
+                variant="contained"
+                startIcon={<ArrowBack />}
+              >
+                Back to Courses
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Box>
     );
   }
 
+  /* =======================================================
+     MAIN UI
+  ======================================================= */
+
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-slate-950/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link
-            to="/"
-            className="group flex items-center gap-3"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/20">
-              <GraduationCap size={20} />
-            </div>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "#ffffff",
+        color: "text.primary",
+      }}
+    >
+      {/* ===================================================
+          HEADER
+      =================================================== */}
 
-            <div>
-              <p className="text-sm font-black tracking-tight">
+      <Box
+        component="header"
+        sx={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          backgroundColor:
+            "rgba(255,255,255,0.96)",
+          backdropFilter: "blur(12px)",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: 1280,
+            mx: "auto",
+            px: { xs: 2, sm: 3, lg: 4 },
+            height: 68,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Box
+            component={Link}
+            to="/"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              color: "inherit",
+              textDecoration: "none",
+            }}
+          >
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 2.5,
+                background:
+                  "linear-gradient(135deg,#1976d2,#42a5f5)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow:
+                  "0 8px 24px rgba(25,118,210,0.20)",
+              }}
+            >
+              <School fontSize="small" />
+            </Box>
+
+            <Box>
+              <Typography
+                fontWeight={900}
+                lineHeight={1}
+              >
                 ApnaAcademy
-              </p>
-              <p className="hidden text-[10px] font-medium text-slate-500 sm:block">
+              </Typography>
+
+              <Typography
+                variant="caption"
+                color="text.secondary"
+              >
                 Learn. Build. Grow.
-              </p>
-            </div>
-          </Link>
+              </Typography>
+            </Box>
+          </Box>
 
-          <Link
+          <Button
+            component={Link}
             to="/"
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-slate-300 transition hover:bg-white/10 hover:text-white sm:px-4 sm:text-sm"
+            variant="outlined"
+            size="small"
+            startIcon={<ArrowBack />}
+            sx={{
+              borderRadius: 2,
+              fontWeight: 700,
+            }}
           >
-            <ArrowLeft size={16} />
-            <span>Courses</span>
-          </Link>
-        </div>
-      </header>
+            Courses
+          </Button>
+        </Box>
+      </Box>
 
-      {/* Hero */}
-      <main>
-        <section className="relative overflow-hidden border-b border-white/5">
-          <div className="absolute -left-40 top-0 h-96 w-96 rounded-full bg-blue-600/10 blur-3xl" />
-          <div className="absolute -right-40 top-20 h-96 w-96 rounded-full bg-indigo-600/10 blur-3xl" />
+      {/* ===================================================
+          HERO
+      =================================================== */}
 
-          <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1.4fr_0.8fr] lg:px-8 lg:py-20">
-            <div className="flex flex-col justify-center">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1 text-xs font-bold text-blue-300">
-                  {course.category || "Development"}
-                </span>
+      <Box
+        component="main"
+        sx={{
+          maxWidth: 1280,
+          mx: "auto",
+          px: { xs: 2, sm: 3, lg: 4 },
+          py: { xs: 4, sm: 6, lg: 8 },
+        }}
+      >
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              lg: "minmax(0,1.4fr) minmax(340px,0.7fr)",
+            },
+            gap: { xs: 4, lg: 6 },
+            alignItems: "start",
+          }}
+        >
+          {/* LEFT */}
+          <Box>
+            <Stack
+              direction="row"
+              spacing={1}
+              flexWrap="wrap"
+              useFlexGap
+            >
+              <Chip
+                label={
+                  course.category ||
+                  "Development"
+                }
+                color="primary"
+                size="small"
+              />
 
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300">
-                  {course.level || "All Levels"}
-                </span>
+              <Chip
+                label={
+                  course.level ||
+                  "All Levels"
+                }
+                variant="outlined"
+                size="small"
+              />
 
-                {course.isFeatured && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-xs font-bold text-amber-300">
-                    <Sparkles size={12} />
-                    Featured
-                  </span>
+              {course.isFeatured && (
+                <Chip
+                  icon={<Star />}
+                  label="Featured"
+                  color="warning"
+                  size="small"
+                />
+              )}
+            </Stack>
+
+            <Typography
+              component="h1"
+              sx={{
+                mt: 3,
+                fontSize: {
+                  xs: "2rem",
+                  sm: "2.8rem",
+                  lg: "3.8rem",
+                },
+                lineHeight: 1.08,
+                fontWeight: 900,
+                letterSpacing: "-0.035em",
+              }}
+            >
+              {course.title}
+            </Typography>
+
+            <Typography
+              sx={{
+                mt: 2.5,
+                maxWidth: 780,
+                color: "text.secondary",
+                fontSize: {
+                  xs: "1rem",
+                  sm: "1.1rem",
+                },
+                lineHeight: 1.75,
+              }}
+            >
+              {course.shortDescription ||
+                course.description ||
+                "Build practical skills through structured, project-focused learning."}
+            </Typography>
+
+            {/* STATS */}
+
+            <Stack
+              direction="row"
+              flexWrap="wrap"
+              useFlexGap
+              spacing={1.5}
+              sx={{ mt: 3.5 }}
+            >
+              <Chip
+                icon={<Book />}
+                label={`${course.totalModules || modules.length} Modules`}
+                variant="outlined"
+              />
+
+              <Chip
+                icon={<PlayCircle />}
+                label={`${course.totalVideos || "Multiple"} Videos`}
+                variant="outlined"
+              />
+
+              <Chip
+                icon={<AccessTime />}
+                label={`${course.durationDays || 30} Days`}
+                variant="outlined"
+              />
+
+              <Chip
+                icon={<People />}
+                label="Practical Learning"
+                variant="outlined"
+              />
+            </Stack>
+
+            {/* INSTRUCTOR */}
+
+            {course.instructor?.name && (
+              <Paper
+                elevation={0}
+                sx={{
+                  mt: 4,
+                  p: 2,
+                  maxWidth: 420,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 3,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                }}
+              >
+                {course.instructor.avatar ? (
+                  <Box
+                    component="img"
+                    src={course.instructor.avatar}
+                    alt={
+                      course.instructor.name
+                    }
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: "50%",
+                      backgroundColor:
+                        "primary.50",
+                      color: "primary.main",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 900,
+                    }}
+                  >
+                    {getInitial(
+                      course.instructor.name
+                    )}
+                  </Box>
                 )}
-              </div>
 
-              <h1 className="mt-6 max-w-4xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-                {course.title}
-              </h1>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    Instructor
+                  </Typography>
 
-              <p className="mt-6 max-w-3xl text-base leading-7 text-slate-400 sm:text-lg">
-                {course.shortDescription ||
-                  course.description ||
-                  "Build practical skills through structured, project-focused learning."}
-              </p>
+                  <Typography
+                    fontWeight={800}
+                  >
+                    {course.instructor.name}
+                  </Typography>
+                </Box>
+              </Paper>
+            )}
+          </Box>
 
-              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-400">
-                <span className="inline-flex items-center gap-2">
-                  <BookOpen size={17} className="text-blue-400" />
-                  {course.totalModules || modules.length} Modules
-                </span>
+          {/* RIGHT PURCHASE CARD */}
 
-                <span className="inline-flex items-center gap-2">
-                  <PlayCircle size={17} className="text-blue-400" />
-                  {course.totalVideos || "Multiple"} Videos
-                </span>
+          <Card
+            elevation={0}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 4,
+              overflow: "hidden",
+              position: {
+                lg: "sticky",
+              },
+              top: {
+                lg: 92,
+              },
+              boxShadow:
+                "0 18px 50px rgba(15,23,42,0.08)",
+            }}
+          >
+            {course.thumbnail ? (
+              <Box
+                sx={{
+                  position: "relative",
+                  aspectRatio: "16 / 9",
+                  overflow: "hidden",
+                  backgroundColor:
+                    "grey.100",
+                }}
+              >
+                <Box
+                  component="img"
+                  src={course.thumbnail}
+                  alt={course.title}
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
 
-                <span className="inline-flex items-center gap-2">
-                  <Clock3 size={17} className="text-blue-400" />
-                  {course.durationDays || 30} Days Access
-                </span>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    left: 16,
+                    bottom: 16,
+                    px: 1.5,
+                    py: 0.75,
+                    borderRadius: 2,
+                    backgroundColor:
+                      "rgba(255,255,255,0.94)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.75,
+                  }}
+                >
+                  <Security
+                    sx={{
+                      fontSize: 17,
+                      color:
+                        "success.main",
+                    }}
+                  />
 
-                <span className="inline-flex items-center gap-2">
-                  <Users size={17} className="text-blue-400" />
-                  Practical Learning
-                </span>
-              </div>
+                  <Typography
+                    variant="caption"
+                    fontWeight={800}
+                  >
+                    Secure Learning
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  aspectRatio: "16 / 9",
+                  backgroundColor:
+                    "primary.50",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <School
+                  sx={{
+                    fontSize: 64,
+                    color: "primary.main",
+                  }}
+                />
+              </Box>
+            )}
 
-              {course.instructor?.name && (
-                <div className="mt-8 flex items-center gap-3">
-                  {course.instructor.avatar ? (
-                    <img
-                      src={course.instructor.avatar}
-                      alt={course.instructor.name}
-                      className="h-10 w-10 rounded-full object-cover"
+            <CardContent sx={{ p: 3 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                fontWeight={700}
+              >
+                COURSE PRICE
+              </Typography>
+
+              <Typography
+                sx={{
+                  mt: 0.5,
+                  fontSize: "2rem",
+                  fontWeight: 900,
+                }}
+              >
+                ₹
+                {Number(
+                  course.price || 0
+                ).toLocaleString("en-IN")}
+              </Typography>
+
+              <Chip
+                label="Instant Access"
+                color="success"
+                size="small"
+                sx={{
+                  mt: 1,
+                  fontWeight: 700,
+                }}
+              />
+
+              {paymentMessage && (
+                <Alert
+                  severity="success"
+                  sx={{
+                    mt: 2.5,
+                    borderRadius: 2.5,
+                  }}
+                >
+                  {paymentMessage}
+                </Alert>
+              )}
+
+              {paymentError && (
+                <Alert
+                  severity="error"
+                  sx={{
+                    mt: 2.5,
+                    borderRadius: 2.5,
+                  }}
+                >
+                  {paymentError}
+                </Alert>
+              )}
+
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                startIcon={
+                  paymentLoading ? (
+                    <CircularProgress
+                      size={18}
+                      color="inherit"
                     />
                   ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 text-sm font-black text-blue-300">
-                      {course.instructor.name
-                        .charAt(0)
-                        .toUpperCase()}
-                    </div>
-                  )}
+                    <ShoppingCart />
+                  )
+                }
+                disabled={paymentLoading}
+                onClick={handleEnroll}
+                sx={{
+                  mt: 2.5,
+                  py: 1.5,
+                  borderRadius: 2.5,
+                  fontWeight: 900,
+                  textTransform: "none",
+                }}
+              >
+                {paymentLoading
+                  ? "Processing..."
+                  : "Enroll Now"}
+              </Button>
 
-                  <div>
-                    <p className="text-xs text-slate-500">
-                      Instructor
-                    </p>
-                    <p className="text-sm font-bold text-slate-200">
-                      {course.instructor.name}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
+              <Divider sx={{ my: 2.5 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  fontWeight={700}
+                >
+                  OR
+                </Typography>
+              </Divider>
 
-            {/* Purchase Card */}
-            <div className="lg:pt-2">
-              <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-2xl shadow-black/20 backdrop-blur-xl">
-                {course.thumbnail ? (
-                  <div className="relative aspect-video overflow-hidden">
-                    <img
-                      src={course.thumbnail}
-                      alt={course.title}
-                      className="h-full w-full object-cover"
-                    />
+              <Button
+                fullWidth
+                variant="outlined"
+                size="large"
+                startIcon={<Bolt />}
+                disabled={paymentLoading}
+                onClick={handleAllAccess}
+                sx={{
+                  py: 1.35,
+                  borderRadius: 2.5,
+                  fontWeight: 900,
+                  textTransform: "none",
+                }}
+              >
+                Unlock All Modules — ₹
+                {Number(
+                  course.allAccessPrice || 99
+                ).toLocaleString("en-IN")}
+              </Button>
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                textAlign="center"
+                display="block"
+                sx={{
+                  mt: 2,
+                  lineHeight: 1.7,
+                }}
+              >
+                Secure payment powered by
+                Razorpay. Access is activated
+                only after server-side payment
+                verification.
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
 
-                    <div className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-xs font-bold backdrop-blur-md">
-                      <ShieldCheck
-                        size={15}
-                        className="text-emerald-400"
-                      />
-                      Secure Learning
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex aspect-video items-center justify-center bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-slate-900">
-                    <GraduationCap
-                      size={64}
-                      className="text-blue-400/60"
-                    />
-                  </div>
-                )}
+        {/* =================================================
+            CURRICULUM
+        ================================================= */}
 
-                <div className="p-5 sm:p-6">
-                  <div className="flex items-end justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Course Price
-                      </p>
+        <Box sx={{ mt: { xs: 7, lg: 10 } }}>
+          <Typography
+            component="h2"
+            sx={{
+              fontSize: {
+                xs: "1.7rem",
+                sm: "2.2rem",
+              },
+              fontWeight: 900,
+              letterSpacing: "-0.025em",
+            }}
+          >
+            Course Curriculum
+          </Typography>
 
-                      <p className="mt-1 text-3xl font-black">
-                        ₹{Number(course.price || 0).toLocaleString(
-                          "en-IN"
-                        )}
-                      </p>
-                    </div>
+          <Typography
+            sx={{
+              mt: 1,
+              color: "text.secondary",
+            }}
+          >
+            Explore the modules and preview
+            the first lesson of each module.
+          </Typography>
 
-                    <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-400">
-                      Instant Access
-                    </span>
-                  </div>
+          <Stack spacing={2} sx={{ mt: 3 }}>
+            {modules.length === 0 ? (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 4,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 3,
+                  textAlign: "center",
+                }}
+              >
+                <Typography
+                  fontWeight={700}
+                >
+                  Curriculum is being prepared.
+                </Typography>
+              </Paper>
+            ) : (
+              modules.map((module, moduleIndex) => {
+                const moduleId =
+                  module.id ||
+                  module._id ||
+                  `module-${moduleIndex}`;
 
-                  {paymentMessage && (
-                    <div className="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-semibold text-emerald-300">
-                      <div className="flex items-start gap-3">
-                        <CheckCircle2
-                          size={18}
-                          className="mt-0.5 shrink-0"
-                        />
-                        <span>{paymentMessage}</span>
-                      </div>
-                    </div>
-                  )}
+                const videos =
+                  Array.isArray(
+                    module.videos
+                  )
+                    ? module.videos
+                    : [];
 
-                  {paymentError && (
-                    <div className="mt-5 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm font-semibold text-red-300">
-                      {paymentError}
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={handleEnroll}
-                    disabled={paymentLoading}
-                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 text-sm font-black shadow-xl shadow-blue-600/20 transition hover:from-blue-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+                return (
+                  <Accordion
+                    key={moduleId}
+                    expanded={
+                      expandedModule ===
+                      moduleId
+                    }
+                    onChange={() =>
+                      setExpandedModule(
+                        (current) =>
+                          current ===
+                          moduleId
+                            ? null
+                            : moduleId
+                      )
+                    }
+                    disableGutters
+                    elevation={0}
+                    sx={{
+                      border: "1px solid",
+                      borderColor:
+                        "divider",
+                      borderRadius:
+                        "16px !important",
+                      overflow: "hidden",
+                      "&:before": {
+                        display: "none",
+                      },
+                    }}
                   >
-                    <Zap size={18} />
-                    {paymentLoading
-                      ? "Processing..."
-                      : "Enroll Now"}
-                  </button>
-
-                  <div className="my-5 flex items-center gap-3">
-                    <div className="h-px flex-1 bg-white/10" />
-                    <span className="text-[11px] font-bold uppercase tracking-widest text-slate-600">
-                      Or
-                    </span>
-                    <div className="h-px flex-1 bg-white/10" />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleAllAccess}
-                    disabled={paymentLoading}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-5 py-3.5 text-sm font-black text-amber-300 transition hover:bg-amber-400/15 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <Sparkles size={17} />
-                    Unlock All Modules — ₹
-                    {Number(
-                      course.allAccessPrice || 99
-                    ).toLocaleString("en-IN")}
-                  </button>
-
-                  <p className="mt-4 text-center text-[11px] leading-5 text-slate-500">
-                    Secure payment powered by Razorpay. Your
-                    course access is activated only after
-                    server-side payment verification.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Course Content */}
-        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-          <div className="grid gap-10 lg:grid-cols-[1.35fr_0.65fr]">
-            <div>
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.25em] text-blue-400">
-                  Curriculum
-                </p>
-
-                <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
-                  Course Curriculum
-                </h2>
-
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
-                  Start with the preview lessons and unlock
-                  your complete learning journey after
-                  enrollment.
-                </p>
-              </div>
-
-              <div className="mt-8 space-y-3">
-                {modules.length === 0 ? (
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-sm text-slate-400">
-                    No modules are available yet.
-                  </div>
-                ) : (
-                  modules.map((module, index) => {
-                    const moduleId =
-                      module._id || module.id || index;
-
-                    const isOpen =
-                      !!openModules[moduleId];
-
-                    const videos = module.videos || [];
-
-                    return (
-                      <div
-                        key={moduleId}
-                        className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]"
+                    <AccordionSummary
+                      expandIcon={
+                        <ExpandMore />
+                      }
+                      sx={{
+                        px: {
+                          xs: 2,
+                          sm: 3,
+                        },
+                        py: 1,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          minWidth: 0,
+                          flex: 1,
+                        }}
                       >
-                        <button
-                          type="button"
-                          onClick={() =>
-                            toggleModule(moduleId)
-                          }
-                          className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition hover:bg-white/[0.03] sm:px-5"
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          alignItems="center"
+                          flexWrap="wrap"
+                          useFlexGap
                         >
-                          <div className="flex min-w-0 items-center gap-4">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-sm font-black text-blue-300">
-                              {String(
-                                module.order || index + 1
-                              ).padStart(2, "0")}
-                            </div>
-
-                            <div className="min-w-0">
-                              <h3 className="truncate text-sm font-bold text-white sm:text-base">
-                                {module.title}
-                              </h3>
-
-                              <p className="mt-1 text-xs text-slate-500">
-                                {videos.length ||
-                                  module.totalVideos ||
-                                  0}{" "}
-                                lessons
-                              </p>
-                            </div>
-                          </div>
-
-                          <ChevronDown
-                            size={19}
-                            className={`shrink-0 text-slate-500 transition ${
-                              isOpen ? "rotate-180" : ""
+                          <Chip
+                            label={`Module ${
+                              module.order ||
+                              moduleIndex +
+                                1
                             }`}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
                           />
-                        </button>
 
-                        {isOpen && (
-                          <div className="border-t border-white/5">
-                            {videos.length === 0 ? (
-                              <div className="px-5 py-4 text-sm text-slate-500">
-                                Lessons will be added soon.
-                              </div>
-                            ) : (
-                              videos.map((video, videoIndex) => {
-                                const isPreview =
-                                  Boolean(video.isPreview);
+                          <Chip
+                            label={`${videos.length} ${
+                              videos.length ===
+                              1
+                                ? "Video"
+                                : "Videos"
+                            }`}
+                            size="small"
+                            variant="outlined"
+                          />
+                        </Stack>
 
-                                return (
-                                  <div
-                                    key={
-                                      video._id ||
-                                      video.id ||
-                                      videoIndex
-                                    }
-                                    className="flex items-center justify-between gap-4 border-b border-white/5 px-5 py-4 last:border-b-0"
-                                  >
-                                    <div className="flex min-w-0 items-center gap-3">
-                                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-slate-400">
-                                        {isPreview ? (
-                                          <PlayCircle
-                                            size={16}
-                                          />
-                                        ) : (
-                                          <Lock size={15} />
-                                        )}
-                                      </div>
+                        <Typography
+                          sx={{
+                            mt: 1,
+                            fontWeight: 850,
+                            fontSize: {
+                              xs: "1rem",
+                              sm: "1.05rem",
+                            },
+                          }}
+                        >
+                          {module.title}
+                        </Typography>
 
-                                      <div className="min-w-0">
-                                        <p className="truncate text-sm font-semibold text-slate-300">
-                                          {video.title}
-                                        </p>
-
-                                        <p className="mt-1 text-xs text-slate-600">
-                                          Lesson{" "}
-                                          {video.order ||
-                                            videoIndex + 1}{" "}
-                                          •{" "}
-                                          {formatDuration(
-                                            video.duration
-                                          )}
-                                        </p>
-                                      </div>
-                                    </div>
-
-                                    {isPreview ? (
-                                      <span className="shrink-0 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">
-                                        Preview
-                                      </span>
-                                    ) : (
-                                      <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-500">
-                                        Locked
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              })
-                            )}
-                          </div>
+                        {module.description && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              mt: 0.5,
+                            }}
+                          >
+                            {
+                              module.description
+                            }
+                          </Typography>
                         )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
+                      </Box>
+                    </AccordionSummary>
 
-            {/* Benefits */}
-            <aside>
-              <div className="sticky top-24 rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-400">
-                  Why ApnaAcademy
-                </p>
-
-                <h3 className="mt-3 text-xl font-black">
-                  Learn with confidence
-                </h3>
-
-                <div className="mt-6 space-y-5">
-                  {[
-                    [
-                      ShieldCheck,
-                      "Secure course access",
-                      "Access is controlled by the backend after verified payment.",
-                    ],
-                    [
-                      PlayCircle,
-                      "Practical video lessons",
-                      "Learn through structured, focused lessons.",
-                    ],
-                    [
-                      CheckCircle2,
-                      "Progress tracking",
-                      "Your completed lessons and learning progress stay synced.",
-                    ],
-                    [
-                      GraduationCap,
-                      "Certificate",
-                      "Complete the required learning journey to become eligible for certification.",
-                    ],
-                  ].map(
-                    ([Icon, title, description]) => (
-                      <div
-                        key={title}
-                        className="flex gap-4"
+                    <AccordionDetails
+                      sx={{
+                        px: {
+                          xs: 2,
+                          sm: 3,
+                        },
+                        pb: 3,
+                        pt: 0,
+                      }}
+                    >
+                      <Stack
+                        spacing={1}
                       >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                          <Icon size={19} />
-                        </div>
+                        {videos.map(
+                          (
+                            video,
+                            videoIndex
+                          ) => {
+                            const isPreview =
+                              Boolean(
+                                video.isPreview
+                              );
 
-                        <div>
-                          <h4 className="text-sm font-bold">
-                            {title}
-                          </h4>
-                          <p className="mt-1 text-xs leading-5 text-slate-500">
-                            {description}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            </aside>
-          </div>
-        </section>
-      </main>
-    </div>
+                            return (
+                              <Paper
+                                key={
+                                  video.id ||
+                                  video._id ||
+                                  `video-${videoIndex}`
+                                }
+                                elevation={0}
+                                sx={{
+                                  p: 1.5,
+                                  border:
+                                    "1px solid",
+                                  borderColor:
+                                    "divider",
+                                  borderRadius: 2.5,
+                                  display:
+                                    "flex",
+                                  alignItems:
+                                    "center",
+                                  gap: 1.5,
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    width: 42,
+                                    height: 42,
+                                    flexShrink: 0,
+                                    borderRadius: 2,
+                                    backgroundColor:
+                                      isPreview
+                                        ? "primary.50"
+                                        : "grey.100",
+                                    color:
+                                      isPreview
+                                        ? "primary.main"
+                                        : "text.secondary",
+                                    display:
+                                      "flex",
+                                    alignItems:
+                                      "center",
+                                    justifyContent:
+                                      "center",
+                                  }}
+                                >
+                                  {isPreview ? (
+                                    <PlayCircle />
+                                  ) : (
+                                    <Lock />
+                                  )}
+                                </Box>
+
+                                <Box
+                                  sx={{
+                                    minWidth: 0,
+                                    flex: 1,
+                                  }}
+                                >
+                                  <Typography
+                                    fontWeight={750}
+                                    sx={{
+                                      overflow:
+                                        "hidden",
+                                      textOverflow:
+                                        "ellipsis",
+                                      whiteSpace:
+                                        "nowrap",
+                                    }}
+                                  >
+                                    {video.title}
+                                  </Typography>
+
+                                  <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    alignItems="center"
+                                    sx={{
+                                      mt: 0.5,
+                                    }}
+                                  >
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
+                                    >
+                                      Lesson{" "}
+                                      {video.order ||
+                                        videoIndex +
+                                          1}
+                                    </Typography>
+
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
+                                    >
+                                      •
+                                    </Typography>
+
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
+                                    >
+                                      {formatDuration(
+                                        video.duration
+                                      )}
+                                    </Typography>
+                                  </Stack>
+                                </Box>
+
+                                {isPreview ? (
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() => {
+                                      navigate(
+                                        COURSE_ROUTES.VIDEO(
+                                          slug,
+                                          video.id
+                                        )
+                                      );
+                                    }}
+                                    sx={{
+                                      flexShrink: 0,
+                                      borderRadius: 2,
+                                      fontWeight: 800,
+                                      textTransform:
+                                        "none",
+                                    }}
+                                  >
+                                    Preview
+                                  </Button>
+                                ) : (
+                                  <Chip
+                                    icon={
+                                      <Lock />
+                                    }
+                                    label="Locked"
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{
+                                      flexShrink: 0,
+                                    }}
+                                  />
+                                )}
+                              </Paper>
+                            );
+                          }
+                        )}
+                      </Stack>
+                    </AccordionDetails>
+                  </Accordion>
+                );
+              })
+            )}
+          </Stack>
+        </Box>
+
+        {/* =================================================
+            TRUST SECTION
+        ================================================= */}
+
+        <Box
+          sx={{
+            mt: { xs: 7, lg: 10 },
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              md: "repeat(3,1fr)",
+            },
+            gap: 2,
+          }}
+        >
+          {[
+            {
+              icon: <Security />,
+              title: "Secure Learning",
+              text: "Your course access is protected by server-side authorization.",
+            },
+            {
+              icon: <CheckCircle />,
+              title: "Practical Curriculum",
+              text: "Learn through structured modules and practical lessons.",
+            },
+            {
+              icon: <People />,
+              title: "Built for Learners",
+              text: "A focused learning experience designed for consistent progress.",
+            },
+          ].map((item) => (
+            <Paper
+              key={item.title}
+              elevation={0}
+              sx={{
+                p: 3,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 3,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 2,
+                  backgroundColor:
+                    "primary.50",
+                  color: "primary.main",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {item.icon}
+              </Box>
+
+              <Typography
+                sx={{
+                  mt: 2,
+                  fontWeight: 850,
+                }}
+              >
+                {item.title}
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  mt: 0.75,
+                  lineHeight: 1.7,
+                }}
+              >
+                {item.text}
+              </Typography>
+            </Paper>
+          ))}
+        </Box>
+
+        {/* DASHBOARD CTA */}
+
+        <Paper
+          elevation={0}
+          sx={{
+            mt: 5,
+            p: {
+              xs: 3,
+              sm: 4,
+            },
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "primary.100",
+            backgroundColor:
+              "primary.50",
+          }}
+        >
+          <Stack
+            direction={{
+              xs: "column",
+              sm: "row",
+            }}
+            spacing={2}
+            alignItems={{
+              xs: "flex-start",
+              sm: "center",
+            }}
+            justifyContent="space-between"
+          >
+            <Box>
+              <Typography
+                fontWeight={900}
+              >
+                Already enrolled?
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5 }}
+              >
+                Continue your learning from
+                your student dashboard.
+              </Typography>
+            </Box>
+
+            <Button
+              component="a"
+              href={DASHBOARD_URL}
+              variant="contained"
+              sx={{
+                borderRadius: 2,
+                fontWeight: 800,
+                textTransform: "none",
+              }}
+            >
+              Open Dashboard
+            </Button>
+          </Stack>
+        </Paper>
+      </Box>
+    </Box>
   );
 }
