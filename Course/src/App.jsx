@@ -22,7 +22,7 @@ import {
 
 import CourseDetails from "./pages/CourseDetails";
 import CoursePlayerLayout from "./layouts/CoursePlayerLayout";
-
+import Certificate from "./pages/Certificate";
 import {
   COURSE_ROUTES,
   STORAGE_KEYS,
@@ -298,7 +298,7 @@ function CourseLearningPage() {
 
           setCourse(
             normalized.course ||
-              courseData
+            courseData
           );
 
           setModules(
@@ -441,8 +441,8 @@ function CourseLearningPage() {
           setError(
             err?.response?.data
               ?.message ||
-              err?.message ||
-              "Unable to load your course."
+            err?.message ||
+            "Unable to load your course."
           );
         } finally {
           if (mounted) {
@@ -533,13 +533,13 @@ function CourseLearningPage() {
               updatedProgress.completedVideos
             )
               ? updatedProgress.completedVideos.map(
-                  (item) =>
-                    String(
-                      getVideoId(
-                        item
-                      )
+                (item) =>
+                  String(
+                    getVideoId(
+                      item
                     )
-                )
+                  )
+              )
               : []
           );
 
@@ -554,19 +554,19 @@ function CourseLearningPage() {
                     module?.videos
                   )
                     ? module.videos.map(
-                        (video) => ({
-                          ...video,
+                      (video) => ({
+                        ...video,
 
-                          isCompleted:
-                            completedIds.has(
-                              String(
-                                getVideoId(
-                                  video
-                                )
+                        isCompleted:
+                          completedIds.has(
+                            String(
+                              getVideoId(
+                                video
                               )
-                            ),
-                        })
-                      )
+                            )
+                          ),
+                      })
+                    )
                     : [],
               })
             )
@@ -984,6 +984,11 @@ export default function App() {
           <CourseLearningPage />
         }
       />
+
+      <Route
+  path="/courses/:slug/certificate"
+  element={<Certificate />}
+/>
 
       <Route
         path="*"
