@@ -11,46 +11,67 @@ import {
   clearSession,
   getCurrentUser,
   getStoredUser,
-  hasToken,
 } from "../services/auth.service";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  /*
+   * Cached user is only used to make the UI feel faster.
+   *
+   * Real authentication is always verified by the backend
+   * through /auth/me using the HttpOnly authentication cookie.
+   */
   const [user, setUser] = useState(() =>
     getStoredUser()
   );
 
-  const [loading, setLoading] = useState(() =>
-    hasToken()
-  );
+  /*
+   * IMPORTANT:
+   *
+   * Do NOT use hasToken() here.
+   *
+   * Dashboard is a separate React application running on
+   * another origin, so it cannot read Frontend's localStorage.
+   *
+   * The HttpOnly cookie is automatically sent to the backend.
+   */
+  const [loading, setLoading] = useState(true);
 
   const [isAuthenticated, setIsAuthenticated] =
-    useState(() => hasToken());
+    useState(false);
 
-  /**
-   * Validate the current session with backend.
+  /*
+   |--------------------------------------------------------------------------
+   | Validate Current Session
+   |--------------------------------------------------------------------------
    */
+
   const checkAuth = useCallback(async () => {
-    if (!hasToken()) {
-      setUser(null);
-      setIsAuthenticated(false);
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
 
     try {
-      setLoading(true);
-
-      const currentUser = await getCurrentUser();
+      /*
+       * The backend determines whether the session is valid.
+       *
+       * Axios uses withCredentials: true, so the browser
+       * automatically sends the HttpOnly authentication cookie.
+       */
+      const currentUser =
+        await getCurrentUser();
 
       if (!currentUser) {
         clearSession();
+
         setUser(null);
         setIsAuthenticated(false);
+
         return;
       }
 
+      /*
+       * Backend successfully authenticated the user.
+       */
       setUser(currentUser);
       setIsAuthenticated(true);
     } catch (error) {
@@ -60,6 +81,7 @@ export function AuthProvider({ children }) {
       );
 
       clearSession();
+
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -67,22 +89,35 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  /**
-   * Logout current user.
+  /*
+   |--------------------------------------------------------------------------
+   | Logout
+   |--------------------------------------------------------------------------
    */
+
   const logout = useCallback(() => {
+    /*
+     * Local legacy session is cleared here.
+     *
+     * HttpOnly cookie logout will be connected to the
+     * backend logout endpoint in the next authentication step.
+     */
     clearSession();
 
     setUser(null);
     setIsAuthenticated(false);
   }, []);
 
-  /**
-   * Refresh authenticated user.
+  /*
+   |--------------------------------------------------------------------------
+   | Refresh Authenticated User
+   |--------------------------------------------------------------------------
    */
+
   const refreshUser = useCallback(async () => {
     try {
-      const currentUser = await getCurrentUser();
+      const currentUser =
+        await getCurrentUser();
 
       if (!currentUser) {
         clearSession();
@@ -112,16 +147,22 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  /**
-   * Initial authentication check.
+  /*
+   |--------------------------------------------------------------------------
+   | Initial Authentication Check
+   |--------------------------------------------------------------------------
    */
+
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  /**
-   * Handle unauthorized events from Axios interceptor.
+  /*
+   |--------------------------------------------------------------------------
+   | Unauthorized Event
+   |--------------------------------------------------------------------------
    */
+
   useEffect(() => {
     const handleUnauthorized = () => {
       clearSession();
@@ -144,39 +185,41 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  /**
-   * Handle authentication changes from another
-   * browser tab/window.
+  /*
+   |--------------------------------------------------------------------------
+   | Storage Changes
+   |--------------------------------------------------------------------------
+   |
+   | This remains only for legacy localStorage session changes.
+   | Cross-app authentication is handled by the backend cookie.
+   |
    */
+
   useEffect(() => {
     const handleStorageChange = (event) => {
-      if (
-        event.key === "token" ||
-        event.key === "user"
-      ) {
+      if (event.key === "user") {
         if (!event.newValue) {
           setUser(null);
-          setIsAuthenticated(false);
           return;
         }
 
-        if (event.key === "user") {
-          try {
-            setUser(
-              event.newValue
-                ? JSON.parse(event.newValue)
-                : null
-            );
-          } catch {
-            setUser(null);
-          }
-        }
-
-        if (event.key === "token") {
-          setIsAuthenticated(
-            Boolean(event.newValue)
+        try {
+          setUser(
+            JSON.parse(event.newValue)
           );
+        } catch {
+          setUser(null);
         }
+      }
+
+      if (event.key === "token") {
+        /*
+         * Do not use localStorage token as the source
+         * of truth for authentication anymore.
+         *
+         * Re-check the backend instead.
+         */
+        checkAuth();
       }
     };
 
@@ -191,7 +234,13 @@ export function AuthProvider({ children }) {
         handleStorageChange
       );
     };
-  }, []);
+  }, [checkAuth]);
+
+  /*
+   |--------------------------------------------------------------------------
+   | Context Value
+   |--------------------------------------------------------------------------
+   */
 
   const value = useMemo(
     () => ({
@@ -219,12 +268,15 @@ export function AuthProvider({ children }) {
   );
 }
 
-/**
- * Access authentication state anywhere
- * inside AuthProvider.
- */
+/*
+|--------------------------------------------------------------------------
+| useAuth Hook
+|--------------------------------------------------------------------------
+*/
+
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context =
+    useContext(AuthContext);
 
   if (!context) {
     throw new Error(

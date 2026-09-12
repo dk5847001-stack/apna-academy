@@ -11,6 +11,12 @@ const api = axios.create({
 
   timeout: 15000,
 
+  /*
+   * Required for the shared HttpOnly authentication
+   * cookie used by Frontend, Dashboard and Course apps.
+   */
+  withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -23,17 +29,27 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    /*
+     * Keep Bearer-token support for backward compatibility.
+     *
+     * The primary authentication mechanism is now the
+     * HttpOnly cookie created by the backend.
+     */
     const token = localStorage.getItem("token");
 
     if (token) {
-      config.headers = config.headers || {};
+      config.headers =
+        config.headers || {};
 
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization =
+        `Bearer ${token}`;
     }
 
     return config;
   },
-  (error) => Promise.reject(error)
+
+  (error) =>
+    Promise.reject(error)
 );
 
 /* =========================================================
@@ -44,27 +60,29 @@ api.interceptors.response.use(
   (response) => response,
 
   (error) => {
-    const status = error?.response?.status;
+    const status =
+      error?.response?.status;
 
     /*
-      If JWT is expired/invalid, remove local
-      authentication data.
-
-      We intentionally do not redirect here because
-      different React apps have different login URLs.
-    */
-
+     * If JWT authentication is invalid/expired,
+     * remove the legacy local session.
+     *
+     * The HttpOnly cookie itself cannot be removed
+     * from JavaScript. Backend logout will handle
+     * clearing that cookie when logout is implemented.
+     */
     if (status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
       /*
-        Notify same-app components such as Navbar
-        about authentication state changes.
-      */
-
+       * Notify same-app components about
+       * authentication state changes.
+       */
       window.dispatchEvent(
-        new Event("apnaacademy-auth-change")
+        new Event(
+          "apnaacademy-auth-change"
+        )
       );
     }
 
