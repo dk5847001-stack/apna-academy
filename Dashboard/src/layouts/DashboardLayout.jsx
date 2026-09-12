@@ -321,13 +321,15 @@ export default function DashboardLayout() {
     });
   };
 
-  const handleLogout = () => {
-    logout();
-
+  const handleLogout = async () => {
+  try {
+    await logout();
+  } finally {
     window.location.assign(
       `${FRONTEND_URL}/login`
     );
-  };
+  }
+};
 
   const handleCloseMobile = () => {
     setMobileOpen(false);
