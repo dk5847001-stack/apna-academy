@@ -5,6 +5,7 @@ import courseRoutes from "./course.routes.js";
 import paymentRoutes from "./payment.routes.js";
 import learningRoutes from "./learning.routes.js";
 import progressRoutes from "./progress.routes.js";
+import dashboardRoutes from "./dashboard.routes.js";
 
 const router = Router();
 
@@ -24,5 +25,7 @@ router.use("/payments", paymentRoutes);
 router.use("/learning", learningRoutes);
 
 router.use("/progress", progressRoutes);
+
+router.use("/dashboard", dashboardRoutes);
 
 export default router;
