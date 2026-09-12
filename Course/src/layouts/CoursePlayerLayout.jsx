@@ -116,20 +116,22 @@ export default function CoursePlayerLayout({
       )
     );
 
-  const safeModules = Array.isArray(
-    modules
-  )
-    ? modules
-    : [];
+  const safeModules = useMemo(
+  () =>
+    Array.isArray(modules)
+      ? modules
+      : [],
+  [modules]
+);
 
-  const allVideos = useMemo(() => {
-    return safeModules.flatMap(
-      (module) =>
-        Array.isArray(module?.videos)
-          ? module.videos
-          : []
-    );
-  }, [safeModules]);
+const allVideos = useMemo(() => {
+  return safeModules.flatMap(
+    (module) =>
+      Array.isArray(module?.videos)
+        ? module.videos
+        : []
+  );
+}, [safeModules]);
 
   const currentVideoIndex =
     currentVideo

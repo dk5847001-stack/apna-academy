@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
@@ -38,10 +37,6 @@ import {
   normalizeLearningCourse,
   normalizeLearningVideo,
 } from "./services/learning.service";
-
-import {
-  getCourseProgress,
-} from "./services/progress.service";
 
 import useVideoProgress from "./hooks/useVideoProgress";
 
@@ -439,6 +434,10 @@ function CourseLearningPage() {
             return;
           }
 
+          /* ---------------------------------------------
+             General error
+          --------------------------------------------- */
+
           setError(
             err?.response?.data
               ?.message ||
@@ -469,41 +468,8 @@ function CourseLearningPage() {
      ALL VIDEOS
   ======================================================= */
 
-  const allVideos =
-    useMemo(
-      () =>
-        modules.flatMap(
-          (module) =>
-            Array.isArray(
-              module?.videos
-            )
-              ? module.videos
-              : []
-        ),
-      [modules]
-    );
-
   /* =======================================================
-     CURRENT VIDEO INDEX
-  ======================================================= */
-
-  const currentIndex =
-    currentVideo
-      ? allVideos.findIndex(
-          (video) =>
-            String(
-              getVideoId(video)
-            ) ===
-            String(
-              getVideoId(
-                currentVideo
-              )
-            )
-        )
-      : -1;
-
-  /* =======================================================
-     CURRENT VIDEO RESUME POSITION
+     CURRENT VIDEO POSITION
   ======================================================= */
 
   const currentPosition =
@@ -547,10 +513,7 @@ function CourseLearningPage() {
     ]);
 
   /* =======================================================
-     UPDATE LOCAL PROGRESS
-
-     Also updates the completed state of videos in the
-     sidebar immediately after the backend responds.
+     PROGRESS UPDATED
   ======================================================= */
 
   const handleProgressUpdated =
@@ -626,6 +589,7 @@ function CourseLearningPage() {
 
             return {
               ...previousVideo,
+
               isCompleted:
                 completedIds.has(
                   currentId

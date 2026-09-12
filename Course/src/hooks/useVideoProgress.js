@@ -54,11 +54,12 @@ export default function useVideoProgress({
       Boolean(video?.isCompleted);
 
     saving.current = false;
-  }, [
-    video?._id,
-    video?.id,
-    initialPosition,
-  ]);
+}, [
+  video?._id,
+  video?.id,
+  video?.isCompleted,
+  initialPosition,
+]);
 
   /* =======================================================
      SAVE PROGRESS
