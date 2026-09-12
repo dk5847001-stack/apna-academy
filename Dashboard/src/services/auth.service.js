@@ -106,6 +106,9 @@ export const getCurrentUser = async () => {
 
 /**
  * Check whether a token exists locally.
+ *
+ * Kept for legacy compatibility.
+ * The HttpOnly cookie is the real authentication source.
  */
 export const hasToken = () => {
   return Boolean(
@@ -124,7 +127,9 @@ export const getStoredUser = () => {
       STORAGE_KEYS.USER
     );
 
-    return user ? JSON.parse(user) : null;
+    return user
+      ? JSON.parse(user)
+      : null;
   } catch {
     return null;
   }
@@ -132,9 +137,26 @@ export const getStoredUser = () => {
 
 /**
  * Logout current user.
+ *
+ * IMPORTANT:
+ * The backend clears the HttpOnly authentication
+ * cookie. Local storage is cleared afterwards.
  */
-export const logout = () => {
-  clearSession();
+export const logout = async () => {
+  try {
+    await api.post("/auth/logout");
+  } catch (error) {
+    /*
+     * Even if the backend request fails,
+     * clear the local legacy session.
+     */
+    console.error(
+      "Logout request failed:",
+      error
+    );
+  } finally {
+    clearSession();
+  }
 };
 
 const authService = {

@@ -4,11 +4,11 @@ export const API_BASE_URL =
 
 export const FRONTEND_URL =
   import.meta.env.VITE_FRONTEND_URL ||
-  "http://localhost:5173";
+  "http://localhost:5174";
 
 export const COURSE_URL =
   import.meta.env.VITE_COURSE_URL ||
-  "http://localhost:5174";
+  "http://localhost:5173";
 
 export const DASHBOARD_URL =
   import.meta.env.VITE_DASHBOARD_URL ||

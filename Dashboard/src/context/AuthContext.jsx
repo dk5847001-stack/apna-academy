@@ -3,7 +3,6 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
@@ -11,165 +10,88 @@ import {
   clearSession,
   getCurrentUser,
   getStoredUser,
+  logout as logoutUser,
 } from "../services/auth.service";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   /*
-   * Cached user is only used to make the UI feel faster.
+   * Cached user is used only for faster UI rendering.
    *
-   * Real authentication is always verified by the backend
-   * through /auth/me using the HttpOnly authentication cookie.
+   * Real authentication is always verified through
+   * the backend HttpOnly cookie.
    */
   const [user, setUser] = useState(() =>
     getStoredUser()
   );
 
-  /*
-   * IMPORTANT:
-   *
-   * Do NOT use hasToken() here.
-   *
-   * Dashboard is a separate React application running on
-   * another origin, so it cannot read Frontend's localStorage.
-   *
-   * The HttpOnly cookie is automatically sent to the backend.
-   */
   const [loading, setLoading] = useState(true);
 
   const [isAuthenticated, setIsAuthenticated] =
     useState(false);
 
   /*
-   |--------------------------------------------------------------------------
-   | Validate Current Session
-   |--------------------------------------------------------------------------
+   * =========================================================
+   * CHECK AUTHENTICATION
+   * =========================================================
+   *
+   * Do NOT depend on Dashboard localStorage token.
+   *
+   * Backend /auth/me checks the HttpOnly cookie.
    */
-
   const checkAuth = useCallback(async () => {
-    setLoading(true);
-
     try {
-      /*
-       * The backend determines whether the session is valid.
-       *
-       * Axios uses withCredentials: true, so the browser
-       * automatically sends the HttpOnly authentication cookie.
-       */
+      setLoading(true);
+
       const currentUser =
         await getCurrentUser();
 
-      if (!currentUser) {
-        clearSession();
-
+      if (currentUser) {
+        setUser(currentUser);
+        setIsAuthenticated(true);
+      } else {
         setUser(null);
         setIsAuthenticated(false);
-
-        return;
+        clearSession();
       }
-
-      /*
-       * Backend successfully authenticated the user.
-       */
-      setUser(currentUser);
-      setIsAuthenticated(true);
     } catch (error) {
       console.error(
-        "Authentication validation failed:",
+        "Authentication check failed:",
         error
       );
 
-      clearSession();
-
       setUser(null);
       setIsAuthenticated(false);
+      clearSession();
     } finally {
       setLoading(false);
     }
   }, []);
 
   /*
-   |--------------------------------------------------------------------------
-   | Logout
-   |--------------------------------------------------------------------------
+   * =========================================================
+   * INITIAL AUTH CHECK
+   * =========================================================
    */
-
-  const logout = useCallback(() => {
-    /*
-     * Local legacy session is cleared here.
-     *
-     * HttpOnly cookie logout will be connected to the
-     * backend logout endpoint in the next authentication step.
-     */
-    clearSession();
-
-    setUser(null);
-    setIsAuthenticated(false);
-  }, []);
-
-  /*
-   |--------------------------------------------------------------------------
-   | Refresh Authenticated User
-   |--------------------------------------------------------------------------
-   */
-
-  const refreshUser = useCallback(async () => {
-    try {
-      const currentUser =
-        await getCurrentUser();
-
-      if (!currentUser) {
-        clearSession();
-
-        setUser(null);
-        setIsAuthenticated(false);
-
-        return null;
-      }
-
-      setUser(currentUser);
-      setIsAuthenticated(true);
-
-      return currentUser;
-    } catch (error) {
-      console.error(
-        "Unable to refresh user:",
-        error
-      );
-
-      clearSession();
-
-      setUser(null);
-      setIsAuthenticated(false);
-
-      return null;
-    }
-  }, []);
-
-  /*
-   |--------------------------------------------------------------------------
-   | Initial Authentication Check
-   |--------------------------------------------------------------------------
-   */
-
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
   /*
-   |--------------------------------------------------------------------------
-   | Unauthorized Event
-   |--------------------------------------------------------------------------
+   * =========================================================
+   * UNAUTHORIZED EVENT
+   * =========================================================
+   *
+   * Axios interceptor can dispatch this when backend
+   * returns 401.
    */
-
   useEffect(() => {
     const handleUnauthorized = () => {
       clearSession();
 
       setUser(null);
       setIsAuthenticated(false);
-      setLoading(false);
     };
 
     window.addEventListener(
@@ -186,40 +108,30 @@ export function AuthProvider({ children }) {
   }, []);
 
   /*
-   |--------------------------------------------------------------------------
-   | Storage Changes
-   |--------------------------------------------------------------------------
-   |
-   | This remains only for legacy localStorage session changes.
-   | Cross-app authentication is handled by the backend cookie.
-   |
+   * =========================================================
+   * STORAGE CHANGE
+   * =========================================================
+   *
+   * Kept for legacy token compatibility and cached user
+   * synchronization.
    */
-
   useEffect(() => {
     const handleStorageChange = (event) => {
-      if (event.key === "user") {
-        if (!event.newValue) {
-          setUser(null);
-          return;
-        }
+      if (
+        event.key === "token" ||
+        event.key === "user"
+      ) {
+        const storedUser = getStoredUser();
 
-        try {
-          setUser(
-            JSON.parse(event.newValue)
-          );
-        } catch {
-          setUser(null);
-        }
-      }
+        setUser(storedUser);
 
-      if (event.key === "token") {
         /*
-         * Do not use localStorage token as the source
-         * of truth for authentication anymore.
-         *
-         * Re-check the backend instead.
+         * If another tab removes the local session,
+         * refresh authentication from backend.
          */
-        checkAuth();
+        if (!storedUser) {
+          checkAuth();
+        }
       }
     };
 
@@ -237,54 +149,88 @@ export function AuthProvider({ children }) {
   }, [checkAuth]);
 
   /*
-   |--------------------------------------------------------------------------
-   | Context Value
-   |--------------------------------------------------------------------------
+   * =========================================================
+   * LOGOUT
+   * =========================================================
+   *
+   * 1. Backend clears HttpOnly cookie.
+   * 2. Local legacy session is cleared.
+   * 3. React auth state is cleared.
    */
+ const logout = useCallback(async () => {
+  try {
+    await logoutUser();
+  } finally {
+    setUser(null);
+    setIsAuthenticated(false);
+    clearSession();
 
-  const value = useMemo(
-    () => ({
-      user,
-      loading,
-      isAuthenticated,
-      logout,
-      refreshUser,
-      checkAuth,
-    }),
-    [
-      user,
-      loading,
-      isAuthenticated,
-      logout,
-      refreshUser,
-      checkAuth,
-    ]
-  );
+    window.location.replace(
+      "http://localhost:5174/"
+    );
+  }
+}, []);
+
+  /*
+   * =========================================================
+   * REFRESH USER
+   * =========================================================
+   */
+  const refreshUser = useCallback(async () => {
+    try {
+      const currentUser =
+        await getCurrentUser();
+
+      if (currentUser) {
+        setUser(currentUser);
+        setIsAuthenticated(true);
+
+        return currentUser;
+      }
+
+      setUser(null);
+      setIsAuthenticated(false);
+      clearSession();
+
+      return null;
+    } catch (error) {
+      setUser(null);
+      setIsAuthenticated(false);
+      clearSession();
+
+      throw error;
+    }
+  }, []);
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isAuthenticated,
+        logout,
+        refreshUser,
+        checkAuth,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
 /*
-|--------------------------------------------------------------------------
-| useAuth Hook
-|--------------------------------------------------------------------------
-*/
-
+ * =========================================================
+ * USE AUTH
+ * =========================================================
+ */
 export function useAuth() {
-  const context =
-    useContext(AuthContext);
+  const context = useContext(AuthContext);
 
   if (!context) {
     throw new Error(
-      "useAuth must be used inside AuthProvider"
+      "useAuth must be used inside AuthProvider."
     );
   }
 
   return context;
 }
-
-export default AuthContext;

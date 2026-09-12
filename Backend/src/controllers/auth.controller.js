@@ -194,3 +194,24 @@ export const me = asyncHandler(
     });
   }
 );
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+export const logout = async (req, res) => {
+  const isProduction =
+    process.env.NODE_ENV === "production";
+
+  res.clearCookie("apnaacademy_token", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "lax",
+    path: "/",
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully.",
+  });
+};
