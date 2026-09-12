@@ -6,8 +6,13 @@ import paymentRoutes from "./payment.routes.js";
 import learningRoutes from "./learning.routes.js";
 import progressRoutes from "./progress.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
+import certificateRoutes from "./certificate.routes.js";
 
 const router = Router();
+
+/* =========================================================
+   API HEALTH CHECK
+========================================================= */
 
 router.get("/", (req, res) => {
   res.status(200).json({
@@ -15,6 +20,10 @@ router.get("/", (req, res) => {
     message: "ApnaAcademy API v1 is working 🚀",
   });
 });
+
+/* =========================================================
+   API ROUTES
+========================================================= */
 
 router.use("/auth", authRoutes);
 
@@ -27,5 +36,7 @@ router.use("/learning", learningRoutes);
 router.use("/progress", progressRoutes);
 
 router.use("/dashboard", dashboardRoutes);
+
+router.use("/certificates", certificateRoutes);
 
 export default router;
