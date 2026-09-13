@@ -8,6 +8,7 @@ import Purchases from "../pages/Purchases";
 import Progress from "../pages/Progress";
 import Certificates from "../pages/Certificates";
 import Notifications from "../pages/Notifications";
+import Profile from "../pages/Profile";
 import ProtectedRoute from "./ProtectedRoute";
 import { ROUTES } from "../constants/config";
 
@@ -15,9 +16,7 @@ const PlaceholderPage = ({ title }) => (
   <div className="flex min-h-[60vh] items-center justify-center px-4">
     <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
       <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-      <p className="mt-2 text-sm text-slate-500">
-        This section is coming next.
-      </p>
+      <p className="mt-2 text-sm text-slate-500">This section is coming next.</p>
     </div>
   </div>
 );
@@ -34,26 +33,13 @@ export default function AppRoutes() {
           <Route path={ROUTES.PURCHASES} element={<Purchases />} />
           <Route path={ROUTES.PROGRESS} element={<Progress />} />
           <Route path={ROUTES.CERTIFICATES} element={<Certificates />} />
-          <Route
-            path={ROUTES.NOTIFICATIONS}
-            element={<Notifications />}
-          />
-          <Route
-            path={ROUTES.PROFILE}
-            element={<PlaceholderPage title="Profile" />}
-          />
-          <Route
-            path={ROUTES.SUPPORT}
-            element={<PlaceholderPage title="Support" />}
-          />
+          <Route path={ROUTES.NOTIFICATIONS} element={<Notifications />} />
+          <Route path={ROUTES.PROFILE} element={<Profile />} />
+          <Route path={ROUTES.SUPPORT} element={<PlaceholderPage title="Support" />} />
         </Route>
       </Route>
 
-      <Route
-        path="/auth-required"
-        element={<Navigate to={ROUTES.HOME} replace />}
-      />
-
+      <Route path="/auth-required" element={<Navigate to={ROUTES.HOME} replace />} />
       <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
     </Routes>
   );
