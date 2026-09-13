@@ -23,7 +23,7 @@ const courseData = {
     name: "ApnaAcademy",
     avatar: "",
   },
-  price: 999,
+  price: 1,
   allAccessPrice: 99,
   durationDays: 30,
   isPublished: true,

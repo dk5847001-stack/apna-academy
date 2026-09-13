@@ -58,7 +58,7 @@ function formatPrice(price) {
     price === null ||
     price === ""
   ) {
-    return "₹999";
+    return "₹1";
   }
 
   const numericPrice = Number(price);
