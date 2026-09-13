@@ -7,9 +7,14 @@ import {
 import DashboardLayout from "../layouts/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
-import { FRONTEND_URL, ROUTES } from "../constants/config";
-import MyCourses from "../pages/MyCourses";
+import {
+  FRONTEND_URL,
+  ROUTES,
+} from "../constants/config";
+
+import DashboardHome from "../pages/DashboardHome";
 import AllCourses from "../pages/AllCourses";
+import MyCourses from "../pages/MyCourses";
 
 /* =========================================================
    AUTH REQUIRED
@@ -31,9 +36,7 @@ function AuthRequired() {
     <div className="flex min-h-screen items-center justify-center bg-white px-6">
       <div className="w-full max-w-md text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-          <span className="text-2xl font-black">
-            A
-          </span>
+          <span className="text-2xl font-black">A</span>
         </div>
 
         <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
@@ -41,8 +44,7 @@ function AuthRequired() {
         </h1>
 
         <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-500">
-          Please login to your ApnaAcademy account to
-          access your student dashboard.
+          Please login to your ApnaAcademy account to access your student dashboard.
         </p>
 
         <button
@@ -61,10 +63,7 @@ function AuthRequired() {
    PLACEHOLDER PAGE
 ========================================================= */
 
-function PlaceholderPage({
-  title,
-  description,
-}) {
+function PlaceholderPage({ title, description }) {
   return (
     <section className="min-h-[calc(100vh-64px)] bg-slate-50 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -93,18 +92,10 @@ function PlaceholderPage({
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* ===================================================
-          PUBLIC ROUTES
-      =================================================== */}
-
+      {/* Public routes */}
       <Route
         path="/"
-        element={
-          <Navigate
-            to={ROUTES.HOME}
-            replace
-          />
-        }
+        element={<Navigate to={ROUTES.HOME} replace />}
       />
 
       <Route
@@ -112,21 +103,13 @@ export default function AppRoutes() {
         element={<AuthRequired />}
       />
 
-      {/* ===================================================
-          PROTECTED DASHBOARD APPLICATION
-      =================================================== */}
-
+      {/* Protected dashboard application */}
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           {/* Dashboard Home */}
           <Route
             path={ROUTES.HOME}
-            element={
-              <PlaceholderPage
-                title="Student Dashboard"
-                description="Manage your learning journey, courses, progress, certificates, purchases, notifications and account from one place."
-              />
-            }
+            element={<DashboardHome />}
           />
 
           {/* All Courses */}
@@ -209,18 +192,10 @@ export default function AppRoutes() {
         </Route>
       </Route>
 
-      {/* ===================================================
-          UNKNOWN ROUTES
-      =================================================== */
-
+      {/* Unknown routes */}
       <Route
         path="*"
-        element={
-          <Navigate
-            to={ROUTES.HOME}
-            replace
-          />
-        }
+        element={<Navigate to={ROUTES.HOME} replace />}
       />
     </Routes>
   );
