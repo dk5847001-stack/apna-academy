@@ -7,6 +7,7 @@ import MyCourses from "../pages/MyCourses";
 import Purchases from "../pages/Purchases";
 import Progress from "../pages/Progress";
 import Certificates from "../pages/Certificates";
+import Notifications from "../pages/Notifications";
 import ProtectedRoute from "./ProtectedRoute";
 import { ROUTES } from "../constants/config";
 
@@ -33,10 +34,9 @@ export default function AppRoutes() {
           <Route path={ROUTES.PURCHASES} element={<Purchases />} />
           <Route path={ROUTES.PROGRESS} element={<Progress />} />
           <Route path={ROUTES.CERTIFICATES} element={<Certificates />} />
-
           <Route
             path={ROUTES.NOTIFICATIONS}
-            element={<PlaceholderPage title="Notifications" />}
+            element={<Notifications />}
           />
           <Route
             path={ROUTES.PROFILE}
