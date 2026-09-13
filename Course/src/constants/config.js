@@ -17,7 +17,8 @@ export const COURSE_URL =
 export const APP_NAME = "ApnaAcademy";
 
 export const APP_ENV =
-  import.meta.env.MODE || "development";
+  import.meta.env.MODE ||
+  "development";
 
 export const IS_PRODUCTION =
   APP_ENV === "production";
@@ -25,7 +26,8 @@ export const IS_PRODUCTION =
 export const API_TIMEOUT = 15000;
 
 export const STORAGE_KEYS = {
-  TOKEN: "token",
+  // UI-only compatibility marker. Real authentication uses the HttpOnly cookie.
+  TOKEN: "user",
   USER: "user",
   THEME: "apnaacademy-theme",
 };
