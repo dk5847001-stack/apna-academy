@@ -1,23 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 
-import {
-  LEARNING_RULES,
-} from "../constants/config";
-
-import {
-  updateVideoProgress,
-} from "../services/progress.service";
-
-/* =========================================================
-   VIDEO PROGRESS TRACKER
-
-   Responsibilities:
-   1. Save current watching position
-   2. Mark video complete at 80%
-   3. Avoid excessive API requests
-   4. Save final position when leaving video
-   5. Prevent duplicate completion requests
-========================================================= */
+import { LEARNING_RULES } from "../constants/config";
+import { updateVideoProgress } from "../services/progress.service";
 
 const SAVE_INTERVAL = 10000;
 
@@ -28,331 +12,173 @@ export default function useVideoProgress({
   onProgressUpdated,
   onCompleted,
 }) {
-  const lastSavedPosition =
-    useRef(0);
-
-  const lastSaveTime =
-    useRef(0);
-
-  const completionSent =
-    useRef(false);
-
-  const saving =
-    useRef(false);
-
-  /* =======================================================
-     RESET TRACKER WHEN VIDEO CHANGES
-  ======================================================= */
+  const lastSavedPosition = useRef(0);
+  const lastSaveTime = useRef(0);
+  const completionSent = useRef(false);
+  const saving = useRef(false);
+  const queuedSave = useRef(null);
 
   useEffect(() => {
-    lastSavedPosition.current =
-      Number(initialPosition) || 0;
-
+    lastSavedPosition.current = Number(initialPosition) || 0;
     lastSaveTime.current = 0;
-
-    completionSent.current =
-      Boolean(video?.isCompleted);
-
+    completionSent.current = Boolean(video?.isCompleted);
     saving.current = false;
-}, [
-  video?._id,
-  video?.id,
-  video?.isCompleted,
-  initialPosition,
-]);
-
-  /* =======================================================
-     SAVE PROGRESS
-  ======================================================= */
+    queuedSave.current = null;
+  }, [video?._id, video?.id, video?.isCompleted, initialPosition]);
 
   const saveProgress = useCallback(
-    async ({
-      position,
-      completed = false,
-      force = false,
-    }) => {
-      if (!courseId || !video) {
-        return;
-      }
+    async ({ position, completed = false, force = false }) => {
+      if (!courseId || !video) return;
 
-      const videoId =
-        video._id || video.id;
+      const videoId = video._id || video.id;
+      if (!videoId) return;
 
-      if (!videoId) {
-        return;
-      }
-
-      const safePosition =
-        Math.max(
-          0,
-          Number(position) || 0
-        );
-
+      const safePosition = Math.max(0, Number(position) || 0);
+      const request = { position: safePosition, completed, force };
       const now = Date.now();
 
-      if (
-        !force &&
-        now - lastSaveTime.current <
-          SAVE_INTERVAL
-      ) {
-        return;
-      }
+      if (!force && now - lastSaveTime.current < SAVE_INTERVAL) return;
 
       if (saving.current) {
+        const previous = queuedSave.current;
+        queuedSave.current =
+          !previous ||
+          completed ||
+          safePosition >= previous.position
+            ? request
+            : previous;
         return;
       }
 
       saving.current = true;
 
       try {
-        const updatedProgress =
-          await updateVideoProgress({
-            courseId,
-            videoId,
-            position: safePosition,
-            completed,
-          });
+        const updatedProgress = await updateVideoProgress({
+          courseId,
+          videoId,
+          position: safePosition,
+          completed,
+        });
 
-        lastSavedPosition.current =
-          safePosition;
+        lastSavedPosition.current = safePosition;
+        lastSaveTime.current = Date.now();
 
-        lastSaveTime.current =
-          Date.now();
+        if (completed) completionSent.current = true;
 
-        if (
-          completed
-        ) {
-          completionSent.current =
-            true;
-        }
-
-        onProgressUpdated?.(
-          updatedProgress
-        );
-
-        if (completed) {
-          onCompleted?.(
-            updatedProgress
-          );
-        }
+        onProgressUpdated?.(updatedProgress);
+        if (completed) onCompleted?.(updatedProgress);
       } catch (error) {
-        console.error(
-          "Unable to save video progress:",
-          error
-        );
+        console.error("Unable to save video progress:", error);
       } finally {
         saving.current = false;
+
+        const nextRequest = queuedSave.current;
+        queuedSave.current = null;
+
+        if (nextRequest) {
+          await saveProgress({ ...nextRequest, force: true });
+        }
       }
     },
-    [
-      courseId,
-      video,
-      onProgressUpdated,
-      onCompleted,
-    ]
+    [courseId, video, onProgressUpdated, onCompleted]
   );
 
-  /* =======================================================
-     VIDEO TIME UPDATE
-  ======================================================= */
+  const handleTimeUpdate = useCallback(
+    async (player) => {
+      if (!player || !video) return;
 
-  const handleTimeUpdate =
-    useCallback(
-      async (player) => {
-        if (!player || !video) {
-          return;
-        }
+      const duration = Number(player.duration);
+      const currentTime = Number(player.currentTime);
 
-        const duration =
-          Number(player.duration);
+      if (
+        !Number.isFinite(duration) ||
+        duration <= 0 ||
+        !Number.isFinite(currentTime)
+      ) {
+        return;
+      }
 
-        const currentTime =
-          Number(player.currentTime);
+      const watchedPercentage = (currentTime / duration) * 100;
 
-        if (
-          !Number.isFinite(
-            duration
-          ) ||
-          duration <= 0 ||
-          !Number.isFinite(
-            currentTime
-          )
-        ) {
-          return;
-        }
-
-        const watchedPercentage =
-          (currentTime / duration) *
-          100;
-
-        /*
-         * Mark video complete at the configured
-         * completion percentage.
-         */
-        if (
-          watchedPercentage >=
-            LEARNING_RULES.VIDEO_COMPLETION_PERCENTAGE &&
-          !completionSent.current
-        ) {
-          await saveProgress({
-            position: currentTime,
-            completed: true,
-            force: true,
-          });
-
-          return;
-        }
-
-        /*
-         * Periodically save the current position.
-         */
+      if (
+        watchedPercentage >= LEARNING_RULES.VIDEO_COMPLETION_PERCENTAGE &&
+        !completionSent.current
+      ) {
         await saveProgress({
           position: currentTime,
-          completed: false,
-          force: false,
-        });
-      },
-      [video, saveProgress]
-    );
-
-  /* =======================================================
-     VIDEO ENDED
-  ======================================================= */
-
-  const handleEnded =
-    useCallback(
-      async (player) => {
-        const duration =
-          Number(player?.duration) || 0;
-
-        const finalPosition =
-          duration > 0
-            ? duration
-            : Number(
-                player?.currentTime
-              ) || 0;
-
-        if (
-          completionSent.current
-        ) {
-          await saveProgress({
-            position: finalPosition,
-            completed: true,
-            force: true,
-          });
-
-          return;
-        }
-
-        await saveProgress({
-          position: finalPosition,
           completed: true,
           force: true,
         });
-      },
-      [saveProgress]
-    );
+        return;
+      }
 
-  /* =======================================================
-     VIDEO PAUSE
-  ======================================================= */
+      await saveProgress({
+        position: currentTime,
+        completed: false,
+        force: false,
+      });
+    },
+    [video, saveProgress]
+  );
 
-  const handlePause =
-    useCallback(
-      async (player) => {
-        const currentTime =
-          Number(
-            player?.currentTime
-          ) || 0;
+  const handleEnded = useCallback(
+    async (player) => {
+      const duration = Number(player?.duration) || 0;
+      const finalPosition =
+        duration > 0 ? duration : Number(player?.currentTime) || 0;
 
-        const duration =
-          Number(
-            player?.duration
-          ) || 0;
+      await saveProgress({
+        position: finalPosition,
+        completed: true,
+        force: true,
+      });
+    },
+    [saveProgress]
+  );
 
-        if (
-          duration > 0 &&
-          currentTime >=
-            duration *
-              (LEARNING_RULES.VIDEO_COMPLETION_PERCENTAGE /
-                100)
-        ) {
-          await saveProgress({
-            position: currentTime,
-            completed: true,
-            force: true,
-          });
+  const handlePause = useCallback(
+    async (player) => {
+      const currentTime = Number(player?.currentTime) || 0;
+      const duration = Number(player?.duration) || 0;
+      const completionThreshold =
+        duration *
+        (LEARNING_RULES.VIDEO_COMPLETION_PERCENTAGE / 100);
 
-          return;
-        }
-
+      if (duration > 0 && currentTime >= completionThreshold) {
         await saveProgress({
           position: currentTime,
-          completed:
-            completionSent.current,
+          completed: true,
           force: true,
         });
-      },
-      [saveProgress]
-    );
+        return;
+      }
 
-  /* =======================================================
-     VIDEO LOAD
+      await saveProgress({
+        position: currentTime,
+        completed: completionSent.current,
+        force: true,
+      });
+    },
+    [saveProgress]
+  );
 
-     Restore position is handled by the player component.
-  ======================================================= */
+  const handleLoadedMetadata = useCallback(
+    (player) => {
+      if (!player) return;
 
-  const handleLoadedMetadata =
-    useCallback(
-      (player) => {
-        if (!player) {
-          return;
+      const position = Number(initialPosition) || 0;
+      const duration = Number(player.duration) || 0;
+
+      if (position > 0 && duration > 0 && position < duration) {
+        try {
+          player.currentTime = position;
+        } catch (error) {
+          console.warn("Unable to restore video position:", error);
         }
-
-        const position =
-          Number(initialPosition) || 0;
-
-        const duration =
-          Number(player.duration) || 0;
-
-        if (
-          position > 0 &&
-          duration > 0 &&
-          position < duration
-        ) {
-          try {
-            player.currentTime =
-              position;
-          } catch (error) {
-            console.warn(
-              "Unable to restore video position:",
-              error
-            );
-          }
-        }
-      },
-      [initialPosition]
-    );
-
-  /* =======================================================
-     CLEANUP
-
-     Save latest position if user changes lesson,
-     navigates away, or component unmounts.
-  ======================================================= */
-
-  useEffect(() => {
-    return () => {
-      /*
-       * We intentionally don't make an async request
-       * during React cleanup because the component may
-       * already be unmounted.
-       *
-       * The player pause/time-update handlers already
-       * persist the latest position.
-       */
-    };
-  }, []);
+      }
+    },
+    [initialPosition]
+  );
 
   return {
     handleTimeUpdate,
