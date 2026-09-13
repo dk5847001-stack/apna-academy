@@ -3,8 +3,8 @@ import api from "./api";
 const RAZORPAY_CHECKOUT_URL =
   "https://checkout.razorpay.com/v1/checkout.js";
 
-const loadRazorpayScript = () => {
-  return new Promise((resolve) => {
+const loadRazorpayScript = () =>
+  new Promise((resolve) => {
     if (window.Razorpay) {
       resolve(true);
       return;
@@ -13,15 +13,15 @@ const loadRazorpayScript = () => {
     const script = document.createElement("script");
     script.src = RAZORPAY_CHECKOUT_URL;
     script.async = true;
-
     script.onload = () => resolve(true);
     script.onerror = () => resolve(false);
-
     document.body.appendChild(script);
   });
-};
 
-export const createPaymentOrder = async (courseId, purchaseType = "course") => {
+export const createPaymentOrder = async (
+  courseId,
+  purchaseType = "course"
+) => {
   const response = await api.post("/payments/create-order", {
     courseId,
     purchaseType,
@@ -36,9 +36,9 @@ export const verifyPayment = async ({
   razorpaySignature,
 }) => {
   const response = await api.post("/payments/verify", {
-    razorpayOrderId,
-    razorpayPaymentId,
-    razorpaySignature,
+    razorpay_order_id: razorpayOrderId,
+    razorpay_payment_id: razorpayPaymentId,
+    razorpay_signature: razorpaySignature,
   });
 
   return response.data;
@@ -61,25 +61,33 @@ export const startCoursePayment = async ({
       );
     }
 
-    const orderResponse = await createPaymentOrder(
+    const response = await createPaymentOrder(
       courseId,
       purchaseType
     );
 
-    if (!orderResponse?.success || !orderResponse?.orderId) {
+    if (!response?.success) {
       throw new Error(
-        orderResponse?.message || "Unable to create payment order."
+        response?.message || "Unable to create payment order."
       );
     }
+
+    const orderData = response?.data || response;
 
     const {
       orderId,
       amount,
       currency,
       keyId,
-    } = orderResponse;
+    } = orderData;
 
-    const options = {
+    if (!orderId || !amount || !currency || !keyId) {
+      throw new Error(
+        "Payment order response is incomplete. Please try again."
+      );
+    }
+
+    const razorpay = new window.Razorpay({
       key: keyId,
       amount,
       currency,
@@ -89,17 +97,14 @@ export const startCoursePayment = async ({
           ? `${courseTitle} - All Modules Unlock`
           : courseTitle,
       order_id: orderId,
-
       prefill: {
         name: user?.name || "",
         email: user?.email || "",
         contact: user?.phone || "",
       },
-
       theme: {
         color: "#2563eb",
       },
-
       modal: {
         ondismiss: () => {
           onFailure?.({
@@ -108,14 +113,17 @@ export const startCoursePayment = async ({
           });
         },
       },
-
       handler: async (paymentResponse) => {
         try {
-          const verificationResponse = await verifyPayment({
-            razorpayOrderId: paymentResponse.razorpay_order_id,
-            razorpayPaymentId: paymentResponse.razorpay_payment_id,
-            razorpaySignature: paymentResponse.razorpay_signature,
-          });
+          const verificationResponse =
+            await verifyPayment({
+              razorpayOrderId:
+                paymentResponse.razorpay_order_id,
+              razorpayPaymentId:
+                paymentResponse.razorpay_payment_id,
+              razorpaySignature:
+                paymentResponse.razorpay_signature,
+            });
 
           if (!verificationResponse?.success) {
             throw new Error(
@@ -125,7 +133,6 @@ export const startCoursePayment = async ({
           }
 
           onSuccess?.(verificationResponse);
-
         } catch (error) {
           onFailure?.({
             type: "verification",
@@ -136,21 +143,18 @@ export const startCoursePayment = async ({
           });
         }
       },
-    };
+    });
 
-    const razorpay = new window.Razorpay(options);
-
-    razorpay.on("payment.failed", (response) => {
+    razorpay.on("payment.failed", (responseData) => {
       onFailure?.({
         type: "payment",
         message:
-          response?.error?.description ||
+          responseData?.error?.description ||
           "Payment failed. Please try again.",
       });
     });
 
     razorpay.open();
-
   } catch (error) {
     onFailure?.({
       type: "order",
