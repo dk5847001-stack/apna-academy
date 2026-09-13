@@ -4,7 +4,7 @@ export const API_BASE_URL =
 
 export const FRONTEND_URL =
   import.meta.env.VITE_FRONTEND_URL ||
-  "http://localhost:5173";
+  "http://localhost:5174";
 
 export const DASHBOARD_URL =
   import.meta.env.VITE_DASHBOARD_URL ||
@@ -12,7 +12,7 @@ export const DASHBOARD_URL =
 
 export const COURSE_URL =
   import.meta.env.VITE_COURSE_URL ||
-  "http://localhost:5174";
+  "http://localhost:5173";
 
 export const APP_NAME = "ApnaAcademy";
 
@@ -24,19 +24,10 @@ export const IS_PRODUCTION =
 
 export const API_TIMEOUT = 15000;
 
-/* =========================================================
-   STORAGE
-========================================================= */
-
 export const STORAGE_KEYS = {
-  TOKEN: "token",
   USER: "user",
   THEME: "apnaacademy-theme",
 };
-
-/* =========================================================
-   COURSE ROUTES
-========================================================= */
 
 export const COURSE_ROUTES = {
   HOME: "/",
@@ -54,18 +45,10 @@ export const COURSE_ROUTES = {
     `/courses/${slug}/certificate`,
 };
 
-/* =========================================================
-   EXTERNAL APP ROUTES
-========================================================= */
-
 export const EXTERNAL_ROUTES = {
   FRONTEND: FRONTEND_URL,
   DASHBOARD: DASHBOARD_URL,
 };
-
-/* =========================================================
-   LEARNING RULES
-========================================================= */
 
 export const LEARNING_RULES = {
   VIDEO_COMPLETION_PERCENTAGE: 80,
