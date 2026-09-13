@@ -8,6 +8,7 @@ import progressRoutes from "./progress.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import certificateRoutes from "./certificate.routes.js";
 import notificationRoutes from "./notification.routes.js";
+import profileRoutes from "./profile.routes.js";
 
 const router = Router();
 
@@ -27,19 +28,13 @@ router.get("/", (req, res) => {
 ========================================================= */
 
 router.use("/auth", authRoutes);
-
 router.use("/courses", courseRoutes);
-
 router.use("/payments", paymentRoutes);
-
 router.use("/learning", learningRoutes);
-
 router.use("/progress", progressRoutes);
-
 router.use("/dashboard", dashboardRoutes);
-
 router.use("/certificates", certificateRoutes);
-
 router.use("/notifications", notificationRoutes);
+router.use("/profile", profileRoutes);
 
 export default router;
