@@ -163,7 +163,7 @@ export function AuthProvider({ children }) {
       clearSession();
 
       window.location.replace(
-        "http://localhost:5174/login"
+        "http://localhost:5173/login"
       );
     }
   }, []);
