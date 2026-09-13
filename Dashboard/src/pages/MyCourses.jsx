@@ -12,7 +12,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import SchoolIcon from "@mui/icons-material/School";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 
-import { ROUTES } from "../constants/config";
+import { ROUTES, COURSE_ROUTES } from "../constants/config";
 import dashboardService from "../services/dashboard.service";
 
 function clampProgress(value) {
@@ -31,6 +31,28 @@ function formatDate(value) {
     month: "short",
     year: "numeric",
   });
+}
+
+function getCourseLearningUrl(course) {
+  if (!course?.slug) {
+    return ROUTES.MY_COURSES;
+  }
+
+  const lastWatchedVideoId =
+    course.lastWatchedVideo?._id ||
+    course.lastWatchedVideo?.id ||
+    (typeof course.lastWatchedVideo === "string"
+      ? course.lastWatchedVideo
+      : null);
+
+  if (lastWatchedVideoId && !course.isCompleted) {
+    return COURSE_ROUTES.VIDEO(
+      course.slug,
+      lastWatchedVideoId
+    );
+  }
+
+  return COURSE_ROUTES.LEARN(course.slug);
 }
 
 function CourseCard({ course }) {
@@ -122,8 +144,8 @@ function CourseCard({ course }) {
           </div>
 
           <Button
-            component={Link}
-            to={ROUTES.COURSES}
+            component="a"
+            href={getCourseLearningUrl(course)}
             variant="contained"
             startIcon={
               isCompleted ? (
