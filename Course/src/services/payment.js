@@ -10,6 +10,16 @@ const loadRazorpayScript = () =>
       return;
     }
 
+    const existingScript = document.querySelector(
+      `script[src="${RAZORPAY_CHECKOUT_URL}"]`
+    );
+
+    if (existingScript) {
+      existingScript.addEventListener("load", () => resolve(true), { once: true });
+      existingScript.addEventListener("error", () => resolve(false), { once: true });
+      return;
+    }
+
     const script = document.createElement("script");
     script.src = RAZORPAY_CHECKOUT_URL;
     script.async = true;
@@ -52,6 +62,14 @@ export const startCoursePayment = async ({
   onSuccess,
   onFailure,
 }) => {
+  let settled = false;
+
+  const fail = (payload) => {
+    if (settled) return;
+    settled = true;
+    onFailure?.(payload);
+  };
+
   try {
     const loaded = await loadRazorpayScript();
 
@@ -107,13 +125,15 @@ export const startCoursePayment = async ({
       },
       modal: {
         ondismiss: () => {
-          onFailure?.({
+          fail({
             type: "dismissed",
             message: "Payment window was closed.",
           });
         },
       },
       handler: async (paymentResponse) => {
+        if (settled) return;
+
         try {
           const verificationResponse =
             await verifyPayment({
@@ -132,9 +152,11 @@ export const startCoursePayment = async ({
             );
           }
 
+          if (settled) return;
+          settled = true;
           onSuccess?.(verificationResponse);
         } catch (error) {
-          onFailure?.({
+          fail({
             type: "verification",
             message:
               error?.response?.data?.message ||
@@ -146,7 +168,7 @@ export const startCoursePayment = async ({
     });
 
     razorpay.on("payment.failed", (responseData) => {
-      onFailure?.({
+      fail({
         type: "payment",
         message:
           responseData?.error?.description ||
@@ -156,7 +178,7 @@ export const startCoursePayment = async ({
 
     razorpay.open();
   } catch (error) {
-    onFailure?.({
+    fail({
       type: "order",
       message:
         error?.response?.data?.message ||
