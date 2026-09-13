@@ -27,13 +27,15 @@ import dashboardService from "../services/dashboard.service";
 ========================================================= */
 
 function getFirstName(name = "") {
-  const firstName = name.trim().split(/\s+/)[0];
+  const firstName = String(name)
+    .trim()
+    .split(/\s+/)[0];
 
   return firstName || "Student";
 }
 
 function getInitials(name = "") {
-  const parts = name
+  const parts = String(name)
     .trim()
     .split(/\s+/)
     .filter(Boolean);
@@ -43,13 +45,28 @@ function getInitials(name = "") {
   }
 
   if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
+    return parts[0]
+      .slice(0, 2)
+      .toUpperCase();
   }
 
   return (
     parts[0][0] +
     parts[parts.length - 1][0]
   ).toUpperCase();
+}
+
+function clampProgress(value) {
+  const progress = Number(value || 0);
+
+  if (Number.isNaN(progress)) {
+    return 0;
+  }
+
+  return Math.min(
+    100,
+    Math.max(0, Math.round(progress))
+  );
 }
 
 function formatRelativeTime(dateValue) {
@@ -103,29 +120,12 @@ function formatRelativeTime(dateValue) {
   );
 }
 
-function clampProgress(value) {
-  const progress = Number(value || 0);
-
-  return Math.min(
-    100,
-    Math.max(0, progress)
-  );
-}
-
-function getCourseUrl(course) {
+function getContinueCourseUrl(course) {
   if (!course) {
     return ROUTES.MY_COURSES;
   }
 
-  /*
-   * Dashboard and Course are separate React apps.
-   *
-   * The actual course-player URL can be changed
-   * centrally later when Course routing is finalized.
-   *
-   * For now, keep the dashboard route safe.
-   */
-  return ROUTES.MY_COURSES;
+  return course.url || ROUTES.MY_COURSES;
 }
 
 /* =========================================================
@@ -186,9 +186,9 @@ function ContinueLearningEmpty() {
             </h2>
 
             <p className="mt-1 max-w-xl text-sm leading-6 text-slate-500">
-              Once you enroll in a course and start
-              watching lessons, your latest learning
-              activity will appear here.
+              Once you enroll in a course and
+              start watching lessons, your latest
+              learning activity will appear here.
             </p>
           </div>
         </div>
@@ -235,7 +235,8 @@ function ContinueLearningCard({
     course.progress
   );
 
-  const courseUrl = getCourseUrl(course);
+  const courseUrl =
+    getContinueCourseUrl(course);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -244,13 +245,15 @@ function ContinueLearningCard({
           {course.thumbnail ? (
             <img
               src={course.thumbnail}
-              alt={course.title}
+              alt={course.title || "Course"}
               className="h-full min-h-48 w-full object-cover"
               loading="lazy"
             />
           ) : (
             <div className="flex h-full min-h-48 items-center justify-center bg-blue-50 text-blue-600">
-              <SchoolIcon sx={{ fontSize: 52 }} />
+              <SchoolIcon
+                sx={{ fontSize: 52 }}
+              />
             </div>
           )}
 
@@ -273,12 +276,14 @@ function ContinueLearningCard({
           </p>
 
           <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-900">
-            {course.title}
+            {course.title ||
+              "Your enrolled course"}
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
             {video?.title ||
               video?.name ||
+              course.module ||
               "Continue your latest lesson"}
           </p>
 
@@ -325,7 +330,9 @@ function ContinueLearningCard({
             </Button>
 
             <span className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
-              <AccessTimeIcon sx={{ fontSize: 16 }} />
+              <AccessTimeIcon
+                sx={{ fontSize: 16 }}
+              />
 
               {video?.title
                 ? "Last watched lesson"
@@ -485,7 +492,12 @@ function RecentNotifications({
         ) : (
           items.map((notification) => (
             <div
-              key={notification.id}
+              key={
+                notification.id ||
+                notification._id ||
+                notification.createdAt ||
+                notification.title
+              }
               className={`flex gap-3 rounded-xl border p-3.5 ${
                 notification.isRead
                   ? "border-slate-100 bg-slate-50"
@@ -501,7 +513,8 @@ function RecentNotifications({
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <p className="truncate text-sm font-bold text-slate-800">
-                    {notification.title}
+                    {notification.title ||
+                      "ApnaAcademy Update"}
                   </p>
 
                   {!notification.isRead && (
@@ -511,6 +524,7 @@ function RecentNotifications({
 
                 <p className="mt-0.5 text-xs leading-5 text-slate-500">
                   {notification.message ||
+                    notification.description ||
                     "You have a new notification."}
                 </p>
 
@@ -541,8 +555,15 @@ function LearningStatus({
     overallProgress
   );
 
-  const hasCourses =
-    Number(enrolledCourses || 0) > 0;
+  const enrolledCount = Number(
+    enrolledCourses || 0
+  );
+
+  const completedCount = Number(
+    completedCourses || 0
+  );
+
+  const hasCourses = enrolledCount > 0;
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -572,9 +593,8 @@ function LearningStatus({
 
               <p className="text-xs text-slate-500">
                 {hasCourses
-                  ? `${completedCourses || 0} course${
-                      Number(completedCourses || 0) ===
-                      1
+                  ? `${completedCount} course${
+                      completedCount === 1
                         ? ""
                         : "s"
                     } completed`
@@ -732,7 +752,8 @@ export default function DashboardHome() {
     () =>
       getFirstName(
         dashboard?.user?.name ||
-          user?.name
+          user?.name ||
+          ""
       ),
     [
       dashboard?.user?.name,
@@ -744,7 +765,8 @@ export default function DashboardHome() {
     () =>
       getInitials(
         dashboard?.user?.name ||
-          user?.name
+          user?.name ||
+          ""
       ),
     [
       dashboard?.user?.name,
@@ -752,47 +774,46 @@ export default function DashboardHome() {
     ]
   );
 
-  const loadDashboard =
-    async () => {
-      try {
-        setLoading(true);
-        setError("");
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-        const response =
-          await dashboardService.getDashboard();
+      const response =
+        await dashboardService.getDashboard();
 
-        if (!response) {
-          throw new Error(
-            "Dashboard data was not returned by the server."
-          );
-        }
-
-        setDashboard(response);
-      } catch (dashboardError) {
-        console.error(
-          "Dashboard loading failed:",
-          dashboardError
+      if (!response) {
+        throw new Error(
+          "Dashboard data was not returned by the server."
         );
-
-        const message =
-          dashboardError?.response?.data
-            ?.message ||
-          dashboardError?.message ||
-          "Unable to load dashboard data.";
-
-        setError(message);
-      } finally {
-        setLoading(false);
       }
-    };
+
+      setDashboard(response);
+    } catch (dashboardError) {
+      console.error(
+        "Dashboard loading failed:",
+        dashboardError
+      );
+
+      const message =
+        dashboardError?.response?.data
+          ?.message ||
+        dashboardError?.message ||
+        "Unable to load dashboard data.";
+
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadDashboard();
   }, []);
 
-  /* =======================================================
+  /* =========================================================
      DERIVED BACKEND DATA
-  ======================================================= */
+  ========================================================= */
 
   const stats =
     dashboard?.stats || {};
@@ -858,21 +879,21 @@ export default function DashboardHome() {
     },
   ];
 
-  /* =======================================================
+  /* =========================================================
      RENDER
-  ======================================================= */
+  ========================================================= */
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-slate-50">
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        {/* =================================================
-            WELCOME HEADER
-        ================================================== */
+        {/* Welcome Header */}
 
         <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
             <div className="flex items-center gap-4">
               <Avatar
+                src={user?.avatar || ""}
+                alt={user?.name || "Student"}
                 sx={{
                   width: 52,
                   height: 52,
@@ -890,7 +911,7 @@ export default function DashboardHome() {
                 </p>
 
                 <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-                  Welcome back, {firstName}
+                  Welcome back, {firstName}!
                 </h1>
 
                 <p className="mt-1 text-sm leading-6 text-slate-500">
@@ -904,15 +925,17 @@ export default function DashboardHome() {
               component={Link}
               to={ROUTES.COURSES}
               variant="contained"
-              endIcon={
-                <ArrowForwardIcon />
-              }
+              endIcon={<ArrowForwardIcon />}
               sx={{
                 minHeight: 42,
+                width: "100%",
                 borderRadius: "12px",
                 textTransform: "none",
                 fontWeight: 700,
                 boxShadow: "none",
+                "@media (min-width: 640px)": {
+                  width: "auto",
+                },
               }}
             >
               Explore Courses
@@ -920,9 +943,7 @@ export default function DashboardHome() {
           </div>
         </section>
 
-        {/* =================================================
-            LOADING
-        ================================================== */
+        {/* Loading / Error / Dashboard */}
 
         {loading ? (
           <DashboardLoading />
@@ -933,9 +954,7 @@ export default function DashboardHome() {
           />
         ) : (
           <>
-            {/* =============================================
-                STATS
-            ============================================== */
+            {/* Stats */}
 
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {statCards.map((stat) => (
@@ -946,9 +965,7 @@ export default function DashboardHome() {
               ))}
             </section>
 
-            {/* =============================================
-                CONTINUE LEARNING
-            ============================================== */
+            {/* Continue Learning */}
 
             <div className="mt-6">
               <ContinueLearningCard
@@ -956,9 +973,7 @@ export default function DashboardHome() {
               />
             </div>
 
-            {/* =============================================
-                MAIN GRID
-            ============================================== */
+            {/* Main Grid */}
 
             <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
               <LearningStatus
@@ -976,21 +991,15 @@ export default function DashboardHome() {
               <QuickActions />
             </div>
 
-            {/* =============================================
-                NOTIFICATIONS
-            ============================================== */
+            {/* Notifications */}
 
             <div className="mt-6">
               <RecentNotifications
-                notifications={
-                  notifications
-                }
+                notifications={notifications}
               />
             </div>
 
-            {/* =============================================
-                EMPTY ENROLLED COURSES NOTICE
-            ============================================== */
+            {/* Empty Enrolled Courses Notice */}
 
             {!enrolledCourses.length && (
               <section className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-5 sm:p-6">
