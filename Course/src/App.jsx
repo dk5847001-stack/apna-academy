@@ -1,92 +1,51 @@
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  Route,
-  Routes,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 
 import CourseDetails from "./pages/CourseDetails";
 import CoursePlayerLayout from "./layouts/CoursePlayerLayout";
 import Certificate from "./pages/Certificate";
-import {
-  COURSE_ROUTES,
-  STORAGE_KEYS,
-} from "./constants/config";
-
-import {
-  getCourseBySlug,
-} from "./services/course.service";
-
+import { COURSE_ROUTES, FRONTEND_URL } from "./constants/config";
+import { getCourseBySlug } from "./services/course.service";
 import {
   getLearningCourse,
   normalizeLearningCourse,
   normalizeLearningVideo,
 } from "./services/learning.service";
-
 import useVideoProgress from "./hooks/useVideoProgress";
 
-/* =========================================================
-   COURSE HOME
-========================================================= */
+const getVideoId = (video) => video?._id || video?.id || "";
+
+const getLastWatchedVideoId = (value) => {
+  if (!value) return "";
+  if (typeof value === "object") return value._id || value.id || "";
+  return value;
+};
+
+const redirectToLogin = () => {
+  window.location.assign(`${FRONTEND_URL}/login`);
+};
 
 function CourseHome() {
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        backgroundColor: "#ffffff",
+        backgroundColor: "#fff",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         px: 3,
       }}
     >
-      <Stack
-        spacing={2}
-        alignItems="center"
-        textAlign="center"
-      >
-        <Typography
-          variant="overline"
-          color="primary.main"
-          fontWeight={900}
-          letterSpacing={3}
-        >
+      <Stack spacing={2} alignItems="center" textAlign="center">
+        <Typography variant="overline" color="primary.main" fontWeight={900} letterSpacing={3}>
           ApnaAcademy
         </Typography>
-
-        <Typography
-          variant="h2"
-          fontWeight={900}
-          sx={{
-            fontSize: {
-              xs: "2.2rem",
-              sm: "3.5rem",
-            },
-          }}
-        >
+        <Typography variant="h2" fontWeight={900} sx={{ fontSize: { xs: "2.2rem", sm: "3.5rem" } }}>
           Courses
         </Typography>
-
-        <Typography
-          color="text.secondary"
-          maxWidth={500}
-        >
+        <Typography color="text.secondary" maxWidth={500}>
           Select a course to start learning.
         </Typography>
       </Stack>
@@ -94,746 +53,193 @@ function CourseHome() {
   );
 }
 
-/* =========================================================
-   AUTH CHECK
-========================================================= */
-
-function hasAuthenticationToken() {
-  return Boolean(
-    localStorage.getItem(
-      STORAGE_KEYS.TOKEN
-    )
-  );
-}
-
-/* =========================================================
-   VIDEO ID HELPER
-========================================================= */
-
-function getVideoId(video) {
-  if (!video) {
-    return "";
-  }
-
-  return (
-    video._id ||
-    video.id ||
-    ""
-  );
-}
-
-/* =========================================================
-   LAST WATCHED VIDEO ID
-========================================================= */
-
-function getLastWatchedVideoId(
-  lastWatchedVideo
-) {
-  if (!lastWatchedVideo) {
-    return "";
-  }
-
-  if (
-    typeof lastWatchedVideo ===
-    "object"
-  ) {
-    return (
-      lastWatchedVideo._id ||
-      lastWatchedVideo.id ||
-      ""
-    );
-  }
-
-  return lastWatchedVideo;
-}
-
-/* =========================================================
-   LEARNING PAGE
-========================================================= */
-
 function CourseLearningPage() {
-  const {
-    slug,
-    videoId,
-  } = useParams();
-
-  const navigate =
-    useNavigate();
-
-  const [course, setCourse] =
-    useState(null);
-
-  const [modules, setModules] =
-    useState([]);
-
-  const [progress, setProgress] =
-    useState(null);
-
-  const [
-    currentVideo,
-    setCurrentVideo,
-  ] = useState(null);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
-
-  /* =======================================================
-     LOAD LEARNING DATA
-  ======================================================= */
+  const { slug, videoId } = useParams();
+  const navigate = useNavigate();
+  const [course, setCourse] = useState(null);
+  const [modules, setModules] = useState([]);
+  const [progress, setProgress] = useState(null);
+  const [currentVideo, setCurrentVideo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let mounted = true;
 
-    const loadLearningData =
-      async () => {
-        try {
-          setLoading(true);
-          setError("");
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-          /* -----------------------------------------------
-             Authentication
-          ----------------------------------------------- */
+        const courseResult = await getCourseBySlug(slug);
+        if (!mounted) return;
 
-          if (
-            !hasAuthenticationToken()
-          ) {
-            navigate(
-              "/login",
-              {
-                replace: true,
-                state: {
-                  message:
-                    "Please login to continue learning.",
-                  redirectTo:
-                    COURSE_ROUTES.LEARN(
-                      slug
-                    ),
-                },
-              }
-            );
+        const courseData = courseResult?.course;
+        const courseId = courseData?._id || courseData?.id;
+        if (!courseData || !courseId) {
+          throw new Error("Course information could not be loaded.");
+        }
 
-            return;
-          }
+        const learningResult = await getLearningCourse(courseId);
+        if (!mounted) return;
 
-          /* -----------------------------------------------
-             Get public course details
-          ----------------------------------------------- */
+        const normalized = normalizeLearningCourse(learningResult);
+        if (!normalized?.access?.isPurchased) {
+          navigate(COURSE_ROUTES.DETAILS(slug), {
+            replace: true,
+            state: { message: "Please enroll in this course to start learning." },
+          });
+          return;
+        }
 
-          const courseResult =
-            await getCourseBySlug(
-              slug
-            );
+        setCourse(normalized.course || courseData);
+        setModules(normalized.modules || []);
+        setProgress(normalized.progress || null);
 
-          if (!mounted) {
-            return;
-          }
+        const videos = (normalized.modules || []).flatMap((module) =>
+          Array.isArray(module?.videos) ? module.videos : []
+        );
 
-          const courseData =
-            courseResult?.course;
+        let selected = videoId
+          ? videos.find((video) => String(getVideoId(video)) === String(videoId))
+          : null;
 
-          if (!courseData) {
-            throw new Error(
-              "Course information could not be loaded."
-            );
-          }
-
-          const courseId =
-            courseData._id ||
-            courseData.id;
-
-          if (!courseId) {
-            throw new Error(
-              "Course ID is missing."
-            );
-          }
-
-          /* -----------------------------------------------
-             Get protected learning data
-          ----------------------------------------------- */
-
-          const learningResult =
-            await getLearningCourse(
-              courseId
-            );
-
-          if (!mounted) {
-            return;
-          }
-
-          const normalized =
-            normalizeLearningCourse(
-              learningResult
-            );
-
-          /* -----------------------------------------------
-             Purchase/access check
-          ----------------------------------------------- */
-
-          if (
-            !normalized.access
-              .isPurchased
-          ) {
-            navigate(
-              COURSE_ROUTES.DETAILS(
-                slug
-              ),
-              {
-                replace: true,
-                state: {
-                  message:
-                    "Please enroll in this course to start learning.",
-                },
-              }
-            );
-
-            return;
-          }
-
-          /* -----------------------------------------------
-             Save course data
-          ----------------------------------------------- */
-
-          setCourse(
-            normalized.course ||
-            courseData
-          );
-
-          setModules(
-            normalized.modules
-          );
-
-          setProgress(
-            normalized.progress
-          );
-
-          /* -----------------------------------------------
-             Find all videos
-          ----------------------------------------------- */
-
-          const availableVideos =
-            normalized.modules.flatMap(
-              (module) =>
-                Array.isArray(
-                  module?.videos
-                )
-                  ? module.videos
-                  : []
-            );
-
-          let selectedVideo =
-            null;
-
-          /* -----------------------------------------------
-             Requested video
-          ----------------------------------------------- */
-
-          if (videoId) {
-            selectedVideo =
-              availableVideos.find(
-                (video) =>
-                  String(
-                    getVideoId(video)
-                  ) ===
-                  String(videoId)
-              ) || null;
-          }
-
-          /* -----------------------------------------------
-             Continue Learning
-          ----------------------------------------------- */
-
-          if (
-            !selectedVideo
-          ) {
-            const lastVideoId =
-              getLastWatchedVideoId(
-                normalized
-                  .progress
-                  .lastWatchedVideo
-              );
-
-            if (lastVideoId) {
-              selectedVideo =
-                availableVideos.find(
-                  (video) =>
-                    String(
-                      getVideoId(video)
-                    ) ===
-                    String(
-                      lastVideoId
-                    )
-                ) || null;
-            }
-          }
-
-          /* -----------------------------------------------
-             First unlocked video fallback
-          ----------------------------------------------- */
-
-          if (
-            !selectedVideo
-          ) {
-            selectedVideo =
-              availableVideos.find(
-                (video) =>
-                  !video?.isLocked
-              ) || null;
-          }
-
-          if (selectedVideo) {
-            setCurrentVideo(
-              normalizeLearningVideo({
-                video: selectedVideo,
-              })
-            );
-          }
-        } catch (err) {
-          console.error(
-            "Learning page error:",
-            err
-          );
-
-          if (!mounted) {
-            return;
-          }
-
-          /* ---------------------------------------------
-             Session expired
-          --------------------------------------------- */
-
-          if (
-            err?.response?.status ===
-            401
-          ) {
-            localStorage.removeItem(
-              STORAGE_KEYS.TOKEN
-            );
-
-            localStorage.removeItem(
-              STORAGE_KEYS.USER
-            );
-
-            navigate(
-              "/login",
-              {
-                replace: true,
-                state: {
-                  message:
-                    "Your session has expired. Please login again.",
-                  redirectTo:
-                    COURSE_ROUTES.LEARN(
-                      slug
-                    ),
-                },
-              }
-            );
-
-            return;
-          }
-
-          /* ---------------------------------------------
-             General error
-          --------------------------------------------- */
-
-          setError(
-            err?.response?.data
-              ?.message ||
-            err?.message ||
-            "Unable to load your course."
-          );
-        } finally {
-          if (mounted) {
-            setLoading(false);
+        if (!selected) {
+          const lastId = getLastWatchedVideoId(normalized.progress?.lastWatchedVideo);
+          if (lastId) {
+            selected = videos.find((video) => String(getVideoId(video)) === String(lastId)) || null;
           }
         }
-      };
 
-    if (slug) {
-      loadLearningData();
-    }
+        if (!selected) {
+          selected = videos.find((video) => !video?.isLocked) || null;
+        }
 
+        setCurrentVideo(selected ? normalizeLearningVideo({ video: selected }) : null);
+      } catch (err) {
+        console.error("Learning page error:", err);
+        if (!mounted) return;
+
+        if (err?.response?.status === 401) {
+          redirectToLogin();
+          return;
+        }
+
+        setError(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Unable to load your course."
+        );
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    if (slug) load();
     return () => {
       mounted = false;
     };
-  }, [
-    slug,
-    videoId,
-    navigate,
-  ]);
+  }, [slug, videoId, navigate]);
 
-  /* =======================================================
-     ALL VIDEOS
-  ======================================================= */
+  const currentPosition = useMemo(() => {
+    if (!progress || !currentVideo) return 0;
+    const lastId = getLastWatchedVideoId(progress.lastWatchedVideo);
+    if (!lastId || String(lastId) !== String(getVideoId(currentVideo))) return 0;
+    return Math.max(0, Number(progress.lastWatchedPosition) || 0);
+  }, [progress, currentVideo]);
 
-  /* =======================================================
-     CURRENT VIDEO POSITION
-  ======================================================= */
+  const handleProgressUpdated = useCallback((updatedProgress) => {
+    if (!updatedProgress) return;
+    setProgress(updatedProgress);
 
-  const currentPosition =
-    useMemo(() => {
-      if (
-        !progress ||
-        !currentVideo
-      ) {
-        return 0;
-      }
-
-      const lastVideoId =
-        getLastWatchedVideoId(
-          progress.lastWatchedVideo
-        );
-
-      if (!lastVideoId) {
-        return 0;
-      }
-
-      if (
-        String(lastVideoId) !==
-        String(
-          getVideoId(
-            currentVideo
-          )
-        )
-      ) {
-        return 0;
-      }
-
-      return Math.max(
-        0,
-        Number(
-          progress.lastWatchedPosition
-        ) || 0
-      );
-    }, [
-      progress,
-      currentVideo,
-    ]);
-
-  /* =======================================================
-     PROGRESS UPDATED
-  ======================================================= */
-
-  const handleProgressUpdated =
-    useCallback(
-      (updatedProgress) => {
-        if (!updatedProgress) {
-          return;
-        }
-
-        setProgress(
-          updatedProgress
-        );
-
-        const completedIds =
-          new Set(
-            Array.isArray(
-              updatedProgress.completedVideos
-            )
-              ? updatedProgress.completedVideos.map(
-                (item) =>
-                  String(
-                    getVideoId(
-                      item
-                    )
-                  )
-              )
-              : []
-          );
-
-        setModules(
-          (previousModules) =>
-            previousModules.map(
-              (module) => ({
-                ...module,
-
-                videos:
-                  Array.isArray(
-                    module?.videos
-                  )
-                    ? module.videos.map(
-                      (video) => ({
-                        ...video,
-
-                        isCompleted:
-                          completedIds.has(
-                            String(
-                              getVideoId(
-                                video
-                              )
-                            )
-                          ),
-                      })
-                    )
-                    : [],
-              })
-            )
-        );
-
-        setCurrentVideo(
-          (previousVideo) => {
-            if (
-              !previousVideo
-            ) {
-              return previousVideo;
-            }
-
-            const currentId =
-              String(
-                getVideoId(
-                  previousVideo
-                )
-              );
-
-            return {
-              ...previousVideo,
-
-              isCompleted:
-                completedIds.has(
-                  currentId
-                ),
-            };
-          }
-        );
-      },
-      []
+    const completedIds = new Set(
+      Array.isArray(updatedProgress.completedVideos)
+        ? updatedProgress.completedVideos.map((item) => String(getVideoId(item)))
+        : []
     );
 
-  /* =======================================================
-     VIDEO COMPLETED
-  ======================================================= */
-
-  const handleVideoCompleted =
-    useCallback(
-      (updatedProgress) => {
-        if (!updatedProgress) {
-          return;
-        }
-
-        handleProgressUpdated(
-          updatedProgress
-        );
-      },
-      [handleProgressUpdated]
+    setModules((previous) =>
+      previous.map((module) => ({
+        ...module,
+        videos: Array.isArray(module?.videos)
+          ? module.videos.map((video) => ({
+              ...video,
+              isCompleted: completedIds.has(String(getVideoId(video))),
+            }))
+          : [],
+      }))
     );
 
-  /* =======================================================
-     VIDEO PROGRESS TRACKER
-  ======================================================= */
+    setCurrentVideo((previous) =>
+      previous
+        ? { ...previous, isCompleted: completedIds.has(String(getVideoId(previous))) }
+        : previous
+    );
+  }, []);
 
-  const {
-    handleTimeUpdate,
-    handleEnded,
-    handlePause,
-    handleLoadedMetadata,
-  } =
+  const handleVideoCompleted = useCallback(
+    (updatedProgress) => handleProgressUpdated(updatedProgress),
+    [handleProgressUpdated]
+  );
+
+  const { handleTimeUpdate, handleEnded, handlePause, handleLoadedMetadata } =
     useVideoProgress({
-      courseId:
-        course?._id ||
-        course?.id ||
-        null,
-
-      video:
-        currentVideo,
-
-      initialPosition:
-        currentPosition,
-
-      onProgressUpdated:
-        handleProgressUpdated,
-
-      onCompleted:
-        handleVideoCompleted,
+      courseId: course?._id || course?.id || null,
+      video: currentVideo,
+      initialPosition: currentPosition,
+      onProgressUpdated: handleProgressUpdated,
+      onCompleted: handleVideoCompleted,
     });
 
-  /* =======================================================
-     VIDEO SELECTION
-  ======================================================= */
+  const handleVideoSelect = useCallback(
+    (video) => {
+      if (!video || video.isLocked) return;
+      const id = getVideoId(video);
+      if (!id) return;
+      navigate(COURSE_ROUTES.VIDEO(slug, id));
+    },
+    [navigate, slug]
+  );
 
-  const handleVideoSelect =
-    useCallback(
-      (video) => {
-        if (
-          !video ||
-          video.isLocked
-        ) {
-          return;
-        }
+  const handlePrevious = useCallback(
+    (video) => {
+      if (!video || video.isLocked) return;
+      const id = getVideoId(video);
+      if (id) navigate(COURSE_ROUTES.VIDEO(slug, id));
+    },
+    [navigate, slug]
+  );
 
-        const id =
-          getVideoId(video);
+  const handleNext = useCallback(
+    (video) => {
+      if (!video || video.isLocked) return;
+      const id = getVideoId(video);
+      if (id) navigate(COURSE_ROUTES.VIDEO(slug, id));
+    },
+    [navigate, slug]
+  );
 
-        if (!id) {
-          return;
-        }
-
-        navigate(
-          COURSE_ROUTES.VIDEO(
-            slug,
-            id
-          )
-        );
-      },
-      [navigate, slug]
-    );
-
-  /* =======================================================
-     PREVIOUS VIDEO
-  ======================================================= */
-
-  const handlePrevious =
-    useCallback(
-      (video) => {
-        if (!video) {
-          return;
-        }
-
-        const id =
-          getVideoId(video);
-
-        if (!id) {
-          return;
-        }
-
-        navigate(
-          COURSE_ROUTES.VIDEO(
-            slug,
-            id
-          )
-        );
-      },
-      [navigate, slug]
-    );
-
-  /* =======================================================
-     NEXT VIDEO
-  ======================================================= */
-
-  const handleNext =
-    useCallback(
-      (video) => {
-        if (!video) {
-          return;
-        }
-
-        const id =
-          getVideoId(video);
-
-        if (!id) {
-          return;
-        }
-
-        navigate(
-          COURSE_ROUTES.VIDEO(
-            slug,
-            id
-          )
-        );
-      },
-      [navigate, slug]
-    );
-
-  /* =======================================================
-     BACK TO COURSE
-  ======================================================= */
-
-  const handleBack =
-    useCallback(() => {
-      navigate(
-        COURSE_ROUTES.DETAILS(
-          slug
-        )
-      );
-    }, [navigate, slug]);
-
-  /* =======================================================
-     LOADING
-  ======================================================= */
+  const handleBack = useCallback(() => {
+    navigate(COURSE_ROUTES.DETAILS(slug));
+  }, [navigate, slug]);
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          backgroundColor:
-            "#ffffff",
-          display: "flex",
-          alignItems:
-            "center",
-          justifyContent:
-            "center",
-          px: 2,
-        }}
-      >
-        <Stack
-          spacing={2}
-          alignItems="center"
-        >
+      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
+        <Stack spacing={2} alignItems="center">
           <CircularProgress />
-
-          <Typography
-            color="text.secondary"
-          >
-            Loading your course...
-          </Typography>
+          <Typography color="text.secondary">Loading your course...</Typography>
         </Stack>
       </Box>
     );
   }
 
-  /* =======================================================
-     ERROR
-  ======================================================= */
-
   if (error) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          backgroundColor:
-            "#ffffff",
-          display: "flex",
-          alignItems:
-            "center",
-          justifyContent:
-            "center",
-          px: 2,
-        }}
-      >
-        <Stack
-          spacing={2}
-          maxWidth={520}
-          width="100%"
-        >
-          <Alert
-            severity="error"
-            sx={{
-              borderRadius: 3,
-            }}
-          >
-            {error}
-          </Alert>
-
-          <Button
-            variant="contained"
-            onClick={() =>
-              navigate(
-                COURSE_ROUTES.DETAILS(
-                  slug
-                )
-              )
-            }
-            sx={{
-              alignSelf:
-                "flex-start",
-              borderRadius: 2,
-              fontWeight: 800,
-              textTransform:
-                "none",
-            }}
-          >
+      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
+        <Stack spacing={2} maxWidth={520} width="100%">
+          <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
+          <Button variant="contained" onClick={() => navigate(COURSE_ROUTES.DETAILS(slug))} sx={{ alignSelf: "flex-start", textTransform: "none", fontWeight: 800 }}>
             Back to Course
           </Button>
         </Stack>
@@ -841,161 +247,47 @@ function CourseLearningPage() {
     );
   }
 
-  /* =======================================================
-     PLAYER
-  ======================================================= */
-
   return (
     <CoursePlayerLayout
       course={course}
-      courseTitle={
-        course?.title || ""
-      }
+      courseTitle={course?.title || ""}
       modules={modules}
-      progress={
-        progress?.overallProgress ||
-        0
-      }
-      currentVideo={
-        currentVideo
-      }
-      currentPosition={
-        currentPosition
-      }
-      onBack={
-        handleBack
-      }
-      onPrevious={
-        handlePrevious
-      }
-      onNext={
-        handleNext
-      }
-      onVideoSelect={
-        handleVideoSelect
-      }
-      onTimeUpdate={
-        handleTimeUpdate
-      }
-      onLoadedMetadata={
-        handleLoadedMetadata
-      }
-      onEnded={
-        handleEnded
-      }
-      onPause={
-        handlePause
-      }
+      progress={progress?.overallProgress || 0}
+      currentVideo={currentVideo}
+      currentPosition={currentPosition}
+      onBack={handleBack}
+      onPrevious={handlePrevious}
+      onNext={handleNext}
+      onVideoSelect={handleVideoSelect}
+      onTimeUpdate={handleTimeUpdate}
+      onLoadedMetadata={handleLoadedMetadata}
+      onEnded={handleEnded}
+      onPause={handlePause}
     />
   );
 }
 
-/* =========================================================
-   NOT FOUND
-========================================================= */
-
 function NotFound() {
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        backgroundColor:
-          "#ffffff",
-        display: "flex",
-        alignItems:
-          "center",
-        justifyContent:
-          "center",
-        px: 3,
-      }}
-    >
-      <Stack
-        spacing={2}
-        alignItems="center"
-        textAlign="center"
-      >
-        <Typography
-          sx={{
-            fontSize: "4rem",
-            fontWeight: 900,
-            color:
-              "primary.main",
-          }}
-        >
-          404
-        </Typography>
-
-        <Typography
-          variant="h5"
-          fontWeight={900}
-        >
-          Page not found
-        </Typography>
-
-        <Typography
-          color="text.secondary"
-        >
-          The page you are looking for
-          does not exist.
-        </Typography>
+    <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
+      <Stack spacing={2} alignItems="center" textAlign="center">
+        <Typography sx={{ fontSize: "4rem", fontWeight: 900, color: "primary.main" }}>404</Typography>
+        <Typography variant="h5" fontWeight={900}>Page not found</Typography>
+        <Typography color="text.secondary">The page you are looking for does not exist.</Typography>
       </Stack>
     </Box>
   );
 }
 
-/* =========================================================
-   APP
-========================================================= */
-
 export default function App() {
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <CourseHome />
-        }
-      />
-
-      <Route
-        path="/courses/:slug"
-        element={
-          <CourseDetails />
-        }
-      />
-
-      <Route
-        path="/courses/:slug/learn"
-        element={
-          <CourseLearningPage />
-        }
-      />
-
-      <Route
-        path="/courses/:slug/learn/:videoId"
-        element={
-          <CourseLearningPage />
-        }
-      />
-
-      <Route
-        path="/courses/:slug/certificate"
-        element={
-          <CourseLearningPage />
-        }
-      />
-
-      <Route
-  path="/courses/:slug/certificate"
-  element={<Certificate />}
-/>
-
-      <Route
-        path="*"
-        element={
-          <NotFound />
-        }
-      />
+      <Route path="/" element={<CourseHome />} />
+      <Route path="/courses/:slug" element={<CourseDetails />} />
+      <Route path="/courses/:slug/learn" element={<CourseLearningPage />} />
+      <Route path="/courses/:slug/learn/:videoId" element={<CourseLearningPage />} />
+      <Route path="/courses/:slug/certificate" element={<Certificate />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
