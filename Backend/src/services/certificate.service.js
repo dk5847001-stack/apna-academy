@@ -24,7 +24,8 @@ const BACKEND_PUBLIC_URL =
   process.env.BACKEND_PUBLIC_URL ||
   "http://localhost:5000";
 
-const FRONTEND_PUBLIC_URL =
+const COURSE_PUBLIC_URL =
+  process.env.COURSE_PUBLIC_URL ||
   process.env.FRONTEND_URL ||
   "http://localhost:5173";
 
@@ -107,14 +108,7 @@ const removeGeneratedFile = async (
 const buildVerificationUrl = (
   certificateId
 ) => {
-  /*
-   * The frontend verification page will be connected
-   * in the next certificate UI step.
-   *
-   * Keeping the URL deterministic means the QR code
-   * remains valid once that page is available.
-   */
-  return `${FRONTEND_PUBLIC_URL.replace(
+  return `${COURSE_PUBLIC_URL.replace(
     /\/$/,
     ""
   )}/certificate/verify/${encodeURIComponent(
