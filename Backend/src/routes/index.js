@@ -9,6 +9,7 @@ import dashboardRoutes from "./dashboard.routes.js";
 import certificateRoutes from "./certificate.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import profileRoutes from "./profile.routes.js";
+import supportRoutes from "./support.routes.js";
 
 const router = Router();
 
@@ -36,5 +37,6 @@ router.use("/dashboard", dashboardRoutes);
 router.use("/certificates", certificateRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/profile", profileRoutes);
+router.use("/support", supportRoutes);
 
 export default router;
