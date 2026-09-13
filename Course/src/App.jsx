@@ -5,6 +5,7 @@ import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/ma
 import CourseDetails from "./pages/CourseDetails";
 import CoursePlayerLayout from "./layouts/CoursePlayerLayout";
 import Certificate from "./pages/Certificate";
+import CertificateVerify from "./pages/CertificateVerify";
 import { COURSE_ROUTES, FRONTEND_URL } from "./constants/config";
 import { getCourseBySlug } from "./services/course.service";
 import {
@@ -28,26 +29,11 @@ const redirectToLogin = () => {
 
 function CourseHome() {
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        backgroundColor: "#fff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        px: 3,
-      }}
-    >
+    <Box sx={{ minHeight: "100vh", backgroundColor: "#fff", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
       <Stack spacing={2} alignItems="center" textAlign="center">
-        <Typography variant="overline" color="primary.main" fontWeight={900} letterSpacing={3}>
-          ApnaAcademy
-        </Typography>
-        <Typography variant="h2" fontWeight={900} sx={{ fontSize: { xs: "2.2rem", sm: "3.5rem" } }}>
-          Courses
-        </Typography>
-        <Typography color="text.secondary" maxWidth={500}>
-          Select a course to start learning.
-        </Typography>
+        <Typography variant="overline" color="primary.main" fontWeight={900} letterSpacing={3}>ApnaAcademy</Typography>
+        <Typography variant="h2" fontWeight={900} sx={{ fontSize: { xs: "2.2rem", sm: "3.5rem" } }}>Courses</Typography>
+        <Typography color="text.secondary" maxWidth={500}>Select a course to start learning.</Typography>
       </Stack>
     </Box>
   );
@@ -65,80 +51,44 @@ function CourseLearningPage() {
 
   useEffect(() => {
     let mounted = true;
-
     const load = async () => {
       try {
         setLoading(true);
         setError("");
-
         const courseResult = await getCourseBySlug(slug);
         if (!mounted) return;
-
         const courseData = courseResult?.course;
         const courseId = courseData?._id || courseData?.id;
-        if (!courseData || !courseId) {
-          throw new Error("Course information could not be loaded.");
-        }
-
+        if (!courseData || !courseId) throw new Error("Course information could not be loaded.");
         const learningResult = await getLearningCourse(courseId);
         if (!mounted) return;
-
         const normalized = normalizeLearningCourse(learningResult);
         if (!normalized?.access?.isPurchased) {
-          navigate(COURSE_ROUTES.DETAILS(slug), {
-            replace: true,
-            state: { message: "Please enroll in this course to start learning." },
-          });
+          navigate(COURSE_ROUTES.DETAILS(slug), { replace: true, state: { message: "Please enroll in this course to start learning." } });
           return;
         }
-
         setCourse(normalized.course || courseData);
         setModules(normalized.modules || []);
         setProgress(normalized.progress || null);
-
-        const videos = (normalized.modules || []).flatMap((module) =>
-          Array.isArray(module?.videos) ? module.videos : []
-        );
-
-        let selected = videoId
-          ? videos.find((video) => String(getVideoId(video)) === String(videoId))
-          : null;
-
+        const videos = (normalized.modules || []).flatMap((module) => Array.isArray(module?.videos) ? module.videos : []);
+        let selected = videoId ? videos.find((video) => String(getVideoId(video)) === String(videoId)) : null;
         if (!selected) {
           const lastId = getLastWatchedVideoId(normalized.progress?.lastWatchedVideo);
-          if (lastId) {
-            selected = videos.find((video) => String(getVideoId(video)) === String(lastId)) || null;
-          }
+          if (lastId) selected = videos.find((video) => String(getVideoId(video)) === String(lastId)) || null;
         }
-
-        if (!selected) {
-          selected = videos.find((video) => !video?.isLocked) || null;
-        }
-
+        if (!selected) selected = videos.find((video) => !video?.isLocked) || null;
         setCurrentVideo(selected ? normalizeLearningVideo({ video: selected }) : null);
       } catch (err) {
         console.error("Learning page error:", err);
         if (!mounted) return;
-
-        if (err?.response?.status === 401) {
-          redirectToLogin();
-          return;
-        }
-
-        setError(
-          err?.response?.data?.message ||
-            err?.message ||
-            "Unable to load your course."
-        );
+        if (err?.response?.status === 401) { redirectToLogin(); return; }
+        setError(err?.response?.data?.message || err?.message || "Unable to load your course.");
       } finally {
         if (mounted) setLoading(false);
       }
     };
-
     if (slug) load();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [slug, videoId, navigate]);
 
   const currentPosition = useMemo(() => {
@@ -151,143 +101,52 @@ function CourseLearningPage() {
   const handleProgressUpdated = useCallback((updatedProgress) => {
     if (!updatedProgress) return;
     setProgress(updatedProgress);
-
-    const completedIds = new Set(
-      Array.isArray(updatedProgress.completedVideos)
-        ? updatedProgress.completedVideos.map((item) => String(getVideoId(item)))
-        : []
-    );
-
-    setModules((previous) =>
-      previous.map((module) => ({
-        ...module,
-        videos: Array.isArray(module?.videos)
-          ? module.videos.map((video) => ({
-              ...video,
-              isCompleted: completedIds.has(String(getVideoId(video))),
-            }))
-          : [],
-      }))
-    );
-
-    setCurrentVideo((previous) =>
-      previous
-        ? { ...previous, isCompleted: completedIds.has(String(getVideoId(previous))) }
-        : previous
-    );
+    const completedIds = new Set(Array.isArray(updatedProgress.completedVideos) ? updatedProgress.completedVideos.map((item) => String(getVideoId(item))) : []);
+    setModules((previous) => previous.map((module) => ({ ...module, videos: Array.isArray(module?.videos) ? module.videos.map((video) => ({ ...video, isCompleted: completedIds.has(String(getVideoId(video))) })) : [] })));
+    setCurrentVideo((previous) => previous ? { ...previous, isCompleted: completedIds.has(String(getVideoId(previous))) } : previous);
   }, []);
 
-  const handleVideoCompleted = useCallback(
-    (updatedProgress) => handleProgressUpdated(updatedProgress),
-    [handleProgressUpdated]
-  );
+  const handleVideoCompleted = useCallback((updatedProgress) => handleProgressUpdated(updatedProgress), [handleProgressUpdated]);
+  const { handleTimeUpdate, handleEnded, handlePause, handleLoadedMetadata } = useVideoProgress({ courseId: course?._id || course?.id || null, video: currentVideo, initialPosition: currentPosition, onProgressUpdated: handleProgressUpdated, onCompleted: handleVideoCompleted });
 
-  const { handleTimeUpdate, handleEnded, handlePause, handleLoadedMetadata } =
-    useVideoProgress({
-      courseId: course?._id || course?.id || null,
-      video: currentVideo,
-      initialPosition: currentPosition,
-      onProgressUpdated: handleProgressUpdated,
-      onCompleted: handleVideoCompleted,
-    });
-
-  const handleVideoSelect = useCallback(
-    (video) => {
-      if (!video || video.isLocked) return;
-      const id = getVideoId(video);
-      if (!id) return;
-      navigate(COURSE_ROUTES.VIDEO(slug, id));
-    },
-    [navigate, slug]
-  );
-
-  const handlePrevious = useCallback(
-    (video) => {
-      if (!video || video.isLocked) return;
-      const id = getVideoId(video);
-      if (id) navigate(COURSE_ROUTES.VIDEO(slug, id));
-    },
-    [navigate, slug]
-  );
-
-  const handleNext = useCallback(
-    (video) => {
-      if (!video || video.isLocked) return;
-      const id = getVideoId(video);
-      if (id) navigate(COURSE_ROUTES.VIDEO(slug, id));
-    },
-    [navigate, slug]
-  );
-
-  const handleBack = useCallback(() => {
-    navigate(COURSE_ROUTES.DETAILS(slug));
+  const handleVideoSelect = useCallback((video) => {
+    if (!video || video.isLocked) return;
+    const id = getVideoId(video);
+    if (id) navigate(COURSE_ROUTES.VIDEO(slug, id));
   }, [navigate, slug]);
 
-  if (loading) {
-    return (
-      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
-        <Stack spacing={2} alignItems="center">
-          <CircularProgress />
-          <Typography color="text.secondary">Loading your course...</Typography>
-        </Stack>
-      </Box>
-    );
-  }
+  const handlePrevious = useCallback((video) => {
+    if (!video || video.isLocked) return;
+    const id = getVideoId(video);
+    if (id) navigate(COURSE_ROUTES.VIDEO(slug, id));
+  }, [navigate, slug]);
 
-  if (error) {
-    return (
-      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
-        <Stack spacing={2} maxWidth={520} width="100%">
-          <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
-          <Button variant="contained" onClick={() => navigate(COURSE_ROUTES.DETAILS(slug))} sx={{ alignSelf: "flex-start", textTransform: "none", fontWeight: 800 }}>
-            Back to Course
-          </Button>
-        </Stack>
-      </Box>
-    );
-  }
+  const handleNext = useCallback((video) => {
+    if (!video || video.isLocked) return;
+    const id = getVideoId(video);
+    if (id) navigate(COURSE_ROUTES.VIDEO(slug, id));
+  }, [navigate, slug]);
 
-  return (
-    <CoursePlayerLayout
-      course={course}
-      courseTitle={course?.title || ""}
-      modules={modules}
-      progress={progress?.overallProgress || 0}
-      currentVideo={currentVideo}
-      currentPosition={currentPosition}
-      onBack={handleBack}
-      onPrevious={handlePrevious}
-      onNext={handleNext}
-      onVideoSelect={handleVideoSelect}
-      onTimeUpdate={handleTimeUpdate}
-      onLoadedMetadata={handleLoadedMetadata}
-      onEnded={handleEnded}
-      onPause={handlePause}
-    />
-  );
+  const handleBack = useCallback(() => navigate(COURSE_ROUTES.DETAILS(slug)), [navigate, slug]);
+
+  if (loading) return <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}><Stack spacing={2} alignItems="center"><CircularProgress /><Typography color="text.secondary">Loading your course...</Typography></Stack></Box>;
+  if (error) return <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}><Stack spacing={2} maxWidth={520} width="100%"><Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert><Button variant="contained" onClick={() => navigate(COURSE_ROUTES.DETAILS(slug))} sx={{ alignSelf: "flex-start", textTransform: "none", fontWeight: 800 }}>Back to Course</Button></Stack></Box>;
+
+  return <CoursePlayerLayout course={course} courseTitle={course?.title || ""} modules={modules} progress={progress?.overallProgress || 0} currentVideo={currentVideo} currentPosition={currentPosition} onBack={handleBack} onPrevious={handlePrevious} onNext={handleNext} onVideoSelect={handleVideoSelect} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={handleEnded} onPause={handlePause} />;
 }
 
 function NotFound() {
-  return (
-    <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
-      <Stack spacing={2} alignItems="center" textAlign="center">
-        <Typography sx={{ fontSize: "4rem", fontWeight: 900, color: "primary.main" }}>404</Typography>
-        <Typography variant="h5" fontWeight={900}>Page not found</Typography>
-        <Typography color="text.secondary">The page you are looking for does not exist.</Typography>
-      </Stack>
-    </Box>
-  );
+  return <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}><Stack spacing={2} alignItems="center" textAlign="center"><Typography sx={{ fontSize: "4rem", fontWeight: 900, color: "primary.main" }}>404</Typography><Typography variant="h5" fontWeight={900}>Page not found</Typography><Typography color="text.secondary">The page you are looking for does not exist.</Typography></Stack></Box>;
 }
 
 export default function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<CourseHome />} />
-      <Route path="/courses/:slug" element={<CourseDetails />} />
-      <Route path="/courses/:slug/learn" element={<CourseLearningPage />} />
-      <Route path="/courses/:slug/learn/:videoId" element={<CourseLearningPage />} />
-      <Route path="/courses/:slug/certificate" element={<Certificate />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
+  return <Routes>
+    <Route path="/" element={<CourseHome />} />
+    <Route path="/courses/:slug" element={<CourseDetails />} />
+    <Route path="/courses/:slug/learn" element={<CourseLearningPage />} />
+    <Route path="/courses/:slug/learn/:videoId" element={<CourseLearningPage />} />
+    <Route path="/courses/:slug/certificate" element={<Certificate />} />
+    <Route path="/certificate/verify/:certificateId" element={<CertificateVerify />} />
+    <Route path="*" element={<NotFound />} />
+  </Routes>;
 }
