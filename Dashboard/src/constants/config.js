@@ -42,6 +42,20 @@ export const ROUTES = {
   SUPPORT: "/dashboard/support",
 };
 
+export const COURSE_ROUTES = {
+  DETAILS: (slug) =>
+    `${COURSE_URL}/courses/${encodeURIComponent(slug)}`,
+
+  LEARN: (slug) =>
+    `${COURSE_URL}/courses/${encodeURIComponent(slug)}/learn`,
+
+  VIDEO: (slug, videoId) =>
+    `${COURSE_URL}/courses/${encodeURIComponent(slug)}/learn/${encodeURIComponent(videoId)}`,
+
+  CERTIFICATE: (slug) =>
+    `${COURSE_URL}/courses/${encodeURIComponent(slug)}/certificate`,
+};
+
 export const EXTERNAL_ROUTES = {
   FRONTEND: FRONTEND_URL,
   COURSE: COURSE_URL,
