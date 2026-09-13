@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
@@ -20,6 +20,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 import { useAuth } from "../context/AuthContext";
 import { ROUTES } from "../constants/config";
+import dashboardService from "../services/dashboard.service";
 
 /* =========================================================
    HELPERS
@@ -42,9 +43,7 @@ function getInitials(name = "") {
   }
 
   if (parts.length === 1) {
-    return parts[0]
-      .slice(0, 2)
-      .toUpperCase();
+    return parts[0].slice(0, 2).toUpperCase();
   }
 
   return (
@@ -53,62 +52,81 @@ function getInitials(name = "") {
   ).toUpperCase();
 }
 
-/* =========================================================
-   DEMO / EMPTY STATE DATA
-   ---------------------------------------------------------
-   Real backend data will replace these values in the
-   dashboard data-integration steps.
-========================================================= */
+function formatRelativeTime(dateValue) {
+  if (!dateValue) {
+    return "Recently";
+  }
 
-const dashboardStats = [
-  {
-    label: "Enrolled Courses",
-    value: "0",
-    icon: SchoolIcon,
-    iconClass:
-      "bg-blue-50 text-blue-600",
-  },
-  {
-    label: "Overall Progress",
-    value: "0%",
-    icon: TrendingUpIcon,
-    iconClass:
-      "bg-emerald-50 text-emerald-600",
-  },
-  {
-    label: "Certificates",
-    value: "0",
-    icon: WorkspacePremiumIcon,
-    iconClass:
-      "bg-amber-50 text-amber-600",
-  },
-  {
-    label: "Purchases",
-    value: "0",
-    icon: ShoppingBagIcon,
-    iconClass:
-      "bg-violet-50 text-violet-600",
-  },
-];
+  const date = new Date(dateValue);
 
-const recentNotifications = [
-  {
-    id: 1,
-    title: "Welcome to ApnaAcademy",
-    description:
-      "Your student dashboard is ready.",
-    time: "Just now",
-  },
-  {
-    id: 2,
-    title: "Start your learning journey",
-    description:
-      "Explore courses and choose a skill to learn.",
-    time: "Today",
-  },
-];
+  if (Number.isNaN(date.getTime())) {
+    return "Recently";
+  }
 
-const continueLearning = null;
+  const diff = Date.now() - date.getTime();
+
+  if (diff < 60 * 1000) {
+    return "Just now";
+  }
+
+  if (diff < 60 * 60 * 1000) {
+    const minutes = Math.floor(
+      diff / (60 * 1000)
+    );
+
+    return `${minutes}m ago`;
+  }
+
+  if (diff < 24 * 60 * 60 * 1000) {
+    const hours = Math.floor(
+      diff / (60 * 60 * 1000)
+    );
+
+    return `${hours}h ago`;
+  }
+
+  if (diff < 7 * 24 * 60 * 60 * 1000) {
+    const days = Math.floor(
+      diff / (24 * 60 * 60 * 1000)
+    );
+
+    return `${days}d ago`;
+  }
+
+  return date.toLocaleDateString(
+    undefined,
+    {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }
+  );
+}
+
+function clampProgress(value) {
+  const progress = Number(value || 0);
+
+  return Math.min(
+    100,
+    Math.max(0, progress)
+  );
+}
+
+function getCourseUrl(course) {
+  if (!course) {
+    return ROUTES.MY_COURSES;
+  }
+
+  /*
+   * Dashboard and Course are separate React apps.
+   *
+   * The actual course-player URL can be changed
+   * centrally later when Course routing is finalized.
+   *
+   * For now, keep the dashboard route safe.
+   */
+  return ROUTES.MY_COURSES;
+}
 
 /* =========================================================
    STAT CARD
@@ -204,11 +222,20 @@ function ContinueLearningEmpty() {
 ========================================================= */
 
 function ContinueLearningCard({
-  course,
+  data,
 }) {
-  if (!course) {
+  if (!data?.course) {
     return <ContinueLearningEmpty />;
   }
+
+  const course = data.course;
+  const video = data.video;
+
+  const progress = clampProgress(
+    course.progress
+  );
+
+  const courseUrl = getCourseUrl(course);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -219,6 +246,7 @@ function ContinueLearningCard({
               src={course.thumbnail}
               alt={course.title}
               className="h-full min-h-48 w-full object-cover"
+              loading="lazy"
             />
           ) : (
             <div className="flex h-full min-h-48 items-center justify-center bg-blue-50 text-blue-600">
@@ -249,7 +277,9 @@ function ContinueLearningCard({
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">
-            {course.module || "Next lesson"}
+            {video?.title ||
+              video?.name ||
+              "Continue your latest lesson"}
           </p>
 
           <div className="mt-5">
@@ -259,13 +289,13 @@ function ContinueLearningCard({
               </span>
 
               <span className="text-blue-600">
-                {course.progress || 0}%
+                {progress}%
               </span>
             </div>
 
             <LinearProgress
               variant="determinate"
-              value={course.progress || 0}
+              value={progress}
               sx={{
                 height: 7,
                 borderRadius: 999,
@@ -280,7 +310,7 @@ function ContinueLearningCard({
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button
               component={Link}
-              to={course.url || ROUTES.MY_COURSES}
+              to={courseUrl}
               variant="contained"
               startIcon={<PlayArrowIcon />}
               sx={{
@@ -297,8 +327,9 @@ function ContinueLearningCard({
             <span className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
               <AccessTimeIcon sx={{ fontSize: 16 }} />
 
-              {course.lastWatched ||
-                "Recently watched"}
+              {video?.title
+                ? "Last watched lesson"
+                : "Recently watched"}
             </span>
           </div>
         </div>
@@ -376,7 +407,9 @@ function QuickActions() {
           component={Link}
           to={ROUTES.SUPPORT}
           variant="outlined"
-          startIcon={<NotificationsNoneIcon />}
+          startIcon={
+            <NotificationsNoneIcon />
+          }
           sx={{
             minHeight: 44,
             borderRadius: "12px",
@@ -395,7 +428,15 @@ function QuickActions() {
    RECENT NOTIFICATIONS
 ========================================================= */
 
-function RecentNotifications() {
+function RecentNotifications({
+  notifications,
+}) {
+  const items = Array.isArray(
+    notifications
+  )
+    ? notifications.slice(0, 5)
+    : [];
+
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="flex items-center justify-between gap-3">
@@ -425,33 +466,62 @@ function RecentNotifications() {
       </div>
 
       <div className="mt-5 space-y-3">
-        {recentNotifications.map(
-          (notification) => (
+        {!items.length ? (
+          <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
+            <NotificationsNoneIcon
+              className="text-slate-300"
+              sx={{ fontSize: 30 }}
+            />
+
+            <p className="mt-2 text-sm font-semibold text-slate-600">
+              No notifications yet
+            </p>
+
+            <p className="mt-1 text-xs text-slate-400">
+              You will see important account and
+              course updates here.
+            </p>
+          </div>
+        ) : (
+          items.map((notification) => (
             <div
               key={notification.id}
-              className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3.5"
+              className={`flex gap-3 rounded-xl border p-3.5 ${
+                notification.isRead
+                  ? "border-slate-100 bg-slate-50"
+                  : "border-blue-100 bg-blue-50/60"
+              }`}
             >
-              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
                 <NotificationsNoneIcon
                   sx={{ fontSize: 18 }}
                 />
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-slate-800">
-                  {notification.title}
-                </p>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="truncate text-sm font-bold text-slate-800">
+                    {notification.title}
+                  </p>
+
+                  {!notification.isRead && (
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-blue-600" />
+                  )}
+                </div>
 
                 <p className="mt-0.5 text-xs leading-5 text-slate-500">
-                  {notification.description}
+                  {notification.message ||
+                    "You have a new notification."}
                 </p>
 
                 <p className="mt-1 text-[10px] font-semibold text-slate-400">
-                  {notification.time}
+                  {formatRelativeTime(
+                    notification.createdAt
+                  )}
                 </p>
               </div>
             </div>
-          )
+          ))
         )}
       </div>
     </section>
@@ -462,7 +532,18 @@ function RecentNotifications() {
    LEARNING STATUS
 ========================================================= */
 
-function LearningStatus() {
+function LearningStatus({
+  overallProgress,
+  completedCourses,
+  enrolledCourses,
+}) {
+  const progress = clampProgress(
+    overallProgress
+  );
+
+  const hasCourses =
+    Number(enrolledCourses || 0) > 0;
+
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div>
@@ -490,19 +571,26 @@ function LearningStatus() {
               </p>
 
               <p className="text-xs text-slate-500">
-                Start a course to track progress.
+                {hasCourses
+                  ? `${completedCourses || 0} course${
+                      Number(completedCourses || 0) ===
+                      1
+                        ? ""
+                        : "s"
+                    } completed`
+                  : "Start a course to track progress."}
               </p>
             </div>
           </div>
 
           <span className="text-lg font-extrabold text-slate-800">
-            0%
+            {progress}%
           </span>
         </div>
 
         <LinearProgress
           variant="determinate"
-          value={0}
+          value={progress}
           sx={{
             mt: 3,
             height: 7,
@@ -533,21 +621,246 @@ function LearningStatus() {
 }
 
 /* =========================================================
+   LOADING STATE
+========================================================= */
+
+function DashboardLoading() {
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="animate-pulse">
+          <div className="h-4 w-24 rounded bg-slate-200" />
+
+          <div className="mt-3 h-8 w-64 rounded bg-slate-200" />
+
+          <div className="mt-3 h-4 w-80 max-w-full rounded bg-slate-100" />
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map(
+          (_, index) => (
+            <div
+              key={index}
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            >
+              <div className="animate-pulse">
+                <div className="h-11 w-11 rounded-xl bg-slate-200" />
+
+                <div className="mt-5 h-7 w-16 rounded bg-slate-200" />
+
+                <div className="mt-2 h-4 w-32 rounded bg-slate-100" />
+              </div>
+            </div>
+          )
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="animate-pulse">
+          <div className="h-5 w-40 rounded bg-slate-200" />
+
+          <div className="mt-4 h-4 w-64 rounded bg-slate-100" />
+
+          <div className="mt-6 h-2 w-full rounded bg-slate-100" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   ERROR STATE
+========================================================= */
+
+function DashboardError({
+  message,
+  onRetry,
+}) {
+  return (
+    <section className="rounded-2xl border border-red-100 bg-white p-6 shadow-sm sm:p-8">
+      <div className="mx-auto max-w-xl text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-600">
+          <NotificationsNoneIcon />
+        </div>
+
+        <h2 className="mt-4 text-lg font-bold text-slate-900">
+          Unable to load your dashboard
+        </h2>
+
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          {message ||
+            "Something went wrong while loading your dashboard data."}
+        </p>
+
+        <Button
+          onClick={onRetry}
+          variant="contained"
+          sx={{
+            mt: 5,
+            minHeight: 42,
+            borderRadius: "12px",
+            textTransform: "none",
+            fontWeight: 700,
+            boxShadow: "none",
+          }}
+        >
+          Try Again
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+/* =========================================================
    MAIN DASHBOARD
 ========================================================= */
 
 export default function DashboardHome() {
   const { user } = useAuth();
 
+  const [dashboard, setDashboard] =
+    useState(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
   const firstName = useMemo(
-    () => getFirstName(user?.name),
-    [user?.name]
+    () =>
+      getFirstName(
+        dashboard?.user?.name ||
+          user?.name
+      ),
+    [
+      dashboard?.user?.name,
+      user?.name,
+    ]
   );
 
   const initials = useMemo(
-    () => getInitials(user?.name),
-    [user?.name]
+    () =>
+      getInitials(
+        dashboard?.user?.name ||
+          user?.name
+      ),
+    [
+      dashboard?.user?.name,
+      user?.name,
+    ]
   );
+
+  const loadDashboard =
+    async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response =
+          await dashboardService.getDashboard();
+
+        if (!response) {
+          throw new Error(
+            "Dashboard data was not returned by the server."
+          );
+        }
+
+        setDashboard(response);
+      } catch (dashboardError) {
+        console.error(
+          "Dashboard loading failed:",
+          dashboardError
+        );
+
+        const message =
+          dashboardError?.response?.data
+            ?.message ||
+          dashboardError?.message ||
+          "Unable to load dashboard data.";
+
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  /* =======================================================
+     DERIVED BACKEND DATA
+  ======================================================= */
+
+  const stats =
+    dashboard?.stats || {};
+
+  const enrolledCourses =
+    Array.isArray(
+      dashboard?.enrolledCourses
+    )
+      ? dashboard.enrolledCourses
+      : [];
+
+  const certificates =
+    Array.isArray(
+      dashboard?.certificates
+    )
+      ? dashboard.certificates
+      : [];
+
+  const notifications =
+    Array.isArray(
+      dashboard?.notifications
+    )
+      ? dashboard.notifications
+      : [];
+
+  const continueLearning =
+    dashboard?.continueLearning || null;
+
+  const statCards = [
+    {
+      label: "Enrolled Courses",
+      value: Number(
+        stats.enrolledCourses || 0
+      ),
+      icon: SchoolIcon,
+      iconClass:
+        "bg-blue-50 text-blue-600",
+    },
+    {
+      label: "Overall Progress",
+      value: `${clampProgress(
+        stats.overallProgress
+      )}%`,
+      icon: TrendingUpIcon,
+      iconClass:
+        "bg-emerald-50 text-emerald-600",
+    },
+    {
+      label: "Certificates",
+      value: certificates.length,
+      icon: WorkspacePremiumIcon,
+      iconClass:
+        "bg-amber-50 text-amber-600",
+    },
+    {
+      label: "Purchases",
+      value: Number(
+        stats.enrolledCourses || 0
+      ),
+      icon: ShoppingBagIcon,
+      iconClass:
+        "bg-violet-50 text-violet-600",
+    },
+  ];
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-slate-50">
@@ -556,109 +869,175 @@ export default function DashboardHome() {
             WELCOME HEADER
         ================================================== */}
 
-        <section className="overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm">
-          <div className="relative p-5 sm:p-7 lg:p-8">
-            <div className="absolute right-0 top-0 hidden h-40 w-40 rounded-full bg-blue-50 blur-3xl sm:block" />
-
-            <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <Avatar
-                  src={user?.avatar || ""}
-                  alt={user?.name || "Student"}
-                  sx={{
-                    width: 52,
-                    height: 52,
-                    fontSize: 16,
-                    fontWeight: 800,
-                    bgcolor: "#dbeafe",
-                    color: "#1d4ed8",
-                  }}
-                >
-                  {initials}
-                </Avatar>
-
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-blue-600">
-                    Student Dashboard
-                  </p>
-
-                  <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-                    Welcome back, {firstName}!
-                  </h1>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    Keep learning, keep growing.
-                  </p>
-                </div>
-              </div>
-
-              <Button
-                component={Link}
-                to={ROUTES.COURSES}
-                variant="contained"
-                endIcon={<ArrowForwardIcon />}
+        <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="flex items-center gap-4">
+              <Avatar
                 sx={{
-                  minHeight: 44,
-                  width: "100%",
-                  borderRadius: "12px",
-                  textTransform: "none",
-                  fontWeight: 700,
-                  boxShadow: "none",
-                  "@media (min-width: 640px)": {
-                    width: "auto",
-                  },
+                  width: 52,
+                  height: 52,
+                  bgcolor: "#eff6ff",
+                  color: "#2563eb",
+                  fontWeight: 800,
                 }}
               >
-                Explore Courses
-              </Button>
+                {initials}
+              </Avatar>
+
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-blue-600">
+                  Student Dashboard
+                </p>
+
+                <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+                  Welcome back, {firstName}
+                </h1>
+
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  Keep learning, track your progress,
+                  and build your skills.
+                </p>
+              </div>
             </div>
+
+            <Button
+              component={Link}
+              to={ROUTES.COURSES}
+              variant="contained"
+              endIcon={
+                <ArrowForwardIcon />
+              }
+              sx={{
+                minHeight: 42,
+                borderRadius: "12px",
+                textTransform: "none",
+                fontWeight: 700,
+                boxShadow: "none",
+              }}
+            >
+              Explore Courses
+            </Button>
           </div>
         </section>
 
         {/* =================================================
-            STATS
+            LOADING
         ================================================== */}
 
-        <section className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {dashboardStats.map((stat) => (
-            <StatCard
-              key={stat.label}
-              {...stat}
-            />
-          ))}
-        </section>
-
-        {/* =================================================
-            CONTINUE LEARNING
-        ================================================== */}
-
-        <div className="mt-5">
-          <ContinueLearningCard
-            course={continueLearning}
+        {loading ? (
+          <DashboardLoading />
+        ) : error ? (
+          <DashboardError
+            message={error}
+            onRetry={loadDashboard}
           />
-        </div>
+        ) : (
+          <>
+            {/* =============================================
+                STATS
+            ============================================== */}
 
-        {/* =================================================
-            LOWER CONTENT
-        ================================================== */}
+            <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {statCards.map((stat) => (
+                <StatCard
+                  key={stat.label}
+                  {...stat}
+                />
+              ))}
+            </section>
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <LearningStatus />
-          </div>
+            {/* =============================================
+                CONTINUE LEARNING
+            ============================================== */}
 
-          <div>
-            <QuickActions />
-          </div>
-        </div>
+            <div className="mt-6">
+              <ContinueLearningCard
+                data={continueLearning}
+              />
+            </div>
 
-        {/* =================================================
-            NOTIFICATIONS
-        ================================================== */}
+            {/* =============================================
+                MAIN GRID
+            ============================================== */}
 
-        <div className="mt-5">
-          <RecentNotifications />
-        </div>
+            <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+              <LearningStatus
+                overallProgress={
+                  stats.overallProgress
+                }
+                completedCourses={
+                  stats.completedCourses
+                }
+                enrolledCourses={
+                  stats.enrolledCourses
+                }
+              />
+
+              <QuickActions />
+            </div>
+
+            {/* =============================================
+                NOTIFICATIONS
+            ============================================== */}
+
+            <div className="mt-6">
+              <RecentNotifications
+                notifications={
+                  notifications
+                }
+              />
+            </div>
+
+            {/* =============================================
+                EMPTY ENROLLED COURSES NOTICE
+            ============================================== */}
+
+            {!enrolledCourses.length && (
+              <section className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-5 sm:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.12em] text-blue-600">
+                      Start Learning
+                    </p>
+
+                    <h2 className="mt-1 text-lg font-bold text-slate-900">
+                      Explore your first course
+                    </h2>
+
+                    <p className="mt-1 text-sm leading-6 text-slate-500">
+                      Choose a course and begin your
+                      learning journey with
+                      ApnaAcademy.
+                    </p>
+                  </div>
+
+                  <Button
+                    component={Link}
+                    to={ROUTES.COURSES}
+                    variant="contained"
+                    endIcon={
+                      <ArrowForwardIcon />
+                    }
+                    sx={{
+                      minHeight: 42,
+                      width: "100%",
+                      borderRadius: "12px",
+                      textTransform: "none",
+                      fontWeight: 700,
+                      boxShadow: "none",
+                      "@media (min-width: 640px)":
+                        {
+                          width: "auto",
+                        },
+                    }}
+                  >
+                    Browse Courses
+                  </Button>
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
