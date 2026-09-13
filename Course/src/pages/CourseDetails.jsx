@@ -7,6 +7,7 @@ import {
   Bolt,
   Book,
   CheckCircle,
+  Close,
   ExpandMore,
   Lock,
   People,
@@ -28,7 +29,10 @@ import {
   CardContent,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogContent,
   Divider,
+  IconButton,
   Paper,
   Stack,
   Typography,
@@ -42,6 +46,7 @@ import {
 import { getCourseBySlug, normalizeCourse } from "../services/course.service";
 import api from "../services/api";
 import { startCoursePayment } from "../services/payment";
+import BunnyVideoPlayer from "../components/BunnyVideoPlayer";
 
 const formatDuration = (seconds = 0) => {
   const value = Number(seconds) || 0;
@@ -77,6 +82,7 @@ export default function CourseDetails() {
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentError, setPaymentError] = useState("");
   const [expandedModule, setExpandedModule] = useState(null);
+  const [previewVideo, setPreviewVideo] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -379,7 +385,7 @@ export default function CourseDetails() {
                               </Stack>
                             </Box>
                             {isPreview ? (
-                              <Button size="small" variant="outlined" onClick={() => navigate(COURSE_ROUTES.VIDEO(slug, videoId))} sx={{ flexShrink: 0, borderRadius: 2, fontWeight: 800, textTransform: "none" }}>
+                              <Button size="small" variant="outlined" onClick={() => setPreviewVideo(video)} sx={{ flexShrink: 0, borderRadius: 2, fontWeight: 800, textTransform: "none" }}>
                                 Preview
                               </Button>
                             ) : (
@@ -420,6 +426,32 @@ export default function CourseDetails() {
           </Stack>
         </Paper>
       </Box>
+
+      <Dialog
+        open={Boolean(previewVideo)}
+        onClose={() => setPreviewVideo(null)}
+        fullWidth
+        maxWidth="lg"
+        PaperProps={{
+          sx: {
+            borderRadius: { xs: 2, sm: 3 },
+            overflow: "hidden",
+          },
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", px: { xs: 1.5, sm: 2 }, py: 1, borderBottom: "1px solid", borderColor: "divider" }}>
+          <Box sx={{ minWidth: 0, pr: 1 }}>
+            <Typography variant="caption" color="primary.main" fontWeight={900}>FREE PREVIEW</Typography>
+            <Typography fontWeight={850} noWrap>{previewVideo?.title || "Lesson preview"}</Typography>
+          </Box>
+          <IconButton onClick={() => setPreviewVideo(null)} aria-label="Close preview">
+            <Close />
+          </IconButton>
+        </Box>
+        <DialogContent sx={{ p: 0, backgroundColor: "#000" }}>
+          <BunnyVideoPlayer video={previewVideo} />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }
