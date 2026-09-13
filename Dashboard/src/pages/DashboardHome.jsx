@@ -850,7 +850,7 @@ export default function DashboardHome() {
     {
       label: "Purchases",
       value: Number(
-        stats.enrolledCourses || 0
+        stats.purchases || 0
       ),
       icon: ShoppingBagIcon,
       iconClass:
@@ -867,7 +867,7 @@ export default function DashboardHome() {
       <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         {/* =================================================
             WELCOME HEADER
-        ================================================== */}
+        ================================================== */
 
         <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
@@ -922,7 +922,7 @@ export default function DashboardHome() {
 
         {/* =================================================
             LOADING
-        ================================================== */}
+        ================================================== */
 
         {loading ? (
           <DashboardLoading />
@@ -935,7 +935,7 @@ export default function DashboardHome() {
           <>
             {/* =============================================
                 STATS
-            ============================================== */}
+            ============================================== */
 
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {statCards.map((stat) => (
@@ -948,7 +948,7 @@ export default function DashboardHome() {
 
             {/* =============================================
                 CONTINUE LEARNING
-            ============================================== */}
+            ============================================== */
 
             <div className="mt-6">
               <ContinueLearningCard
@@ -958,7 +958,7 @@ export default function DashboardHome() {
 
             {/* =============================================
                 MAIN GRID
-            ============================================== */}
+            ============================================== */
 
             <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
               <LearningStatus
@@ -978,7 +978,7 @@ export default function DashboardHome() {
 
             {/* =============================================
                 NOTIFICATIONS
-            ============================================== */}
+            ============================================== */
 
             <div className="mt-6">
               <RecentNotifications
@@ -990,7 +990,7 @@ export default function DashboardHome() {
 
             {/* =============================================
                 EMPTY ENROLLED COURSES NOTICE
-            ============================================== */}
+            ============================================== */
 
             {!enrolledCourses.length && (
               <section className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-5 sm:p-6">
