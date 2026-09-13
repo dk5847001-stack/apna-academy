@@ -11,16 +11,23 @@ import {
   getCurrentUser,
   getStoredUser,
   logout as logoutUser,
+  saveStoredUser,
 } from "../services/auth.service";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   /*
-   * Cached user is used only for faster UI rendering.
+   * Cached user is used only for faster initial UI rendering.
    *
-   * Real authentication is always verified through
-   * the backend HttpOnly cookie.
+   * IMPORTANT:
+   * This is NOT authentication.
+   *
+   * Real authentication is always verified by:
+   * GET /auth/me
+   *
+   * The backend HttpOnly cookie is the real
+   * authentication source.
    */
   const [user, setUser] = useState(() =>
     getStoredUser()
@@ -36,9 +43,9 @@ export function AuthProvider({ children }) {
    * CHECK AUTHENTICATION
    * =========================================================
    *
-   * Do NOT depend on Dashboard localStorage token.
+   * Authentication is checked from the backend.
    *
-   * Backend /auth/me checks the HttpOnly cookie.
+   * No JWT/token is read from localStorage.
    */
   const checkAuth = useCallback(async () => {
     try {
@@ -47,14 +54,28 @@ export function AuthProvider({ children }) {
       const currentUser =
         await getCurrentUser();
 
-      if (currentUser) {
-        setUser(currentUser);
-        setIsAuthenticated(true);
-      } else {
+      if (!currentUser) {
         setUser(null);
         setIsAuthenticated(false);
         clearSession();
+
+        return null;
       }
+
+      /*
+       * Backend successfully validated
+       * the HttpOnly authentication cookie.
+       */
+      setUser(currentUser);
+      setIsAuthenticated(true);
+
+      /*
+       * Cache user ONLY for UI hydration.
+       * This does not authenticate the user.
+       */
+      saveStoredUser(currentUser);
+
+      return currentUser;
     } catch (error) {
       console.error(
         "Authentication check failed:",
@@ -64,6 +85,8 @@ export function AuthProvider({ children }) {
       setUser(null);
       setIsAuthenticated(false);
       clearSession();
+
+      return null;
     } finally {
       setLoading(false);
     }
@@ -80,119 +103,100 @@ export function AuthProvider({ children }) {
 
   /*
    * =========================================================
-   * UNAUTHORIZED EVENT
+   * AUTH CHANGE / UNAUTHORIZED EVENT
    * =========================================================
    *
-   * Axios interceptor can dispatch this when backend
-   * returns 401.
+   * Dashboard API interceptor dispatches:
+   *
+   * apnaacademy-auth-change
+   *
+   * when backend returns HTTP 401.
+   *
+   * This immediately clears the React auth state.
    */
   useEffect(() => {
-    const handleUnauthorized = () => {
-      clearSession();
-
+    const handleAuthChange = () => {
       setUser(null);
       setIsAuthenticated(false);
+      clearSession();
     };
 
     window.addEventListener(
-      "apnaacademy:unauthorized",
-      handleUnauthorized
+      "apnaacademy-auth-change",
+      handleAuthChange
     );
 
     return () => {
       window.removeEventListener(
-        "apnaacademy:unauthorized",
-        handleUnauthorized
+        "apnaacademy-auth-change",
+        handleAuthChange
       );
     };
   }, []);
 
   /*
    * =========================================================
-   * STORAGE CHANGE
-   * =========================================================
-   *
-   * Kept for legacy token compatibility and cached user
-   * synchronization.
-   */
-  useEffect(() => {
-    const handleStorageChange = (event) => {
-      if (
-        event.key === "token" ||
-        event.key === "user"
-      ) {
-        const storedUser = getStoredUser();
-
-        setUser(storedUser);
-
-        /*
-         * If another tab removes the local session,
-         * refresh authentication from backend.
-         */
-        if (!storedUser) {
-          checkAuth();
-        }
-      }
-    };
-
-    window.addEventListener(
-      "storage",
-      handleStorageChange
-    );
-
-    return () => {
-      window.removeEventListener(
-        "storage",
-        handleStorageChange
-      );
-    };
-  }, [checkAuth]);
-
-  /*
-   * =========================================================
    * LOGOUT
    * =========================================================
    *
-   * 1. Backend clears HttpOnly cookie.
-   * 2. Local legacy session is cleared.
-   * 3. React auth state is cleared.
+   * IMPORTANT:
+   *
+   * 1. Frontend calls POST /auth/logout.
+   * 2. Backend executes res.clearCookie().
+   * 3. HttpOnly authentication cookie is removed.
+   * 4. React state is cleared.
+   * 5. User is redirected to Frontend login.
+   *
+   * No JWT/token is stored or removed from localStorage.
    */
- const logout = useCallback(async () => {
-  try {
-    await logoutUser();
-  } finally {
-    setUser(null);
-    setIsAuthenticated(false);
-    clearSession();
+  const logout = useCallback(async () => {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error(
+        "Logout failed:",
+        error
+      );
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+      clearSession();
 
-    window.location.replace(
-      "http://localhost:5174/"
-    );
-  }
-}, []);
+      window.location.replace(
+        "http://localhost:5174/login"
+      );
+    }
+  }, []);
 
   /*
    * =========================================================
    * REFRESH USER
    * =========================================================
+   *
+   * Re-validates the HttpOnly cookie with backend.
    */
   const refreshUser = useCallback(async () => {
     try {
       const currentUser =
         await getCurrentUser();
 
-      if (currentUser) {
-        setUser(currentUser);
-        setIsAuthenticated(true);
+      if (!currentUser) {
+        setUser(null);
+        setIsAuthenticated(false);
+        clearSession();
 
-        return currentUser;
+        return null;
       }
 
-      setUser(null);
-      setIsAuthenticated(false);
-      clearSession();
+      setUser(currentUser);
+      setIsAuthenticated(true);
 
-      return null;
+      /*
+       * UI-only cache.
+       */
+      saveStoredUser(currentUser);
+
+      return currentUser;
     } catch (error) {
       setUser(null);
       setIsAuthenticated(false);
