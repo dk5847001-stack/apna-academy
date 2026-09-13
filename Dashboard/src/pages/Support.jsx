@@ -20,7 +20,6 @@ import SendIcon from "@mui/icons-material/Send";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 
 import supportService from "../services/support.service";
@@ -181,7 +180,7 @@ export default function Support() {
     <div className="min-h-[calc(100vh-64px)] bg-slate-50 px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-5">
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex min-w-0 items-start gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                 <SupportAgentIcon sx={{ fontSize: 28 }} />
@@ -197,9 +196,20 @@ export default function Support() {
 
             <Button
               variant="contained"
+              size="medium"
               startIcon={<SendIcon />}
               onClick={() => setDialogOpen(true)}
-              sx={{ borderRadius: "12px", textTransform: "none", fontWeight: 800, px: 2.5, py: 1.25, alignSelf: "stretch", minWidth: { md: 170 } }}
+              sx={{
+                borderRadius: "12px",
+                textTransform: "none",
+                fontWeight: 800,
+                px: 2.25,
+                py: 1,
+                minHeight: 42,
+                minWidth: { md: 160 },
+                alignSelf: { xs: "flex-start", md: "center" },
+                whiteSpace: "nowrap",
+              }}
             >
               Create Ticket
             </Button>
@@ -288,12 +298,25 @@ export default function Support() {
         </section>
       </div>
 
-      <Dialog open={dialogOpen} onClose={() => !submitting && setDialogOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={dialogOpen}
+        onClose={() => !submitting && setDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            m: 1.5,
+            width: "calc(100% - 24px)",
+            borderRadius: "16px",
+            overflow: "hidden",
+          },
+        }}
+      >
         {selectedTicket && !detailLoading ? (
           <>
-            <DialogTitle sx={{ fontWeight: 800 }}>Support Ticket</DialogTitle>
-            <DialogContent dividers>
-              <div className="space-y-5">
+            <DialogTitle sx={{ px: 3, py: 2, fontWeight: 800 }}>Support Ticket</DialogTitle>
+            <DialogContent dividers sx={{ px: 3, py: 2.5 }}>
+              <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={selectedTicket.status} />
                   <Chip label={getLabel(CATEGORY_OPTIONS, selectedTicket.category)} size="small" variant="outlined" />
@@ -320,17 +343,18 @@ export default function Support() {
                 </div>
               </div>
             </DialogContent>
-            <DialogActions>
+            <DialogActions sx={{ px: 3, py: 1.5 }}>
               <Button onClick={() => { setSelectedTicket(null); setDialogOpen(false); }} sx={{ textTransform: "none", fontWeight: 700 }}>Close</Button>
             </DialogActions>
           </>
         ) : (
           <form onSubmit={handleSubmit}>
-            <DialogTitle sx={{ fontWeight: 800 }}>Create Support Ticket</DialogTitle>
-            <DialogContent dividers>
-              <div className="space-y-4 pt-1">
+            <DialogTitle sx={{ px: 3, py: 2, fontWeight: 800 }}>Create Support Ticket</DialogTitle>
+            <DialogContent dividers sx={{ px: 3, py: 2.5 }}>
+              <div className="space-y-3.5">
                 <TextField
                   fullWidth
+                  size="small"
                   label="Subject"
                   placeholder="e.g. Payment completed but course is locked"
                   value={form.subject}
@@ -338,18 +362,35 @@ export default function Support() {
                   inputProps={{ maxLength: 200 }}
                   required
                 />
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <TextField select fullWidth label="Category" value={form.category} onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Category"
+                    value={form.category}
+                    onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
+                  >
                     {CATEGORY_OPTIONS.map(([key, label]) => <MenuItem key={key} value={key}>{label}</MenuItem>)}
                   </TextField>
-                  <TextField select fullWidth label="Priority" value={form.priority} onChange={(event) => setForm((current) => ({ ...current, priority: event.target.value }))}>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Priority"
+                    value={form.priority}
+                    onChange={(event) => setForm((current) => ({ ...current, priority: event.target.value }))}
+                  >
                     {PRIORITY_OPTIONS.map(([key, label]) => <MenuItem key={key} value={key}>{label}</MenuItem>)}
                   </TextField>
                 </div>
+
                 <TextField
                   fullWidth
+                  size="small"
                   multiline
-                  minRows={6}
+                  minRows={4}
                   label="Describe your issue"
                   placeholder="Please include useful details so our support team can help you faster."
                   value={form.message}
@@ -357,12 +398,35 @@ export default function Support() {
                   inputProps={{ maxLength: 5000 }}
                   required
                 />
-                <Alert severity="info">You can track the ticket status and any admin reply from this page.</Alert>
+
+                <Alert severity="info" sx={{ py: 0.25, alignItems: "center" }}>
+                  You can track the ticket status and any admin reply from this page.
+                </Alert>
               </div>
             </DialogContent>
-            <DialogActions sx={{ px: 3, py: 2 }}>
-              <Button type="button" onClick={() => setDialogOpen(false)} disabled={submitting} sx={{ textTransform: "none", fontWeight: 700 }}>Cancel</Button>
-              <Button type="submit" variant="contained" disabled={submitting} startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <SendIcon />} sx={{ borderRadius: "10px", textTransform: "none", fontWeight: 800 }}>
+            <DialogActions sx={{ px: 3, py: 1.5, gap: 0.5 }}>
+              <Button
+                type="button"
+                onClick={() => setDialogOpen(false)}
+                disabled={submitting}
+                sx={{ textTransform: "none", fontWeight: 700 }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={submitting}
+                size="medium"
+                startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <SendIcon />}
+                sx={{
+                  borderRadius: "10px",
+                  textTransform: "none",
+                  fontWeight: 800,
+                  minHeight: 40,
+                  px: 2,
+                }}
+              >
                 {submitting ? "Submitting..." : "Submit Ticket"}
               </Button>
             </DialogActions>
