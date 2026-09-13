@@ -8,6 +8,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
 import { FRONTEND_URL, ROUTES } from "../constants/config";
+import MyCourses from "../pages/MyCourses";
 
 /* =========================================================
    AUTH REQUIRED
@@ -93,7 +94,7 @@ export default function AppRoutes() {
     <Routes>
       {/* ===================================================
           PUBLIC ROUTES
-      =================================================== */}
+      =================================================== */
 
       <Route
         path="/"
@@ -141,12 +142,7 @@ export default function AppRoutes() {
           {/* My Courses */}
           <Route
             path={ROUTES.MY_COURSES}
-            element={
-              <PlaceholderPage
-                title="My Courses"
-                description="View the courses you have purchased and continue your learning journey."
-              />
-            }
+            element={<MyCourses />}
           />
 
           {/* Purchases */}
@@ -219,7 +215,7 @@ export default function AppRoutes() {
 
       {/* ===================================================
           UNKNOWN ROUTES
-      =================================================== */}
+      =================================================== */
 
       <Route
         path="*"
