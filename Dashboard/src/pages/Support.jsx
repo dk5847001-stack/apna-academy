@@ -361,7 +361,7 @@ export default function Support() {
                   onChange={(event) => setForm((current) => ({ ...current, subject: event.target.value }))}
                   inputProps={{ maxLength: 200 }}
                   required
-                />
+                /><br/><br/>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <TextField
@@ -399,6 +399,7 @@ export default function Support() {
                   required
                 />
 
+                <br/><br/>
                 <Alert severity="info" sx={{ py: 0.25, alignItems: "center" }}>
                   You can track the ticket status and any admin reply from this page.
                 </Alert>
