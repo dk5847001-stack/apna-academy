@@ -6,15 +6,22 @@ import { API_BASE_URL } from "../constants/config";
    AXIOS API CLIENT
 ========================================================= */
 
+/*
+ * Authentication is handled exclusively by the Backend
+ * HttpOnly cookie.
+ *
+ * IMPORTANT:
+ * Do NOT manually attach JWT tokens from localStorage.
+ *
+ * The browser automatically sends the HttpOnly cookie
+ * because withCredentials is enabled.
+ */
+
 const api = axios.create({
   baseURL: API_BASE_URL,
 
   timeout: 15000,
 
-  /*
-   * Required for the shared HttpOnly authentication
-   * cookie used by Frontend, Dashboard and Course apps.
-   */
   withCredentials: true,
 
   headers: {
@@ -27,29 +34,28 @@ const api = axios.create({
    REQUEST INTERCEPTOR
 ========================================================= */
 
+/*
+ * No Authorization: Bearer token here.
+ *
+ * Authentication source of truth:
+ *
+ * Frontend
+ *    ↓
+ * HttpOnly Cookie
+ *    ↓
+ * Backend /auth/me
+ *
+ * HttpOnly cookies cannot be read by JavaScript,
+ * which is intentional for security.
+ */
+
 api.interceptors.request.use(
   (config) => {
-    /*
-     * Keep Bearer-token support for backward compatibility.
-     *
-     * The primary authentication mechanism is now the
-     * HttpOnly cookie created by the backend.
-     */
-    const token = localStorage.getItem("token");
-
-    if (token) {
-      config.headers =
-        config.headers || {};
-
-      config.headers.Authorization =
-        `Bearer ${token}`;
-    }
-
     return config;
   },
-
-  (error) =>
-    Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
 /* =========================================================
@@ -57,32 +63,27 @@ api.interceptors.request.use(
 ========================================================= */
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
 
   (error) => {
-    const status =
-      error?.response?.status;
+    const status = error?.response?.status;
 
     /*
-     * If JWT authentication is invalid/expired,
-     * remove the legacy local session.
+     * A 401 means the backend does not consider the
+     * current browser session authenticated.
      *
-     * The HttpOnly cookie itself cannot be removed
-     * from JavaScript. Backend logout will handle
-     * clearing that cookie when logout is implemented.
+     * We do NOT try to remove the HttpOnly cookie here
+     * because JavaScript cannot access it.
+     *
+     * The backend /auth/logout endpoint is responsible
+     * for clearing the authentication cookie.
      */
-    if (status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
 
-      /*
-       * Notify same-app components about
-       * authentication state changes.
-       */
+    if (status === 401) {
       window.dispatchEvent(
-        new Event(
-          "apnaacademy-auth-change"
-        )
+        new Event("apnaacademy-auth-change")
       );
     }
 

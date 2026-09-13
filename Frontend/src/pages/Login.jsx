@@ -138,48 +138,45 @@ export default function Login() {
     authCheckStarted.current = true;
 
     const verifyExistingSession = async () => {
-      const token = localStorage.getItem("token");
+  try {
+    /*
+     * Authentication is determined by the Backend
+     * HttpOnly cookie.
+     *
+     * We intentionally do NOT read any JWT from
+     * localStorage.
+     */
 
-      if (!token) {
-        setCheckingAuth(false);
-        return;
-      }
+    const response = await api.get("/auth/me");
 
-      try {
-        const response = await api.get("/auth/me");
+    const currentUser =
+      response?.data?.data;
 
-        const currentUser =
-          response?.data?.data;
+    if (!currentUser) {
+      throw new Error(
+        "Invalid authentication response."
+      );
+    }
 
-        if (!currentUser) {
-          throw new Error(
-            "Invalid authentication response."
-          );
-        }
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify(currentUser)
-        );
-
-        /*
-         * User is already authenticated.
-         * Login page is not needed.
-         */
-        window.location.replace(
-          `${getDashboardUrl()}${getRedirectPath()}`
-        );
-} catch {
-  /*
-   * api interceptor removes invalid/expired token.
-   * Remove user as an extra safety measure.
-   */
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-
-  setCheckingAuth(false);
-}
-    };
+    /*
+     * The browser session is already authenticated.
+     * Open the Dashboard application.
+     */
+    window.location.replace(
+      `${getDashboardUrl()}${getRedirectPath()}`
+    );
+  } catch {
+    /*
+     * No valid backend session.
+     *
+     * Do not attempt to manipulate the HttpOnly
+     * authentication cookie from JavaScript.
+     *
+     * Simply show the login form.
+     */
+    setCheckingAuth(false);
+  }
+};
 
 verifyExistingSession();
   }, []);
@@ -288,27 +285,21 @@ const handleSubmit = async (event) => {
      *   }
      * }
      */
-    const token = loginData?.token;
     const user = loginData?.user;
 
-    if (!token || !user) {
-      throw new Error(
-        "Login succeeded, but the server returned an invalid authentication response."
-      );
-    }
-
-    /*
-     * Store authentication data.
-     */
-    localStorage.setItem(
-      "token",
-      token
-    );
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify(user)
-    );
+/*
+ * The backend creates the HttpOnly authentication
+ * cookie during /auth/login.
+ *
+ * The JWT returned by the backend is NOT stored
+ * in localStorage and is NOT used by the frontend
+ * as the authentication mechanism.
+ */
+if (!user) {
+  throw new Error(
+    "Login succeeded, but the server returned an invalid user response."
+  );
+}
 
     setSuccess(
       "Login successful. Opening your dashboard..."
