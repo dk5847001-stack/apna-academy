@@ -9,6 +9,7 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import { FRONTEND_URL, ROUTES } from "../constants/config";
 import MyCourses from "../pages/MyCourses";
+import AllCourses from "../pages/AllCourses";
 
 /* =========================================================
    AUTH REQUIRED
@@ -94,7 +95,7 @@ export default function AppRoutes() {
     <Routes>
       {/* ===================================================
           PUBLIC ROUTES
-      =================================================== */
+      =================================================== */}
 
       <Route
         path="/"
@@ -131,12 +132,7 @@ export default function AppRoutes() {
           {/* All Courses */}
           <Route
             path={ROUTES.COURSES}
-            element={
-              <PlaceholderPage
-                title="All Courses"
-                description="Explore all available ApnaAcademy courses and discover your next learning opportunity."
-              />
-            }
+            element={<AllCourses />}
           />
 
           {/* My Courses */}
