@@ -10,6 +10,43 @@ import {
 const BUNNY_LIBRARY_ID =
   import.meta.env.VITE_BUNNY_LIBRARY_ID || "";
 
+const BUNNY_PLAYER_JS_URL =
+  "https://assets.mediadelivery.net/playerjs/player-0.1.0.min.js";
+
+let bunnyPlayerScriptPromise = null;
+
+const loadBunnyPlayerScript = () => {
+  if (window.playerjs?.Player) return Promise.resolve(true);
+  if (bunnyPlayerScriptPromise) return bunnyPlayerScriptPromise;
+
+  bunnyPlayerScriptPromise = new Promise((resolve) => {
+    const existing = document.querySelector(
+      `script[src="${BUNNY_PLAYER_JS_URL}"]`
+    );
+
+    if (existing) {
+      existing.addEventListener(
+        "load",
+        () => resolve(Boolean(window.playerjs?.Player)),
+        { once: true }
+      );
+      existing.addEventListener("error", () => resolve(false), {
+        once: true,
+      });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = BUNNY_PLAYER_JS_URL;
+    script.async = true;
+    script.onload = () => resolve(Boolean(window.playerjs?.Player));
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
+
+  return bunnyPlayerScriptPromise;
+};
+
 /* =========================================================
    BUNNY VIDEO PLAYER
 
@@ -17,9 +54,10 @@ const BUNNY_LIBRARY_ID =
    The component only renders a video that the backend has
    already authorized.
 
-   Playback priority:
-   1. Bunny Stream iframe when bunnyVideoId + library ID exist.
-   2. Authorized videoUrl fallback for existing records.
+   Bunny Stream iframe playback uses Bunny's Player.js bridge
+   so progress tracking/resume works across the cross-origin
+   iframe. The direct <video> fallback keeps compatibility with
+   existing authorized videoUrl records.
 ========================================================= */
 
 export default function BunnyVideoPlayer({
@@ -31,7 +69,8 @@ export default function BunnyVideoPlayer({
   onPlay,
   onPause,
 }) {
-  const videoRef = useRef(null);
+  const iframeRef = useRef(null);
+  const bunnyPlayerRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
@@ -40,9 +79,11 @@ export default function BunnyVideoPlayer({
       return "";
     }
 
-    return `https://iframe.mediadelivery.net/embed/${encodeURIComponent(
+    const base = `https://iframe.mediadelivery.net/embed/${encodeURIComponent(
       BUNNY_LIBRARY_ID
     )}/${encodeURIComponent(video.bunnyVideoId)}`;
+
+    return `${base}${base.includes("?") ? "&" : "?"}playerjs=true`;
   }, [video?.bunnyVideoId]);
 
   const useBunnyEmbed = Boolean(bunnyEmbedUrl);
@@ -50,7 +91,126 @@ export default function BunnyVideoPlayer({
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
+    bunnyPlayerRef.current = null;
   }, [video?._id, video?.id, video?.videoUrl, bunnyEmbedUrl]);
+
+  useEffect(() => {
+    if (!useBunnyEmbed || !iframeRef.current) return undefined;
+
+    let mounted = true;
+    let player = null;
+    const cleanupCallbacks = [];
+
+    const setupPlayer = async () => {
+      const loaded = await loadBunnyPlayerScript();
+      if (!mounted) return;
+
+      if (!loaded || !window.playerjs?.Player) {
+        setIsLoading(false);
+        setHasError(true);
+        return;
+      }
+
+      try {
+        player = new window.playerjs.Player(iframeRef.current);
+        bunnyPlayerRef.current = player;
+
+        const addListener = (eventName, callback) => {
+          player.on(eventName, callback);
+          cleanupCallbacks.push(() => {
+            try {
+              player.off?.(eventName, callback);
+            } catch {
+              // Player.js versions may not expose off().
+            }
+          });
+        };
+
+        addListener("ready", () => {
+          if (!mounted) return;
+          setIsLoading(false);
+          setHasError(false);
+
+          player.getDuration((durationValue) => {
+            const duration = Number(durationValue) || 0;
+
+            player.getCurrentTime((currentValue) => {
+              let position = Number(currentValue) || 0;
+
+              if (
+                currentTime > 0 &&
+                duration > 0 &&
+                currentTime < duration
+              ) {
+                position = Number(currentTime) || 0;
+                player.setCurrentTime(position);
+              }
+
+              onLoadedMetadata?.({
+                duration,
+                currentTime: position,
+              });
+            });
+          });
+        });
+
+        addListener("timeupdate", (data) => {
+          const seconds = Number(data?.seconds);
+          const duration = Number(data?.duration);
+
+          if (!Number.isFinite(seconds)) return;
+
+          onTimeUpdate?.({
+            currentTime: seconds,
+            duration: Number.isFinite(duration) ? duration : 0,
+          });
+        });
+
+        addListener("play", () => {
+          onPlay?.({ currentTime: 0, duration: 0 });
+        });
+
+        addListener("pause", (data) => {
+          const seconds = Number(data?.seconds) || 0;
+          const duration = Number(data?.duration) || 0;
+          onPause?.({ currentTime: seconds, duration });
+        });
+
+        addListener("ended", (data) => {
+          const seconds = Number(data?.seconds) || 0;
+          const duration = Number(data?.duration) || 0;
+          onEnded?.({
+            currentTime: duration > 0 ? duration : seconds,
+            duration,
+          });
+        });
+      } catch (error) {
+        console.error("Bunny Player.js initialization error:", error);
+        if (mounted) {
+          setIsLoading(false);
+          setHasError(true);
+        }
+      }
+    };
+
+    setupPlayer();
+
+    return () => {
+      mounted = false;
+      cleanupCallbacks.forEach((cleanup) => cleanup());
+      bunnyPlayerRef.current = null;
+      player = null;
+    };
+  }, [
+    useBunnyEmbed,
+    bunnyEmbedUrl,
+    currentTime,
+    onEnded,
+    onLoadedMetadata,
+    onPause,
+    onPlay,
+    onTimeUpdate,
+  ]);
 
   if (!video) {
     return (
@@ -160,6 +320,7 @@ export default function BunnyVideoPlayer({
 
       {useBunnyEmbed ? (
         <iframe
+          ref={iframeRef}
           key={video._id || video.id}
           src={bunnyEmbedUrl}
           title={video.title || "Course video"}
@@ -181,7 +342,6 @@ export default function BunnyVideoPlayer({
         />
       ) : (
         <video
-          ref={videoRef}
           key={video._id || video.id}
           src={video.videoUrl}
           poster={video.thumbnailUrl || undefined}
@@ -203,7 +363,7 @@ export default function BunnyVideoPlayer({
               }
             }
 
-            onLoadedMetadata?.(event);
+            onLoadedMetadata?.(player);
           }}
           onCanPlay={() => setIsLoading(false)}
           onWaiting={() => setIsLoading(true)}
