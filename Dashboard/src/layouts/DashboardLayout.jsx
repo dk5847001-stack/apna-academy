@@ -321,14 +321,8 @@ export default function DashboardLayout() {
     });
   };
 
-  const handleLogout = async () => {
-  try {
-    await logout();
-  } finally {
-    window.location.assign(
-      `${FRONTEND_URL}/login`
-    );
-  }
+ const handleLogout = async () => {
+  await logout();
 };
 
   const handleCloseMobile = () => {
