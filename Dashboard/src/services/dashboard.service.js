@@ -4,23 +4,14 @@ import api from "./api";
    RESPONSE HELPERS
 ========================================================= */
 
-/**
- * Backend uses:
- *
- * {
- *   success: true,
- *   message: "...",
- *   data: ...
- * }
- *
- * Keep response handling centralized so pages do not
- * repeatedly depend on the Axios response structure.
- */
 const extractData = (response) => {
   return response?.data?.data ?? null;
 };
 
-const ensureSuccess = (response, fallbackMessage) => {
+const ensureSuccess = (
+  response,
+  fallbackMessage
+) => {
   if (!response?.data?.success) {
     throw new Error(
       response?.data?.message ||
@@ -29,6 +20,32 @@ const ensureSuccess = (response, fallbackMessage) => {
   }
 
   return extractData(response);
+};
+
+/* =========================================================
+   STUDENT DASHBOARD
+========================================================= */
+
+/**
+ * Get authenticated student's complete dashboard.
+ *
+ * GET /api/v1/dashboard
+ *
+ * Authentication:
+ * HttpOnly cookie.
+ *
+ * IMPORTANT:
+ * No JWT/token is read from localStorage.
+ */
+export const getDashboard = async () => {
+  const response = await api.get(
+    "/dashboard"
+  );
+
+  return ensureSuccess(
+    response,
+    "Unable to load your dashboard."
+  );
 };
 
 /* =========================================================
@@ -60,11 +77,13 @@ export const getCourses = async ({
   }
 
   if (category.trim()) {
-    params.category = category.trim();
+    params.category =
+      category.trim();
   }
 
   if (level.trim()) {
-    params.level = level.trim();
+    params.level =
+      level.trim();
   }
 
   if (featured !== undefined) {
@@ -101,7 +120,9 @@ export const getCourseBySlug = async (
   }
 
   const response = await api.get(
-    `/courses/${encodeURIComponent(slug)}`
+    `/courses/${encodeURIComponent(
+      slug
+    )}`
   );
 
   return ensureSuccess(
@@ -115,19 +136,10 @@ export const getCourseBySlug = async (
 ========================================================= */
 
 /**
- * Get the authenticated user's learning structure
- * for a specific course.
+ * Get authenticated user's learning
+ * structure for a specific course.
  *
  * GET /api/v1/learning/courses/:courseId
- *
- * Backend returns:
- *
- * data: {
- *   course,
- *   access,
- *   progress,
- *   modules
- * }
  */
 export const getLearningCourse = async (
   courseId
@@ -151,11 +163,10 @@ export const getLearningCourse = async (
 };
 
 /**
- * Get an individual authorized learning video.
+ * Get an individual authorized
+ * learning video.
  *
  * GET /api/v1/learning/courses/:courseId/videos/:videoId
- *
- * Authorization is enforced by the backend.
  */
 export const getLearningVideo = async ({
   courseId,
@@ -170,7 +181,9 @@ export const getLearningVideo = async ({
   const response = await api.get(
     `/learning/courses/${encodeURIComponent(
       courseId
-    )}/videos/${encodeURIComponent(videoId)}`
+    )}/videos/${encodeURIComponent(
+      videoId
+    )}`
   );
 
   return ensureSuccess(
@@ -184,7 +197,8 @@ export const getLearningVideo = async ({
 ========================================================= */
 
 /**
- * Get current user's progress for a course.
+ * Get current user's progress
+ * for a course.
  *
  * GET /api/v1/progress/courses/:courseId
  */
@@ -210,7 +224,8 @@ export const getCourseProgress = async (
 };
 
 /**
- * Save video watch position / completion.
+ * Save video watch position
+ * or completion.
  *
  * POST /api/v1/progress/courses/:courseId/videos/:videoId
  */
@@ -229,7 +244,9 @@ export const updateVideoProgress = async ({
   const response = await api.post(
     `/progress/courses/${encodeURIComponent(
       courseId
-    )}/videos/${encodeURIComponent(videoId)}`,
+    )}/videos/${encodeURIComponent(
+      videoId
+    )}`,
     {
       position,
       completed,
@@ -247,10 +264,10 @@ export const updateVideoProgress = async ({
 ========================================================= */
 
 /**
- * Normalize learning data for dashboard components.
+ * Normalize learning data for
+ * dashboard components.
  *
  * This does not invent backend fields.
- * It only maps fields already returned by the API.
  */
 export const normalizeLearningData = (
   learningData
@@ -265,9 +282,11 @@ export const normalizeLearningData = (
   }
 
   return {
-    course: learningData.course || null,
+    course:
+      learningData.course || null,
 
-    access: learningData.access || null,
+    access:
+      learningData.access || null,
 
     progress: {
       overallProgress:
@@ -307,11 +326,9 @@ export const normalizeLearningData = (
 ========================================================= */
 
 /**
- * Convert authenticated learning data into the small
- * structure required by the Dashboard "Continue Learning"
- * component.
- *
- * Returns null when there is no last watched video.
+ * Convert authenticated learning data
+ * into the structure required by the
+ * Dashboard Continue Learning component.
  */
 export const getContinueLearningData = (
   learningData
@@ -358,6 +375,7 @@ export const getContinueLearningData = (
 
   return {
     course,
+
     progress:
       progress.overallProgress,
 
@@ -381,6 +399,8 @@ export const getContinueLearningData = (
 ========================================================= */
 
 const dashboardService = {
+  getDashboard,
+
   getCourses,
   getCourseBySlug,
 
