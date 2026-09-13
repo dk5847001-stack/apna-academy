@@ -26,8 +26,8 @@ export default function AppRoutes() {
     <Routes>
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
-          <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-          <Route path={ROUTES.DASHBOARD} element={<DashboardHome />} />
+          <Route index element={<Navigate to={ROUTES.HOME} replace />} />
+          <Route path={ROUTES.HOME} element={<DashboardHome />} />
           <Route path={ROUTES.COURSES} element={<AllCourses />} />
           <Route path={ROUTES.MY_COURSES} element={<MyCourses />} />
           <Route path={ROUTES.PURCHASES} element={<Purchases />} />
@@ -51,10 +51,10 @@ export default function AppRoutes() {
 
       <Route
         path="/auth-required"
-        element={<Navigate to={ROUTES.DASHBOARD} replace />}
+        element={<Navigate to={ROUTES.HOME} replace />}
       />
 
-      <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+      <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
     </Routes>
   );
 }
