@@ -7,6 +7,7 @@ import learningRoutes from "./learning.routes.js";
 import progressRoutes from "./progress.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
 import certificateRoutes from "./certificate.routes.js";
+import notificationRoutes from "./notification.routes.js";
 
 const router = Router();
 
@@ -38,5 +39,7 @@ router.use("/progress", progressRoutes);
 router.use("/dashboard", dashboardRoutes);
 
 router.use("/certificates", certificateRoutes);
+
+router.use("/notifications", notificationRoutes);
 
 export default router;
