@@ -586,6 +586,9 @@ export const getStudentDashboard = async (
     certificates:
       serializedCertificates.length,
 
+    purchases:
+      activePurchases.length,
+
     overallProgress:
       Math.min(
         100,
