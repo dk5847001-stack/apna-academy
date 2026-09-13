@@ -5,6 +5,27 @@ import { updateVideoProgress } from "../services/progress.service";
 
 const SAVE_INTERVAL = 10000;
 
+const getPlayerMetrics = (player) => {
+  if (!player) {
+    return { currentTime: 0, duration: 0 };
+  }
+
+  const currentTime =
+    typeof player === "object" && "currentTime" in player
+      ? Number(player.currentTime)
+      : 0;
+
+  const duration =
+    typeof player === "object" && "duration" in player
+      ? Number(player.duration)
+      : 0;
+
+  return {
+    currentTime: Number.isFinite(currentTime) ? currentTime : 0,
+    duration: Number.isFinite(duration) ? duration : 0,
+  };
+};
+
 export default function useVideoProgress({
   courseId,
   video = null,
@@ -87,14 +108,9 @@ export default function useVideoProgress({
     async (player) => {
       if (!player || !video) return;
 
-      const duration = Number(player.duration);
-      const currentTime = Number(player.currentTime);
+      const { duration, currentTime } = getPlayerMetrics(player);
 
-      if (
-        !Number.isFinite(duration) ||
-        duration <= 0 ||
-        !Number.isFinite(currentTime)
-      ) {
+      if (duration <= 0 || !Number.isFinite(currentTime)) {
         return;
       }
 
@@ -123,9 +139,8 @@ export default function useVideoProgress({
 
   const handleEnded = useCallback(
     async (player) => {
-      const duration = Number(player?.duration) || 0;
-      const finalPosition =
-        duration > 0 ? duration : Number(player?.currentTime) || 0;
+      const { duration, currentTime } = getPlayerMetrics(player);
+      const finalPosition = duration > 0 ? duration : currentTime;
 
       await saveProgress({
         position: finalPosition,
@@ -138,8 +153,7 @@ export default function useVideoProgress({
 
   const handlePause = useCallback(
     async (player) => {
-      const currentTime = Number(player?.currentTime) || 0;
-      const duration = Number(player?.duration) || 0;
+      const { currentTime, duration } = getPlayerMetrics(player);
       const completionThreshold =
         duration *
         (LEARNING_RULES.VIDEO_COMPLETION_PERCENTAGE / 100);
@@ -167,13 +181,20 @@ export default function useVideoProgress({
       if (!player) return;
 
       const position = Number(initialPosition) || 0;
-      const duration = Number(player.duration) || 0;
+      const { duration } = getPlayerMetrics(player);
 
       if (position > 0 && duration > 0 && position < duration) {
-        try {
-          player.currentTime = position;
-        } catch (error) {
-          console.warn("Unable to restore video position:", error);
+        if (typeof player.setCurrentTime === "function") {
+          player.setCurrentTime(position);
+          return;
+        }
+
+        if ("currentTime" in Object(player)) {
+          try {
+            player.currentTime = position;
+          } catch (error) {
+            console.warn("Unable to restore video position:", error);
+          }
         }
       }
     },
