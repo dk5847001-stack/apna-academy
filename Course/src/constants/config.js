@@ -25,24 +25,17 @@ export const IS_PRODUCTION =
 export const API_TIMEOUT = 15000;
 
 export const STORAGE_KEYS = {
+  TOKEN: "token",
   USER: "user",
   THEME: "apnaacademy-theme",
 };
 
 export const COURSE_ROUTES = {
   HOME: "/",
-
-  DETAILS: (slug) =>
-    `/courses/${slug}`,
-
-  LEARN: (slug) =>
-    `/courses/${slug}/learn`,
-
-  VIDEO: (slug, videoId) =>
-    `/courses/${slug}/learn/${videoId}`,
-
-  CERTIFICATE: (slug) =>
-    `/courses/${slug}/certificate`,
+  DETAILS: (slug) => `/courses/${slug}`,
+  LEARN: (slug) => `/courses/${slug}/learn`,
+  VIDEO: (slug, videoId) => `/courses/${slug}/learn/${videoId}`,
+  CERTIFICATE: (slug) => `/courses/${slug}/certificate`,
 };
 
 export const EXTERNAL_ROUTES = {
@@ -52,8 +45,6 @@ export const EXTERNAL_ROUTES = {
 
 export const LEARNING_RULES = {
   VIDEO_COMPLETION_PERCENTAGE: 80,
-
   CERTIFICATE_PROGRESS_PERCENTAGE: 100,
-
   ALL_ACCESS_PRICE: 99,
 };
