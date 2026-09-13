@@ -1,43 +1,13 @@
 import api from "./api";
 
-import {
-  STORAGE_KEYS,
-} from "../constants/config";
-
-/**
- * Store authenticated user session.
- */
-const saveSession = (data) => {
-  if (data?.token) {
-    localStorage.setItem(
-      STORAGE_KEYS.TOKEN,
-      data.token
-    );
-  }
-
-  if (data?.user) {
-    localStorage.setItem(
-      STORAGE_KEYS.USER,
-      JSON.stringify(data.user)
-    );
-  }
-};
-
-/**
- * Clear authenticated user session.
- */
-export const clearSession = () => {
-  localStorage.removeItem(
-    STORAGE_KEYS.TOKEN
-  );
-
-  localStorage.removeItem(
-    STORAGE_KEYS.USER
-  );
-};
-
 /**
  * Register a new user.
+ *
+ * Authentication is handled by the backend
+ * using an HttpOnly cookie.
+ *
+ * IMPORTANT:
+ * Never store the JWT/token in localStorage.
  */
 export const register = async ({
   name,
@@ -53,17 +23,14 @@ export const register = async ({
     }
   );
 
-  const data = response?.data?.data;
-
-  if (data?.token && data?.user) {
-    saveSession(data);
-  }
-
   return response.data;
 };
 
 /**
  * Login existing user.
+ *
+ * Backend sets the HttpOnly authentication cookie.
+ * The browser stores and sends it automatically.
  */
 export const login = async ({
   email,
@@ -77,54 +44,35 @@ export const login = async ({
     }
   );
 
-  const data = response?.data?.data;
-
-  if (data?.token && data?.user) {
-    saveSession(data);
-  }
-
   return response.data;
 };
 
 /**
  * Get currently authenticated user.
+ *
+ * The HttpOnly authentication cookie is sent
+ * automatically because api.js uses withCredentials.
  */
 export const getCurrentUser = async () => {
-  const response = await api.get("/auth/me");
-
-  const user = response?.data?.data;
-
-  if (user) {
-    localStorage.setItem(
-      STORAGE_KEYS.USER,
-      JSON.stringify(user)
-    );
-  }
-
-  return user;
-};
-
-/**
- * Check whether a token exists locally.
- *
- * Kept for legacy compatibility.
- * The HttpOnly cookie is the real authentication source.
- */
-export const hasToken = () => {
-  return Boolean(
-    localStorage.getItem(
-      STORAGE_KEYS.TOKEN
-    )
+  const response = await api.get(
+    "/auth/me"
   );
+
+  return response?.data?.data || null;
 };
 
 /**
- * Get cached user.
+ * Get cached user information.
+ *
+ * IMPORTANT:
+ * This is ONLY for UI hydration.
+ *
+ * It is NOT an authentication mechanism.
  */
 export const getStoredUser = () => {
   try {
     const user = localStorage.getItem(
-      STORAGE_KEYS.USER
+      "user"
     );
 
     return user
@@ -136,23 +84,43 @@ export const getStoredUser = () => {
 };
 
 /**
- * Logout current user.
+ * Save user information for UI hydration only.
  *
  * IMPORTANT:
- * The backend clears the HttpOnly authentication
- * cookie. Local storage is cleared afterwards.
+ * Authentication token is NEVER stored here.
+ */
+export const saveStoredUser = (user) => {
+  if (!user) {
+    localStorage.removeItem("user");
+    return;
+  }
+
+  localStorage.setItem(
+    "user",
+    JSON.stringify(user)
+  );
+};
+
+/**
+ * Clear UI-only cached user information.
+ *
+ * The real authentication cookie is cleared
+ * by the backend /auth/logout endpoint.
+ */
+export const clearSession = () => {
+  localStorage.removeItem("user");
+};
+
+/**
+ * Logout current user.
+ *
+ * Backend is responsible for clearing the
+ * HttpOnly authentication cookie.
  */
 export const logout = async () => {
   try {
-    await api.post("/auth/logout");
-  } catch (error) {
-    /*
-     * Even if the backend request fails,
-     * clear the local legacy session.
-     */
-    console.error(
-      "Logout request failed:",
-      error
+    await api.post(
+      "/auth/logout"
     );
   } finally {
     clearSession();
@@ -163,8 +131,8 @@ const authService = {
   register,
   login,
   getCurrentUser,
-  hasToken,
   getStoredUser,
+  saveStoredUser,
   clearSession,
   logout,
 };
