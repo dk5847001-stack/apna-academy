@@ -1,72 +1,17 @@
 import mongoose from "mongoose";
 import SupportTicket from "../models/SupportTicket.js";
 import SupportMessage from "../models/SupportMessage.js";
-import SupportTicketModel from "../models/SupportTicket.js";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
 
-const STATUSES = ["open", "in-progress", "resolved", "closed"];
-const PRIORITIES = ["low", "medium", "high", "urgent"];
-const CATEGORIES = ["course", "payment", "video", "certificate", "account", "other"];
-const isObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
-const clean = (value = "") => String(value).trim();
-const validateId = (id) => { if (!isObjectId(id)) { const error = new Error("Invalid ticket id."); error.statusCode = 400; throw error; } };
+const STATUSES=["open","in-progress","resolved","closed"],PRIORITIES=["low","medium","high","urgent"],CATEGORIES=["course","payment","video","certificate","account","other"];
+const isObjectId=v=>mongoose.Types.ObjectId.isValid(v),clean=v=>String(v??"").trim();
+const validateId=id=>{if(!isObjectId(id)){const e=new Error("Invalid ticket id.");e.statusCode=400;throw e;}};
+const serializeMessage=m=>({id:m._id?.toString(),sender:m.sender?{id:m.sender._id?.toString(),name:m.sender.name,email:m.sender.email,avatar:m.sender.avatar||""}:null,senderRole:m.senderRole,message:m.message,createdAt:m.createdAt});
+const serialize=(t,messages=[],lastMessage=null)=>({id:t._id?.toString(),subject:t.subject,category:t.category,message:t.message,status:t.status,priority:t.priority,adminReply:t.adminReply||"",repliedAt:t.repliedAt||null,createdAt:t.createdAt,updatedAt:t.updatedAt,lastMessage:messages.length?messages[messages.length-1]:lastMessage,messages,user:t.user?{id:t.user._id?.toString(),name:t.user.name,email:t.user.email,phone:t.user.phone||"",avatar:t.user.avatar||""}:null});
 
-const serializeMessage = (message) => ({
-  id: message._id?.toString(),
-  sender: message.sender ? { id: message.sender._id?.toString(), name: message.sender.name, email: message.sender.email, avatar: message.sender.avatar || "" } : null,
-  senderRole: message.senderRole,
-  message: message.message,
-  createdAt: message.createdAt,
-});
+export const listAdminTickets=async({page=1,limit=20,search="",status="",priority="",category=""}={})=>{const safePage=Math.max(Number(page)||1,1),safeLimit=Math.min(Math.max(Number(limit)||20,1),100),query={};if(STATUSES.includes(status))query.status=status;if(PRIORITIES.includes(priority))query.priority=priority;if(CATEGORIES.includes(category))query.category=category;if(clean(search)){const escaped=clean(search).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),userIds=await User.find({$or:[{name:{$regex:escaped,$options:"i"}},{email:{$regex:escaped,$options:"i"}}]}).distinct("_id");query.$or=[{subject:{$regex:escaped,$options:"i"}},{message:{$regex:escaped,$options:"i"}},{adminReply:{$regex:escaped,$options:"i"}},{user:{$in:userIds}}];}const skip=(safePage-1)*safeLimit;const[rows,total,counts]=await Promise.all([SupportTicket.find(query).populate({path:"user",select:"name email phone avatar"}).sort({priority:-1,updatedAt:-1}).skip(skip).limit(safeLimit).lean(),SupportTicket.countDocuments(query),Promise.all(STATUSES.map(async s=>[s,await SupportTicket.countDocuments({status:s})]))]);const ids=rows.map(x=>x._id);const latest=ids.length?await SupportMessage.find({ticket:{$in:ids}}).sort({createdAt:-1}).lean():[];const latestMap=new Map();for(const m of latest)if(!latestMap.has(m.ticket.toString()))latestMap.set(m.ticket.toString(),serializeMessage(m));const summary=Object.fromEntries(counts);summary.total=Object.values(summary).reduce((a,v)=>a+Number(v||0),0);return{tickets:rows.map(x=>serialize(x,[],latestMap.get(x._id.toString()))),summary,pagination:{page:safePage,limit:safeLimit,total,totalPages:Math.ceil(total/safeLimit)}};};
 
-const serialize = (ticket, messages = []) => ({
-  id: ticket._id?.toString(), subject: ticket.subject, category: ticket.category, message: ticket.message,
-  status: ticket.status, priority: ticket.priority, adminReply: ticket.adminReply || "", repliedAt: ticket.repliedAt || null,
-  createdAt: ticket.createdAt, updatedAt: ticket.updatedAt, messages,
-  user: ticket.user ? { id: ticket.user._id?.toString(), name: ticket.user.name, email: ticket.user.email, phone: ticket.user.phone || "", avatar: ticket.user.avatar || "" } : null,
-});
+export const getAdminTicket=async ticketId=>{validateId(ticketId);const ticket=await SupportTicket.findById(ticketId).populate({path:"user",select:"name email phone avatar role status isEmailVerified createdAt lastLoginAt"}).lean();if(!ticket){const e=new Error("Support ticket not found.");e.statusCode=404;throw e;}const messages=await SupportMessage.find({ticket:ticket._id}).populate({path:"sender",select:"name email avatar"}).sort({createdAt:1}).lean();return serialize(ticket,messages.map(serializeMessage));};
 
-export const listAdminTickets = async ({ page = 1, limit = 20, search = "", status = "", priority = "", category = "" } = {}) => {
-  const safePage = Math.max(Number(page) || 1, 1); const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 100); const query = {};
-  if (STATUSES.includes(status)) query.status = status; if (PRIORITIES.includes(priority)) query.priority = priority; if (CATEGORIES.includes(category)) query.category = category;
-  if (clean(search)) {
-    const escaped = clean(search).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const userIds = await User.find({ $or: [{ name: { $regex: escaped, $options: "i" } }, { email: { $regex: escaped, $options: "i" } }] }).distinct("_id");
-    query.$or = [{ subject: { $regex: escaped, $options: "i" } }, { message: { $regex: escaped, $options: "i" } }, { adminReply: { $regex: escaped, $options: "i" } }, { user: { $in: userIds } }];
-  }
-  const skip = (safePage - 1) * safeLimit;
-  const [rows, total, counts] = await Promise.all([
-    SupportTicket.find(query).populate({ path: "user", select: "name email phone avatar" }).sort({ priority: -1, updatedAt: -1 }).skip(skip).limit(safeLimit).lean(),
-    SupportTicket.countDocuments(query),
-    Promise.all(STATUSES.map(async (item) => [item, await SupportTicket.countDocuments({ status: item })])),
-  ]);
-  const summary = Object.fromEntries(counts); summary.total = Object.values(summary).reduce((sum, value) => sum + Number(value || 0), 0);
-  return { tickets: rows.map((x) => serialize(x)), summary, pagination: { page: safePage, limit: safeLimit, total, totalPages: Math.ceil(total / safeLimit) } };
-};
-
-export const getAdminTicket = async (ticketId) => {
-  validateId(ticketId);
-  const ticket = await SupportTicket.findById(ticketId).populate({ path: "user", select: "name email phone avatar role status isEmailVerified createdAt lastLoginAt" }).lean();
-  if (!ticket) { const error = new Error("Support ticket not found."); error.statusCode = 404; throw error; }
-  const messages = await SupportMessage.find({ ticket: ticket._id }).populate({ path: "sender", select: "name email avatar" }).sort({ createdAt: 1 }).lean();
-  return serialize(ticket, messages.map(serializeMessage));
-};
-
-export const updateAdminTicket = async ({ ticketId, status, priority, adminReply, adminId }) => {
-  validateId(ticketId); const updates = {};
-  if (status !== undefined) { if (!STATUSES.includes(status)) { const error = new Error("Invalid ticket status."); error.statusCode = 400; throw error; } updates.status = status; }
-  if (priority !== undefined) { if (!PRIORITIES.includes(priority)) { const error = new Error("Invalid ticket priority."); error.statusCode = 400; throw error; } updates.priority = priority; }
-  const reply = adminReply === undefined ? "" : clean(adminReply);
-  if (adminReply !== undefined) { if (reply.length > 5000) { const error = new Error("Admin reply cannot exceed 5000 characters."); error.statusCode = 400; throw error; } updates.adminReply = reply; if (reply) updates.repliedAt = new Date(); }
-  if (!Object.keys(updates).length) { const error = new Error("No valid ticket changes supplied."); error.statusCode = 400; throw error; }
-  const ticket = await SupportTicketModel.findByIdAndUpdate(ticketId, { $set: updates }, { new: true }).populate({ path: "user", select: "name email phone avatar" }).lean();
-  if (!ticket) { const error = new Error("Support ticket not found."); error.statusCode = 404; throw error; }
-  if (reply) await SupportMessage.create({ ticket: ticket._id, sender: adminId, senderRole: "admin", message: reply });
-  const notificationParts = [];
-  if (reply) notificationParts.push("Our support team replied to your ticket.");
-  if (status !== undefined) notificationParts.push(`Ticket status updated to ${status.replace("-", " ")}.`);
-  if (priority !== undefined) notificationParts.push(`Ticket priority updated to ${priority}.`);
-  if (notificationParts.length && ticket.user?._id) await Notification.create({ user: ticket.user._id, title: `Support update: ${ticket.subject}`, message: notificationParts.join(" "), type: "system", link: "/dashboard/support" });
-  return getAdminTicket(ticketId);
-};
+export const updateAdminTicket=async({ticketId,status,priority,adminReply,adminId})=>{validateId(ticketId);const updates={};if(status!==undefined){if(!STATUSES.includes(status)){const e=new Error("Invalid ticket status.");e.statusCode=400;throw e;}updates.status=status;}if(priority!==undefined){if(!PRIORITIES.includes(priority)){const e=new Error("Invalid ticket priority.");e.statusCode=400;throw e;}updates.priority=priority;}const reply=adminReply===undefined?"":clean(adminReply);if(adminReply!==undefined){if(reply.length>5000){const e=new Error("Admin reply cannot exceed 5000 characters.");e.statusCode=400;throw e;}updates.adminReply=reply;if(reply)updates.repliedAt=new Date();}if(!Object.keys(updates).length){const e=new Error("No valid ticket changes supplied.");e.statusCode=400;throw e;}const ticket=await SupportTicket.findByIdAndUpdate(ticketId,{$set:updates},{new:true}).populate({path:"user",select:"name email phone avatar"}).lean();if(!ticket){const e=new Error("Support ticket not found.");e.statusCode=404;throw e;}if(reply)await SupportMessage.create({ticket:ticket._id,sender:adminId,senderRole:"admin",message:reply});const parts=[];if(reply)parts.push("Our support team replied to your ticket.");if(status!==undefined)parts.push(`Ticket status updated to ${status.replace("-"," ")}.`);if(priority!==undefined)parts.push(`Ticket priority updated to ${priority}.`);if(parts.length&&ticket.user?._id)await Notification.create({user:ticket.user._id,title:`Support update: ${ticket.subject}`,message:parts.join(" "),type:"system",link:"/dashboard/support"});return getAdminTicket(ticketId);};
