@@ -14,6 +14,7 @@ import { successResponse } from "../utils/apiResponse.js";
 
 /**
  * Remove private Bunny/video data from locked videos.
+ * Notes are protected exactly like the video media URL.
  */
 const formatVideo = (video, unlocked, completedVideos = []) => {
   const videoId = video._id.toString();
@@ -36,6 +37,7 @@ const formatVideo = (video, unlocked, completedVideos = []) => {
       ? {
           videoUrl: video.videoUrl,
           bunnyVideoId: video.bunnyVideoId,
+          notesPdfUrl: video.notesPdfUrl || "",
         }
       : {}),
   };
@@ -198,6 +200,7 @@ export const getLearningVideo = asyncHandler(
 
     /*
      * Preview videos can be watched without purchase.
+     * Their optional notes PDF follows the same preview access.
      *
      * For non-preview videos, purchase + module unlock
      * is mandatory.
@@ -218,6 +221,7 @@ export const getLearningVideo = asyncHandler(
             isLocked: false,
             videoUrl: video.videoUrl,
             bunnyVideoId: video.bunnyVideoId,
+            notesPdfUrl: video.notesPdfUrl || "",
           },
         },
       });
