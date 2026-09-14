@@ -16,6 +16,7 @@ import adminPurchaseRoutes from "./admin.purchase.routes.js";
 import adminProgressRoutes from "./admin.progress.routes.js";
 import adminCertificateRoutes from "./admin.certificate.routes.js";
 import adminNotificationRoutes from "./admin.notification.routes.js";
+import adminAnalyticsRoutes from "./admin.analytics.routes.js";
 
 const router = Router();
 
@@ -39,5 +40,6 @@ router.use("/admin/purchases", adminPurchaseRoutes);
 router.use("/admin/progress", adminProgressRoutes);
 router.use("/admin/certificates", adminCertificateRoutes);
 router.use("/admin/notifications", adminNotificationRoutes);
+router.use("/admin/analytics", adminAnalyticsRoutes);
 
 export default router;
