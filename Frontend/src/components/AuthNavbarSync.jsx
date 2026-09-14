@@ -24,7 +24,22 @@ async function getCurrentUser() {
   }
 }
 
-function createActionButton({ label, primary = false, onClick }) {
+async function logoutUser() {
+  try {
+    await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: { Accept: "application/json" },
+    });
+  } catch {
+    // Even if the request fails, clear the local navbar state below.
+  }
+
+  window.dispatchEvent(new Event("apnaacademy-auth-change"));
+  window.location.href = "/";
+}
+
+function createActionButton({ label, primary = false, danger = false, onClick }) {
   const button = document.createElement("button");
 
   button.type = "button";
@@ -32,21 +47,39 @@ function createActionButton({ label, primary = false, onClick }) {
   button.style.minHeight = "40px";
   button.style.padding = "0 14px";
   button.style.borderRadius = "9px";
-  button.style.border = primary
-    ? "1px solid #0f172a"
-    : "1px solid #bfdbfe";
-  button.style.background = primary ? "#0f172a" : "#ffffff";
-  button.style.color = primary ? "#ffffff" : "#1d4ed8";
+  button.style.border = danger
+    ? "1px solid #fecaca"
+    : primary
+      ? "1px solid #0f172a"
+      : "1px solid #bfdbfe";
+  button.style.background = danger
+    ? "#ffffff"
+    : primary
+      ? "#0f172a"
+      : "#ffffff";
+  button.style.color = danger
+    ? "#dc2626"
+    : primary
+      ? "#ffffff"
+      : "#1d4ed8";
   button.style.fontSize = "14px";
   button.style.fontWeight = "700";
   button.style.fontFamily = "inherit";
   button.style.cursor = "pointer";
   button.style.boxShadow = "none";
   button.addEventListener("mouseenter", () => {
-    button.style.background = primary ? "#1e293b" : "#eff6ff";
+    button.style.background = danger
+      ? "#fef2f2"
+      : primary
+        ? "#1e293b"
+        : "#eff6ff";
   });
   button.addEventListener("mouseleave", () => {
-    button.style.background = primary ? "#0f172a" : "#ffffff";
+    button.style.background = danger
+      ? "#ffffff"
+      : primary
+        ? "#0f172a"
+        : "#ffffff";
   });
   button.addEventListener("click", onClick);
 
@@ -138,6 +171,16 @@ function installDesktopActions(user) {
     container.appendChild(admin);
   }
 
+  if (!container.querySelector("[data-apna-logout]")) {
+    const logout = createActionButton({
+      label: "Logout",
+      danger: true,
+      onClick: logoutUser,
+    });
+    logout.setAttribute("data-apna-logout", "true");
+    container.appendChild(logout);
+  }
+
   if (user?.role !== "admin") {
     container.querySelector("[data-apna-admin]")?.remove();
   }
@@ -189,6 +232,18 @@ function installMobileActions(user) {
     container.appendChild(admin);
   }
 
+  if (!container.querySelector("[data-apna-logout]")) {
+    const logout = createActionButton({
+      label: "Logout",
+      danger: true,
+      onClick: logoutUser,
+    });
+    logout.style.width = "100%";
+    logout.style.marginTop = "8px";
+    logout.setAttribute("data-apna-logout", "true");
+    container.appendChild(logout);
+  }
+
   if (user?.role !== "admin") {
     container.querySelector("[data-apna-admin]")?.remove();
   }
@@ -236,21 +291,7 @@ export default function AuthNavbarSync() {
     window.setTimeout(syncWithUser, 350);
   };
 
-  const handleLogoutClick = (event) => {
-    const target = event.target instanceof Element ? event.target : null;
-    const button = target?.closest("button");
-
-    if (button?.textContent?.trim() === "Logout") {
-      fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-        keepalive: true,
-      }).catch(() => {});
-    }
-  };
-
   window.addEventListener("apnaacademy-auth-change", handleAuthChange);
-  document.addEventListener("click", handleLogoutClick, true);
 
   return null;
 }
