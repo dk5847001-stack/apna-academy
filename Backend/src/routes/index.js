@@ -14,6 +14,7 @@ import adminCourseRoutes from "./admin.course.routes.js";
 import adminUserRoutes from "./admin.user.routes.js";
 import adminPurchaseRoutes from "./admin.purchase.routes.js";
 import adminProgressRoutes from "./admin.progress.routes.js";
+import adminCertificateRoutes from "./admin.certificate.routes.js";
 
 const router = Router();
 
@@ -35,5 +36,6 @@ router.use("/admin/courses", adminCourseRoutes);
 router.use("/admin/users", adminUserRoutes);
 router.use("/admin/purchases", adminPurchaseRoutes);
 router.use("/admin/progress", adminProgressRoutes);
+router.use("/admin/certificates", adminCertificateRoutes);
 
 export default router;
