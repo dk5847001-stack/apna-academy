@@ -6,4 +6,6 @@ export const listAdminNotifications = async (params = {}) => unwrap(await api.ge
 
 export const createAdminNotification = async (payload) => unwrap(await api.post("/admin/notifications", payload));
 
-export const deleteAdminNotification = async (notificationId) => unwrap(await api.delete(`/admin/notifications/${notificationId}`));
+export const updateAdminNotification = async (notificationId, payload) => unwrap(await api.patch(`/admin/notifications/${encodeURIComponent(notificationId)}`, payload));
+
+export const deleteAdminNotification = async (notificationId) => unwrap(await api.delete(`/admin/notifications/${encodeURIComponent(notificationId)}`));
