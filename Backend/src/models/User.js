@@ -49,6 +49,43 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    emailVerificationOtpHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+
+    emailVerificationOtpExpiresAt: {
+      type: Date,
+      default: null,
+      select: false,
+      index: true,
+    },
+
+    emailVerificationOtpAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+
+    emailVerificationLastSentAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    emailVerificationResendCount: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+
+    emailVerificationResendWindowStartedAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
     status: {
       type: String,
       enum: ["active", "inactive", "suspended"],
@@ -61,7 +98,6 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    // Password reset
     passwordResetToken: {
       type: String,
       default: null,
