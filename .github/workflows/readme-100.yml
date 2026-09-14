@@ -1,0 +1,30 @@
+name: README 100 Commit Test
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  commit-readme:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create remaining README commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for i in $(seq 9 100); do
+            printf '\n<!-- README commit %03d -->\n' "$i" >> README.md
+            git add README.md
+            git commit -m "docs: README commit $i"
+            git push origin HEAD:main
+            git reset --hard HEAD
+          done
