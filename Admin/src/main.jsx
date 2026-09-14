@@ -39,21 +39,23 @@ function ManagementSidebar({ hash }) {
   };
 
   return (
-    <aside className="fixed inset-y-0 left-0 top-16 z-40 hidden w-64 border-r border-slate-200 bg-white lg:block">
-      <div className="flex h-full flex-col p-4">
-        <div className="mb-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-          <div className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-blue-600 text-white shadow-sm">
-              <SchoolOutlined fontSize="small" />
-            </div>
-            <div>
-              <div className="font-extrabold text-blue-950">Management</div>
-              <div className="text-xs font-medium text-blue-700">Platform administration</div>
+    <aside className="fixed inset-y-0 left-0 top-16 z-40 hidden h-[calc(100vh-4rem)] w-64 border-r border-slate-200 bg-white lg:block">
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="shrink-0 p-4 pb-2">
+          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+            <div className="flex items-center gap-2">
+              <div className="grid h-9 w-9 place-items-center rounded-xl bg-blue-600 text-white shadow-sm">
+                <SchoolOutlined fontSize="small" />
+              </div>
+              <div>
+                <div className="font-extrabold text-blue-950">Management</div>
+                <div className="text-xs font-medium text-blue-700">Platform administration</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <nav className="space-y-1.5" aria-label="Admin management navigation">
+        <nav className="min-h-0 flex-1 space-y-1.5 overflow-y-auto px-4 pb-4 pr-2 scrollbar-thin" aria-label="Admin management navigation">
           {externalNavItems.map(({ href, label, icon: Icon }) => (
             <a
               key={label}
@@ -83,9 +85,11 @@ function ManagementSidebar({ hash }) {
           })}
         </nav>
 
-        <div className="mt-auto rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">ApnaAcademy</p>
-          <p className="mt-1 text-sm font-semibold text-slate-700">Admin Console</p>
+        <div className="shrink-0 border-t border-slate-200 bg-white p-4">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">ApnaAcademy</p>
+            <p className="mt-1 text-sm font-semibold text-slate-700">Admin Console</p>
+          </div>
         </div>
       </div>
     </aside>
