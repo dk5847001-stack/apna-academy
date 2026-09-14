@@ -19,6 +19,9 @@ const supportTicketSchema = new mongoose.Schema(
     priority: { type: String, enum: ["low", "medium", "high", "urgent"], default: "medium" },
     adminReply: { type: String, default: "", maxlength: 5000 },
     repliedAt: { type: Date, default: null },
+    firstResponseAt: { type: Date, default: null },
+    resolvedAt: { type: Date, default: null },
+    assignedAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
     messages: { type: [supportMessageSchema], default: [] },
   },
   { timestamps: true }
@@ -26,6 +29,7 @@ const supportTicketSchema = new mongoose.Schema(
 
 supportTicketSchema.index({ user: 1, createdAt: -1 });
 supportTicketSchema.index({ status: 1, priority: 1, createdAt: -1 });
+supportTicketSchema.index({ assignedAdmin: 1, status: 1, updatedAt: -1 });
 
 const SupportTicket = mongoose.model("SupportTicket", supportTicketSchema);
 export default SupportTicket;
