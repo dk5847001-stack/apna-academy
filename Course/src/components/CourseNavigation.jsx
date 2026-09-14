@@ -8,20 +8,25 @@ import {
   School,
   MenuBook,
 } from "@mui/icons-material";
-import { APP_NAME, EXTERNAL_ROUTES } from "../constants/config";
+import { APP_NAME } from "../constants/config";
+
+const FRONTEND_APP_URL =
+  import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
+const DASHBOARD_APP_URL =
+  import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5175";
 
 const navigationItems = [
   {
     label: "Home",
     description: "Main website",
     icon: Home,
-    href: EXTERNAL_ROUTES.FRONTEND,
+    href: FRONTEND_APP_URL,
   },
   {
     label: "Dashboard",
     description: "Student area",
     icon: Dashboard,
-    href: EXTERNAL_ROUTES.DASHBOARD,
+    href: DASHBOARD_APP_URL,
   },
 ];
 
@@ -49,7 +54,7 @@ function Sidebar({ open, onClose }) {
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-5">
           <button
             type="button"
-            onClick={() => navigateExternal(EXTERNAL_ROUTES.FRONTEND)}
+            onClick={() => navigateExternal(FRONTEND_APP_URL)}
             className="flex min-w-0 items-center gap-3 text-left"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
@@ -87,7 +92,9 @@ function Sidebar({ open, onClose }) {
               </span>
               <span className="min-w-0">
                 <span className="block text-sm font-extrabold">Courses</span>
-                <span className="block text-[11px] font-medium text-blue-600">Learning catalog</span>
+                <span className="block text-[11px] font-medium text-blue-600">
+                  Learning catalog
+                </span>
               </span>
             </div>
 
@@ -115,7 +122,9 @@ function Sidebar({ open, onClose }) {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
               <AutoAwesome fontSize="small" />
             </div>
-            <p className="mt-3 text-xs font-extrabold text-slate-900">Learn by building.</p>
+            <p className="mt-3 text-xs font-extrabold text-slate-900">
+              Learn by building.
+            </p>
             <p className="mt-1 text-[11px] leading-5 text-slate-500">
               Choose a course and continue your practical learning journey.
             </p>
@@ -150,7 +159,9 @@ export default function CourseNavigation({ children }) {
                 <MenuBook fontSize="small" />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-black text-slate-950">Course Library</p>
+                <p className="truncate text-sm font-black text-slate-950">
+                  Course Library
+                </p>
                 <p className="hidden truncate text-[11px] font-medium text-slate-400 sm:block">
                   Explore and start learning
                 </p>
@@ -174,9 +185,7 @@ export default function CourseNavigation({ children }) {
         </div>
       </header>
 
-      <div className="pt-16 lg:pl-[280px]">
-        {children}
-      </div>
+      <div className="pt-16 lg:pl-[280px]">{children}</div>
     </div>
   );
 }
