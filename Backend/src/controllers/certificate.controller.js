@@ -48,6 +48,17 @@ export const getCertificateStatus =
           courseId
         );
 
+      // An administrator can invalidate an existing certificate.
+      // It must never be reported to the student as a valid issued certificate.
+      if (
+        result?.certificate &&
+        result.certificate.isValid !== true
+      ) {
+        result.eligible = false;
+        result.alreadyIssued = false;
+        result.reason = "CERTIFICATE_INVALID";
+      }
+
       return successResponse({
         res,
         message:
@@ -158,6 +169,26 @@ export const issueCertificate =
           courseId,
           recipientName,
         });
+
+      // createCertificate intentionally preserves the permanent certificate
+      // record. If that record was invalidated by an admin, do not expose it
+      // as a successful issuance and do not create a duplicate record.
+      if (
+        certificate &&
+        certificate.isValid !== true
+      ) {
+        return res.status(409).json({
+          success: false,
+          message:
+            "This certificate has been invalidated by an administrator. Please contact support.",
+          data: {
+            eligible: false,
+            alreadyIssued: false,
+            reason: "CERTIFICATE_INVALID",
+            certificate,
+          },
+        });
+      }
 
       return successResponse({
         res,
