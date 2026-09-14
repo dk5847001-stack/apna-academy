@@ -37,6 +37,13 @@ export const getAdminUserDetails = async (userId) => {
     Progress.find({ user: userId }).populate("course", "title slug thumbnail").sort({ updatedAt: -1 }).limit(20).lean(),
     Certificate.find({ user: userId }).populate("course", "title slug").sort({ issueDate: -1 }).limit(20).lean(),
   ]);
+  const activity = [
+    user.createdAt && { id: `user-created-${user._id}`, type: "account", title: "Account created", description: "User account was created on the platform.", at: user.createdAt },
+    user.lastLoginAt && { id: `login-${user._id}-${new Date(user.lastLoginAt).getTime()}`, type: "login", title: "Last login", description: "User most recently signed in.", at: user.lastLoginAt },
+    ...purchases.map((x) => ({ id: `purchase-${x._id}`, type: "purchase", title: x.paymentStatus === "paid" ? "Purchase completed" : "Purchase activity", description: `${x.course?.title || "Course"} · ${x.paymentStatus || "unknown"} · ${x.amount ?? 0} ${x.currency || "INR"}`, at: x.purchasedAt || x.createdAt })),
+    ...progress.map((x) => ({ id: `progress-${x._id}`, type: x.isCompleted ? "completion" : "progress", title: x.isCompleted ? "Course completed" : "Learning progress updated", description: `${x.course?.title || "Course"} · ${Number(x.overallProgress || 0)}% progress`, at: x.updatedAt || x.createdAt })),
+    ...certificates.map((x) => ({ id: `certificate-${x._id}`, type: "certificate", title: x.isValid ? "Certificate issued" : "Certificate status updated", description: `${x.course?.title || "Course"} · ${x.certificateId || "No certificate ID"}`, at: x.issueDate || x.createdAt })),
+  ].filter((x) => x?.at).sort((a, b) => new Date(b.at) - new Date(a.at)).slice(0, 50);
   return {
     user: sanitizeUser(user),
     summary: {
@@ -44,7 +51,9 @@ export const getAdminUserDetails = async (userId) => {
       revenue: purchases.filter((x) => x.paymentStatus === "paid").reduce((sum, x) => sum + Number(x.amount || 0), 0),
       coursesStarted: progress.length, coursesCompleted: progress.filter((x) => x.isCompleted).length,
       certificates: certificates.length, validCertificates: certificates.filter((x) => x.isValid).length,
+      activityCount: activity.length,
     },
+    activity,
     purchases: purchases.map((x) => ({ id: x._id.toString(), amount: x.amount, currency: x.currency, status: x.paymentStatus, purchaseType: x.purchaseType, purchasedAt: x.purchasedAt, expiresAt: x.expiresAt, razorpayOrderId: x.razorpayOrderId || "", razorpayPaymentId: x.razorpayPaymentId || "", course: x.course ? { id: x.course._id.toString(), title: x.course.title, slug: x.course.slug } : null })),
     progress: progress.map((x) => ({ id: x._id.toString(), overallProgress: x.overallProgress || 0, isCompleted: Boolean(x.isCompleted), completedAt: x.completedAt || null, lastWatchedPosition: x.lastWatchedPosition || 0, completedVideoCount: x.completedVideos?.length || 0, updatedAt: x.updatedAt, course: x.course ? { id: x.course._id.toString(), title: x.course.title, slug: x.course.slug, thumbnail: x.course.thumbnail || "" } : null })),
     certificates: certificates.map((x) => ({ id: x._id.toString(), certificateId: x.certificateId, recipientName: x.recipientName, issueDate: x.issueDate, isValid: Boolean(x.isValid), certificateUrl: x.certificateUrl || "", verificationUrl: x.verificationUrl || "", course: x.course ? { id: x.course._id.toString(), title: x.course.title, slug: x.course.slug } : null })),
