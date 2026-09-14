@@ -1,10 +1,50 @@
-import { useEffect, useState } from "react";
-import { Alert, Avatar, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Paper, Select, Stack, TextField, Typography } from "@mui/material";
-import { Refresh, Search, ShieldOutlined, WarningAmberOutlined } from "@mui/icons-material";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Alert,
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
+} from "@mui/material";
+import {
+  AssessmentOutlined,
+  BadgeOutlined,
+  BookOutlined,
+  CheckCircleOutline,
+  Refresh,
+  Search,
+  ShieldOutlined,
+  ShoppingBagOutlined,
+  WarningAmberOutlined,
+} from "@mui/icons-material";
 import { getApiErrorMessage } from "../services/api";
-import { getAdminUser, listAdminUsers, updateAdminUser } from "../services/adminUser.service";
+import { getAdminUserDetails, listAdminUsers, updateAdminUser } from "../services/adminUser.service";
 
 const statusColor = { active: "success", inactive: "default", suspended: "error" };
+const money = (amount, currency = "INR") => {
+  const value = Number(amount || 0);
+  try {
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: currency || "INR", maximumFractionDigits: 2 }).format(value);
+  } catch {
+    return `${currency || "INR"} ${value.toFixed(2)}`;
+  }
+};
+const dateTime = (value, fallback = "—") => (value ? new Date(value).toLocaleString() : fallback);
 
 export default function Users({ admin }) {
   const [users, setUsers] = useState([]);
@@ -13,49 +53,83 @@ export default function Users({ admin }) {
   const [role, setRole] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState(null);
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState(0);
   const [confirm, setConfirm] = useState(null);
 
   const load = async (page = 1) => {
     try {
-      setLoading(true); setError("");
+      setLoading(true);
+      setError("");
       const data = await listAdminUsers({ page, limit: pagination.limit, search, role, status });
       setUsers(data.users || []);
       setPagination(data.pagination || { page, limit: pagination.limit, total: 0, totalPages: 1 });
-    } catch (err) { setError(getApiErrorMessage(err, "Unable to load users.")); }
-    finally { setLoading(false); }
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Unable to load users."));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(1); }, [search, role, status]);
 
   const manage = async (user) => {
-    try { setError(""); setSelected(await getAdminUser(user.id)); setOpen(true); }
-    catch (err) { setError(getApiErrorMessage(err, "Unable to load user details.")); }
+    try {
+      setError("");
+      setDetailLoading(true);
+      setOpen(true);
+      setTab(0);
+      const data = await getAdminUserDetails(user.id);
+      setSelected(data);
+    } catch (err) {
+      setOpen(false);
+      setError(getApiErrorMessage(err, "Unable to load user details."));
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const requestChange = (field, value) => {
-    if (!selected || saving || selected.id === admin?.id || selected[field] === value) return;
+    if (!selected?.user || saving || selected.user.id === admin?.id || selected.user[field] === value) return;
     setConfirm({ field, value, label: field === "status" ? "account status" : "role" });
   };
 
   const change = async () => {
-    if (!selected || !confirm || saving) return;
+    if (!selected?.user || !confirm || saving) return;
     try {
-      setSaving(true); setError("");
-      const updated = await updateAdminUser(selected.id, { [confirm.field]: confirm.value });
-      setSelected(updated);
+      setSaving(true);
+      setError("");
+      const updated = await updateAdminUser(selected.user.id, { [confirm.field]: confirm.value });
+      setSelected((current) => ({ ...current, user: updated }));
       setUsers((items) => items.map((item) => item.id === updated.id ? updated : item));
       setConfirm(null);
-    } catch (err) { setError(getApiErrorMessage(err, "Unable to update user.")); }
-    finally { setSaving(false); }
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Unable to update user."));
+    } finally {
+      setSaving(false);
+    }
   };
 
+  const summary = selected?.summary || {};
+  const purchaseRows = selected?.purchases || [];
+  const progressRows = selected?.progress || [];
+  const certificateRows = selected?.certificates || [];
+  const activityLabel = useMemo(() => {
+    if (!selected?.user) return "No activity data";
+    return selected.user.lastLoginAt ? `Last login ${dateTime(selected.user.lastLoginAt)}` : "No recorded login";
+  }, [selected]);
+
   return <Box>
-    <Box className="mb-7"><Typography variant="h4" className="font-extrabold tracking-tight text-slate-950">Users</Typography><Typography className="mt-1 text-slate-500">Manage platform accounts, roles, verification and account status.</Typography></Box>
+    <Box className="mb-7">
+      <Typography variant="h4" className="font-extrabold tracking-tight text-slate-950">Users</Typography>
+      <Typography className="mt-1 text-slate-500">Manage platform accounts, roles, verification, learning activity and account status.</Typography>
+    </Box>
     {error && <Alert severity="error" className="mb-5" onClose={() => setError("")}>{error}</Alert>}
+
     <Paper elevation={0} className="rounded-2xl border border-slate-200 p-4 sm:p-5 mb-5">
       <div className="grid grid-cols-1 md:grid-cols-[1fr_180px_180px_auto] gap-3">
         <TextField size="small" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, email or phone" InputProps={{ startAdornment: <Search className="mr-2 text-slate-400" fontSize="small" /> }} />
@@ -64,12 +138,70 @@ export default function Users({ admin }) {
         <Button variant="outlined" startIcon={<Refresh />} onClick={() => load(pagination.page)} className="rounded-xl normal-case">Refresh</Button>
       </div>
     </Paper>
+
     <Paper elevation={0} className="rounded-2xl border border-slate-200 overflow-hidden">
-      {loading ? <Box className="min-h-72 grid place-items-center"><CircularProgress /></Box> : users.length === 0 ? <Box className="min-h-72 grid place-items-center p-8"><Typography className="text-slate-500">No users found.</Typography></Box> : <Box className="overflow-x-auto"><table className="w-full min-w-[760px] text-left"><thead className="bg-slate-50 border-b border-slate-200"><tr>{["User","Verification","Role","Status","Last login",""] .map((x) => <th key={x} className="px-5 py-4 text-xs font-bold uppercase tracking-wide text-slate-500">{x}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{users.map((user) => <tr key={user.id} className="hover:bg-slate-50/70"><td className="px-5 py-4"><Stack direction="row" spacing={2} alignItems="center"><Avatar src={user.avatar} className="bg-blue-50 text-blue-700">{user.name?.[0]}</Avatar><Box><Typography className="font-semibold">{user.name || "Unnamed user"}</Typography><Typography variant="body2" className="text-slate-500">{user.email}</Typography></Box></Stack></td><td className="px-5 py-4"><Chip size="small" label={user.isEmailVerified ? "Verified" : "Unverified"} color={user.isEmailVerified ? "success" : "default"} variant="outlined" /></td><td className="px-5 py-4"><Chip size="small" icon={user.role === "admin" ? <ShieldOutlined /> : undefined} label={user.role} variant="outlined" /></td><td className="px-5 py-4"><Chip size="small" label={user.status} color={statusColor[user.status] || "default"} /></td><td className="px-5 py-4 text-sm text-slate-500">{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Never"}</td><td className="px-5 py-4 text-right"><Button size="small" onClick={() => manage(user)} className="normal-case font-bold">Manage</Button></td></tr>)}</tbody></table></Box>}
+      {loading ? <Box className="min-h-72 grid place-items-center"><CircularProgress /></Box> : users.length === 0 ? <Box className="min-h-72 grid place-items-center p-8"><Typography className="text-slate-500">No users found.</Typography></Box> : <Box className="overflow-x-auto"><table className="w-full min-w-[760px] text-left"><thead className="bg-slate-50 border-b border-slate-200"><tr>{["User", "Verification", "Role", "Status", "Last login", ""].map((x) => <th key={x} className="px-5 py-4 text-xs font-bold uppercase tracking-wide text-slate-500">{x}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{users.map((user) => <tr key={user.id} className="hover:bg-slate-50/70"><td className="px-5 py-4"><Stack direction="row" spacing={2} alignItems="center"><Avatar src={user.avatar} className="bg-blue-50 text-blue-700">{user.name?.[0]}</Avatar><Box><Typography className="font-semibold">{user.name || "Unnamed user"}</Typography><Typography variant="body2" className="text-slate-500">{user.email}</Typography></Box></Stack></td><td className="px-5 py-4"><Chip size="small" label={user.isEmailVerified ? "Verified" : "Unverified"} color={user.isEmailVerified ? "success" : "default"} variant="outlined" /></td><td className="px-5 py-4"><Chip size="small" icon={user.role === "admin" ? <ShieldOutlined /> : undefined} label={user.role} variant="outlined" /></td><td className="px-5 py-4"><Chip size="small" label={user.status} color={statusColor[user.status] || "default"} /></td><td className="px-5 py-4 text-sm text-slate-500">{dateTime(user.lastLoginAt, "Never")}</td><td className="px-5 py-4 text-right"><Button size="small" onClick={() => manage(user)} className="normal-case font-bold">Manage</Button></td></tr>)}</tbody></table></Box>}
       <Box className="flex items-center justify-between border-t border-slate-200 px-5 py-4"><Typography variant="body2" className="text-slate-500">{pagination.total} users</Typography><Stack direction="row" spacing={1}><Button size="small" disabled={pagination.page <= 1 || loading} onClick={() => load(pagination.page - 1)}>Previous</Button><Button size="small" disabled={pagination.page >= pagination.totalPages || loading} onClick={() => load(pagination.page + 1)}>Next</Button></Stack></Box>
     </Paper>
-    <Dialog open={open} onClose={() => !saving && setOpen(false)} fullWidth maxWidth="sm"><DialogTitle className="font-extrabold">Manage User</DialogTitle><DialogContent dividers>{selected && <Stack spacing={3}><Stack direction="row" spacing={2} alignItems="center"><Avatar src={selected.avatar} sx={{ width: 56, height: 56 }} className="bg-blue-50 text-blue-700">{selected.name?.[0]}</Avatar><Box><Typography variant="h6" className="font-bold">{selected.name || "Unnamed user"}</Typography><Typography className="text-slate-500">{selected.email}</Typography></Box></Stack><div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><FormControl fullWidth><InputLabel>Role</InputLabel><Select label="Role" value={selected.role} disabled={saving || selected.id === admin?.id} onChange={(e) => requestChange("role", e.target.value)}><MenuItem value="user">User</MenuItem><MenuItem value="admin">Admin</MenuItem></Select></FormControl><FormControl fullWidth><InputLabel>Status</InputLabel><Select label="Status" value={selected.status} disabled={saving || selected.id === admin?.id} onChange={(e) => requestChange("status", e.target.value)}><MenuItem value="active">Active</MenuItem><MenuItem value="inactive">Inactive</MenuItem><MenuItem value="suspended">Suspended</MenuItem></Select></FormControl></div><div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Info label="Phone" value={selected.phone || "—"}/><Info label="Verification" value={selected.isEmailVerified ? "Verified" : "Not verified"}/><Info label="Created" value={selected.createdAt ? new Date(selected.createdAt).toLocaleString() : "—"}/><Info label="Last login" value={selected.lastLoginAt ? new Date(selected.lastLoginAt).toLocaleString() : "Never"}/></div>{selected.id === admin?.id && <Alert severity="info">Your own admin role and status cannot be changed here.</Alert>}</Stack>}</DialogContent><DialogActions><Button onClick={() => setOpen(false)} disabled={saving}>Close</Button></DialogActions></Dialog>
+
+    <Dialog open={open} onClose={() => !saving && setOpen(false)} fullWidth maxWidth="lg">
+      <DialogTitle className="font-extrabold">User Detail Dashboard</DialogTitle>
+      <DialogContent dividers>
+        {detailLoading ? <Box className="min-h-96 grid place-items-center"><CircularProgress /></Box> : selected?.user && <Stack spacing={3}>
+          <Paper elevation={0} className="rounded-2xl border border-slate-200 p-4 sm:p-5 bg-gradient-to-br from-slate-50 to-white">
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between">
+              <Stack direction="row" spacing={2} alignItems="center"><Avatar src={selected.user.avatar} sx={{ width: 64, height: 64 }} className="bg-blue-50 text-blue-700">{selected.user.name?.[0]}</Avatar><Box><Typography variant="h6" className="font-extrabold">{selected.user.name || "Unnamed user"}</Typography><Typography className="text-slate-500">{selected.user.email}</Typography><Stack direction="row" spacing={1} className="mt-2" flexWrap="wrap"><Chip size="small" label={selected.user.role} variant="outlined" icon={selected.user.role === "admin" ? <ShieldOutlined /> : undefined} /><Chip size="small" label={selected.user.status} color={statusColor[selected.user.status] || "default"} /><Chip size="small" label={selected.user.isEmailVerified ? "Email verified" : "Email unverified"} color={selected.user.isEmailVerified ? "success" : "default"} variant="outlined" /></Stack></Box></Stack>
+              <Box className="text-sm text-slate-500"><Typography variant="body2" className="font-semibold text-slate-700">Activity</Typography>{activityLabel}</Box>
+            </Stack>
+          </Paper>
+
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+            <Metric icon={<ShoppingBagOutlined />} label="Purchases" value={summary.purchases ?? 0} />
+            <Metric icon={<CheckCircleOutline />} label="Paid" value={summary.paidPurchases ?? 0} />
+            <Metric icon={<AssessmentOutlined />} label="Revenue" value={money(summary.revenue)} />
+            <Metric icon={<BookOutlined />} label="Started" value={summary.coursesStarted ?? 0} />
+            <Metric icon={<CheckCircleOutline />} label="Completed" value={summary.coursesCompleted ?? 0} />
+            <Metric icon={<BadgeOutlined />} label="Certificates" value={summary.certificates ?? 0} />
+          </div>
+
+          <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="scrollable" allowScrollButtonsMobile>
+            <Tab label={`Overview`} />
+            <Tab label={`Purchases (${purchaseRows.length})`} />
+            <Tab label={`Progress (${progressRows.length})`} />
+            <Tab label={`Certificates (${certificateRows.length})`} />
+          </Tabs>
+
+          {tab === 0 && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Info label="Phone" value={selected.user.phone || "—"} />
+            <Info label="Created" value={dateTime(selected.user.createdAt)} />
+            <Info label="Last login" value={dateTime(selected.user.lastLoginAt, "Never")} />
+            <Info label="Valid certificates" value={summary.validCertificates ?? 0} />
+            <Info label="Paid revenue" value={money(summary.revenue)} />
+            <Info label="Learning completion" value={`${summary.coursesCompleted ?? 0} of ${summary.coursesStarted ?? 0} started courses completed`} />
+          </div>}
+
+          {tab === 1 && <DataSection empty="No purchases found.">{purchaseRows.map((item) => <div key={item.id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3"><Box><Typography className="font-bold">{item.course?.title || "Unknown course"}</Typography><Typography variant="body2" className="text-slate-500">{dateTime(item.purchasedAt)} · {item.purchaseType || "purchase"}</Typography></Box><Stack direction="row" spacing={1} alignItems="center"><Chip size="small" label={item.status || "unknown"} color={item.status === "paid" ? "success" : item.status === "failed" ? "error" : "default"} /><Typography className="font-bold">{money(item.amount, item.currency)}</Typography></Stack></div><div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-500"><span>Order: {item.razorpayOrderId || "—"}</span><span>Payment: {item.razorpayPaymentId || "—"}</span><span>Expires: {dateTime(item.expiresAt)}</span></div></div>)}</DataSection>}
+
+          {tab === 2 && <DataSection empty="No learning progress found.">{progressRows.map((item) => <div key={item.id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3"><Box><Typography className="font-bold">{item.course?.title || "Unknown course"}</Typography><Typography variant="body2" className="text-slate-500">Updated {dateTime(item.updatedAt)}</Typography></Box><Stack direction="row" spacing={1} alignItems="center"><Chip size="small" label={item.isCompleted ? "Completed" : "In progress"} color={item.isCompleted ? "success" : "default"} /><Typography className="font-extrabold">{Number(item.overallProgress || 0)}%</Typography></Stack></div><div className="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.min(Math.max(Number(item.overallProgress || 0), 0), 100)}%` }} /></div><Typography variant="caption" className="text-slate-500 mt-2 block">Completed videos: {item.completedVideoCount ?? 0} · Completed at: {dateTime(item.completedAt)}</Typography></div>)}</DataSection>}
+
+          {tab === 3 && <DataSection empty="No certificates found.">{certificateRows.map((item) => <div key={item.id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3"><Box><Typography className="font-bold">{item.course?.title || "Unknown course"}</Typography><Typography variant="body2" className="text-slate-500">Certificate ID: {item.certificateId || "—"}</Typography><Typography variant="caption" className="text-slate-500">Issued {dateTime(item.issueDate)}</Typography></Box><Chip size="small" label={item.isValid ? "Valid" : "Revoked / invalid"} color={item.isValid ? "success" : "error"} icon={item.isValid ? <CheckCircleOutline /> : <WarningAmberOutlined />} /></div><div className="mt-3 flex flex-wrap gap-2">{item.verificationUrl && <Button size="small" variant="outlined" href={item.verificationUrl} target="_blank" rel="noreferrer" className="rounded-lg normal-case">Verify</Button>}{item.certificateUrl && <Button size="small" variant="outlined" href={item.certificateUrl} target="_blank" rel="noreferrer" className="rounded-lg normal-case">Certificate</Button>}</div></div>)}</DataSection>}
+        </Stack>}
+      </DialogContent>
+      <DialogActions><Button onClick={() => setOpen(false)} disabled={saving}>Close</Button></DialogActions>
+    </Dialog>
+
     <Dialog open={Boolean(confirm)} onClose={() => !saving && setConfirm(null)} maxWidth="xs" fullWidth><DialogTitle className="font-extrabold flex items-center gap-2"><WarningAmberOutlined /> Confirm change</DialogTitle><DialogContent><Typography className="text-slate-600">Are you sure you want to change this user's {confirm?.label} to <strong>{confirm?.value}</strong>?</Typography></DialogContent><DialogActions><Button onClick={() => setConfirm(null)} disabled={saving}>Cancel</Button><Button variant="contained" onClick={change} disabled={saving}>{saving ? "Saving..." : "Confirm"}</Button></DialogActions></Dialog>
   </Box>;
 }
-function Info({ label, value }) { return <Box className="rounded-xl bg-slate-50 border border-slate-100 p-4"><Typography variant="caption" className="text-slate-500">{label}</Typography><Typography className="font-semibold mt-1">{value}</Typography></Box>; }
+
+function Metric({ icon, label, value }) {
+  return <Paper elevation={0} className="rounded-xl border border-slate-200 p-3"><Stack direction="row" spacing={1.5} alignItems="center"><Box className="text-blue-600">{icon}</Box><Box className="min-w-0"><Typography variant="caption" className="text-slate-500 block truncate">{label}</Typography><Typography className="font-extrabold truncate">{value}</Typography></Box></Stack></Paper>;
+}
+
+function Info({ label, value }) {
+  return <Box className="rounded-xl bg-slate-50 border border-slate-100 p-4"><Typography variant="caption" className="text-slate-500">{label}</Typography><Typography className="font-semibold mt-1 break-words">{value}</Typography></Box>;
+}
+
+function DataSection({ children, empty }) {
+  return children?.length ? <Stack spacing={2}>{children}</Stack> : <Box className="rounded-xl border border-dashed border-slate-300 p-10 text-center"><Typography className="text-slate-500">{empty}</Typography></Box>;
+}
