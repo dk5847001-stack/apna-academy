@@ -1,4 +1,5 @@
 import { StrictMode, useEffect, useState } from "react";
+import { createRoot } from "react-dom/client";
 import { AssessmentOutlined, AutoGraphOutlined, NotificationsNoneOutlined, PeopleOutline, QuizOutlined, SchoolOutlined, ShoppingBagOutlined, SupportAgentOutlined, WorkspacePremiumOutlined } from "@mui/icons-material";
 import "./index.css";
 import App from "./App.jsx";
