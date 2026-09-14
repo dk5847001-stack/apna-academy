@@ -85,7 +85,15 @@ export const getCertificateEligibility = async (userId, courseId) => {
   const progressData = progress ? { overallProgress: progress.overallProgress, isCompleted: progress.isCompleted, completedAt: progress.completedAt } : null;
 
   if (certificate) {
-    return { eligible: true, alreadyIssued: true, reason: "CERTIFICATE_ALREADY_ISSUED", progress: progressData, assessment: null, certificate };
+    const isValid = certificate.isValid === true;
+    return {
+      eligible: false,
+      alreadyIssued: true,
+      reason: isValid ? "CERTIFICATE_ALREADY_ISSUED" : "CERTIFICATE_INVALIDATED",
+      progress: progressData,
+      assessment: null,
+      certificate,
+    };
   }
 
   const activePurchase = purchases.find(isPurchaseActive);
