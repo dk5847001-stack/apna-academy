@@ -20,32 +20,20 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
   const { courseId, purchaseType = "course" } = req.body;
 
   if (!courseId) {
-    return res.status(400).json({
-      success: false,
-      message: "Course ID is required.",
-    });
+    return res.status(400).json({ success: false, message: "Course ID is required." });
   }
 
   if (!["course", "all-access"].includes(purchaseType)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid purchase type.",
-    });
+    return res.status(400).json({ success: false, message: "Invalid purchase type." });
   }
 
   const course = await Course.findById(courseId);
 
   if (!course || !course.isPublished) {
-    return res.status(404).json({
-      success: false,
-      message: "Course not found.",
-    });
+    return res.status(404).json({ success: false, message: "Course not found." });
   }
 
-  const amount =
-    purchaseType === "all-access"
-      ? course.allAccessPrice
-      : course.price;
+  const amount = purchaseType === "all-access" ? course.allAccessPrice : course.price;
 
   if (!Number.isFinite(amount) || amount <= 0) {
     return res.status(400).json({
@@ -57,9 +45,6 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  /*
-   * Prevent duplicate active purchases.
-   */
   const existingPurchase = await Purchase.findOne({
     user: req.user.userId,
     course: course._id,
@@ -67,26 +52,16 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
   });
 
   if (existingPurchase) {
-    if (
-      purchaseType === "all-access" &&
-      existingPurchase.unlockMode === "all_access"
-    ) {
-      return res.status(409).json({
-        success: false,
-        message: "You already have all-access for this course.",
-      });
+    if (purchaseType === "all-access" && existingPurchase.unlockMode === "all_access") {
+      return res.status(409).json({ success: false, message: "You already have all-access for this course." });
     }
 
     if (purchaseType === "course") {
-      return res.status(409).json({
-        success: false,
-        message: "You have already purchased this course.",
-      });
+      return res.status(409).json({ success: false, message: "You have already purchased this course." });
     }
   }
 
   const amountInPaise = Math.round(amount * 100);
-
   const receipt = `course_${course._id.toString().slice(-10)}_${Date.now()}`;
 
   const order = await razorpay.orders.create({
@@ -100,13 +75,6 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
     },
   });
 
-  /*
-   * Create a pending purchase.
-   *
-   * We DO NOT mark it as paid here.
-   * Payment is considered successful only
-   * after server-side Razorpay signature verification.
-   */
   await Purchase.create({
     user: req.user.userId,
     course: course._id,
@@ -114,10 +82,7 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
     amount,
     currency: "INR",
     purchaseType,
-    unlockMode:
-      purchaseType === "all-access"
-        ? "all_access"
-        : "daily",
+    unlockMode: purchaseType === "all-access" ? "all_access" : "daily",
     paymentStatus: "pending",
   });
 
@@ -139,27 +104,21 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
 /**
  * Verify Razorpay payment.
  *
- * Razorpay signature:
- * HMAC_SHA256(order_id + "|" + payment_id, key_secret)
+ * Security checks performed server-side:
+ * 1. Authenticated user owns the local order.
+ * 2. Razorpay signature is valid.
+ * 3. Razorpay payment belongs to the submitted order.
+ * 4. Razorpay payment is captured.
+ * 5. Razorpay order is paid.
+ * 6. Razorpay amount/currency match the local purchase.
  *
  * The secret key NEVER goes to the frontend.
  */
 export const verifyPayment = asyncHandler(async (req, res) => {
-  const {
-    razorpay_order_id,
-    razorpay_payment_id,
-    razorpay_signature,
-  } = req.body;
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-  if (
-    !razorpay_order_id ||
-    !razorpay_payment_id ||
-    !razorpay_signature
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "Incomplete Razorpay payment details.",
-    });
+  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    return res.status(400).json({ success: false, message: "Incomplete Razorpay payment details." });
   }
 
   const purchase = await Purchase.findOne({
@@ -168,44 +127,54 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   });
 
   if (!purchase) {
-    return res.status(404).json({
-      success: false,
-      message: "Payment order not found.",
-    });
+    return res.status(404).json({ success: false, message: "Payment order not found." });
   }
 
   if (purchase.paymentStatus === "paid") {
     return successResponse({
       res,
       message: "Payment is already verified.",
-      data: {
-        purchaseId: purchase._id,
-        paymentStatus: purchase.paymentStatus,
-      },
+      data: { purchaseId: purchase._id, paymentStatus: purchase.paymentStatus },
     });
   }
 
   const generatedSignature = crypto
-    .createHmac(
-      "sha256",
-      process.env.RAZORPAY_KEY_SECRET
-    )
-    .update(
-      `${razorpay_order_id}|${razorpay_payment_id}`
-    )
+    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
     .digest("hex");
 
+  const suppliedSignature = razorpay_signature.trim().toLowerCase();
+  const expectedSignature = generatedSignature.toLowerCase();
+  const expectedBuffer = Buffer.from(expectedSignature, "hex");
+  const suppliedBuffer = Buffer.from(suppliedSignature, "hex");
+
   const isValidSignature =
-    generatedSignature === razorpay_signature;
+    suppliedBuffer.length === expectedBuffer.length &&
+    crypto.timingSafeEqual(suppliedBuffer, expectedBuffer);
 
   if (!isValidSignature) {
-    purchase.paymentStatus = "failed";
-    await purchase.save();
+    return res.status(400).json({ success: false, message: "Invalid payment signature." });
+  }
 
-    return res.status(400).json({
-      success: false,
-      message: "Invalid payment signature.",
-    });
+  const [razorpayOrder, razorpayPayment] = await Promise.all([
+    razorpay.orders.fetch(razorpay_order_id),
+    razorpay.payments.fetch(razorpay_payment_id),
+  ]);
+
+  const expectedAmountInPaise = Math.round(purchase.amount * 100);
+
+  const paymentMatchesOrder = razorpayPayment.order_id === razorpay_order_id;
+  const amountMatches =
+    Number(razorpayOrder.amount) === expectedAmountInPaise &&
+    Number(razorpayPayment.amount) === expectedAmountInPaise;
+  const currencyMatches =
+    razorpayOrder.currency === purchase.currency &&
+    razorpayPayment.currency === purchase.currency;
+  const paymentCaptured = razorpayPayment.status === "captured";
+  const orderPaid = razorpayOrder.status === "paid";
+
+  if (!paymentMatchesOrder || !amountMatches || !currencyMatches || !paymentCaptured || !orderPaid) {
+    return res.status(400).json({ success: false, message: "Payment could not be verified." });
   }
 
   purchase.razorpayPaymentId = razorpay_payment_id;
