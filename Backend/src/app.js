@@ -35,18 +35,49 @@ app.use(helmet());
 |--------------------------------------------------------------------------
 | CORS
 |--------------------------------------------------------------------------
+|
+| Production origins are configured through CORS_ALLOWED_ORIGINS.
+| Example:
+|
+| CORS_ALLOWED_ORIGINS=https://example.com,https://dashboard.example.com
+|
+| CLIENT_URL is retained as a single-origin fallback for deployments
+| that only expose one browser application.
+|
+| Local development keeps the existing localhost ports available.
+|--------------------------------------------------------------------------
 */
 
-const allowedOrigins = [
+const defaultLocalOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5175",
   "http://localhost:5176",
 ];
 
+const configuredOrigins = [
+  ...(process.env.CORS_ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+  ...(process.env.CLIENT_URL || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+];
+
+const allowedOrigins = [
+  ...new Set([
+    ...defaultLocalOrigins,
+    ...configuredOrigins,
+  ]),
+];
+
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Requests without an Origin header include server-to-server,
+      // health-check, and other non-browser requests.
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
