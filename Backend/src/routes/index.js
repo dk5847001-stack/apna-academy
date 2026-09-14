@@ -12,23 +12,13 @@ import profileRoutes from "./profile.routes.js";
 import supportRoutes from "./support.routes.js";
 import adminCourseRoutes from "./admin.course.routes.js";
 import adminUserRoutes from "./admin.user.routes.js";
+import adminPurchaseRoutes from "./admin.purchase.routes.js";
 
 const router = Router();
 
-/* =========================================================
-   API HEALTH CHECK
-========================================================= */
-
 router.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "ApnaAcademy API v1 is working 🚀",
-  });
+  res.status(200).json({ success: true, message: "ApnaAcademy API v1 is working 🚀" });
 });
-
-/* =========================================================
-   API ROUTES
-========================================================= */
 
 router.use("/auth", authRoutes);
 router.use("/courses", courseRoutes);
@@ -42,5 +32,6 @@ router.use("/profile", profileRoutes);
 router.use("/support", supportRoutes);
 router.use("/admin/courses", adminCourseRoutes);
 router.use("/admin/users", adminUserRoutes);
+router.use("/admin/purchases", adminPurchaseRoutes);
 
 export default router;
