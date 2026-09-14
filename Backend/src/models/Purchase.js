@@ -76,6 +76,8 @@ const purchaseSchema = new mongoose.Schema(
 );
 
 purchaseSchema.index({ user: 1, course: 1 });
+purchaseSchema.index({ paymentStatus: 1, purchasedAt: -1 });
+purchaseSchema.index({ purchasedAt: -1, createdAt: -1 });
 
 const Purchase = mongoose.model("Purchase", purchaseSchema);
 
