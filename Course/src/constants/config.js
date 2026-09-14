@@ -37,6 +37,7 @@ export const COURSE_ROUTES = {
   DETAILS: (slug) => `/courses/${slug}`,
   LEARN: (slug) => `/courses/${slug}/learn`,
   VIDEO: (slug, videoId) => `/courses/${slug}/learn/${videoId}`,
+  ASSESSMENT: (slug) => `/courses/${slug}/assessment`,
   CERTIFICATE: (slug) => `/courses/${slug}/certificate`,
 };
 
