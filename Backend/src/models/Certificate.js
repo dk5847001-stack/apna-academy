@@ -62,6 +62,8 @@ const certificateSchema = new mongoose.Schema(
 );
 
 certificateSchema.index({ user: 1, course: 1 }, { unique: true });
+certificateSchema.index({ createdAt: -1 });
+certificateSchema.index({ user: 1, createdAt: -1 });
 
 const Certificate = mongoose.model(
   "Certificate",
