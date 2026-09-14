@@ -17,6 +17,23 @@ const FAQS = [
   { question: "What should I do if I have a payment, course or account issue?", answer: "Use the Contact page to send your issue to the ApnaAcademy support team. Include relevant details so the team can understand and respond to your request." },
 ];
 
+const STUDENT_PATHS = [
+  { label: "Web Development", detail: "Build modern frontend and full-stack projects with practical, structured learning." },
+  { label: "Data & AI", detail: "Strengthen programming, data and AI foundations through guided learning paths." },
+  { label: "Career Preparation", detail: "Practice job-ready skills, assessments and projects that support your career journey." },
+];
+
+const COMPANY_PATHS = [
+  { name: "Google", tone: "Search · Cloud · Engineering" },
+  { name: "Microsoft", tone: "Cloud · Software · AI" },
+  { name: "Amazon", tone: "Cloud · Backend · Systems" },
+  { name: "Adobe", tone: "Product · Design · Engineering" },
+  { name: "TCS", tone: "IT Services · Technology" },
+  { name: "Infosys", tone: "Digital · Consulting · IT" },
+  { name: "Accenture", tone: "Technology · Consulting" },
+  { name: "Deloitte", tone: "Technology · Analytics" },
+];
+
 const addBlog = () => {
   document.querySelectorAll("nav").forEach((nav) => {
     if (nav.querySelector('[data-apna-blog="true"]')) return;
@@ -95,6 +112,58 @@ const addSocialAndNewsletter = () => {
   }
 };
 
+const addHomeSuccessSections = () => {
+  const existing = document.querySelector('[data-apna-success-sections="true"]');
+  if (window.location.pathname !== "/") {
+    existing?.remove();
+    return;
+  }
+  if (existing) return;
+  const main = document.querySelector("main");
+  if (!main) return;
+
+  const wrapper = document.createElement("div");
+  wrapper.dataset.apnaSuccessSections = "true";
+  wrapper.innerHTML = `
+    <section class="border-t border-slate-200 bg-white py-16 sm:py-20">
+      <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[.12em] text-blue-700">Student success</span>
+          <h2 class="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Learn skills. Build projects. Grow with confidence.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-500 sm:text-base">A focused learning journey for students who want practical skills, measurable progress and stronger career readiness.</p>
+        </div>
+        <div class="mt-10 grid gap-5 md:grid-cols-3">
+          ${STUDENT_PATHS.map((item, index) => `<article class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:bg-white hover:shadow-xl"><div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-lg font-black text-white shadow-lg shadow-blue-600/20">0${index + 1}</div><h3 class="mt-6 text-lg font-black text-slate-950">${item.label}</h3><p class="mt-2 text-sm leading-6 text-slate-500">${item.detail}</p><div class="mt-6 h-1 w-12 rounded-full bg-blue-600 transition-all duration-300 group-hover:w-20"></div></article>`).join("")}
+        </div>
+        <div class="mt-10 flex flex-col items-center justify-between gap-4 rounded-3xl border border-blue-100 bg-blue-50/70 p-6 text-center sm:flex-row sm:text-left">
+          <div><p class="text-sm font-black text-blue-950">Ready to start your learning journey?</p><p class="mt-1 text-sm text-blue-800/70">Explore courses and choose the path that matches your goals.</p></div>
+          <a href="/courses" class="inline-flex shrink-0 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white no-underline shadow-lg shadow-blue-600/20 transition hover:bg-blue-700">Explore Courses</a>
+        </div>
+      </div>
+    </section>
+    <section class="border-t border-slate-200 bg-slate-950 py-16 sm:py-20">
+      <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <span class="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[.12em] text-blue-200">Industry aligned</span>
+          <h2 class="mt-4 text-3xl font-black tracking-tight text-white sm:text-4xl">Build skills for the companies you aspire to join.</h2>
+          <p class="mt-4 text-sm leading-7 text-slate-400 sm:text-base">Prepare with concepts, projects and problem-solving practice relevant to modern technology careers.</p>
+        </div>
+        <div class="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+          ${COMPANY_PATHS.map((company) => `<div class="group flex min-h-28 flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[.04] px-3 py-5 text-center transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/40 hover:bg-white/[.08]"><span class="text-lg font-black tracking-tight text-white sm:text-xl">${company.name}</span><span class="mt-2 text-[10px] font-bold leading-4 text-slate-500 transition-colors group-hover:text-slate-300">${company.tone}</span></div>`).join("")}
+        </div>
+        <div class="mx-auto mt-10 max-w-3xl text-center"><p class="text-xs leading-5 text-slate-500">Company names are shown for career-orientation and preparation context only. ApnaAcademy does not claim employment, partnership or placement affiliation with these companies unless explicitly stated elsewhere.</p></div>
+      </div>
+    </section>`;
+
+  const faq = main.querySelector('[data-apna-faq="true"]');
+  if (faq) faq.before(wrapper);
+  else {
+    const lastSection = [...main.children].reverse().find((child) => child.tagName === "SECTION");
+    if (lastSection) lastSection.before(wrapper);
+    else main.append(wrapper);
+  }
+};
+
 const addFaq = () => {
   const existing = document.querySelector('[data-apna-faq="true"]');
   if (window.location.pathname !== "/") {
@@ -159,6 +228,7 @@ export default function PublicSiteEnhancements() {
       addBlog();
       addSocialAndNewsletter();
       addLegal();
+      addHomeSuccessSections();
       addFaq();
     };
     enhance();
