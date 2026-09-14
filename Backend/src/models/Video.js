@@ -44,6 +44,13 @@ const videoSchema = new mongoose.Schema(
       default: "",
     },
 
+    notesPdfUrl: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 2000,
+    },
+
     duration: {
       type: Number,
       default: 0,
