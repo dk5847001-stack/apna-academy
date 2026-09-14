@@ -26,11 +26,15 @@ import {
   BadgeOutlined,
   BookOutlined,
   CheckCircleOutline,
+  LoginOutlined,
+  PersonAddOutlined,
   Refresh,
   Search,
   ShieldOutlined,
   ShoppingBagOutlined,
+  TimelineOutlined,
   WarningAmberOutlined,
+  WorkspacePremiumOutlined,
 } from "@mui/icons-material";
 import { getApiErrorMessage } from "../services/api";
 import { getAdminUserDetails, listAdminUsers, updateAdminUser } from "../services/adminUser.service";
@@ -45,6 +49,15 @@ const money = (amount, currency = "INR") => {
   }
 };
 const dateTime = (value, fallback = "—") => (value ? new Date(value).toLocaleString() : fallback);
+
+const activityMeta = {
+  account: { label: "Account", icon: <PersonAddOutlined fontSize="small" /> },
+  login: { label: "Login", icon: <LoginOutlined fontSize="small" /> },
+  purchase: { label: "Purchase", icon: <ShoppingBagOutlined fontSize="small" /> },
+  progress: { label: "Progress", icon: <TimelineOutlined fontSize="small" /> },
+  completion: { label: "Completion", icon: <CheckCircleOutline fontSize="small" /> },
+  certificate: { label: "Certificate", icon: <WorkspacePremiumOutlined fontSize="small" /> },
+};
 
 export default function Users({ admin }) {
   const [users, setUsers] = useState([]);
@@ -118,6 +131,7 @@ export default function Users({ admin }) {
   const purchaseRows = selected?.purchases || [];
   const progressRows = selected?.progress || [];
   const certificateRows = selected?.certificates || [];
+  const activityRows = useMemo(() => Array.isArray(selected?.activity) ? selected.activity.filter((item) => item?.at).sort((a, b) => new Date(b.at) - new Date(a.at)) : [], [selected]);
   const activityLabel = useMemo(() => {
     if (!selected?.user) return "No activity data";
     return selected.user.lastLoginAt ? `Last login ${dateTime(selected.user.lastLoginAt)}` : "No recorded login";
@@ -165,10 +179,11 @@ export default function Users({ admin }) {
           </div>
 
           <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="scrollable" allowScrollButtonsMobile>
-            <Tab label={`Overview`} />
+            <Tab label="Overview" />
             <Tab label={`Purchases (${purchaseRows.length})`} />
             <Tab label={`Progress (${progressRows.length})`} />
             <Tab label={`Certificates (${certificateRows.length})`} />
+            <Tab icon={<TimelineOutlined fontSize="small" />} iconPosition="start" label={`Activity (${activityRows.length})`} />
           </Tabs>
 
           {tab === 0 && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -185,6 +200,8 @@ export default function Users({ admin }) {
           {tab === 2 && <DataSection empty="No learning progress found.">{progressRows.map((item) => <div key={item.id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3"><Box><Typography className="font-bold">{item.course?.title || "Unknown course"}</Typography><Typography variant="body2" className="text-slate-500">Updated {dateTime(item.updatedAt)}</Typography></Box><Stack direction="row" spacing={1} alignItems="center"><Chip size="small" label={item.isCompleted ? "Completed" : "In progress"} color={item.isCompleted ? "success" : "default"} /><Typography className="font-extrabold">{Number(item.overallProgress || 0)}%</Typography></Stack></div><div className="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.min(Math.max(Number(item.overallProgress || 0), 0), 100)}%` }} /></div><Typography variant="caption" className="text-slate-500 mt-2 block">Completed videos: {item.completedVideoCount ?? 0} · Completed at: {dateTime(item.completedAt)}</Typography></div>)}</DataSection>}
 
           {tab === 3 && <DataSection empty="No certificates found.">{certificateRows.map((item) => <div key={item.id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3"><Box><Typography className="font-bold">{item.course?.title || "Unknown course"}</Typography><Typography variant="body2" className="text-slate-500">Certificate ID: {item.certificateId || "—"}</Typography><Typography variant="caption" className="text-slate-500">Issued {dateTime(item.issueDate)}</Typography></Box><Chip size="small" label={item.isValid ? "Valid" : "Revoked / invalid"} color={item.isValid ? "success" : "error"} icon={item.isValid ? <CheckCircleOutline /> : <WarningAmberOutlined />} /></div><div className="mt-3 flex flex-wrap gap-2">{item.verificationUrl && <Button size="small" variant="outlined" href={item.verificationUrl} target="_blank" rel="noreferrer" className="rounded-lg normal-case">Verify</Button>}{item.certificateUrl && <Button size="small" variant="outlined" href={item.certificateUrl} target="_blank" rel="noreferrer" className="rounded-lg normal-case">Certificate</Button>}</div></div>)}</DataSection>}
+
+          {tab === 4 && <ActivityTimeline rows={activityRows} />}
         </Stack>}
       </DialogContent>
       <DialogActions><Button onClick={() => setOpen(false)} disabled={saving}>Close</Button></DialogActions>
@@ -204,4 +221,32 @@ function Info({ label, value }) {
 
 function DataSection({ children, empty }) {
   return children?.length ? <Stack spacing={2}>{children}</Stack> : <Box className="rounded-xl border border-dashed border-slate-300 p-10 text-center"><Typography className="text-slate-500">{empty}</Typography></Box>;
+}
+
+function ActivityTimeline({ rows }) {
+  if (!rows.length) return <Box className="rounded-2xl border border-dashed border-slate-300 p-10 text-center"><TimelineOutlined className="text-slate-300" sx={{ fontSize: 42 }} /><Typography className="mt-2 font-semibold text-slate-600">No recorded activity</Typography><Typography variant="body2" className="mt-1 text-slate-500">User account, login, purchase, progress and certificate events will appear here.</Typography></Box>;
+
+  return <Box className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 sm:p-6">
+    <Stack spacing={0}>
+      {rows.map((item, index) => {
+        const meta = activityMeta[item.type] || { label: "Activity", icon: <TimelineOutlined fontSize="small" /> };
+        return <Stack key={item.id || `${item.type}-${item.at}-${index}`} direction="row" spacing={2} className="relative">
+          <Box className="flex flex-col items-center">
+            <Box className="w-10 h-10 rounded-full border border-slate-200 bg-white text-blue-600 grid place-items-center shadow-sm shrink-0">{meta.icon}</Box>
+            {index < rows.length - 1 && <Box className="w-px flex-1 bg-slate-200 min-h-8" />}
+          </Box>
+          <Box className="min-w-0 flex-1 pb-6">
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between">
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                <Typography className="font-bold text-slate-900">{item.title || meta.label}</Typography>
+                <Chip size="small" label={meta.label} variant="outlined" className="h-6" />
+              </Stack>
+              <Typography variant="caption" className="text-slate-500 whitespace-nowrap">{dateTime(item.at)}</Typography>
+            </Stack>
+            <Typography variant="body2" className="mt-1 text-slate-600 break-words">{item.description || "Activity recorded."}</Typography>
+          </Box>
+        </Stack>;
+      })}
+    </Stack>
+  </Box>;
 }
