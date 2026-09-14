@@ -1,6 +1,28 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { AssessmentOutlined, AutoGraphOutlined, DashboardOutlined, HomeOutlined, NotificationsNoneOutlined, PeopleOutline, QuizOutlined, SchoolOutlined, ShoppingBagOutlined, SupportAgentOutlined, WorkspacePremiumOutlined } from "@mui/icons-material";
+import {
+  AppBar,
+  Avatar,
+  Box,
+  IconButton,
+  Stack,
+  Toolbar,
+  Typography,
+} from "@mui/material";
+import {
+  AssessmentOutlined,
+  AutoGraphOutlined,
+  DashboardOutlined,
+  HomeOutlined,
+  Menu,
+  NotificationsNoneOutlined,
+  PeopleOutline,
+  QuizOutlined,
+  SchoolOutlined,
+  ShoppingBagOutlined,
+  SupportAgentOutlined,
+  WorkspacePremiumOutlined,
+} from "@mui/icons-material";
 import "./index.css";
 import App from "./App.jsx";
 import Analytics from "./pages/Analytics.jsx";
@@ -14,18 +36,27 @@ import Assessments from "./pages/Assessments.jsx";
 import { getCurrentAdmin } from "./services/adminCourse.service";
 import { DASHBOARD_URL, FRONTEND_URL } from "./constants/config";
 
-const routes = { "#analytics": Analytics, "#users": Users, "#notifications": Notifications, "#purchases": Purchases, "#progress": Progress, "#certificates": Certificates, "#support": Support, "#assessments": Assessments };
+const routes = {
+  "#analytics": Analytics,
+  "#users": Users,
+  "#notifications": Notifications,
+  "#purchases": Purchases,
+  "#progress": Progress,
+  "#certificates": Certificates,
+  "#support": Support,
+  "#assessments": Assessments,
+};
 
 const navItems = [
-  { href: "", label: "Courses", icon: SchoolOutlined, internal: true },
-  { href: "#analytics", label: "Analytics", icon: AutoGraphOutlined, internal: true },
-  { href: "#users", label: "Users", icon: PeopleOutline, internal: true },
-  { href: "#notifications", label: "Notifications", icon: NotificationsNoneOutlined, internal: true },
-  { href: "#purchases", label: "Purchases", icon: ShoppingBagOutlined, internal: true },
-  { href: "#progress", label: "Progress", icon: AssessmentOutlined, internal: true },
-  { href: "#certificates", label: "Certificates", icon: WorkspacePremiumOutlined, internal: true },
-  { href: "#assessments", label: "Assessments", icon: QuizOutlined, internal: true },
-  { href: "#support", label: "Support", icon: SupportAgentOutlined, internal: true },
+  { href: "", label: "Courses", icon: SchoolOutlined },
+  { href: "#analytics", label: "Analytics", icon: AutoGraphOutlined },
+  { href: "#users", label: "Users", icon: PeopleOutline },
+  { href: "#notifications", label: "Notifications", icon: NotificationsNoneOutlined },
+  { href: "#purchases", label: "Purchases", icon: ShoppingBagOutlined },
+  { href: "#progress", label: "Progress", icon: AssessmentOutlined },
+  { href: "#certificates", label: "Certificates", icon: WorkspacePremiumOutlined },
+  { href: "#assessments", label: "Assessments", icon: QuizOutlined },
+  { href: "#support", label: "Support", icon: SupportAgentOutlined },
 ];
 
 const externalNavItems = [
@@ -55,7 +86,10 @@ function ManagementSidebar({ hash }) {
           </div>
         </div>
 
-        <nav className="min-h-0 flex-1 space-y-1.5 overflow-y-auto px-4 pb-4 pr-2 scrollbar-thin" aria-label="Admin management navigation">
+        <nav
+          className="min-h-0 flex-1 space-y-1.5 overflow-y-auto px-4 pb-4 pr-2 scrollbar-thin"
+          aria-label="Admin management navigation"
+        >
           {externalNavItems.map(({ href, label, icon: Icon }) => (
             <a
               key={label}
@@ -76,7 +110,11 @@ function ManagementSidebar({ hash }) {
                 key={label}
                 type="button"
                 onClick={() => go(href)}
-                className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left text-sm font-bold transition ${active ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"}`}
+                className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left text-sm font-bold transition ${
+                  active
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                }`}
               >
                 <Icon fontSize="small" />
                 <span>{label}</span>
@@ -98,10 +136,14 @@ function ManagementSidebar({ hash }) {
 
 function MobileManagementNav({ hash }) {
   return (
-    <div className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 px-3 py-2 shadow-sm backdrop-blur lg:hidden">
+    <div className="sticky top-16 z-40 border-b border-slate-200 bg-white/95 px-3 py-2 shadow-sm backdrop-blur lg:hidden">
       <div className="flex gap-2 overflow-x-auto pb-0.5">
         {externalNavItems.map(({ href, label, icon: Icon }) => (
-          <a key={label} href={href} className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100">
+          <a
+            key={label}
+            href={href}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100"
+          >
             <Icon fontSize="small" />
             {label}
           </a>
@@ -109,7 +151,13 @@ function MobileManagementNav({ hash }) {
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = href ? hash === href : !hash;
           return (
-            <a key={label} href={href || "#"} className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold transition ${active ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}>
+            <a
+              key={label}
+              href={href || "#"}
+              className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold transition ${
+                active ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
               <Icon fontSize="small" />
               {label}
             </a>
@@ -144,35 +192,43 @@ function ManagementHeader() {
     };
   }, []);
 
-  const adminName = admin?.name || "Administrator";
-  const adminInitial = adminName.trim().charAt(0).toUpperCase() || "A";
-
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur sm:px-6">
-      <div className="mx-auto flex max-w-7xl items-center gap-3">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-600 text-white shadow-sm">
-          <SchoolOutlined />
-        </div>
-        <div className="min-w-0">
-          <div className="font-extrabold leading-tight text-slate-950">ApnaAcademy</div>
-          <div className="text-xs font-medium text-slate-500">Admin Console</div>
+    <AppBar
+      position="sticky"
+      elevation={0}
+      color="inherit"
+      className="border-b border-slate-200 bg-white/95 backdrop-blur"
+    >
+      <Toolbar className="min-h-16 px-3 sm:px-6">
+        <IconButton className="mr-2 lg:hidden" aria-label="Open navigation">
+          <Menu />
+        </IconButton>
+
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-600 text-white shadow-sm">
+            <SchoolOutlined />
+          </div>
+          <div className="min-w-0">
+            <Typography className="font-extrabold leading-tight truncate">ApnaAcademy</Typography>
+            <Typography variant="caption" className="text-slate-500">Admin Console</Typography>
+          </div>
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-          <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-slate-200 text-sm font-bold text-slate-700 ring-1 ring-slate-300">
-            {admin?.avatar ? (
-              <img src={admin.avatar} alt={adminName} className="h-full w-full object-cover" />
-            ) : (
-              adminInitial
-            )}
-          </div>
-          <div className="hidden min-w-0 sm:block">
-            <div className="max-w-40 truncate text-sm font-semibold leading-tight text-slate-900">{adminName}</div>
-            <div className="text-xs font-medium text-slate-500">Administrator</div>
-          </div>
-        </div>
-      </div>
-    </header>
+        <Box className="flex-1" />
+
+        <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Avatar src={admin?.avatar} className="h-9 w-9 bg-blue-100 text-blue-700">
+            {admin?.name?.[0] || "A"}
+          </Avatar>
+          <Box className="hidden sm:block">
+            <Typography variant="body2" className="font-semibold leading-tight">
+              {admin?.name || "Administrator"}
+            </Typography>
+            <Typography variant="caption" className="text-slate-500">Administrator</Typography>
+          </Box>
+        </Stack>
+      </Toolbar>
+    </AppBar>
   );
 }
 
