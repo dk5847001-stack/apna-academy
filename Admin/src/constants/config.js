@@ -2,7 +2,10 @@ export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
 
 export const FRONTEND_URL =
-  import.meta.env.VITE_FRONTEND_URL || "http://localhost:5174";
+  import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
+
+export const DASHBOARD_URL =
+  import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5175";
 
 export const ADMIN_URL =
   import.meta.env.VITE_ADMIN_URL || "http://localhost:5176";
