@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Alert, IconButton } from "@mui/material";
-import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import CloseIcon from "@mui/icons-material/Close";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
@@ -89,33 +89,40 @@ export default function DashboardNotificationAlert() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-5">
       <Alert
-        severity="info"
-        icon={<CampaignOutlinedIcon fontSize="inherit" />}
+        severity="warning"
+        icon={<WarningAmberRoundedIcon fontSize="inherit" />}
         action={
-          <IconButton aria-label="Hide notification" onClick={handleDismiss} size="small" sx={{ color: "inherit", borderRadius: "10px" }}>
+          <IconButton aria-label="Hide notification" onClick={handleDismiss} size="small" sx={{ color: "inherit", borderRadius: "10px", transition: "all 180ms ease", "&:hover": { backgroundColor: "rgba(120, 53, 15, 0.10)", transform: "scale(1.05)" } }}>
             <CloseIcon fontSize="small" />
           </IconButton>
         }
         sx={{
           alignItems: "center",
-          border: "1px solid #bfdbfe",
-          borderRadius: "16px",
-          backgroundColor: "#eff6ff",
-          color: "#1e3a8a",
-          boxShadow: "0 8px 24px rgba(15, 23, 42, 0.06)",
-          "& .MuiAlert-icon": { color: "#2563eb", alignItems: "center" },
-          "& .MuiAlert-message": { width: "100%", minWidth: 0 },
+          position: "relative",
+          overflow: "hidden",
+          border: "1px solid #fcd34d",
+          borderRadius: "18px",
+          background: "linear-gradient(135deg, rgba(255,251,235,0.98) 0%, rgba(254,243,199,0.92) 100%)",
+          color: "#78350f",
+          boxShadow: "0 12px 32px rgba(120, 53, 15, 0.08), inset 0 1px 0 rgba(255,255,255,0.75)",
+          "&::before": { content: '""', position: "absolute", left: 0, top: 0, bottom: 0, width: "4px", background: "linear-gradient(180deg, #f59e0b, #d97706)" },
+          "& .MuiAlert-icon": { color: "#d97706", alignItems: "center", fontSize: "25px", ml: "4px" },
+          "& .MuiAlert-message": { width: "100%", minWidth: 0, py: "2px" },
+          "& .MuiAlert-action": { alignItems: "center", pt: 0, mr: "2px" },
         }}
       >
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
           <div className="min-w-0">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-blue-600">New notification</p>
-            <p className="mt-0.5 break-words text-sm font-extrabold text-slate-900 sm:text-[15px]">{visibleNotification.title || "ApnaAcademy Update"}</p>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex rounded-full border border-amber-200 bg-white/70 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.14em] text-amber-700 shadow-sm">Important</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-600">New notification</span>
+            </div>
+            <p className="mt-1 break-words text-sm font-extrabold text-slate-900 sm:text-[15px]">{visibleNotification.title || "ApnaAcademy Update"}</p>
             <p className="mt-0.5 break-words text-xs leading-5 text-slate-600 sm:text-sm">{visibleNotification.message || "You have a new notification."}</p>
           </div>
 
           {link ? (
-            <button type="button" onClick={handleOpen} className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 self-start rounded-lg bg-blue-600 px-3.5 text-xs font-extrabold text-white shadow-sm transition-colors hover:bg-blue-700 sm:self-center">
+            <button type="button" onClick={handleOpen} className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 self-start rounded-xl border border-amber-500 bg-amber-500 px-4 text-xs font-extrabold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-amber-600 hover:shadow-md sm:self-center">
               Show
               <OpenInNewIcon sx={{ fontSize: 15 }} />
             </button>
