@@ -1,6 +1,6 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { AssessmentOutlined, AutoGraphOutlined, NotificationsNoneOutlined, PeopleOutline, QuizOutlined, SchoolOutlined, ShoppingBagOutlined, SupportAgentOutlined, WorkspacePremiumOutlined } from "@mui/icons-material";
+import { AssessmentOutlined, AutoGraphOutlined, DashboardOutlined, HomeOutlined, NotificationsNoneOutlined, PeopleOutline, QuizOutlined, SchoolOutlined, ShoppingBagOutlined, SupportAgentOutlined, WorkspacePremiumOutlined } from "@mui/icons-material";
 import "./index.css";
 import App from "./App.jsx";
 import Analytics from "./pages/Analytics.jsx";
@@ -12,19 +12,25 @@ import Certificates from "./pages/Certificates.jsx";
 import Support from "./pages/Support.jsx";
 import Assessments from "./pages/Assessments.jsx";
 import { getCurrentAdmin } from "./services/adminCourse.service";
+import { DASHBOARD_URL, FRONTEND_URL } from "./constants/config";
 
 const routes = { "#analytics": Analytics, "#users": Users, "#notifications": Notifications, "#purchases": Purchases, "#progress": Progress, "#certificates": Certificates, "#support": Support, "#assessments": Assessments };
 
 const navItems = [
-  { href: "#analytics", label: "Analytics", icon: AutoGraphOutlined },
-  { href: "", label: "Courses", icon: SchoolOutlined },
-  { href: "#users", label: "Users", icon: PeopleOutline },
-  { href: "#notifications", label: "Notifications", icon: NotificationsNoneOutlined },
-  { href: "#purchases", label: "Purchases", icon: ShoppingBagOutlined },
-  { href: "#progress", label: "Progress", icon: AssessmentOutlined },
-  { href: "#certificates", label: "Certificates", icon: WorkspacePremiumOutlined },
-  { href: "#assessments", label: "Assessments", icon: QuizOutlined },
-  { href: "#support", label: "Support", icon: SupportAgentOutlined },
+  { href: "", label: "Courses", icon: SchoolOutlined, internal: true },
+  { href: "#analytics", label: "Analytics", icon: AutoGraphOutlined, internal: true },
+  { href: "#users", label: "Users", icon: PeopleOutline, internal: true },
+  { href: "#notifications", label: "Notifications", icon: NotificationsNoneOutlined, internal: true },
+  { href: "#purchases", label: "Purchases", icon: ShoppingBagOutlined, internal: true },
+  { href: "#progress", label: "Progress", icon: AssessmentOutlined, internal: true },
+  { href: "#certificates", label: "Certificates", icon: WorkspacePremiumOutlined, internal: true },
+  { href: "#assessments", label: "Assessments", icon: QuizOutlined, internal: true },
+  { href: "#support", label: "Support", icon: SupportAgentOutlined, internal: true },
+];
+
+const externalNavItems = [
+  { href: DASHBOARD_URL, label: "Dashboard", icon: DashboardOutlined },
+  { href: FRONTEND_URL, label: "Home", icon: HomeOutlined },
 ];
 
 function ManagementSidebar({ hash }) {
@@ -46,7 +52,21 @@ function ManagementSidebar({ hash }) {
             </div>
           </div>
         </div>
+
         <nav className="space-y-1.5" aria-label="Admin management navigation">
+          {externalNavItems.map(({ href, label, icon: Icon }) => (
+            <a
+              key={label}
+              href={href}
+              className="flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+            >
+              <Icon fontSize="small" />
+              <span>{label}</span>
+            </a>
+          ))}
+
+          <div className="my-3 border-t border-slate-200" />
+
           {navItems.map(({ href, label, icon: Icon }) => {
             const active = href ? hash === href : !hash;
             return (
@@ -62,6 +82,7 @@ function ManagementSidebar({ hash }) {
             );
           })}
         </nav>
+
         <div className="mt-auto rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">ApnaAcademy</p>
           <p className="mt-1 text-sm font-semibold text-slate-700">Admin Console</p>
@@ -75,6 +96,12 @@ function MobileManagementNav({ hash }) {
   return (
     <div className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 px-3 py-2 shadow-sm backdrop-blur lg:hidden">
       <div className="flex gap-2 overflow-x-auto pb-0.5">
+        {externalNavItems.map(({ href, label, icon: Icon }) => (
+          <a key={label} href={href} className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100">
+            <Icon fontSize="small" />
+            {label}
+          </a>
+        ))}
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = href ? hash === href : !hash;
           return (
