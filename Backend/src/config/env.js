@@ -7,14 +7,81 @@ const requiredEnvVariables = [
   "RAZORPAY_KEY_SECRET",
 ];
 
+const productionEnvVariables = [
+  "BACKEND_PUBLIC_URL",
+  "COURSE_PUBLIC_URL",
+  "CORS_ALLOWED_ORIGINS",
+];
+
 export const validateEnv = () => {
-  const missingVariables = requiredEnvVariables.filter(
-    (variable) => !process.env[variable]
+  const requiredVariables = [
+    ...requiredEnvVariables,
+    ...(process.env.NODE_ENV === "production"
+      ? productionEnvVariables
+      : []),
+  ];
+
+  const missingVariables = requiredVariables.filter(
+    (variable) => !process.env[variable]?.trim()
   );
 
   if (missingVariables.length > 0) {
     throw new Error(
       `Missing required environment variables: ${missingVariables.join(", ")}`
     );
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    const corsOrigins = process.env.CORS_ALLOWED_ORIGINS
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+
+    if (corsOrigins.length === 0) {
+      throw new Error(
+        "CORS_ALLOWED_ORIGINS must contain at least one production browser origin"
+      );
+    }
+
+    for (const variable of [
+      "BACKEND_PUBLIC_URL",
+      "COURSE_PUBLIC_URL",
+    ]) {
+      const value = process.env[variable].trim();
+
+      try {
+        const url = new URL(value);
+
+        if (url.protocol !== "https:") {
+          throw new Error(`${variable} must use HTTPS in production`);
+        }
+      } catch (error) {
+        if (error instanceof TypeError) {
+          throw new Error(`${variable} must be a valid HTTPS URL`);
+        }
+
+        throw error;
+      }
+    }
+
+    for (const origin of corsOrigins) {
+      try {
+        const url = new URL(origin);
+
+        if (url.protocol !== "https:") {
+          throw new Error(
+            `CORS_ALLOWED_ORIGINS contains a non-HTTPS production origin: ${origin}`
+          );
+        }
+      } catch (error) {
+        if (error instanceof TypeError) {
+          throw new Error(
+            `CORS_ALLOWED_ORIGINS contains an invalid URL: ${origin}`
+          );
+        }
+
+        throw error;
+      }
+    }
   }
 };
