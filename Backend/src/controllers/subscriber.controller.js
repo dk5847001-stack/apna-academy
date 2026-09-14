@@ -1,0 +1,54 @@
+import Subscriber from "../models/Subscriber.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { successResponse } from "../utils/apiResponse.js";
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const cleanEmail = (value) => String(value ?? "").trim().toLowerCase();
+
+export const subscribe = asyncHandler(async (req, res) => {
+  const email = cleanEmail(req.body?.email);
+  if (!email || email.length > 254 || !emailPattern.test(email)) return res.status(400).json({ success: false, message: "Please provide a valid email address." });
+  const existing = await Subscriber.findOne({ email });
+  if (existing) {
+    if (existing.status === "active") return successResponse({ res, message: "You are already subscribed.", data: { subscribed: true, alreadySubscribed: true } });
+    existing.status = "active";
+    existing.subscribedAt = new Date();
+    existing.unsubscribedAt = null;
+    await existing.save();
+    return successResponse({ res, message: "Welcome back! Your subscription is active again.", data: { subscribed: true, alreadySubscribed: false } });
+  }
+  await Subscriber.create({ email });
+  return successResponse({ res, statusCode: 201, message: "You have subscribed successfully.", data: { subscribed: true, alreadySubscribed: false } });
+});
+
+export const listSubscribers = asyncHandler(async (req, res) => {
+  const page = Math.max(Number(req.query?.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(req.query?.limit) || 25, 1), 100);
+  const search = String(req.query?.search ?? "").trim();
+  const status = ["active", "unsubscribed"].includes(req.query?.status) ? req.query.status : "";
+  const query = {};
+  if (status) query.status = status;
+  if (search) query.email = { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
+  const [rows, total, active] = await Promise.all([
+    Subscriber.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+    Subscriber.countDocuments(query),
+    Subscriber.countDocuments({ status: "active" }),
+  ]);
+  return successResponse({ res, message: "Subscribers loaded successfully.", data: {
+    subscribers: rows.map((row) => ({ ...row, id: row._id.toString(), _id: undefined })),
+    summary: { total, active },
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  }});
+});
+
+export const updateSubscriber = asyncHandler(async (req, res) => {
+  const item = await Subscriber.findById(req.params.subscriberId);
+  if (!item) return res.status(404).json({ success: false, message: "Subscriber not found." });
+  const status = req.body?.status;
+  if (!["active", "unsubscribed"].includes(status)) return res.status(400).json({ success: false, message: "Invalid subscriber status." });
+  item.status = status;
+  item.unsubscribedAt = status === "unsubscribed" ? new Date() : null;
+  if (status === "active") item.subscribedAt = new Date();
+  await item.save();
+  return successResponse({ res, message: "Subscriber updated successfully.", data: { id: item._id.toString(), email: item.email, status: item.status } });
+});
