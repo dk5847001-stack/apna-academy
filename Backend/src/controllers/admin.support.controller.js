@@ -1,20 +1,9 @@
-import {
-  getAdminTicket,
-  listAdminTickets,
-  updateAdminTicket,
-} from "../services/admin.support.service.js";
+import { getAdminTicket, listAdminTickets, updateAdminTicket } from "../services/admin.support.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { successResponse } from "../utils/apiResponse.js";
 
 export const listTickets = asyncHandler(async (req, res) => {
-  const data = await listAdminTickets({
-    page: req.query?.page,
-    limit: req.query?.limit,
-    search: req.query?.search,
-    status: req.query?.status,
-    priority: req.query?.priority,
-    category: req.query?.category,
-  });
+  const data = await listAdminTickets({ page: req.query?.page, limit: req.query?.limit, search: req.query?.search, status: req.query?.status, priority: req.query?.priority, category: req.query?.category });
   return successResponse({ res, message: "Support tickets loaded successfully.", data });
 });
 
@@ -24,11 +13,6 @@ export const getTicket = asyncHandler(async (req, res) => {
 });
 
 export const updateTicket = asyncHandler(async (req, res) => {
-  const data = await updateAdminTicket({
-    ticketId: req.params.ticketId,
-    status: req.body?.status,
-    priority: req.body?.priority,
-    adminReply: req.body?.adminReply,
-  });
+  const data = await updateAdminTicket({ ticketId: req.params.ticketId, status: req.body?.status, priority: req.body?.priority, adminReply: req.body?.adminReply, adminId: req.user?.userId });
   return successResponse({ res, message: "Support ticket updated successfully.", data });
 });
