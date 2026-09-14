@@ -6,6 +6,8 @@ import {
   ExpandMore,
   ChevronLeft,
   ChevronRight,
+  Description,
+  Download,
   Lock,
   Menu,
   PlayCircle,
@@ -40,6 +42,7 @@ const getVideoDuration = (video) => {
 
 const isVideoLocked = (video) => Boolean(video?.isLocked ?? video?.locked);
 const isVideoCompleted = (video) => Boolean(video?.isCompleted ?? video?.completed);
+const getNotesPdfUrl = (video) => (typeof video?.notesPdfUrl === "string" ? video.notesPdfUrl.trim() : "");
 
 export default function CoursePlayerLayout({
   course = null,
@@ -87,6 +90,8 @@ export default function CoursePlayerLayout({
     }
     return null;
   }, [allVideos, currentVideoIndex]);
+
+  const notesPdfUrl = getNotesPdfUrl(currentVideo);
 
   const handleVideoClick = (video) => {
     if (!video || isVideoLocked(video)) return;
@@ -196,8 +201,33 @@ export default function CoursePlayerLayout({
                 <Stack spacing={1.25}>
                   <Typography variant="overline" sx={{ color: "#2563eb", fontWeight: 900, letterSpacing: 1.2 }}>Now learning</Typography>
                   <Typography variant="h5" sx={{ fontWeight: 900, lineHeight: 1.3 }}>{getVideoTitle(currentVideo)}</Typography>
-                  <Typography variant="body2" color="text.secondary">Watch at least {80}% of this lesson to mark it complete.</Typography>
+                  <Typography variant="body2" color="text.secondary">Watch at least 80% of this lesson to mark it complete.</Typography>
                 </Stack>
+
+                {notesPdfUrl && (
+                  <Paper variant="outlined" sx={{ mt: 2.5, p: { xs: 1.5, sm: 2 }, borderRadius: 2.5, borderColor: "#dbeafe", backgroundColor: "#f8fbff" }}>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems={{ xs: "stretch", sm: "center" }} justifyContent="space-between">
+                      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+                        <Box sx={{ width: 40, height: 40, flexShrink: 0, borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#dbeafe", color: "#2563eb" }}>
+                          <Description />
+                        </Box>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ fontWeight: 800, color: "#0f172a" }}>Lesson Notes</Typography>
+                          <Typography variant="caption" color="text.secondary">PDF notes for this lesson</Typography>
+                        </Box>
+                      </Stack>
+
+                      <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ flexShrink: 0 }}>
+                        <Button component="a" href={notesPdfUrl} target="_blank" rel="noopener noreferrer" variant="outlined" startIcon={<Description />} sx={{ textTransform: "none", fontWeight: 800, minHeight: 42 }}>
+                          View Notes
+                        </Button>
+                        <Button component="a" href={notesPdfUrl} target="_blank" rel="noopener noreferrer" variant="contained" startIcon={<Download />} sx={{ textTransform: "none", fontWeight: 800, minHeight: 42 }}>
+                          Open PDF
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </Paper>
+                )}
 
                 <Divider sx={{ my: 2.5 }} />
 
