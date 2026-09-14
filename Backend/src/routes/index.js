@@ -10,6 +10,7 @@ import certificateRoutes from "./certificate.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import profileRoutes from "./profile.routes.js";
 import supportRoutes from "./support.routes.js";
+import adminCourseRoutes from "./admin.course.routes.js";
 
 const router = Router();
 
@@ -38,5 +39,6 @@ router.use("/certificates", certificateRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/profile", profileRoutes);
 router.use("/support", supportRoutes);
+router.use("/admin/courses", adminCourseRoutes);
 
 export default router;
