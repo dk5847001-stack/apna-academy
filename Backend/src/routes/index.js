@@ -11,6 +11,7 @@ import notificationRoutes from "./notification.routes.js";
 import profileRoutes from "./profile.routes.js";
 import supportRoutes from "./support.routes.js";
 import adminCourseRoutes from "./admin.course.routes.js";
+import adminUserRoutes from "./admin.user.routes.js";
 
 const router = Router();
 
@@ -40,5 +41,6 @@ router.use("/notifications", notificationRoutes);
 router.use("/profile", profileRoutes);
 router.use("/support", supportRoutes);
 router.use("/admin/courses", adminCourseRoutes);
+router.use("/admin/users", adminUserRoutes);
 
 export default router;
