@@ -68,12 +68,19 @@ export const listAdminTickets = async ({ page = 1, limit = 20, search = "", stat
   for (const message of latest) if (!latestMap.has(message.ticket.toString())) latestMap.set(message.ticket.toString(), serializeMessage(message));
   const summary = Object.fromEntries(counts);
   summary.total = Object.values(summary).reduce((sum, value) => sum + Number(value || 0), 0);
+
   const attentionQuery = { ...query, status: { $nin: ["closed", "resolved"] } };
   const attentionIds = await SupportTicket.find(attentionQuery).select("_id").lean();
-  const attentionMessages = attentionIds.length ? await SupportMessage.find({ ticket: { $in: attentionIds.map((item) => item._id) }, senderRole: "user" }).sort({ createdAt: -1 }).lean() : [];
-  const latestUserByTicket = new Set();
-  for (const message of attentionMessages) if (!latestUserByTicket.has(message.ticket.toString())) latestUserByTicket.add(message.ticket.toString());
-  summary.needsReply = latestUserByTicket.size;
+  const attentionTicketIds = attentionIds.map((item) => item._id);
+  const attentionMessages = attentionTicketIds.length
+    ? await SupportMessage.find({ ticket: { $in: attentionTicketIds } }).sort({ createdAt: -1 }).lean()
+    : [];
+  const latestRoleByTicket = new Map();
+  for (const message of attentionMessages) {
+    const key = message.ticket.toString();
+    if (!latestRoleByTicket.has(key)) latestRoleByTicket.set(key, message.senderRole);
+  }
+  summary.needsReply = [...latestRoleByTicket.values()].filter((role) => role === "user").length;
   summary.assigned = await SupportTicket.countDocuments({ ...query, assignedAdmin: { $ne: null } });
   summary.unassigned = await SupportTicket.countDocuments({ ...query, assignedAdmin: null });
   const responseTimes = await SupportTicket.find({ ...query, firstResponseAt: { $ne: null } }).select("createdAt firstResponseAt").lean();
@@ -94,7 +101,6 @@ export const getAdminTicket = async (ticketId) => {
     throw error;
   }
   const messages = await SupportMessage.find({ ticket: ticket._id }).populate({ path: "sender", select: "name email avatar" }).sort({ createdAt: 1 }).lean();
-  const firstAdminMessage = messages.find((message) => message.senderRole === "admin");
   return serialize(ticket, messages.map(serializeMessage), messages.length ? serializeMessage(messages[messages.length - 1]) : null);
 };
 
@@ -106,12 +112,17 @@ const notifyUser = async ({ userId, title, message, link = "/dashboard/support" 
 
 export const updateAdminTicket = async ({ ticketId, status, priority, adminReply, adminId, assignedAdmin } = {}) => {
   validateId(ticketId);
+  const before = await SupportTicket.findById(ticketId).select("status priority assignedAdmin firstResponseAt user subject").lean();
+  if (!before) {
+    const error = new Error("Support ticket not found.");
+    error.statusCode = 404;
+    throw error;
+  }
   const updates = {};
   if (status !== undefined) {
     if (!STATUSES.includes(status)) { const error = new Error("Invalid ticket status."); error.statusCode = 400; throw error; }
     updates.status = status;
-    if (status === "resolved") updates.resolvedAt = new Date();
-    if (status !== "resolved") updates.resolvedAt = null;
+    updates.resolvedAt = status === "resolved" ? new Date() : null;
   }
   if (priority !== undefined) {
     if (!PRIORITIES.includes(priority)) { const error = new Error("Invalid ticket priority."); error.statusCode = 400; throw error; }
@@ -132,20 +143,20 @@ export const updateAdminTicket = async ({ ticketId, status, priority, adminReply
     if (reply) {
       updates.adminReply = reply;
       updates.repliedAt = new Date();
-      updates.firstResponseAt = (await SupportTicket.findById(ticketId).select("firstResponseAt").lean())?.firstResponseAt || new Date();
+      updates.firstResponseAt = before.firstResponseAt || new Date();
     }
   }
   if (!Object.keys(updates).length) { const error = new Error("No valid ticket changes supplied."); error.statusCode = 400; throw error; }
-  const before = await SupportTicket.findById(ticketId).select("status priority assignedAdmin firstResponseAt user subject").lean();
-  if (!before) { const error = new Error("Support ticket not found."); error.statusCode = 404; throw error; }
   const ticket = await SupportTicket.findByIdAndUpdate(ticketId, { $set: updates }, { new: true }).populate({ path: "user", select: "name email phone avatar" }).populate({ path: "assignedAdmin", select: "name email avatar" }).lean();
   if (reply) await SupportMessage.create({ ticket: ticket._id, sender: adminId, senderRole: "admin", message: reply });
   const parts = [];
   if (reply) parts.push("Our support team replied to your ticket.");
   if (status !== undefined && status !== before.status) parts.push(`Ticket status updated to ${status.replace("-", " ")}.`);
   if (priority !== undefined && priority !== before.priority) parts.push(`Ticket priority updated to ${priority}.`);
-  if (assignedAdmin !== undefined && String(assignedAdmin || "") !== String(before.assignedAdmin || "")) parts.push(assignedAdmin ? "Your ticket has been assigned to a support admin." : "Your ticket is now unassigned.");
+  const assignmentChanged = assignedAdmin !== undefined && String(assignedAdmin || "") !== String(before.assignedAdmin || "");
+  if (assignmentChanged) parts.push(assignedAdmin ? "Your ticket has been assigned to a support admin." : "Your ticket is now unassigned.");
   if (parts.length) await notifyUser({ userId: ticket.user?._id, title: `Support update: ${ticket.subject}`, message: parts.join(" ") });
+  if (assignmentChanged && assignedAdmin) await notifyUser({ userId: assignedAdmin, title: `Ticket assigned: ${ticket.subject}`, message: "A support ticket has been assigned to you.", link: "/admin/support" });
   return getAdminTicket(ticketId);
 };
 
@@ -157,9 +168,7 @@ export const bulkUpdateAdminTickets = async ({ ticketIds = [], status, adminId }
   const tickets = await SupportTicket.find({ _id: { $in: ids } }).select("_id user subject status").lean();
   if (!tickets.length) { const error = new Error("No matching tickets found."); error.statusCode = 404; throw error; }
   const now = new Date();
-  const update = { status };
-  if (status === "resolved") update.resolvedAt = now;
-  if (status !== "resolved") update.resolvedAt = null;
+  const update = { status, resolvedAt: status === "resolved" ? now : null };
   await SupportTicket.updateMany({ _id: { $in: tickets.map((ticket) => ticket._id) } }, { $set: update });
   await Promise.all(tickets.filter((ticket) => ticket.user).map((ticket) => notifyUser({ userId: ticket.user, title: `Support update: ${ticket.subject}`, message: `Ticket status updated to ${status.replace("-", " ")}.` })));
   return { updated: tickets.length, status };
