@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Assessment from "../models/Assessment.js";
 import AssessmentAttempt from "../models/AssessmentAttempt.js";
 import Course from "../models/Course.js";
+import Progress from "../models/Progress.js";
 import Purchase from "../models/Purchase.js";
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
@@ -15,6 +16,28 @@ const getActivePurchase = async (userId, courseId) => {
     paymentStatus: "paid",
     $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }],
   }).lean();
+};
+
+const requireCourseCompletion = async (userId, courseId) => {
+  const progress = await Progress.findOne({ user: userId, course: courseId })
+    .select("overallProgress isCompleted completedAt")
+    .lean();
+
+  const overallProgress = Number(progress?.overallProgress || 0);
+  const completed = progress?.isCompleted === true || overallProgress >= 100;
+
+  if (!completed) {
+    const error = new Error("Complete 100% of the course before attempting the assessment.");
+    error.statusCode = 403;
+    error.code = "COURSE_NOT_COMPLETED";
+    throw error;
+  }
+
+  return {
+    overallProgress,
+    isCompleted: completed,
+    completedAt: progress?.completedAt || null,
+  };
 };
 
 const sanitizeAssessment = (assessment) => ({
@@ -47,23 +70,24 @@ export const getStudentAssessment = async ({ userId, courseId }) => {
     throw error;
   }
 
-  await getActivePurchase(userId, courseId).then((purchase) => {
-    if (!purchase) {
-      const error = new Error("Active course purchase is required.");
-      error.statusCode = 403;
-      throw error;
-    }
-  });
+  const purchase = await getActivePurchase(userId, courseId);
+  if (!purchase) {
+    const error = new Error("Active course purchase is required.");
+    error.statusCode = 403;
+    throw error;
+  }
 
+  const progress = await requireCourseCompletion(userId, courseId);
   const assessment = await Assessment.findOne({ course: courseId, isPublished: true }).lean();
-  if (!assessment) return { available: false, assessment: null, attemptsUsed: 0, attemptsRemaining: 0 };
+  if (!assessment) return { available: false, assessment: null, attemptsUsed: 0, attemptsRemaining: 0, progress };
 
   const attemptsUsed = await AssessmentAttempt.countDocuments({ user: userId, assessment: assessment._id });
   return {
-    available: assessment.questions.length > 0,
+    available: assessment.questions.length > 0 && attemptsUsed < assessment.maxAttempts,
     assessment: sanitizeAssessment(assessment),
     attemptsUsed,
     attemptsRemaining: Math.max(assessment.maxAttempts - attemptsUsed, 0),
+    progress,
   };
 };
 
@@ -88,6 +112,8 @@ export const submitStudentAssessment = async ({ userId, courseId, answers }) => 
     throw error;
   }
 
+  await requireCourseCompletion(userId, courseId);
+
   const assessment = await Assessment.findOne({ course: courseId, isPublished: true }).lean();
   if (!assessment || !assessment.questions.length) {
     const error = new Error("Assessment is not available.");
@@ -104,7 +130,9 @@ export const submitStudentAssessment = async ({ userId, courseId, answers }) => 
 
   const answerMap = new Map();
   for (const answer of answers) {
-    if (isValidObjectId(answer?.questionId)) answerMap.set(String(answer.questionId), String(answer.selectedOptionId || ""));
+    if (!isValidObjectId(answer?.questionId)) continue;
+    const selectedOptionId = answer?.selectedOptionId || answer?.optionId || "";
+    answerMap.set(String(answer.questionId), String(selectedOptionId));
   }
 
   let totalMarks = 0;
