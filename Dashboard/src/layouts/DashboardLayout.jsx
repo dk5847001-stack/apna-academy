@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import {
@@ -178,6 +178,15 @@ export default function DashboardLayout() {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem(STORAGE_KEYS.THEME) === "dark");
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+    document.body.classList.toggle("dark", darkMode);
+    return () => {
+      document.documentElement.classList.remove("dark");
+      document.body.classList.remove("dark");
+    };
+  }, [darkMode]);
 
   const handleToggleTheme = () => {
     setDarkMode((current) => {
