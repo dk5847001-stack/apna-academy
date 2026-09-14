@@ -79,6 +79,25 @@ purchaseSchema.index({ user: 1, course: 1 });
 purchaseSchema.index({ paymentStatus: 1, purchasedAt: -1 });
 purchaseSchema.index({ purchasedAt: -1, createdAt: -1 });
 
+// Razorpay identifiers must never be associated with more than one purchase.
+// Partial indexes are used because pending purchases intentionally have empty
+// payment IDs until Razorpay returns the real identifiers.
+purchaseSchema.index(
+  { razorpayOrderId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { razorpayOrderId: { $type: "string", $ne: "" } },
+  }
+);
+
+purchaseSchema.index(
+  { razorpayPaymentId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { razorpayPaymentId: { $type: "string", $ne: "" } },
+  }
+);
+
 const Purchase = mongoose.model("Purchase", purchaseSchema);
 
 export default Purchase;
