@@ -87,6 +87,13 @@ const toStatusBreakdown = (rows) => {
   return result;
 };
 
+const countUniquePaidUsers = (range) =>
+  Purchase.aggregate([
+    { $match: { paymentStatus: "paid", purchasedAt: range } },
+    { $group: { _id: "$user" } },
+    { $count: "count" },
+  ]).then((rows) => rows[0]?.count || 0);
+
 export const getAdminAnalytics = async (filters = {}) => {
   const { start, end, days } = resolveRange(filters);
   const previous = getPreviousRange({ start, end, days });
@@ -166,8 +173,8 @@ export const getAdminAnalytics = async (filters = {}) => {
       { $match: { purchasedAt: range } },
       { $group: { _id: "$paymentStatus", count: { $sum: 1 } } },
     ]),
-    Purchase.distinct("user", { paymentStatus: "paid", purchasedAt: range }),
-    Purchase.distinct("user", { paymentStatus: "paid", purchasedAt: previousRange }),
+    countUniquePaidUsers(range),
+    countUniquePaidUsers(previousRange),
     User.countDocuments({ role: "user", createdAt: range }),
     User.countDocuments({ role: "user", createdAt: previousRange }),
     Progress.countDocuments({ isCompleted: true, updatedAt: range }),
@@ -213,8 +220,8 @@ export const getAdminAnalytics = async (filters = {}) => {
 
   const revenue = revenueResult[0]?.total || 0;
   const previousRevenue = previousRevenueResult[0]?.total || 0;
-  const paidConversion = periodRegistrations ? (uniquePurchasers.length / periodRegistrations) * 100 : 0;
-  const completionConversion = uniquePurchasers.length ? (periodCompletions / uniquePurchasers.length) * 100 : 0;
+  const paidConversion = periodRegistrations ? (uniquePurchasers / periodRegistrations) * 100 : 0;
+  const completionConversion = uniquePurchasers ? (periodCompletions / uniquePurchasers) * 100 : 0;
 
   return {
     range: {
@@ -247,7 +254,7 @@ export const getAdminAnalytics = async (filters = {}) => {
       purchaseStatus: toStatusBreakdown(purchaseStatuses),
       conversion: {
         registeredStudents: periodRegistrations,
-        uniquePurchasers: uniquePurchasers.length,
+        uniquePurchasers,
         registeredToPaidPercent: Number(paidConversion.toFixed(1)),
         completedCourses: periodCompletions,
         paidToCompletedPercent: Number(completionConversion.toFixed(1)),
@@ -268,7 +275,7 @@ export const getAdminAnalytics = async (filters = {}) => {
         paidPurchases: previousPaidPurchases,
         registrations: previousRegistrations,
         completions: previousCompletions,
-        uniquePurchasers: uniquePreviousPurchasers.length,
+        uniquePurchasers: uniquePreviousPurchasers,
       },
     },
     topCourses,
