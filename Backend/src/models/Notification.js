@@ -48,6 +48,13 @@ const notificationSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+
+    readBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,
@@ -55,6 +62,8 @@ const notificationSchema = new mongoose.Schema(
 );
 
 notificationSchema.index({ user: 1, createdAt: -1 });
+notificationSchema.index({ user: 1, isRead: 1, createdAt: -1 });
+notificationSchema.index({ readBy: 1, createdAt: -1 });
 
 const Notification = mongoose.model(
   "Notification",
