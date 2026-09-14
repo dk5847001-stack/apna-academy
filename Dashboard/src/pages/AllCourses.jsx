@@ -2,19 +2,26 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
+  Avatar,
   Button,
   Chip,
   MenuItem,
   Select,
   TextField,
+  Typography,
 } from "@mui/material";
 
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import SearchIcon from "@mui/icons-material/Search";
-import SchoolIcon from "@mui/icons-material/School";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import {
+  ArrowForward,
+  AutoAwesome,
+  MenuBook,
+  PlayArrow,
+  Schedule,
+  Search as SearchIcon,
+  VideoLibrary,
+  WorkspacePremium,
+  School as SchoolIcon,
+} from "@mui/icons-material";
 
 import { COURSE_ROUTES, ROUTES } from "../constants/config";
 import dashboardService from "../services/dashboard.service";
@@ -29,19 +36,18 @@ function formatPrice(value) {
   return `₹${price.toLocaleString("en-IN")}`;
 }
 
-function formatDuration(days) {
-  const value = Number(days);
+function getInitial(name) {
+  return name?.trim()?.charAt(0)?.toUpperCase() || "A";
+}
 
-  if (!Number.isFinite(value) || value <= 0) {
-    return "Self-paced";
+function getLevelLabel(level) {
+  if (!level) {
+    return "All Levels";
   }
 
-  if (value % 30 === 0) {
-    const months = value / 30;
-    return `${months} ${months === 1 ? "month" : "months"}`;
-  }
-
-  return `${value} days`;
+  return String(level)
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function getCourseId(course) {
@@ -50,20 +56,61 @@ function getCourseId(course) {
 
 function CourseCard({ course, enrolled }) {
   const courseSlug = String(course?.slug || "").trim();
-
   const courseTarget = enrolled
     ? COURSE_ROUTES.LEARN(courseSlug)
     : COURSE_ROUTES.DETAILS(courseSlug);
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+    <article
+      className="
+        group
+        flex
+        h-full
+        min-w-0
+        flex-col
+        overflow-hidden
+        rounded-lg
+        border
+        border-slate-200
+        bg-white
+        shadow-sm
+        transition-all
+        duration-200
+        hover:-translate-y-0.5
+        hover:border-blue-200
+        hover:shadow-md
+      "
+    >
+      <div
+        className="
+          relative
+          block
+          aspect-[16/8]
+          overflow-hidden
+          bg-slate-100
+        "
+      >
         {course.thumbnail ? (
           <img
             src={course.thumbnail}
-            alt={course.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            alt={
+              course.title
+                ? `${course.title} course thumbnail`
+                : "ApnaAcademy course"
+            }
+            className="
+              h-full
+              w-full
+              object-cover
+              transition-transform
+              duration-300
+              group-hover:scale-[1.02]
+            "
             loading="lazy"
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.style.display = "none";
+            }}
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-blue-50 text-blue-600">
@@ -71,98 +118,228 @@ function CourseCard({ course, enrolled }) {
           </div>
         )}
 
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+
+        <div className="absolute left-1.5 top-1.5 flex flex-wrap gap-1.5">
           {course.isFeatured && (
             <Chip
+              icon={<AutoAwesome sx={{ fontSize: 11 }} />}
               label="Featured"
               size="small"
-              color="primary"
-              sx={{
-                backgroundColor: "rgba(255,255,255,0.95)",
-                color: "#1d4ed8",
-                fontWeight: 800,
-              }}
+              className="
+                !h-5
+                !bg-white
+                !px-0
+                !text-[7px]
+                !font-bold
+                !text-slate-800
+                !shadow-sm
+              "
             />
           )}
 
           {enrolled && (
             <Chip
+              icon={<WorkspacePremium sx={{ fontSize: 11 }} />}
               label="Enrolled"
               size="small"
-              icon={<WorkspacePremiumIcon sx={{ fontSize: 16 }} />}
-              sx={{
-                backgroundColor: "rgba(255,255,255,0.95)",
-                fontWeight: 800,
-              }}
+              className="
+                !h-5
+                !bg-white/95
+                !px-0
+                !text-[7px]
+                !font-bold
+                !text-slate-800
+                !shadow-sm
+              "
             />
           )}
         </div>
+
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-blue-600 shadow-lg">
+            <PlayArrow sx={{ fontSize: 18 }} />
+          </div>
+        </div>
       </div>
 
-      <div className="p-5 sm:p-6">
-        <div className="flex flex-wrap items-center gap-2">
-          {course.category && (
-            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-700">
-              {course.category}
-            </span>
-          )}
+      <div className="flex flex-1 flex-col px-2.5 py-2.5 sm:px-3 sm:py-3">
+        <div className="mb-1.5 flex min-w-0 gap-1">
+          <Chip
+            label={getLevelLabel(course.level)}
+            size="small"
+            variant="outlined"
+            className="
+              !h-[18px]
+              !max-w-[65%]
+              !border-blue-200
+              !bg-blue-50
+              !px-0
+              !text-[7px]
+              !font-bold
+              !text-blue-700
+              sm:!h-5
+              sm:!text-[8px]
+            "
+          />
 
-          {course.level && (
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-              {course.level}
-            </span>
+          {course.language && (
+            <Chip
+              label={course.language}
+              size="small"
+              variant="outlined"
+              className="
+                !h-[18px]
+                !max-w-[35%]
+                !border-slate-200
+                !bg-slate-50
+                !px-0
+                !text-[7px]
+                !font-medium
+                !text-slate-500
+                sm:!h-5
+                sm:!text-[8px]
+              "
+            />
           )}
         </div>
 
-        <h2 className="mt-3 line-clamp-2 text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">
-          {course.title}
-        </h2>
+        <Link to={courseTarget} className="block no-underline">
+          <Typography
+            component="h2"
+            className="
+              line-clamp-2
+              !text-[11px]
+              !font-extrabold
+              !leading-[15px]
+              !tracking-tight
+              !text-slate-900
+              group-hover:!text-blue-700
+              sm:!text-[14px]
+              sm:!leading-[18px]
+            "
+          >
+            {course.title || "Untitled Course"}
+          </Typography>
+        </Link>
 
-        <p className="mt-2 line-clamp-2 min-h-12 text-sm leading-6 text-slate-500">
+        <Typography
+          component="p"
+          className="
+            mt-1
+            line-clamp-2
+            !text-[8px]
+            !leading-[13px]
+            !text-slate-500
+            sm:!text-[10px]
+            sm:!leading-4
+          "
+        >
           {course.shortDescription ||
-            "Build practical skills through structured learning with ApnaAcademy."}
-        </p>
+            "Practical learning designed for real-world skills."}
+        </Typography>
 
-        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-400">
-          <span className="flex items-center gap-1.5">
-            <AccessTimeIcon sx={{ fontSize: 16 }} />
-            {formatDuration(course.durationDays)}
-          </span>
+        <div className="mt-1.5 flex min-w-0 items-center gap-1">
+          <Avatar
+            src={course.instructor?.avatar || undefined}
+            alt={course.instructor?.name || "ApnaAcademy instructor"}
+            slotProps={{ img: { loading: "lazy" } }}
+            className="
+              !h-5
+              !w-5
+              !shrink-0
+              !bg-blue-100
+              !text-[7px]
+              !font-bold
+              !text-blue-700
+              sm:!h-6
+              sm:!w-6
+              sm:!text-[8px]
+            "
+          >
+            {getInitial(course.instructor?.name)}
+          </Avatar>
 
-          {course.totalModules > 0 && (
-            <span>{course.totalModules} modules</span>
-          )}
-
-          {course.totalVideos > 0 && (
-            <span>{course.totalVideos} lessons</span>
-          )}
+          <Typography
+            component="span"
+            className="
+              min-w-0
+              truncate
+              !text-[8px]
+              !font-semibold
+              !text-slate-600
+              sm:!text-[9px]
+            "
+          >
+            {course.instructor?.name || "ApnaAcademy"}
+          </Typography>
         </div>
 
-        <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+        <div className="mt-2 grid grid-cols-3 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
+          <div className="flex min-w-0 items-center justify-center gap-0.5 px-1 py-1.5">
+            <MenuBook sx={{ fontSize: 12 }} className="!text-blue-600" />
+            <Typography component="span" className="truncate !text-[8px] !font-extrabold !text-slate-800 sm:!text-[9px]">
+              {course.totalModules || 0}
+            </Typography>
+          </div>
+
+          <div className="flex min-w-0 items-center justify-center gap-0.5 border-x border-slate-200 px-1 py-1.5">
+            <VideoLibrary sx={{ fontSize: 12 }} className="!text-indigo-600" />
+            <Typography component="span" className="truncate !text-[8px] !font-extrabold !text-slate-800 sm:!text-[9px]">
+              {course.totalVideos || 0}
+            </Typography>
+          </div>
+
+          <div className="flex min-w-0 items-center justify-center gap-0.5 px-1 py-1.5">
+            <Schedule sx={{ fontSize: 12 }} className="!text-violet-600" />
+            <Typography component="span" className="truncate !text-[8px] !font-extrabold !text-slate-800 sm:!text-[9px]">
+              {Number(course.durationDays) > 0 ? `${course.durationDays}d` : "Self"}
+            </Typography>
+          </div>
+        </div>
+
+        <div className="mt-2 flex items-center justify-between gap-1.5 border-t border-slate-100 pt-2">
+          <div className="min-w-0">
+            <Typography component="p" className="!text-[8px] !font-bold !uppercase !tracking-wide !text-slate-400 sm:!text-[9px]">
               Starting at
-            </p>
-            <p className="mt-0.5 text-lg font-extrabold text-slate-900">
+            </Typography>
+            <Typography component="p" className="!mt-0.5 !text-xs !font-extrabold !leading-4 !text-slate-950 sm:!text-sm">
               {formatPrice(course.price)}
-            </p>
+            </Typography>
           </div>
 
           <Button
             component={Link}
             to={courseTarget}
-            variant={enrolled ? "outlined" : "contained"}
-            endIcon={enrolled ? <PlayArrowIcon /> : <ArrowForwardIcon />}
+            variant="contained"
+            endIcon={
+              enrolled ? (
+                <PlayArrow sx={{ fontSize: { xs: 11, sm: 13 } }} />
+              ) : (
+                <ArrowForward sx={{ fontSize: { xs: 11, sm: 13 } }} />
+              )
+            }
             disabled={!courseSlug}
-            sx={{
-              minHeight: 42,
-              borderRadius: "12px",
-              textTransform: "none",
-              fontWeight: 700,
-              boxShadow: "none",
-            }}
+            className="
+              !min-h-7
+              !shrink-0
+              !rounded-md
+              !bg-blue-600
+              !px-2
+              !py-1
+              !text-[8px]
+              !font-bold
+              !normal-case
+              !leading-none
+              !text-white
+              !shadow-none
+              hover:!bg-blue-700
+              sm:!min-h-8
+              sm:!px-2.5
+              sm:!text-[10px]
+            "
           >
-            {enrolled ? "Open" : "View Course"}
+            {enrolled ? "Open" : "View"}
           </Button>
         </div>
       </div>
@@ -176,17 +353,17 @@ function LoadingState() {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
-          className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
         >
-          <div className="aspect-[16/9] animate-pulse bg-slate-200" />
-          <div className="p-5 sm:p-6">
+          <div className="aspect-[16/8] animate-pulse bg-slate-200" />
+          <div className="p-3 sm:p-3.5">
             <div className="animate-pulse">
               <div className="h-3 w-24 rounded bg-slate-200" />
-              <div className="mt-4 h-6 w-4/5 rounded bg-slate-200" />
+              <div className="mt-4 h-5 w-4/5 rounded bg-slate-200" />
               <div className="mt-3 h-4 w-full rounded bg-slate-100" />
               <div className="mt-2 h-4 w-2/3 rounded bg-slate-100" />
-              <div className="mt-6 h-4 w-1/2 rounded bg-slate-100" />
-              <div className="mt-5 h-10 w-full rounded-xl bg-slate-200" />
+              <div className="mt-4 h-4 w-1/2 rounded bg-slate-100" />
+              <div className="mt-4 h-8 w-full rounded-md bg-slate-200" />
             </div>
           </div>
         </div>
@@ -509,7 +686,7 @@ export default function AllCourses() {
                       onClick={() => loadCourses(pagination.page + 1)}
                       disabled={pagination.page >= pagination.totalPages || loading}
                       variant="contained"
-                      endIcon={<ArrowForwardIcon />}
+                      endIcon={<ArrowForward />}
                       sx={{
                         minHeight: 40,
                         borderRadius: "10px",
@@ -531,7 +708,7 @@ export default function AllCourses() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
-                <PlayArrowIcon />
+                <PlayArrow />
               </div>
               <div>
                 <h2 className="text-sm font-bold text-slate-900">
@@ -547,7 +724,7 @@ export default function AllCourses() {
               component={Link}
               to={ROUTES.MY_COURSES}
               variant="outlined"
-              endIcon={<ArrowForwardIcon />}
+              endIcon={<ArrowForward />}
               sx={{
                 minHeight: 40,
                 borderRadius: "10px",
