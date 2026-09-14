@@ -16,7 +16,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 
-import { ROUTES } from "../constants/config";
+import { COURSE_ROUTES, ROUTES } from "../constants/config";
 import dashboardService from "../services/dashboard.service";
 
 function formatPrice(value) {
@@ -49,6 +49,12 @@ function getCourseId(course) {
 }
 
 function CourseCard({ course, enrolled }) {
+  const courseSlug = String(course?.slug || "").trim();
+
+  const courseTarget = enrolled
+    ? COURSE_ROUTES.LEARN(courseSlug)
+    : COURSE_ROUTES.DETAILS(courseSlug);
+
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
       <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
@@ -144,9 +150,10 @@ function CourseCard({ course, enrolled }) {
 
           <Button
             component={Link}
-            to={ROUTES.COURSES}
+            to={courseTarget}
             variant={enrolled ? "outlined" : "contained"}
-            endIcon={<ArrowForwardIcon />}
+            endIcon={enrolled ? <PlayArrowIcon /> : <ArrowForwardIcon />}
+            disabled={!courseSlug}
             sx={{
               minHeight: 42,
               borderRadius: "12px",
