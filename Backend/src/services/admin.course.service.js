@@ -234,8 +234,10 @@ export const updateAdminCourse = async (courseId, payload = {}) => {
       error.statusCode = 400;
       throw error;
     }
+
+    const previousTitle = String(course.title || "").trim();
     course.title = title;
-    if (title.toLowerCase() !== String(course.title).toLowerCase()) {
+    if (title.toLowerCase() !== previousTitle.toLowerCase()) {
       course.slug = await uniqueSlug(title, course._id);
     }
   }
