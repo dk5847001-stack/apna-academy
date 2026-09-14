@@ -21,6 +21,9 @@ const DARK_CLASS_MAP = [
   ["text-slate-400", "!text-slate-500"],
 ];
 
+const THEME_STYLE_ID = "apna-navbar-theme-runtime";
+const SEARCH_INPUT_SELECTOR = '[data-apna-navbar-search-input="true"]';
+
 function isDark() {
   return localStorage.getItem("theme") === "dark";
 }
@@ -43,39 +46,124 @@ function removeTailwindDarkClasses() {
   });
 }
 
-function applyMuiDarkTheme() {
-  const dark = isDark();
+function ensureThemeStyles() {
+  if (document.getElementById(THEME_STYLE_ID)) return;
 
-  document.querySelectorAll(
-    ".MuiAppBar-root, .MuiDrawer-paper, .MuiMenu-paper, .MuiPopover-paper"
-  ).forEach((element) => {
-    if (dark) {
-      if (!element.dataset.apnaOriginalBg) {
-        element.dataset.apnaOriginalBg = element.style.backgroundColor || "";
-      }
-      if (!element.dataset.apnaOriginalColor) {
-        element.dataset.apnaOriginalColor = element.style.color || "";
-      }
-      element.style.backgroundColor = "#0f172a";
-      element.style.color = "#f8fafc";
-      element.style.borderColor = "#1e293b";
-    } else {
-      if (element.dataset.apnaOriginalBg !== undefined) {
-        element.style.backgroundColor = element.dataset.apnaOriginalBg;
-        delete element.dataset.apnaOriginalBg;
-      }
-      if (element.dataset.apnaOriginalColor !== undefined) {
-        element.style.color = element.dataset.apnaOriginalColor;
-        delete element.dataset.apnaOriginalColor;
+  const style = document.createElement("style");
+  style.id = THEME_STYLE_ID;
+  style.textContent = `
+    html.dark .MuiAppBar-root {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border-bottom-color: #1e293b !important;
+    }
+
+    html:not(.dark) .MuiAppBar-root {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-bottom-color: #e2e8f0 !important;
+    }
+
+    html.dark .MuiAppBar-root button[aria-label="Search courses"],
+    html.dark .MuiAppBar-root button[aria-label="Toggle theme"],
+    html.dark .MuiAppBar-root button[aria-label="Notifications"] {
+      background-color: #0f172a !important;
+      color: #cbd5e1 !important;
+    }
+
+    html:not(.dark) .MuiAppBar-root button[aria-label="Search courses"],
+    html:not(.dark) .MuiAppBar-root button[aria-label="Toggle theme"],
+    html:not(.dark) .MuiAppBar-root button[aria-label="Notifications"] {
+      background-color: #ffffff !important;
+      color: #475569 !important;
+    }
+
+    html.dark .MuiAppBar-root button[aria-label="Search courses"]:hover,
+    html.dark .MuiAppBar-root button[aria-label="Toggle theme"]:hover,
+    html.dark .MuiAppBar-root button[aria-label="Notifications"]:hover {
+      background-color: #1e293b !important;
+      color: #93c5fd !important;
+    }
+
+    html:not(.dark) .MuiAppBar-root button[aria-label="Search courses"]:hover,
+    html:not(.dark) .MuiAppBar-root button[aria-label="Toggle theme"]:hover,
+    html:not(.dark) .MuiAppBar-root button[aria-label="Notifications"]:hover {
+      background-color: #eff6ff !important;
+      color: #1d4ed8 !important;
+    }
+
+    [data-apna-navbar-search-wrap="true"] {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex-shrink: 1;
+    }
+
+    [data-apna-navbar-search-input="true"] {
+      width: 0;
+      min-width: 0;
+      height: 40px;
+      opacity: 0;
+      pointer-events: none;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      outline: none;
+      padding: 0;
+      margin-right: 0;
+      font-size: 14px;
+      font-weight: 600;
+      transition:
+        width 260ms cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 180ms ease,
+        padding 260ms cubic-bezier(0.4, 0, 0.2, 1),
+        margin-right 260ms cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 180ms ease;
+    }
+
+    [data-apna-navbar-search-wrap="true"][data-open="true"] [data-apna-navbar-search-input="true"] {
+      width: min(260px, 30vw);
+      opacity: 1;
+      pointer-events: auto;
+      padding: 0 42px 0 14px;
+      margin-right: -40px;
+      border-color: #cbd5e1;
+    }
+
+    html.dark [data-apna-navbar-search-input="true"] {
+      background: #1e293b;
+      color: #f8fafc;
+      border-color: #334155;
+    }
+
+    html:not(.dark) [data-apna-navbar-search-input="true"] {
+      background: #f8fafc;
+      color: #0f172a;
+    }
+
+    [data-apna-navbar-search-input="true"]::placeholder {
+      color: #94a3b8;
+    }
+
+    [data-apna-navbar-search-wrap="true"][data-open="true"] button[aria-label="Search courses"] {
+      position: relative;
+      z-index: 2;
+    }
+
+    @media (max-width: 639px) {
+      [data-apna-navbar-search-wrap="true"][data-open="true"] [data-apna-navbar-search-input="true"] {
+        width: min(180px, 48vw);
       }
     }
-  });
+  `;
+
+  document.head.appendChild(style);
 }
 
 function applyTheme() {
   const root = document.documentElement;
   const dark = isDark();
 
+  ensureThemeStyles();
   root.classList.toggle("dark", dark);
   root.style.colorScheme = dark ? "dark" : "light";
   document.body.style.backgroundColor = dark ? "#020617" : "#ffffff";
@@ -86,11 +174,9 @@ function applyTheme() {
   } else {
     removeTailwindDarkClasses();
   }
-
-  applyMuiDarkTheme();
 }
 
-function getSearchInput() {
+function getCourseSearchInput() {
   return document.querySelector('input[aria-label="Search courses"]');
 }
 
@@ -100,7 +186,7 @@ function syncCourseSearchFromUrl() {
   const query = new URLSearchParams(window.location.search).get("search");
   if (!query) return;
 
-  const input = getSearchInput();
+  const input = getCourseSearchInput();
   if (!input) return;
 
   const setter = Object.getOwnPropertyDescriptor(
@@ -112,101 +198,123 @@ function syncCourseSearchFromUrl() {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-function createSearchOverlay() {
-  if (document.querySelector("[data-apna-search-overlay]")) return;
+function submitNavbarSearch(input) {
+  const value = input.value.trim();
+  if (!value) {
+    input.focus();
+    return;
+  }
 
-  const overlay = document.createElement("div");
-  overlay.setAttribute("data-apna-search-overlay", "true");
-  overlay.className =
-    "fixed inset-0 z-[1500] flex items-start justify-center bg-slate-950/60 px-4 pt-24 backdrop-blur-sm";
-
-  const panel = document.createElement("div");
-  panel.className =
-    "w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-4 shadow-2xl sm:p-5 dark:border-slate-700 dark:bg-slate-900";
-
-  const form = document.createElement("form");
-  form.className = "flex items-center gap-3";
-
-  const input = document.createElement("input");
-  input.type = "search";
-  input.placeholder = "Search courses, skills, topics...";
-  input.setAttribute("aria-label", "Navbar course search");
-  input.autocomplete = "off";
-  input.className =
-    "min-w-0 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-0 placeholder:text-slate-400 focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100";
-
-  const submit = document.createElement("button");
-  submit.type = "submit";
-  submit.className =
-    "rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700";
-  submit.textContent = "Search";
-
-  const close = document.createElement("button");
-  close.type = "button";
-  close.className =
-    "rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800";
-  close.textContent = "Close";
-
-  const hint = document.createElement("p");
-  hint.className =
-    "mt-3 px-1 text-xs font-medium text-slate-500 dark:text-slate-400";
-  hint.textContent = "Press Enter to search or Escape to close.";
-
-  form.append(input, submit, close);
-  panel.append(form, hint);
-  overlay.appendChild(panel);
-  document.body.appendChild(overlay);
-
-  const remove = () => overlay.remove();
-
-  overlay.addEventListener("click", (event) => {
-    if (event.target === overlay) remove();
-  });
-  close.addEventListener("click", remove);
-  document.addEventListener("keydown", function onKeyDown(event) {
-    if (event.key === "Escape") {
-      remove();
-      document.removeEventListener("keydown", onKeyDown);
-    }
-  });
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const value = input.value.trim();
-    if (!value) return;
-
-    window.location.href = `/courses?search=${encodeURIComponent(value)}`;
-  });
-
-  input.focus();
+  window.location.href = `/courses?search=${encodeURIComponent(value)}`;
 }
 
-function findNavbarSearchButtons() {
-  const desktop = document.querySelector('button[aria-label="Search courses"]');
-  const mobile = Array.from(
-    document.querySelectorAll(".MuiListItemButton-root")
-  ).find((element) =>
-    element.textContent?.trim().includes("Search Courses")
-  );
+function createNavbarSearchInput(button) {
+  if (!button || button.dataset.apnaSearchContainerBound === "true") {
+    return;
+  }
 
-  return [desktop, mobile].filter(Boolean);
+  const parent = button.parentElement;
+  if (!parent) return;
+
+  let wrap = parent.querySelector('[data-apna-navbar-search-wrap="true"]');
+
+  if (!wrap) {
+    wrap = document.createElement("div");
+    wrap.setAttribute("data-apna-navbar-search-wrap", "true");
+    wrap.setAttribute("data-open", "false");
+
+    parent.insertBefore(wrap, button);
+    wrap.appendChild(button);
+  }
+
+  let input = wrap.querySelector(SEARCH_INPUT_SELECTOR);
+
+  if (!input) {
+    input = document.createElement("input");
+    input.type = "search";
+    input.placeholder = "Search courses...";
+    input.setAttribute("aria-label", "Navbar course search");
+    input.setAttribute("data-apna-navbar-search-input", "true");
+    input.autocomplete = "off";
+    wrap.insertBefore(input, button);
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        submitNavbarSearch(input);
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeNavbarSearch(wrap, input);
+      }
+    });
+  }
+
+  button.dataset.apnaSearchContainerBound = "true";
+  button.dataset.apnaSearchBound = "true";
+
+  button.addEventListener(
+    "click",
+    (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const open = wrap.getAttribute("data-open") === "true";
+      if (open) {
+        closeNavbarSearch(wrap, input);
+      } else {
+        openNavbarSearch(wrap, input);
+      }
+    },
+    true
+  );
+}
+
+function openNavbarSearch(wrap, input) {
+  wrap.setAttribute("data-open", "true");
+  window.requestAnimationFrame(() => {
+    input.focus();
+  });
+}
+
+function closeNavbarSearch(wrap, input) {
+  wrap.setAttribute("data-open", "false");
+  input.value = "";
+}
+
+function findDesktopSearchButton() {
+  return document.querySelector('button[aria-label="Search courses"]');
+}
+
+function findMobileSearchButton() {
+  return Array.from(document.querySelectorAll(".MuiListItemButton-root")).find(
+    (element) => element.textContent?.trim().includes("Search Courses")
+  );
 }
 
 function installSearchHandlers() {
-  findNavbarSearchButtons().forEach((button) => {
-    if (button.dataset.apnaSearchBound === "true") return;
+  const desktop = findDesktopSearchButton();
 
-    button.dataset.apnaSearchBound = "true";
-    button.addEventListener(
+  if (desktop) {
+    createNavbarSearchInput(desktop);
+  }
+
+  const mobile = findMobileSearchButton();
+
+  if (mobile && mobile.dataset.apnaMobileSearchBound !== "true") {
+    mobile.dataset.apnaMobileSearchBound = "true";
+    mobile.addEventListener(
       "click",
-      (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        createSearchOverlay();
+      () => {
+        window.setTimeout(() => {
+          const input = document.querySelector(SEARCH_INPUT_SELECTOR);
+          if (input) input.focus();
+        }, 0);
       },
       true
     );
-  });
+  }
 }
 
 function installThemeHandler() {
@@ -225,7 +333,11 @@ function installThemeHandler() {
     button.addEventListener(
       "click",
       () => {
+        // MainLayout owns the React theme state. Re-apply the runtime
+        // stylesheet after React updates localStorage/root.dark.
         window.setTimeout(applyTheme, 0);
+        window.setTimeout(applyTheme, 40);
+        window.setTimeout(applyTheme, 150);
       },
       true
     );
@@ -242,10 +354,9 @@ export default function NavbarFunctionality() {
     const observer = new MutationObserver(() => {
       installSearchHandlers();
       installThemeHandler();
-      if (isDark()) {
-        applyTailwindDarkClasses();
-        applyMuiDarkTheme();
-      }
+
+      // Keep the runtime theme authoritative after React/MUI rerenders.
+      applyTheme();
       syncCourseSearchFromUrl();
     });
 
