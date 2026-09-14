@@ -100,14 +100,6 @@ export default function Login() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  /*
-   * =====================================================
-   * CHECK EXISTING AUTHENTICATION
-   * =====================================================
-   * Authentication is determined by the Backend
-   * HttpOnly cookie. We intentionally do NOT read
-   * or store a JWT in localStorage.
-   */
   useEffect(() => {
     if (authCheckStarted.current) {
       return;
@@ -135,11 +127,6 @@ export default function Login() {
     verifyExistingSession();
   }, []);
 
-  /*
-   * =====================================================
-   * INPUT CHANGE
-   * =====================================================
-   */
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -157,11 +144,6 @@ export default function Login() {
     }
   };
 
-  /*
-   * =====================================================
-   * FORM VALIDATION
-   * =====================================================
-   */
   const validateForm = () => {
     const email = formData.email.trim().toLowerCase();
     const password = formData.password;
@@ -181,11 +163,6 @@ export default function Login() {
     return "";
   };
 
-  /*
-   * =====================================================
-   * LOGIN
-   * =====================================================
-   */
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -238,17 +215,15 @@ export default function Login() {
     }
   };
 
-  /*
-   * =====================================================
-   * LOADING / EXISTING SESSION CHECK
-   * =====================================================
-   */
   if (checkingAuth) {
     return (
-      <main className="flex min-h-[calc(100vh-72px)] items-center justify-center bg-white px-4">
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
-            <School />
+      <main className="relative flex min-h-[calc(100vh-72px)] items-center justify-center overflow-hidden bg-white px-4">
+        <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-blue-100/60 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-indigo-100/50 blur-3xl" />
+
+        <div className="relative flex flex-col items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-100 bg-white text-blue-600 shadow-[0_18px_50px_-24px_rgba(37,99,235,0.65)]">
+            <School sx={{ fontSize: 28 }} />
           </div>
 
           <CircularProgress
@@ -269,74 +244,93 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-72px)] bg-white px-4 py-10 text-slate-900 sm:px-6 sm:py-14 lg:px-8">
-      <div className="mx-auto flex w-full max-w-[1080px] justify-center">
-        <section className="w-full max-w-[470px]">
-          {/* BRAND MARK */}
-          <div className="mb-9 flex flex-col items-center text-center">
-            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-[0_12px_30px_-12px_rgba(37,99,235,0.65)] ring-8 ring-blue-50">
-              <School sx={{ fontSize: 27 }} />
+    <main className="relative min-h-[calc(100vh-72px)] overflow-hidden bg-white px-4 py-8 text-slate-900 sm:px-6 sm:py-12 lg:px-8">
+      {/* Luxury ambient background — intentionally subtle so the page stays white. */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-32 -top-32 h-[420px] w-[420px] rounded-full bg-blue-50/90 blur-3xl" />
+        <div className="absolute -right-32 top-1/4 h-[420px] w-[420px] rounded-full bg-indigo-50/70 blur-3xl" />
+        <div className="absolute bottom-[-220px] left-1/3 h-[420px] w-[420px] rounded-full bg-slate-100/80 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto flex min-h-[calc(100vh-150px)] w-full max-w-[1180px] items-center justify-center">
+        <section className="w-full max-w-[500px]">
+          {/* PREMIUM BRAND HEADER */}
+          <div className="mb-7 flex flex-col items-center text-center sm:mb-8">
+            <div className="relative mb-5">
+              <div className="absolute inset-0 rounded-[20px] bg-blue-600/15 blur-xl" />
+              <div className="relative flex h-[62px] w-[62px] items-center justify-center rounded-[20px] border border-white bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-[0_20px_45px_-18px_rgba(37,99,235,0.65)] ring-8 ring-white">
+                <School sx={{ fontSize: 30 }} />
+              </div>
             </div>
 
             <Typography
               component="p"
-              className="!text-lg !font-extrabold !tracking-tight !text-slate-950"
+              className="!text-[21px] !font-black !tracking-[-0.025em] !text-slate-950"
             >
               ApnaAcademy
             </Typography>
 
-            <Typography
-              component="p"
-              className="!mt-1 !text-xs !font-medium !tracking-wide !text-slate-400"
-            >
-              LEARN • BUILD • GROW
-            </Typography>
+            <div className="mt-2 flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.24em] text-slate-400">
+              <span className="h-px w-5 bg-slate-200" />
+              Learn • Build • Grow
+              <span className="h-px w-5 bg-slate-200" />
+            </div>
           </div>
 
-          {/* LOGIN CARD */}
-          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_-35px_rgba(15,23,42,0.38)] sm:p-8">
-            <div className="mb-8">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
-                <Security sx={{ fontSize: 15 }} />
-                Secure sign in
+          {/* LUXURY LOGIN CARD */}
+          <div className="relative overflow-hidden rounded-[30px] border border-slate-200/90 bg-white/95 p-1 shadow-[0_35px_90px_-48px_rgba(15,23,42,0.45)] backdrop-blur-xl">
+            <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/80 to-transparent" />
+
+            <div className="rounded-[26px] border border-slate-100 bg-white px-5 py-7 sm:px-9 sm:py-9">
+              <div className="mb-8">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.08em] text-blue-700">
+                    <Security sx={{ fontSize: 15 }} />
+                    Secure sign in
+                  </div>
+
+                  <div className="hidden items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 sm:flex">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Protected
+                  </div>
+                </div>
+
+                <Typography
+                  component="h1"
+                  className="!text-[32px] !font-black !leading-[1.08] !tracking-[-0.035em] !text-slate-950 sm:!text-[36px]"
+                >
+                  Welcome back
+                </Typography>
+
+                <Typography
+                  component="p"
+                  className="!mt-3 !max-w-md !text-[14px] !leading-6 !text-slate-500"
+                >
+                  Sign in to continue learning and access your ApnaAcademy dashboard.
+                </Typography>
               </div>
 
-              <Typography
-                component="h1"
-                className="!text-[30px] !font-black !leading-tight !tracking-[-0.02em] !text-slate-950"
-              >
-                Welcome back
-              </Typography>
+              {/* ALERTS */}
+              {error && (
+                <Alert
+                  severity="error"
+                  variant="outlined"
+                  onClose={() => setError("")}
+                  className="!mb-5 !rounded-2xl !border-red-200 !bg-red-50/40 !text-sm"
+                >
+                  {error}
+                </Alert>
+              )}
 
-              <Typography
-                component="p"
-                className="!mt-2 !max-w-md !text-sm !leading-6 !text-slate-500"
-              >
-                Sign in to continue learning and access your ApnaAcademy dashboard.
-              </Typography>
-            </div>
-
-            {/* ALERTS */}
-            {error && (
-              <Alert
-                severity="error"
-                variant="outlined"
-                onClose={() => setError("")}
-                className="!mb-5 !rounded-2xl !border-red-200 !bg-red-50/40"
-              >
-                {error}
-              </Alert>
-            )}
-
-            {success && (
-              <Alert
-                severity="success"
-                variant="outlined"
-                className="!mb-5 !rounded-2xl !border-emerald-200 !bg-emerald-50/40"
-              >
-                {success}
-              </Alert>
-            )}
+              {success && (
+                <Alert
+                  severity="success"
+                  variant="outlined"
+                  className="!mb-5 !rounded-2xl !border-emerald-200 !bg-emerald-50/40 !text-sm"
+                >
+                  {success}
+                </Alert>
+              )}
 
             {/* FORM */}
             <form
@@ -390,130 +384,133 @@ export default function Login() {
                     borderWidth: 1.5,
                   },
                 }}
-              /><br/><br/>
-
-              <TextField
-                fullWidth
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                label="Password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-                disabled={loading}
-                autoComplete="current-password"
-                required
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock className="!text-slate-400" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        type="button"
-                        edge="end"
-                        disabled={loading}
-                        onClick={() =>
-                          setShowPassword((value) => !value)
-                        }
-                        aria-label={
-                          showPassword
-                            ? "Hide password"
-                            : "Show password"
-                        }
-                        className="!text-slate-400 hover:!bg-slate-50 hover:!text-slate-700"
-                      >
-                        {showPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  "& .MuiInputLabel-root": {
-                    color: "#64748b",
-                    fontWeight: 600,
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": {
-                    color: "#2563eb",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    minHeight: 56,
-                    borderRadius: "14px",
-                    backgroundColor: "#ffffff",
-                    transition: "all 180ms ease",
-                  },
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#e2e8f0",
-                  },
-                  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#cbd5e1",
-                  },
-                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#2563eb",
-                    borderWidth: 1.5,
-                  },
-                }}
               />
 
-              <div className="flex items-center gap-2 pt-0.5 text-xs font-medium text-slate-500">
-                <CheckCircle
-                  sx={{ fontSize: 16 }}
-                  className="!text-emerald-500"
+                <TextField
+                  fullWidth
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  label="Password"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading}
+                  autoComplete="current-password"
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock className="!text-slate-400" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          type="button"
+                          edge="end"
+                          disabled={loading}
+                          onClick={() =>
+                            setShowPassword((value) => !value)
+                          }
+                          aria-label={
+                            showPassword
+                              ? "Hide password"
+                              : "Show password"
+                          }
+                          className="!text-slate-400 hover:!bg-slate-50 hover:!text-slate-700"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    "& .MuiInputLabel-root": {
+                      color: "#64748b",
+                      fontWeight: 600,
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: "#2563eb",
+                    },
+                    "& .MuiOutlinedInput-root": {
+                      minHeight: 58,
+                      borderRadius: "15px",
+                      backgroundColor: "#ffffff",
+                      transition: "all 180ms ease",
+                      boxShadow: "0 5px 18px rgba(15, 23, 42, 0.025)",
+                    },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#e2e8f0",
+                    },
+                    "& .MuiOutlinedInput-root:hover": {
+                      boxShadow: "0 8px 22px rgba(15, 23, 42, 0.045)",
+                    },
+                    "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#cbd5e1",
+                    },
+                    "& .MuiOutlinedInput-root.Mui-focused": {
+                      boxShadow: "0 0 0 4px rgba(37,99,235,0.07)",
+                    },
+                    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#2563eb",
+                      borderWidth: 1.5,
+                    },
+                  }}
                 />
-                Secure authentication
-              </div>
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={loading}
-                endIcon={
-                  loading ? (
-                    <CircularProgress
-                      size={18}
-                      className="!text-white"
-                    />
-                  ) : (
-                    <ArrowForward />
-                  )
-                }
-                className="!min-h-[56px] !rounded-2xl !bg-blue-600 !px-5 !text-sm !font-bold !normal-case !text-white !shadow-[0_14px_28px_-16px_rgba(37,99,235,0.8)] transition-all duration-200 hover:!-translate-y-0.5 hover:!bg-blue-700 hover:!shadow-[0_18px_32px_-16px_rgba(37,99,235,0.8)] disabled:!cursor-not-allowed disabled:!opacity-60"
-              >
-                {loading ? "Signing in..." : "Sign in"}
-              </Button>
-            </form>
+                <div className="flex items-center gap-2 px-0.5 pt-0.5 text-xs font-semibold text-slate-500">
+                  <CheckCircle
+                    sx={{ fontSize: 16 }}
+                    className="!text-emerald-500"
+                  />
+                  <span>Secure authentication with protected sessions</span>
+                </div>
 
-            {/* REGISTER */}
-            <div className="mt-7 border-t border-slate-100 pt-6 text-center">
-              <Typography
-                component="p"
-                className="!text-sm !text-slate-500"
-              >
-                Don't have an account?{" "}
-                <Link
-                  to="/register"
-                  className="font-bold text-blue-600 transition-colors hover:text-blue-700 hover:underline"
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  disabled={loading}
+                  endIcon={
+                    loading ? (
+                      <CircularProgress size={18} className="!text-white" />
+                    ) : (
+                      <ArrowForward />
+                    )
+                  }
+                  className="!mt-1 !min-h-[58px] !rounded-2xl !bg-gradient-to-r !from-blue-600 !to-indigo-600 !px-5 !text-sm !font-extrabold !normal-case !tracking-[0.01em] !text-white !shadow-[0_18px_35px_-18px_rgba(37,99,235,0.85)] transition-all duration-200 hover:!-translate-y-0.5 hover:!from-blue-700 hover:!to-indigo-700 hover:!shadow-[0_22px_42px_-18px_rgba(37,99,235,0.85)] disabled:!cursor-not-allowed disabled:!opacity-60"
                 >
-                  Create an account
-                </Link>
-              </Typography>
+                  {loading ? "Signing in..." : "Sign in to ApnaAcademy"}
+                </Button>
+              </form>
+
+              {/* REGISTER */}
+              <div className="mt-7 border-t border-slate-100 pt-6 text-center">
+                <Typography component="p" className="!text-sm !text-slate-500">
+                  Don't have an account?{" "}
+                  <Link
+                    to="/register"
+                    className="font-extrabold text-blue-600 transition-colors hover:text-blue-700 hover:underline"
+                  >
+                    Create an account
+                  </Link>
+                </Typography>
+              </div>
             </div>
           </div>
 
-          {/* TRUST FOOTER */}
-          <div className="mt-6 flex items-center justify-center gap-2 px-4 text-center text-[11px] font-medium leading-5 text-slate-400">
-            <Security sx={{ fontSize: 15 }} />
-            <span>
-              Your authentication is securely handled by ApnaAcademy.
+          {/* PREMIUM TRUST FOOTER */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 px-4 text-center text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+            <span className="inline-flex items-center gap-1.5">
+              <Security sx={{ fontSize: 14 }} />
+              Secure access
+            </span>
+            <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:block" />
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle sx={{ fontSize: 14 }} />
+              Protected session
             </span>
           </div>
         </section>
