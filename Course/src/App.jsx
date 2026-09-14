@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 
+import Courses from "./pages/Courses";
 import CourseDetails from "./pages/CourseDetails";
 import CoursePlayerLayout from "./layouts/CoursePlayerLayout";
 import Certificate from "./pages/Certificate";
@@ -15,8 +16,6 @@ import useVideoProgress from "./hooks/useVideoProgress";
 const getVideoId = (video) => video?._id || video?.id || "";
 const getLastWatchedVideoId = (value) => { if (!value) return ""; if (typeof value === "object") return value._id || value.id || ""; return value; };
 const redirectToLogin = () => window.location.assign(`${FRONTEND_URL}/login`);
-
-function CourseHome() { return <Box sx={{ minHeight: "100vh", backgroundColor: "#fff", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}><Stack spacing={2} alignItems="center" textAlign="center"><Typography variant="overline" color="primary.main" fontWeight={900} letterSpacing={3}>ApnaAcademy</Typography><Typography variant="h2" fontWeight={900} sx={{ fontSize: { xs: "2.2rem", sm: "3.5rem" } }}>Courses</Typography><Typography color="text.secondary" maxWidth={500}>Select a course to start learning.</Typography></Stack></Box>; }
 
 function CourseLearningPage() {
   const { slug, videoId } = useParams();
@@ -39,4 +38,4 @@ function CourseLearningPage() {
   return <CoursePlayerLayout course={course} courseTitle={course?.title || ""} modules={modules} progress={progress?.overallProgress || 0} currentVideo={currentVideo} currentPosition={currentPosition} courseCompleted={courseCompleted} onAssessment={handleAssessment} onCertificate={handleCertificate} onBack={handleBack} onPrevious={handlePrevious} onNext={handleNext} onVideoSelect={handleVideoSelect} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={handleEnded} onPause={handlePause} />;
 }
 function NotFound() { return <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}><Stack spacing={2} alignItems="center" textAlign="center"><Typography sx={{ fontSize: "4rem", fontWeight: 900, color: "primary.main" }}>404</Typography><Typography variant="h5" fontWeight={900}>Page not found</Typography><Typography color="text.secondary">The page you are looking for does not exist.</Typography></Stack></Box>; }
-export default function App() { return <Routes><Route path="/" element={<CourseHome />} /><Route path="/courses/:slug" element={<CourseDetails />} /><Route path="/courses/:slug/learn" element={<CourseLearningPage />} /><Route path="/courses/:slug/learn/:videoId" element={<CourseLearningPage />} /><Route path="/courses/:slug/assessment" element={<Assessment />} /><Route path="/courses/:slug/certificate" element={<Certificate />} /><Route path="/certificate/verify/:certificateId" element={<CertificateVerify />} /><Route path="*" element={<NotFound />} /></Routes>; }
+export default function App() { return <Routes><Route path="/" element={<Courses />} /><Route path="/courses/:slug" element={<CourseDetails />} /><Route path="/courses/:slug/learn" element={<CourseLearningPage />} /><Route path="/courses/:slug/learn/:videoId" element={<CourseLearningPage />} /><Route path="/courses/:slug/assessment" element={<Assessment />} /><Route path="/courses/:slug/certificate" element={<Certificate />} /><Route path="/certificate/verify/:certificateId" element={<CertificateVerify />} /><Route path="*" element={<NotFound />} /></Routes>; }
