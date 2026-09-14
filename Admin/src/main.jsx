@@ -193,10 +193,12 @@ const Root = () => {
       <ManagementSidebar hash={hash} />
       {managementPage && <MobileManagementNav hash={hash} />}
       {managementPage ? (
-        <div className="min-h-screen bg-slate-50 lg:pl-64">
+        <>
           <ManagementHeader />
-          <Page />
-        </div>
+          <div className="min-h-screen bg-slate-50 lg:pl-64">
+            <Page />
+          </div>
+        </>
       ) : (
         <App />
       )}
