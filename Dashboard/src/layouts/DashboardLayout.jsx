@@ -31,6 +31,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 
 import { useAuth } from "../context/AuthContext";
+import DashboardNotificationAlert from "../components/DashboardNotificationAlert";
 import {
   FRONTEND_URL,
   ROUTES,
@@ -493,6 +494,7 @@ export default function DashboardLayout() {
 
         {/* Page content */}
         <main className="min-h-[calc(100vh-64px)] bg-slate-50">
+          <DashboardNotificationAlert />
           <Outlet />
         </main>
       </div>
