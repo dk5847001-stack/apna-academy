@@ -16,3 +16,8 @@ export const DASHBOARD_URL =
 export const COURSE_URL =
   import.meta.env.VITE_COURSE_URL ||
   "http://localhost:5174";
+
+// Separate Admin React App
+export const ADMIN_URL =
+  import.meta.env.VITE_ADMIN_URL ||
+  "http://localhost:5176";
