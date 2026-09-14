@@ -5,6 +5,8 @@ import {
   login,
   me,
   logout,
+  resendVerificationCode,
+  verifyRegistrationEmail,
 } from "../controllers/auth.controller.js";
 
 import { authenticate } from "../middleware/auth.middleware.js";
@@ -12,6 +14,10 @@ import { authenticate } from "../middleware/auth.middleware.js";
 const router = Router();
 
 router.post("/register", register);
+
+router.post("/register/resend-otp", resendVerificationCode);
+
+router.post("/register/verify-otp", verifyRegistrationEmail);
 
 router.post("/login", login);
 
