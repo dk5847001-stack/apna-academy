@@ -58,6 +58,8 @@ const progressSchema = new mongoose.Schema(
 );
 
 progressSchema.index({ user: 1, course: 1 }, { unique: true });
+progressSchema.index({ updatedAt: -1, isCompleted: 1 });
+progressSchema.index({ course: 1, updatedAt: -1 });
 
 const Progress = mongoose.model("Progress", progressSchema);
 
