@@ -20,8 +20,6 @@ const IMAGE_BY_LANGUAGE = {
 const queue = [];
 let running = false;
 
-// The worker accepts JSON test arguments from the backend, then converts those
-// arguments into language-native literals. Hidden test data never reaches the client.
 const ADAPTERS = {
   "two-sum": { method: "twoSum", args: ["int[]"], returnType: "int[]" },
   "valid-parentheses": { method: "isValid", args: ["string"], returnType: "boolean" },
@@ -85,7 +83,7 @@ const dockerArgs = ({ image, workDir, command, memoryMb }) => [
   "run", "--rm", "--network=none", "--read-only", "--cap-drop=ALL",
   "--security-opt=no-new-privileges", "--pids-limit=64", `--memory=${memoryMb}m`,
   "--memory-swap", `${memoryMb}m`, "--cpus=1", "--tmpfs", "/tmp:rw,nosuid,nodev,noexec,size=64m",
-  "--mount", `type=bind,src=${workDir},dst=/workspace,readonly`, "--workdir", "/workspace", image, ...command,
+  "--mount", `type=bind,src=${workDir},dst=/workspace`, "--workdir", "/workspace", image, ...command,
 ];
 
 const parseInput = (testInput) => {
@@ -97,8 +95,7 @@ const parseInput = (testInput) => {
 
 const quotePy = (value) => JSON.stringify(value).replace(/\\u2028/g, "\\u2028").replace(/\\u2029/g, "\\u2029");
 const quoteJs = (value) => JSON.stringify(value);
-const quoteJava = (value) => JSON.stringify(String(value)).replace(/\\"/g, "\\\"");
-const quoteCpp = (value) => JSON.stringify(String(value)).replace(/\\"/g, "\\\"");
+const quoteJava = (value) => JSON.stringify(String(value));
 
 const javaLiteral = (type, value) => {
   if (type === "int") return String(Number(value));
@@ -106,7 +103,7 @@ const javaLiteral = (type, value) => {
   if (type === "int[]") return `new int[]{${value.map((v) => Number(v)).join(",")}}`;
   if (type === "string[]") return `new String[]{${value.map(quoteJava).join(",")}}`;
   if (type === "int[][]") return `new int[][]{${value.map((row) => `{${row.map((v) => Number(v)).join(",")}}`).join(",")}}`;
-  if (type === "char[][]") return `new char[][]{${value.map((row) => `{${row.map((v) => quoteJava(v)).map((v) => `${v}.charAt(0)`).join(",")}}`).join(",")}}`;
+  if (type === "char[][]") return `new char[][]{${value.map((row) => `{${row.map((v) => `${quoteJava(v)}.charAt(0)`).join(",")}}`).join(",")}}`;
   if (type === "tree") return "buildTree(new Integer[]{" + value.map((v) => v === null ? "null" : Number(v)).join(",") + "})";
   if (type === "treeNode") return `findNode(root, ${Number(value)})`;
   throw new Error(`Unsupported Java argument type: ${type}`);
@@ -119,7 +116,7 @@ const cppLiteral = (type, value) => {
   if (type === "int[]") return `vector<int>{${value.map((v) => Number(v)).join(",")}}`;
   if (type === "string[]") return `vector<string>{${value.map(cppString).join(",")}}`;
   if (type === "int[][]") return `vector<vector<int>>{${value.map((row) => `vector<int>{${row.map((v) => Number(v)).join(",")}}`).join(",")}}`;
-  if (type === "char[][]") return `vector<vector<char>>{${value.map((row) => `vector<char>{${row.map((v) => cppString(v)[0] === "'" ? cppString(v) : `'${String(v).replace(/'/g, "\\'")}'`).join(",")}}`).join(",")}}`;
+  if (type === "char[][]") return `vector<vector<char>>{${value.map((row) => `vector<char>{${row.map((v) => `'${String(v).replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`).join(",")}}`).join(",")}}`;
   if (type === "tree") return "buildTree(vector<optional<int>>{" + value.map((v) => v === null ? "nullopt" : `optional<int>(${Number(v)})`).join(",") + "})";
   if (type === "treeNode") return `findNode(root, ${Number(value)})`;
   throw new Error(`Unsupported C++ argument type: ${type}`);
@@ -194,12 +191,12 @@ const buildHarness = (job, testInput) => {
     const calls = config.args.map((type, i) => javaLiteral(type, args[i])).join(", ");
     const rootIndex = config.args.indexOf("tree");
     const rootDecl = rootIndex >= 0 ? `TreeNode root=${javaLiteral("tree", args[rootIndex])};` : "TreeNode root=null;";
-    return `import java.util.*;\n${job.code}\npublic class Main {\n${javaTreeHelpers}\nstatic String out(Object x){ if(x==null)return "null"; if(x instanceof int[])return Arrays.toString((int[])x); if(x instanceof int[][]){StringBuilder s=new StringBuilder("[");int[][] a=(int[][])x;for(int i=0;i<a.length;i++){if(i>0)s.append(',');s.append(Arrays.toString(a[i]));}return s.append(']').toString();} if(x instanceof List)return x.toString(); if(x instanceof Boolean)return x.toString(); if(x instanceof Double||x instanceof Float)return String.valueOf(x); if(x instanceof TreeNode)return String.valueOf(((TreeNode)x).val); return String.valueOf(x); }\npublic static void main(String[] z){${rootDecl} Solution s=new Solution(); Object result=s.${config.method}(${calls}); System.out.print(out(result));}\n}\n`;
+    return `import java.util.*;\n${job.code}\npublic class Main {\n${javaTreeHelpers}\nstatic String json(Object x){ if(x==null)return "null"; if(x instanceof String)return "\\\""+((String)x).replace("\\\\","\\\\\\\\").replace("\\\"","\\\\\\\"")+"\\\""; if(x instanceof Character)return json(String.valueOf(x)); if(x instanceof Boolean)return x.toString(); if(x instanceof Number)return x.toString(); if(x instanceof int[])return Arrays.toString((int[])x).replace(" ",""); if(x instanceof int[][]){int[][] a=(int[][])x;StringBuilder s=new StringBuilder("[");for(int i=0;i<a.length;i++){if(i>0)s.append(',');s.append(json(a[i]));}return s.append(']').toString();} if(x instanceof List){List<?> a=(List<?>)x;StringBuilder s=new StringBuilder("[");for(int i=0;i<a.size();i++){if(i>0)s.append(',');s.append(json(a.get(i)));}return s.append(']').toString();} if(x instanceof TreeNode)return String.valueOf(((TreeNode)x).val); return json(String.valueOf(x)); }\npublic static void main(String[] z){${rootDecl} Solution s=new Solution(); Object result=s.${config.method}(${calls}); System.out.print(json(result));}\n}\n`;
   }
   const calls = config.args.map((type, i) => cppLiteral(type, args[i])).join(", ");
   const rootIndex = config.args.indexOf("tree");
   const rootDecl = rootIndex >= 0 ? `TreeNode* root=${cppLiteral("tree", args[rootIndex])};` : "TreeNode* root=nullptr;";
-  return `#include <bits/stdc++.h>\nusing namespace std;\n${cppTreeHelpers}\n${job.code}\nstring outIntVec(const vector<int>& a){ostringstream s;s<<"[";for(size_t i=0;i<a.size();i++){if(i)s<<",";s<<a[i];}return s.str()+"]";}\ntemplate<class T> string out(const T& x){ostringstream s;s<<x;return s.str();}\nstring out(const vector<int>& a){return outIntVec(a);}\nstring out(const vector<vector<int>>& a){string s="[";for(size_t i=0;i<a.size();i++){if(i)s+=",";s+=outIntVec(a[i]);}return s+"]";}\nstring out(const vector<string>& a){string s="[";for(size_t i=0;i<a.size();i++){if(i)s+=",";s+="\\\""+a[i]+"\\\"";}return s+"]";}\nstring out(const vector<vector<string>>& a){string s="[";for(size_t i=0;i<a.size();i++){if(i)s+=",";s+=out(a[i]);}return s+"]";}\nstring out(TreeNode* x){return x?to_string(x->val):"null";}\nint main(){${rootDecl} Solution s; auto result=s.${config.method}(${calls}); cout<<out(result);}\n`;
+  return `#include <bits/stdc++.h>\nusing namespace std;\n${cppTreeHelpers}\n${job.code}\nstring outIntVec(const vector<int>& a){ostringstream s;s<<"[";for(size_t i=0;i<a.size();i++){if(i)s<<",";s<<a[i];}return s.str()+"]";}\ntemplate<class T> string out(const T& x){ostringstream s;s<<x;return s.str();}\nstring out(const vector<int>& a){return outIntVec(a);}\nstring out(const vector<vector<int>>& a){string s="[";for(size_t i=0;i<a.size();i++){if(i)s+=",";s+=outIntVec(a[i]);}return s+"]";}\nstring out(const string& x){string s="\\\"";for(char c:x){if(c=='\\\\'||c=='\\\"')s+='\\\\';s+=c;}return s+"\\\"";}\nstring out(const vector<string>& a){string s="[";for(size_t i=0;i<a.size();i++){if(i)s+=",";s+=out(a[i]);}return s+"]";}\nstring out(const vector<vector<string>>& a){string s="[";for(size_t i=0;i<a.size();i++){if(i)s+=",";s+=out(a[i]);}return s+"]";}\nstring out(bool x){return x?"true":"false";}\nstring out(TreeNode* x){return x?to_string(x->val):"null";}\nint main(){${rootDecl} Solution s; auto result=s.${config.method}(${calls}); cout<<out(result);}\n`;
 };
 
 const sourceFile = (language) => ({ Java: "Main.java", "C++": "Main.cpp", Python: "main.py", JavaScript: "main.js" })[language];
