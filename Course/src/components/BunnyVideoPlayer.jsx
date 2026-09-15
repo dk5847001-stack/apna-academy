@@ -38,7 +38,7 @@ const resolveBunnyEmbedUrl = (video) => {
 
         if (modeIndex >= 0 && parts[modeIndex + 1] && parts[modeIndex + 2]) {
           parts[modeIndex] = "embed";
-          parsed.hostname = "iframe.mediadelivery.net";
+          parsed.hostname = "player.mediadelivery.net";
           parsed.pathname = `/${parts.join("/")}`;
           return appendPlayerJsFlag(parsed.toString());
         }
@@ -49,7 +49,7 @@ const resolveBunnyEmbedUrl = (video) => {
   }
 
   if (BUNNY_LIBRARY_ID && video?.bunnyVideoId) {
-    const base = `https://iframe.mediadelivery.net/embed/${encodeURIComponent(BUNNY_LIBRARY_ID)}/${encodeURIComponent(video.bunnyVideoId)}`;
+    const base = `https://player.mediadelivery.net/embed/${encodeURIComponent(BUNNY_LIBRARY_ID)}/${encodeURIComponent(video.bunnyVideoId)}`;
     return appendPlayerJsFlag(base);
   }
 
@@ -147,9 +147,10 @@ export default function BunnyVideoPlayer({
       const loaded = await loadBunnyPlayerScript();
       if (!mounted) return;
 
+      // Bunny playback must not depend on Player.js. The new Bunny player
+      // can play normally even when the legacy Player.js bridge is unavailable.
       if (!loaded || !window.playerjs?.Player) {
         setIsLoading(false);
-        setHasError(true);
         return;
       }
 
@@ -223,11 +224,10 @@ export default function BunnyVideoPlayer({
           });
         });
       } catch (error) {
-        console.error("Bunny Player.js initialization error:", error);
-        if (mounted) {
-          setIsLoading(false);
-          setHasError(true);
-        }
+        // Do not block the actual Bunny iframe when the optional Player.js
+        // bridge cannot initialize.
+        console.warn("Bunny Player.js bridge unavailable; iframe playback remains active.", error);
+        if (mounted) setIsLoading(false);
       }
     };
 
