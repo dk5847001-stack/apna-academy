@@ -64,9 +64,7 @@ function CourseLearningPage() {
         setModules(availableModules);
         setProgress(normalized.progress || null);
         setCurrentVideo(normalizeLearningVideo({ video: selected }));
-        if (videoId && String(getVideoId(selected)) !== String(videoId)) {
-          navigate(COURSE_ROUTES.VIDEO(slug, getVideoId(selected)), { replace: true, preventScrollReset: true });
-        }
+        if (videoId && String(getVideoId(selected)) !== String(videoId)) navigate(COURSE_ROUTES.VIDEO(slug, getVideoId(selected)), { replace: true, preventScrollReset: true });
       } catch (err) {
         console.error("Learning page error:", err);
         if (!mounted) return;
