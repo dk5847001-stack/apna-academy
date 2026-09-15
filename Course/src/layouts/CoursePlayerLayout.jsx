@@ -443,9 +443,6 @@ export default function CoursePlayerLayout({
                 >
                   previous
                 </Button>
-                <Typography sx={{ display: { xs: "none", sm: "block" }, color: "#64748b", fontSize: "0.72rem", fontWeight: 700 }}>
-                  {getVideoTitle(currentVideo)}
-                </Typography>
                 <Button
                   variant="text"
                   endIcon={<ChevronRight />}
