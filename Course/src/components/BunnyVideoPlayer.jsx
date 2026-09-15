@@ -9,6 +9,7 @@ import {
 
 const BUNNY_LIBRARY_ID = import.meta.env.VITE_BUNNY_LIBRARY_ID || "";
 const BUNNY_PLAYER_JS_URL = "https://assets.mediadelivery.net/playerjs/player-0.1.0.min.js";
+const BUNNY_PROGRESS_POLL_MS = 2000;
 
 let bunnyPlayerScriptPromise = null;
 
@@ -103,6 +104,7 @@ export default function BunnyVideoPlayer({
   const iframeRef = useRef(null);
   const bunnyPlayerRef = useRef(null);
   const currentTimeRef = useRef(0);
+  const progressPollRef = useRef(null);
   const callbacksRef = useRef({});
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -130,10 +132,18 @@ export default function BunnyVideoPlayer({
   const useNativeVideo = !useBunnyEmbed && Boolean(nativeVideoUrl);
   const hasVideoSource = useBunnyEmbed || useNativeVideo;
 
+  const stopBunnyProgressPolling = () => {
+    if (progressPollRef.current) {
+      window.clearInterval(progressPollRef.current);
+      progressPollRef.current = null;
+    }
+  };
+
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
     bunnyPlayerRef.current = null;
+    stopBunnyProgressPolling();
   }, [video?._id, video?.id, video?.videoUrl, video?.bunnyVideoId, bunnyEmbedUrl, nativeVideoUrl]);
 
   useEffect(() => {
@@ -142,6 +152,41 @@ export default function BunnyVideoPlayer({
     let mounted = true;
     let player = null;
     const cleanupCallbacks = [];
+
+    const emitBunnyProgress = () => {
+      if (!mounted || !player) return;
+
+      try {
+        player.getCurrentTime((currentValue) => {
+          if (!mounted || !player) return;
+
+          player.getDuration((durationValue) => {
+            if (!mounted) return;
+
+            const current = Number(currentValue);
+            const duration = Number(durationValue);
+
+            if (!Number.isFinite(current) || current < 0) return;
+
+            callbacksRef.current.onTimeUpdate?.({
+              currentTime: current,
+              duration: Number.isFinite(duration) && duration > 0 ? duration : 0,
+            });
+          });
+        });
+      } catch (error) {
+        console.warn("Unable to read Bunny playback position:", error);
+      }
+    };
+
+    const startBunnyProgressPolling = () => {
+      stopBunnyProgressPolling();
+      emitBunnyProgress();
+      progressPollRef.current = window.setInterval(
+        emitBunnyProgress,
+        BUNNY_PROGRESS_POLL_MS
+      );
+    };
 
     const setupPlayer = async () => {
       const loaded = await loadBunnyPlayerScript();
@@ -189,6 +234,8 @@ export default function BunnyVideoPlayer({
                 duration,
                 currentTime: position,
               });
+
+              emitBunnyProgress();
             });
           });
         });
@@ -206,16 +253,20 @@ export default function BunnyVideoPlayer({
 
         addListener("play", () => {
           callbacksRef.current.onPlay?.({ currentTime: 0, duration: 0 });
+          startBunnyProgressPolling();
         });
 
         addListener("pause", (data) => {
+          stopBunnyProgressPolling();
           callbacksRef.current.onPause?.({
             currentTime: Number(data?.seconds) || 0,
             duration: Number(data?.duration) || 0,
           });
+          emitBunnyProgress();
         });
 
         addListener("ended", (data) => {
+          stopBunnyProgressPolling();
           const seconds = Number(data?.seconds) || 0;
           const duration = Number(data?.duration) || 0;
           callbacksRef.current.onEnded?.({
@@ -235,6 +286,7 @@ export default function BunnyVideoPlayer({
 
     return () => {
       mounted = false;
+      stopBunnyProgressPolling();
       cleanupCallbacks.forEach((cleanup) => cleanup());
       bunnyPlayerRef.current = null;
       player = null;
