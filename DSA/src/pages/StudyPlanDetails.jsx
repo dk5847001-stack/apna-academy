@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, CheckCircle2, ChevronRight, Clock3, Target } from "lucide-react";
+import { ArrowLeft, ChevronRight, Clock3, Target } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { getDsaStudyPlan } from "../services/dsa.service.js";
 
