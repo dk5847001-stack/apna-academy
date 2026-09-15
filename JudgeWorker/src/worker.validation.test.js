@@ -66,3 +66,13 @@ test("rejects malformed test-case fields", () => {
   assert.equal(isValidJob({ ...baseJob, testCases: [{ input: {}, expectedOutput: "true" }] }), false);
   assert.equal(isValidJob({ ...baseJob, testCases: [{ input: "{}", expectedOutput: 123 }] }), false);
 });
+
+test("rejects non-object test cases", () => {
+  assert.equal(isValidJob({ ...baseJob, testCases: [null] }), false);
+  assert.equal(isValidJob({ ...baseJob, testCases: ["invalid"] }), false);
+});
+
+test("rejects missing problem metadata", () => {
+  assert.equal(isValidJob({ ...baseJob, problem: null }), false);
+  assert.equal(isValidJob({ ...baseJob, problem: {} }), false);
+});
