@@ -12,6 +12,61 @@ const BUNNY_PLAYER_JS_URL = "https://assets.mediadelivery.net/playerjs/player-0.
 
 let bunnyPlayerScriptPromise = null;
 
+const appendPlayerJsFlag = (url) => {
+  try {
+    const parsed = new URL(url);
+    if (!parsed.searchParams.has("playerjs")) parsed.searchParams.set("playerjs", "true");
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+};
+
+const resolveBunnyEmbedUrl = (video) => {
+  const rawUrl = typeof video?.videoUrl === "string" ? video.videoUrl.trim() : "";
+
+  if (rawUrl) {
+    try {
+      const parsed = new URL(rawUrl);
+      const isBunnyPlayerHost =
+        parsed.hostname === "iframe.mediadelivery.net" ||
+        parsed.hostname === "player.mediadelivery.net";
+
+      if (isBunnyPlayerHost) {
+        const parts = parsed.pathname.split("/").filter(Boolean);
+        const modeIndex = parts.findIndex((part) => part === "embed" || part === "play");
+
+        if (modeIndex >= 0 && parts[modeIndex + 1] && parts[modeIndex + 2]) {
+          parts[modeIndex] = "embed";
+          parsed.hostname = "iframe.mediadelivery.net";
+          parsed.pathname = `/${parts.join("/")}`;
+          return appendPlayerJsFlag(parsed.toString());
+        }
+      }
+    } catch {
+      // Fall through to the Bunny ID/library configuration or native video URL.
+    }
+  }
+
+  if (BUNNY_LIBRARY_ID && video?.bunnyVideoId) {
+    const base = `https://iframe.mediadelivery.net/embed/${encodeURIComponent(BUNNY_LIBRARY_ID)}/${encodeURIComponent(video.bunnyVideoId)}`;
+    return appendPlayerJsFlag(base);
+  }
+
+  return "";
+};
+
+const isNativeVideoUrl = (url) => {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.toLowerCase();
+    return /\.(mp4|webm|ogg|m3u8)$/.test(path) || parsed.hostname.endsWith("b-cdn.net");
+  } catch {
+    return false;
+  }
+};
+
 const loadBunnyPlayerScript = () => {
   if (window.playerjs?.Player) return Promise.resolve(true);
   if (bunnyPlayerScriptPromise) return bunnyPlayerScriptPromise;
@@ -19,8 +74,9 @@ const loadBunnyPlayerScript = () => {
   bunnyPlayerScriptPromise = new Promise((resolve) => {
     const existing = document.querySelector(`script[src="${BUNNY_PLAYER_JS_URL}"]`);
     if (existing) {
-      existing.addEventListener("load", () => resolve(Boolean(window.playerjs?.Player)), { once: true });
-      existing.addEventListener("error", () => resolve(false), { once: true });
+      const finish = () => resolve(Boolean(window.playerjs?.Player));
+      existing.addEventListener("load", finish, { once: true });
+      existing.addEventListener("error", finish, { once: true });
       return;
     }
 
@@ -30,7 +86,7 @@ const loadBunnyPlayerScript = () => {
     script.onload = () => resolve(Boolean(window.playerjs?.Player));
     script.onerror = () => resolve(false);
     document.head.appendChild(script);
-  });
+  }).catch(() => false);
 
   return bunnyPlayerScriptPromise;
 };
@@ -60,20 +116,25 @@ export default function BunnyVideoPlayer({
     onPause,
   };
 
-  const bunnyEmbedUrl = useMemo(() => {
-    if (!BUNNY_LIBRARY_ID || !video?.bunnyVideoId) return "";
+  const bunnyEmbedUrl = useMemo(
+    () => resolveBunnyEmbedUrl(video),
+    [video?.videoUrl, video?.bunnyVideoId]
+  );
 
-    const base = `https://iframe.mediadelivery.net/embed/${encodeURIComponent(BUNNY_LIBRARY_ID)}/${encodeURIComponent(video.bunnyVideoId)}`;
-    return `${base}${base.includes("?") ? "&" : "?"}playerjs=true`;
-  }, [video?.bunnyVideoId]);
+  const nativeVideoUrl = useMemo(() => {
+    const rawUrl = typeof video?.videoUrl === "string" ? video.videoUrl.trim() : "";
+    return isNativeVideoUrl(rawUrl) ? rawUrl : "";
+  }, [video?.videoUrl]);
 
   const useBunnyEmbed = Boolean(bunnyEmbedUrl);
+  const useNativeVideo = !useBunnyEmbed && Boolean(nativeVideoUrl);
+  const hasVideoSource = useBunnyEmbed || useNativeVideo;
 
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
     bunnyPlayerRef.current = null;
-  }, [video?._id, video?.id, video?.videoUrl, bunnyEmbedUrl]);
+  }, [video?._id, video?.id, video?.videoUrl, video?.bunnyVideoId, bunnyEmbedUrl, nativeVideoUrl]);
 
   useEffect(() => {
     if (!useBunnyEmbed || !iframeRef.current) return undefined;
@@ -199,7 +260,7 @@ export default function BunnyVideoPlayer({
     );
   }
 
-  if (!useBunnyEmbed && !video.videoUrl) {
+  if (!hasVideoSource) {
     return (
       <Box sx={{ width: "100%", aspectRatio: "16 / 9", backgroundColor: "#000000", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
         <Stack spacing={1.5} alignItems="center" textAlign="center">
@@ -227,11 +288,12 @@ export default function BunnyVideoPlayer({
       {useBunnyEmbed ? (
         <iframe
           ref={iframeRef}
-          key={video._id || video.id}
+          key={`${video._id || video.id || "video"}-${bunnyEmbedUrl}`}
           src={bunnyEmbedUrl}
           title={video.title || "Course video"}
           loading="eager"
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+          referrerPolicy="origin"
+          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
           allowFullScreen
           onLoad={() => setIsLoading(false)}
           onError={() => {
@@ -242,8 +304,8 @@ export default function BunnyVideoPlayer({
         />
       ) : (
         <video
-          key={video._id || video.id}
-          src={video.videoUrl}
+          key={`${video._id || video.id || "video"}-${nativeVideoUrl}`}
+          src={nativeVideoUrl}
           poster={video.thumbnailUrl || undefined}
           controls
           playsInline
