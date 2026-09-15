@@ -15,6 +15,18 @@ test("accepts a valid judge job", () => {
   assert.equal(isValidJob(baseJob), true);
 });
 
+test("accepts all supported language and adapter pairs", () => {
+  const pairs = [
+    ["Java", "valid-parentheses"],
+    ["C++", "maximum-subarray"],
+    ["Python", "group-anagrams"],
+    ["JavaScript", "two-sum"],
+  ];
+  for (const [language, slug] of pairs) {
+    assert.equal(isValidJob({ ...baseJob, problem: { slug, language } }), true);
+  }
+});
+
 test("rejects an invalid Mongo submission id", () => {
   assert.equal(isValidJob({ ...baseJob, submissionId: "not-an-object-id" }), false);
 });
