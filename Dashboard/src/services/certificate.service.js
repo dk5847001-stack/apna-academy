@@ -1,4 +1,5 @@
 import api from "./api";
+import { COURSE_URL } from "../constants/config";
 
 const extractData = (response, fallbackMessage) => {
   if (!response?.data?.success) {
@@ -10,16 +11,23 @@ const extractData = (response, fallbackMessage) => {
   return response.data.data;
 };
 
+const buildVerificationUrl = (certificateId) =>
+  certificateId
+    ? `${COURSE_URL.replace(/\/$/, "")}/certificate/verify/${encodeURIComponent(certificateId)}`
+    : "";
+
 const normalizeCertificate = (certificate) => {
   if (!certificate) return null;
 
+  const certificateId = certificate.certificateId || "";
+
   return {
     ...certificate,
-    certificateId: certificate.certificateId || "",
+    certificateId,
     recipientName: certificate.recipientName || "",
     issueDate: certificate.issueDate || null,
     certificateUrl: certificate.certificateUrl || "",
-    verificationUrl: certificate.verificationUrl || "",
+    verificationUrl: buildVerificationUrl(certificateId) || certificate.verificationUrl || "",
     qrCodeUrl: certificate.qrCodeUrl || "",
     isValid: certificate.isValid !== false,
     course: certificate.course || null,
