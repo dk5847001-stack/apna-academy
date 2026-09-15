@@ -120,7 +120,6 @@ function CourseLearningPage() {
 
   if (loading) return <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}><Stack spacing={2} alignItems="center"><CircularProgress /><Typography color="text.secondary">Loading your course...</Typography></Stack></Box>;
   if (error) return <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}><Stack spacing={2} maxWidth={520} width="100%"><Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert><Button variant="contained" onClick={() => navigate(COURSE_ROUTES.DETAILS(slug))} sx={{ alignSelf: "flex-start", textTransform: "none", fontWeight: 800 }}>Back to Course</Button></Stack></Box>;
-
   return <CoursePlayerLayout course={course} courseTitle={course?.title || ""} modules={modules} progress={progress?.overallProgress || 0} currentVideo={currentVideo} currentPosition={currentPosition} courseCompleted={courseCompleted} onAssessment={handleAssessment} onCertificate={handleCertificate} onBack={handleBack} onPrevious={handlePrevious} onNext={handleNext} onVideoSelect={handleVideoSelect} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoadedMetadata} onEnded={handleEnded} onPause={handlePause} />;
 }
 
