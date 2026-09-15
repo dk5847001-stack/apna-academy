@@ -31,8 +31,6 @@ function CourseLearningPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // The course is fetched only when the course slug changes. Changing a lesson
-  // id is handled from the already-loaded modules below and never refetches.
   useEffect(() => {
     let mounted = true;
 
@@ -40,7 +38,6 @@ function CourseLearningPage() {
       try {
         setLoading(true);
         setError("");
-
         const courseResult = await getCourseBySlug(slug);
         if (!mounted) return;
 
@@ -63,31 +60,21 @@ function CourseLearningPage() {
         }
 
         const availableModules = normalized.modules || [];
-        const videos = availableModules.flatMap((module) =>
-          Array.isArray(module?.videos) ? module.videos : []
-        );
+        const videos = availableModules.flatMap((module) => Array.isArray(module?.videos) ? module.videos : []);
         const unlockedVideos = videos.filter((video) => !video?.isLocked);
-
-        if (unlockedVideos.length === 0) {
-          throw new Error("No unlocked lessons are currently available.");
-        }
+        if (unlockedVideos.length === 0) throw new Error("No unlocked lessons are currently available.");
 
         const requestedVideo = videoId
           ? videos.find((video) => String(getVideoId(video)) === String(videoId))
           : null;
-
         let selected = requestedVideo && !requestedVideo.isLocked ? requestedVideo : null;
 
         if (!selected) {
           const lastId = getLastWatchedVideoId(normalized.progress?.lastWatchedVideo);
           if (lastId) {
-            selected =
-              unlockedVideos.find(
-                (video) => String(getVideoId(video)) === String(lastId)
-              ) || null;
+            selected = unlockedVideos.find((video) => String(getVideoId(video)) === String(lastId)) || null;
           }
         }
-
         if (!selected) selected = unlockedVideos[0];
 
         setCourse(normalized.course || courseData);
@@ -96,49 +83,33 @@ function CourseLearningPage() {
         setCurrentVideo(normalizeLearningVideo({ video: selected }));
 
         if (videoId && String(getVideoId(selected)) !== String(videoId)) {
-          navigate(COURSE_ROUTES.VIDEO(slug, getVideoId(selected)), {
-            replace: true,
-            preventScrollReset: true,
-          });
+          navigate(COURSE_ROUTES.VIDEO(slug, getVideoId(selected)), { replace: true, preventScrollReset: true });
         }
       } catch (err) {
         console.error("Learning page error:", err);
         if (!mounted) return;
-
         if (err?.response?.status === 401) {
           redirectToLogin();
           return;
         }
-
-        setError(
-          err?.response?.data?.message ||
-            err?.message ||
-            "Unable to load your course."
-        );
+        setError(err?.response?.data?.message || err?.message || "Unable to load your course.");
       } finally {
         if (mounted) setLoading(false);
       }
     };
 
     if (slug) load();
-
     return () => {
       mounted = false;
     };
   }, [slug, navigate]);
 
-  // React Router URL changes update only the selected lesson from local state.
+  // Lesson URL changes are resolved from the existing in-memory modules.
+  // No course or learning request is made here.
   useEffect(() => {
     if (!videoId || modules.length === 0) return;
-
-    const videos = modules.flatMap((module) =>
-      Array.isArray(module?.videos) ? module.videos : []
-    );
-    const selected = videos.find(
-      (video) =>
-        String(getVideoId(video)) === String(videoId) && !video?.isLocked
-    );
-
+    const videos = modules.flatMap((module) => Array.isArray(module?.videos) ? module.videos : []);
+    const selected = videos.find((video) => String(getVideoId(video)) === String(videoId) && !video?.isLocked);
     if (!selected) return;
     if (String(getVideoId(currentVideo)) !== String(getVideoId(selected))) {
       setCurrentVideo(normalizeLearningVideo({ video: selected }));
@@ -155,83 +126,47 @@ function CourseLearningPage() {
   const handleProgressUpdated = useCallback((updatedProgress) => {
     if (!updatedProgress) return;
     setProgress(updatedProgress);
-
     const completedIds = new Set(
       Array.isArray(updatedProgress.completedVideos)
         ? updatedProgress.completedVideos.map((item) => String(getVideoId(item)))
         : []
     );
-
-    setModules((previous) =>
-      previous.map((module) => ({
-        ...module,
-        videos: Array.isArray(module?.videos)
-          ? module.videos.map((video) => ({
-              ...video,
-              isCompleted: completedIds.has(String(getVideoId(video))),
-            }))
-          : [],
-      }))
-    );
-
-    setCurrentVideo((previous) =>
-      previous
-        ? {
-            ...previous,
-            isCompleted: completedIds.has(String(getVideoId(previous))),
-          }
-        : previous
-    );
+    setModules((previous) => previous.map((module) => ({
+      ...module,
+      videos: Array.isArray(module?.videos)
+        ? module.videos.map((video) => ({ ...video, isCompleted: completedIds.has(String(getVideoId(video))) }))
+        : [],
+    })));
+    setCurrentVideo((previous) => previous ? { ...previous, isCompleted: completedIds.has(String(getVideoId(previous))) } : previous);
   }, []);
 
-  const handleVideoCompleted = useCallback(
-    (updatedProgress) => handleProgressUpdated(updatedProgress),
-    [handleProgressUpdated]
-  );
+  const handleVideoCompleted = useCallback((updatedProgress) => handleProgressUpdated(updatedProgress), [handleProgressUpdated]);
+  const { handleTimeUpdate, handleEnded, handlePause, handleLoadedMetadata } = useVideoProgress({
+    courseId: course?._id || course?.id || null,
+    video: currentVideo,
+    initialPosition: currentPosition,
+    onProgressUpdated: handleProgressUpdated,
+    onCompleted: handleVideoCompleted,
+  });
 
-  const { handleTimeUpdate, handleEnded, handlePause, handleLoadedMetadata } =
-    useVideoProgress({
-      courseId: course?._id || course?.id || null,
-      video: currentVideo,
-      initialPosition: currentPosition,
-      onProgressUpdated: handleProgressUpdated,
-      onCompleted: handleVideoCompleted,
-    });
-
-  // Client-side lesson navigation only. BrowserRouter updates the URL/history;
-  // the document itself is never navigated or reloaded.
-  const selectLesson = useCallback(
-    (video) => {
-      if (!video || video.isLocked) return;
-      const id = getVideoId(video);
-      if (!id || !slug) return;
-
-      setCurrentVideo(normalizeLearningVideo({ video }));
-      navigate(COURSE_ROUTES.VIDEO(slug, id), { preventScrollReset: true });
-    },
-    [navigate, slug]
-  );
+  // This is SPA navigation. There is no window.location assignment, href
+  // navigation, pushState workaround, or manual popstate dispatch for lessons.
+  const selectLesson = useCallback((video) => {
+    if (!video || video.isLocked) return;
+    const id = getVideoId(video);
+    if (!id || !slug) return;
+    setCurrentVideo(normalizeLearningVideo({ video }));
+    navigate(COURSE_ROUTES.VIDEO(slug, id), { preventScrollReset: true });
+  }, [navigate, slug]);
 
   const handleVideoSelect = useCallback((video) => selectLesson(video), [selectLesson]);
   const handlePrevious = useCallback((video) => selectLesson(video), [selectLesson]);
   const handleNext = useCallback((video) => selectLesson(video), [selectLesson]);
+  const handleBack = useCallback(() => navigate(COURSE_ROUTES.DETAILS(slug)), [navigate, slug]);
+  const handleAssessment = useCallback(() => navigate(COURSE_ROUTES.ASSESSMENT(slug)), [navigate, slug]);
+  const handleCertificate = useCallback(() => navigate(COURSE_ROUTES.CERTIFICATE(slug)), [navigate, slug]);
 
-  const handleBack = useCallback(
-    () => navigate(COURSE_ROUTES.DETAILS(slug)),
-    [navigate, slug]
-  );
-  const handleAssessment = useCallback(
-    () => navigate(COURSE_ROUTES.ASSESSMENT(slug)),
-    [navigate, slug]
-  );
-  const handleCertificate = useCallback(
-    () => navigate(COURSE_ROUTES.CERTIFICATE(slug)),
-    [navigate, slug]
-  );
-
-  const courseCompleted = Boolean(
-    progress?.isCompleted === true || Number(progress?.overallProgress) >= 100
-  );
+  const courseCompleted = Boolean(progress?.isCompleted === true || Number(progress?.overallProgress) >= 100);
 
   if (loading) {
     return (
