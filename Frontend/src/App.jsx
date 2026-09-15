@@ -109,7 +109,7 @@ function CompanyMarqueeEnhancement() {
       setupComplete = true;
       grid.dataset.apnaCompanyMarquee = "true";
       grid.className =
-        "relative mt-10 overflow-hidden rounded-3xl py-2 [mask-image:linear-gradient(to_right,transparent,black_7%,black_93%,transparent)]";
+        "relative mt-10 overflow-hidden rounded-3xl py-5 [mask-image:linear-gradient(to_right,transparent,black_7%,black_93%,transparent)]";
 
       const track = document.createElement("div");
       track.className = "flex w-max gap-4 will-change-transform";
@@ -124,7 +124,15 @@ function CompanyMarqueeEnhancement() {
           "w-[220px]",
           "shrink-0",
           "sm:w-[240px]",
-          "lg:w-[260px]"
+          "lg:w-[260px]",
+          "origin-center",
+          "transform-gpu",
+          "transition-[transform,box-shadow,filter,opacity]",
+          "duration-500",
+          "ease-out",
+          "scale-100",
+          "shadow-sm",
+          "z-0"
         );
       });
 
@@ -132,20 +140,63 @@ function CompanyMarqueeEnhancement() {
       track.append(...cards, ...clones);
       grid.replaceChildren(track);
 
+      const allTrackCards = [...track.children];
+
+      const updateCenterFocus = () => {
+        const gridRect = grid.getBoundingClientRect();
+        const centerX = gridRect.left + gridRect.width / 2;
+        let closestCard = null;
+        let closestDistance = Number.POSITIVE_INFINITY;
+
+        allTrackCards.forEach((card) => {
+          const rect = card.getBoundingClientRect();
+          const cardCenter = rect.left + rect.width / 2;
+          const distance = Math.abs(cardCenter - centerX);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestCard = card;
+          }
+
+          card.classList.remove(
+            "scale-110",
+            "-translate-y-2",
+            "shadow-2xl",
+            "z-20",
+            "brightness-105"
+          );
+          card.classList.add("scale-100", "shadow-sm", "z-0");
+        });
+
+        if (closestCard && closestDistance <= gridRect.width * 0.18) {
+          closestCard.classList.remove("scale-100", "shadow-sm", "z-0");
+          closestCard.classList.add(
+            "scale-110",
+            "-translate-y-2",
+            "shadow-2xl",
+            "z-20",
+            "brightness-105"
+          );
+        }
+      };
+
       const leftFade = document.createElement("div");
       leftFade.className =
-        "pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white via-white/80 to-transparent sm:w-20";
+        "pointer-events-none absolute inset-y-0 left-0 z-30 w-10 bg-gradient-to-r from-white via-white/80 to-transparent sm:w-20";
 
       const rightFade = document.createElement("div");
       rightFade.className =
-        "pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white via-white/80 to-transparent sm:w-20";
+        "pointer-events-none absolute inset-y-0 right-0 z-30 w-10 bg-gradient-to-l from-white via-white/80 to-transparent sm:w-20";
 
-      grid.append(leftFade, rightFade);
+      const centerGlow = document.createElement("div");
+      centerGlow.className =
+        "pointer-events-none absolute inset-y-2 left-1/2 z-10 w-40 -translate-x-1/2 rounded-full bg-blue-100/20 blur-3xl sm:w-56";
+
+      grid.append(centerGlow, leftFade, rightFade);
 
       let offset = 0;
       let animationFrame = null;
       let lastTime = performance.now();
-      let paused = false;
       const speed = 34;
 
       const getLoopWidth = () => {
@@ -161,7 +212,7 @@ function CompanyMarqueeEnhancement() {
         const delta = Math.min(now - lastTime, 50);
         lastTime = now;
 
-        if (!paused && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
           offset -= (speed * delta) / 1000;
 
           const loopWidth = getLoopWidth();
@@ -170,46 +221,23 @@ function CompanyMarqueeEnhancement() {
           }
 
           track.style.transform = `translate3d(${offset}px, 0, 0)`;
+          updateCenterFocus();
         }
 
         animationFrame = window.requestAnimationFrame(animate);
       };
 
-      const handleMouseEnter = () => {
-        paused = true;
-      };
-
-      const handleMouseLeave = () => {
-        paused = false;
-        lastTime = performance.now();
-      };
-
-      const handleFocusIn = () => {
-        paused = true;
-      };
-
-      const handleFocusOut = (event) => {
-        if (!grid.contains(event.relatedTarget)) {
-          paused = false;
-          lastTime = performance.now();
-        }
-      };
-
-      grid.addEventListener("mouseenter", handleMouseEnter);
-      grid.addEventListener("mouseleave", handleMouseLeave);
-      grid.addEventListener("focusin", handleFocusIn);
-      grid.addEventListener("focusout", handleFocusOut);
-
+      updateCenterFocus();
       animationFrame = window.requestAnimationFrame(animate);
+
+      const handleResize = () => updateCenterFocus();
+      window.addEventListener("resize", handleResize, { passive: true });
 
       cleanup = () => {
         if (animationFrame !== null) {
           window.cancelAnimationFrame(animationFrame);
         }
-        grid.removeEventListener("mouseenter", handleMouseEnter);
-        grid.removeEventListener("mouseleave", handleMouseLeave);
-        grid.removeEventListener("focusin", handleFocusIn);
-        grid.removeEventListener("focusout", handleFocusOut);
+        window.removeEventListener("resize", handleResize);
       };
 
       return true;
