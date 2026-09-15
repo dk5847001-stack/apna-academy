@@ -31,6 +31,9 @@ function CourseLearningPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Course data is loaded only when the course slug changes.
+  // The lesson id is intentionally excluded so switching lessons never reloads
+  // the course page or repeats the initial course/learning API requests.
   useEffect(() => {
     let mounted = true;
 
@@ -94,11 +97,10 @@ function CourseLearningPage() {
         setCurrentVideo(normalizeLearningVideo({ video: selected }));
 
         if (videoId && String(getVideoId(selected)) !== String(videoId)) {
-          window.history.replaceState(
-            window.history.state,
-            "",
-            COURSE_ROUTES.VIDEO(slug, getVideoId(selected))
-          );
+          navigate(COURSE_ROUTES.VIDEO(slug, getVideoId(selected)), {
+            replace: true,
+            preventScrollReset: true,
+          });
         }
       } catch (err) {
         console.error("Learning page error:", err);
@@ -124,8 +126,11 @@ function CourseLearningPage() {
     return () => {
       mounted = false;
     };
-  }, [slug, navigate]);
+  }, [slug, navigate, videoId]);
 
+  // Once the course is already loaded, URL changes are handled entirely from
+  // the existing module data. This keeps browser Back/Forward synchronized
+  // without fetching the course again.
   useEffect(() => {
     if (!videoId || modules.length === 0) return;
 
@@ -201,46 +206,27 @@ function CourseLearningPage() {
       onCompleted: handleVideoCompleted,
     });
 
-  // IMPORTANT: lesson switching must stay inside the existing SPA document.
-  // React Router navigation can remount the learning route in some hosting setups.
-  // We therefore update React state immediately and use History API pushState for
-  // the lesson URL. This changes the address bar without requesting a new HTML page.
-  const selectLessonWithoutReload = useCallback(
-    (video, replace = false) => {
+  // Video changes use React Router's SPA navigation. No window.location,
+  // location.assign, href assignment, pushState, or manual popstate event is
+  // involved, so the current document and player layout stay mounted.
+  const selectLesson = useCallback(
+    (video) => {
       if (!video || video.isLocked) return;
 
       const id = getVideoId(video);
       if (!id || !slug) return;
 
       setCurrentVideo(normalizeLearningVideo({ video }));
-
-      const targetUrl = COURSE_ROUTES.VIDEO(slug, id);
-      const historyMethod = replace ? "replaceState" : "pushState";
-      window.history[historyMethod](
-        { ...(window.history.state || {}), courseLesson: id },
-        "",
-        targetUrl
-      );
-
-      window.dispatchEvent(new PopStateEvent("popstate"));
+      navigate(COURSE_ROUTES.VIDEO(slug, id), {
+        preventScrollReset: true,
+      });
     },
-    [slug]
+    [navigate, slug]
   );
 
-  const handleVideoSelect = useCallback(
-    (video) => selectLessonWithoutReload(video),
-    [selectLessonWithoutReload]
-  );
-
-  const handlePrevious = useCallback(
-    (video) => selectLessonWithoutReload(video),
-    [selectLessonWithoutReload]
-  );
-
-  const handleNext = useCallback(
-    (video) => selectLessonWithoutReload(video),
-    [selectLessonWithoutReload]
-  );
+  const handleVideoSelect = useCallback((video) => selectLesson(video), [selectLesson]);
+  const handlePrevious = useCallback((video) => selectLesson(video), [selectLesson]);
+  const handleNext = useCallback((video) => selectLesson(video), [selectLesson]);
 
   const handleBack = useCallback(
     () => navigate(COURSE_ROUTES.DETAILS(slug)),
@@ -361,8 +347,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Courses />} />
       <Route path="/courses/:slug" element={<CourseDetails />} />
-      <Route path="/courses/:slug/learn" element={<CourseLearningPage />} />
-      <Route path="/courses/:slug/learn/:videoId" element={<CourseLearningPage />} />
+      <Route path="/courses/:slug/learn/:videoId?" element={<CourseLearningPage />} />
       <Route path="/courses/:slug/assessment" element={<Assessment />} />
       <Route path="/courses/:slug/certificate" element={<Certificate />} />
       <Route path="/certificate/verify/:certificateId" element={<CertificateVerify />} />
