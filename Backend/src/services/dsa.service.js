@@ -42,10 +42,8 @@ const premiumProjection = {
   memoryLimitMb: 1,
 };
 
-export const listProblems = async ({ userId, page = 1, limit = 20, search = "", difficulty, topic, company }) => {
-  const premium = await hasPremiumAccess(userId);
+const buildSearchFilter = ({ search = "", difficulty, topic, company } = {}) => {
   const filter = { status: "PUBLISHED" };
-
   if (difficulty) filter.difficulty = difficulty;
   if (topic) filter.topics = topic;
   if (company) filter.companies = company;
@@ -58,11 +56,15 @@ export const listProblems = async ({ userId, page = 1, limit = 20, search = "", 
       { companies: { $regex: safe, $options: "i" } },
     ];
   }
+  return filter;
+};
 
+export const listProblems = async ({ userId, page = 1, limit = 20, search = "", difficulty, topic, company }) => {
+  const premium = await hasPremiumAccess(userId);
+  const filter = buildSearchFilter({ search, difficulty, topic, company });
   const skip = (page - 1) * limit;
-  const projection = publicProjection;
   const [items, total, freeTotal, premiumTotal] = await Promise.all([
-    DsaProblem.find(filter).select(projection).sort({ order: 1, createdAt: 1 }).skip(skip).limit(limit).lean(),
+    DsaProblem.find(filter).select(publicProjection).sort({ order: 1, createdAt: 1 }).skip(skip).limit(limit).lean(),
     DsaProblem.countDocuments(filter),
     DsaProblem.countDocuments({ ...filter, isPremium: false }),
     DsaProblem.countDocuments({ ...filter, isPremium: true }),
@@ -88,14 +90,52 @@ export const listProblems = async ({ userId, page = 1, limit = 20, search = "", 
   return {
     items: visibleItems,
     pagination: { page, limit, total, pages: Math.ceil(total / limit) },
-    access: {
-      premium,
-      freePercent: FREE_PERCENT,
-      lockedPercent: 100 - FREE_PERCENT,
-      freeTotal,
-      premiumTotal,
-    },
+    access: { premium, freePercent: FREE_PERCENT, lockedPercent: 100 - FREE_PERCENT, freeTotal, premiumTotal },
   };
+};
+
+export const listTopics = async () => {
+  const rows = await DsaProblem.aggregate([
+    { $match: { status: "PUBLISHED" } },
+    { $unwind: "$topics" },
+    { $match: { topics: { $type: "string", $ne: "" } } },
+    {
+      $group: {
+        _id: "$topics",
+        total: { $sum: 1 },
+        free: { $sum: { $cond: [{ $eq: ["$isPremium", false] }, 1, 0] } },
+        premium: { $sum: { $cond: [{ $eq: ["$isPremium", true] }, 1, 0] } },
+        easy: { $sum: { $cond: [{ $eq: ["$difficulty", "Easy"] }, 1, 0] } },
+        medium: { $sum: { $cond: [{ $eq: ["$difficulty", "Medium"] }, 1, 0] } },
+        hard: { $sum: { $cond: [{ $eq: ["$difficulty", "Hard"] }, 1, 0] } },
+      },
+    },
+    { $sort: { total: -1, _id: 1 } },
+    { $project: { _id: 0, name: "$_id", total: 1, free: 1, premium: 1, easy: 1, medium: 1, hard: 1 } },
+  ]);
+  return rows;
+};
+
+export const listCompanies = async () => {
+  const rows = await DsaProblem.aggregate([
+    { $match: { status: "PUBLISHED" } },
+    { $unwind: "$companies" },
+    { $match: { companies: { $type: "string", $ne: "" } } },
+    {
+      $group: {
+        _id: "$companies",
+        total: { $sum: 1 },
+        free: { $sum: { $cond: [{ $eq: ["$isPremium", false] }, 1, 0] } },
+        premium: { $sum: { $cond: [{ $eq: ["$isPremium", true] }, 1, 0] } },
+        easy: { $sum: { $cond: [{ $eq: ["$difficulty", "Easy"] }, 1, 0] } },
+        medium: { $sum: { $cond: [{ $eq: ["$difficulty", "Medium"] }, 1, 0] } },
+        hard: { $sum: { $cond: [{ $eq: ["$difficulty", "Hard"] }, 1, 0] } },
+      },
+    },
+    { $sort: { total: -1, _id: 1 } },
+    { $project: { _id: 0, name: "$_id", total: 1, free: 1, premium: 1, easy: 1, medium: 1, hard: 1 } },
+  ]);
+  return rows;
 };
 
 export const getProblemBySlug = async (userId, slug) => {
@@ -106,28 +146,12 @@ export const getProblemBySlug = async (userId, slug) => {
 
   if (!problem) return null;
   if (problem.isPremium && !premium) {
-    return {
-      locked: true,
-      slug: problem.slug,
-      title: problem.title,
-      difficulty: problem.difficulty,
-      topics: problem.topics,
-      companies: problem.companies,
-    };
+    return { locked: true, slug: problem.slug, title: problem.title, difficulty: problem.difficulty, topics: problem.topics, companies: problem.companies };
   }
   return { ...problem, locked: false };
 };
 
 export const getProgress = async (userId) => {
   const progress = await DsaProgress.findOne({ userId }).lean();
-  return progress || {
-    userId,
-    solvedProblemIds: [],
-    attemptedProblemIds: [],
-    totalSolved: 0,
-    totalAttempted: 0,
-    currentStreak: 0,
-    longestStreak: 0,
-    xp: 0,
-  };
+  return progress || { userId, solvedProblemIds: [], attemptedProblemIds: [], totalSolved: 0, totalAttempted: 0, currentStreak: 0, longestStreak: 0, xp: 0 };
 };
