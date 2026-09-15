@@ -9,6 +9,7 @@ import Home from "../pages/Home";
 import Login from "../pages/Login";
 import NotFound from "../pages/NotFound";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
+import Pricing from "../pages/Pricing";
 import RefundPolicy from "../pages/RefundPolicy";
 import Register from "../pages/Register";
 import ResetPassword from "../pages/ResetPassword";
@@ -19,6 +20,7 @@ export default function AppRoutes() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/courses" element={<Courses />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<ContactNew />} />
         <Route path="/blog" element={<Blog />} />
