@@ -39,3 +39,6 @@ const toQuery = (params = {}) => {
 export const listDsaProblems = (params = {}) => request(`/dsa/problems${toQuery(params)}`);
 export const getDsaProblem = (slug) => request(`/dsa/problems/${encodeURIComponent(slug)}`);
 export const getDsaProgress = () => request("/dsa/progress");
+export const getDsaSubscription = () => request("/dsa/payments/subscription");
+export const createDsaPremiumOrder = () => request("/dsa/payments/create-order", { method: "POST", body: JSON.stringify({}) });
+export const verifyDsaPremiumPayment = (payload) => request("/dsa/payments/verify", { method: "POST", body: JSON.stringify(payload) });
