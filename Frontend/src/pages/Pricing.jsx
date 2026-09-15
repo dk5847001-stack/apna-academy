@@ -8,7 +8,7 @@ import {
   EmojiEvents,
   EventAvailable,
   WorkspacePremium,
-  WorkOutline,
+  Work,
   Code,
   QuestionAnswer,
   RocketLaunch,
@@ -107,7 +107,7 @@ const additionalBenefits = [
       "Connect and collaborate with fellow students for projects, ideas, peer learning and team-based opportunities.",
   },
   {
-    icon: WorkOutline,
+    icon: Work,
     title: "Internship & Job Alerts",
     description:
       "Get information about relevant paid internships, jobs and company hiring opportunities available through the platform.",
