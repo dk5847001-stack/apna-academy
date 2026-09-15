@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, ChevronLeft, ChevronRight, Clock3, Code2, XCircle } from "lucide-react";
-import { getDsaSubmissions } from "../services/dsa.service.js";
+import { listDsaSubmissions } from "../services/dsa.service.js";
 
 const statusIcon = (status) => {
   if (status === "Accepted") return <CheckCircle2 className="h-4 w-4" />;
@@ -16,7 +16,7 @@ export default function Submissions() {
 
   useEffect(() => {
     let active = true;
-    getDsaSubmissions({ page, limit: 20, status }).then((result) => {
+    listDsaSubmissions({ page, limit: 20, status }).then((result) => {
       if (active) setData(result);
     }).catch((err) => {
       if (active) setError(err.message || "Unable to load submissions.");
