@@ -18,6 +18,10 @@ const DOCKER_TIMEOUT_GRACE_MS = (() => {
   const value = Number(process.env.JUDGE_DOCKER_TIMEOUT_GRACE_MS || 1000);
   return Number.isFinite(value) ? Math.min(10000, Math.max(250, Math.floor(value))) : 1000;
 })();
+const DOCKER_CHECK_TIMEOUT_MS = (() => {
+  const value = Number(process.env.JUDGE_DOCKER_CHECK_TIMEOUT_MS || 5000);
+  return Number.isFinite(value) ? Math.min(30000, Math.max(1000, Math.floor(value))) : 5000;
+})();
 const ALLOWED_LANGUAGES = new Set(["Java", "C++", "Python", "JavaScript"]);
 const IMAGE_BY_LANGUAGE = {
   Java: process.env.JUDGE_JAVA_IMAGE || "eclipse-temurin:21-jdk",
@@ -28,6 +32,54 @@ const IMAGE_BY_LANGUAGE = {
 
 const queue = [];
 let running = false;
+let acceptingJobs = true;
+const idleWaiters = new Set();
+
+const log = (level, event, fields = {}) => {
+  const entry = { timestamp: new Date().toISOString(), level, service: "dsa-judge-worker", event, ...fields };
+  console[level === "error" ? "error" : "log"](JSON.stringify(entry));
+};
+
+export const isAcceptingJobs = () => acceptingJobs;
+
+export const checkDockerRuntime = async () => {
+  try {
+    await execFileAsync("docker", ["info", "--format", "{{.ServerVersion}}"], {
+      timeout: DOCKER_CHECK_TIMEOUT_MS,
+      maxBuffer: 64 * 1024,
+    });
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, message: error?.message || "Docker runtime is unavailable." };
+  }
+};
+
+const resolveIdleWaiters = () => {
+  if (running || queue.length) return;
+  for (const resolve of idleWaiters) resolve();
+  idleWaiters.clear();
+};
+
+export const stopAcceptingJobs = () => {
+  acceptingJobs = false;
+};
+
+export const waitForIdle = (timeoutMs = 30000) => {
+  if (!running && queue.length === 0) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      idleWaiters.delete(finishIdle);
+      resolve(value);
+    };
+    const finishIdle = () => finish(true);
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    idleWaiters.add(finishIdle);
+  });
+};
 
 const ADAPTERS = {
   "two-sum": { method: "twoSum", args: ["int[]"], returnType: "int[]" },
@@ -63,10 +115,10 @@ export const isValidJob = (job) => {
   return job.testCases.every((test) => typeof test?.input === "string" && test.input.length <= MAX_INPUT_LENGTH && typeof test?.expectedOutput === "string" && test.expectedOutput.length <= MAX_OUTPUT_LENGTH);
 };
 
-export const getQueueStats = () => ({ queued: queue.length, running, maxQueueSize: MAX_QUEUE_SIZE });
+export const getQueueStats = () => ({ queued: queue.length, running, acceptingJobs, maxQueueSize: MAX_QUEUE_SIZE });
 
 export const enqueueJob = async (job) => {
-  if (queue.length >= MAX_QUEUE_SIZE) return false;
+  if (!acceptingJobs || queue.length >= MAX_QUEUE_SIZE) return false;
   queue.push(job);
   void processQueue();
   return true;
@@ -79,12 +131,13 @@ const processQueue = async () => {
     const job = queue.shift();
     try { await executeJob(job); }
     catch (error) {
-      console.error(`Judge job ${job.jobId} failed:`, error.message);
+      log("error", "judge_job_failed", { jobId: job.jobId, message: error.message });
       try { await sendResult(job, { status: "Internal Error", passedTests: 0, totalTests: job.testCases.length, executionTimeMs: null, memoryUsedMb: null, judgeMessage: "Judge worker failed while executing the submission." }); }
-      catch (callbackError) { console.error(`Judge callback ${job.jobId} failed:`, callbackError.message); }
+      catch (callbackError) { log("error", "judge_callback_failed", { jobId: job.jobId, message: callbackError.message }); }
     }
   }
   running = false;
+  resolveIdleWaiters();
 };
 
 const bounded = (value, min, max, fallback) => {
