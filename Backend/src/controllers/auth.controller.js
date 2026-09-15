@@ -4,6 +4,8 @@ import {
   getCurrentUser,
   resendEmailVerificationOtp,
   verifyEmailOtp,
+  createPasswordResetToken,
+  resetPassword,
 } from "../services/auth.service.js";
 
 import {
@@ -117,6 +119,51 @@ export const login = asyncHandler(async (req, res) => {
   return successResponse({
     res,
     message: "Login successful.",
+    data: result,
+  });
+});
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+
+  if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    const error = new Error("Please enter a valid email address.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Always return the same success response for valid email-shaped input.
+  // This prevents callers from discovering whether an account exists.
+  await createPasswordResetToken(normalizedEmail);
+
+  return successResponse({
+    res,
+    message: "If an account exists for that email, a password reset link has been sent.",
+    data: { email: normalizedEmail },
+  });
+});
+
+export const resetPasswordController = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || typeof token !== "string") {
+    const error = new Error("Invalid or missing password reset token.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (typeof password !== "string" || password.length < 8 || password.length > 128) {
+    const error = new Error("Password must contain between 8 and 128 characters.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const result = await resetPassword({ token, password });
+
+  return successResponse({
+    res,
+    message: result.message,
     data: result,
   });
 });
