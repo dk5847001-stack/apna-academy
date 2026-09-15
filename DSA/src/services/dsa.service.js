@@ -32,6 +32,9 @@ export const getDsaProblem = (slug) => request(`/dsa/problems/${encodeURICompone
 export const getDsaProgress = () => request("/dsa/progress");
 export const getDsaTopics = () => request("/dsa/topics");
 export const getDsaCompanies = () => request("/dsa/companies");
+export const getDsaDailyChallenge = () => request("/dsa/daily-challenge");
+export const getDsaStudyPlans = () => request("/dsa/study-plans");
+export const getDsaStudyPlan = (slug) => request(`/dsa/study-plans/${encodeURIComponent(slug)}`);
 export const getDsaSubscription = () => request("/dsa/payments/subscription");
 export const createDsaPremiumOrder = () => request("/dsa/payments/create-order", { method: "POST", body: JSON.stringify({}) });
 export const verifyDsaPremiumPayment = (payload) => request("/dsa/payments/verify", { method: "POST", body: JSON.stringify(payload) });
