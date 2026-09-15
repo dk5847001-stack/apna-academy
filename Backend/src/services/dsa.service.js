@@ -46,7 +46,6 @@ export const listProblems = async ({ userId, page = 1, limit = 20, search = "", 
   const premium = await hasPremiumAccess(userId);
   const filter = { status: "PUBLISHED" };
 
-  if (!premium) filter.isPremium = false;
   if (difficulty) filter.difficulty = difficulty;
   if (topic) filter.topics = topic;
   if (company) filter.companies = company;
@@ -61,16 +60,41 @@ export const listProblems = async ({ userId, page = 1, limit = 20, search = "", 
   }
 
   const skip = (page - 1) * limit;
-  const projection = premium ? premiumProjection : publicProjection;
-  const [items, total] = await Promise.all([
+  const projection = publicProjection;
+  const [items, total, freeTotal, premiumTotal] = await Promise.all([
     DsaProblem.find(filter).select(projection).sort({ order: 1, createdAt: 1 }).skip(skip).limit(limit).lean(),
     DsaProblem.countDocuments(filter),
+    DsaProblem.countDocuments({ ...filter, isPremium: false }),
+    DsaProblem.countDocuments({ ...filter, isPremium: true }),
   ]);
 
+  const visibleItems = items.map((item) => {
+    if (!item.isPremium || premium) return { ...item, locked: false };
+    return {
+      slug: item.slug,
+      title: item.title,
+      description: item.description,
+      difficulty: item.difficulty,
+      topics: item.topics,
+      companies: item.companies,
+      patterns: item.patterns,
+      supportedLanguages: item.supportedLanguages,
+      isPremium: true,
+      order: item.order,
+      locked: true,
+    };
+  });
+
   return {
-    items,
+    items: visibleItems,
     pagination: { page, limit, total, pages: Math.ceil(total / limit) },
-    access: { premium, freePercent: FREE_PERCENT, lockedPercent: 100 - FREE_PERCENT },
+    access: {
+      premium,
+      freePercent: FREE_PERCENT,
+      lockedPercent: 100 - FREE_PERCENT,
+      freeTotal,
+      premiumTotal,
+    },
   };
 };
 
@@ -81,7 +105,16 @@ export const getProblemBySlug = async (userId, slug) => {
     .lean();
 
   if (!problem) return null;
-  if (problem.isPremium && !premium) return { locked: true, slug: problem.slug, title: problem.title, difficulty: problem.difficulty };
+  if (problem.isPremium && !premium) {
+    return {
+      locked: true,
+      slug: problem.slug,
+      title: problem.title,
+      difficulty: problem.difficulty,
+      topics: problem.topics,
+      companies: problem.companies,
+    };
+  }
   return { ...problem, locked: false };
 };
 
