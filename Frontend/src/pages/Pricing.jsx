@@ -57,7 +57,7 @@ const plans = [
     ],
   },
   {
-    name: "Advanced / Business",
+    name: "Advanced",
     eyebrow: "For serious learners & future leaders",
     price: "₹599",
     period: "/ month",
