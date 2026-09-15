@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { randomUUID } from "node:crypto";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -12,6 +13,10 @@ const MAX_OUTPUT_LENGTH = 100000;
 const MAX_QUEUE_SIZE = (() => {
   const value = Number(process.env.JUDGE_MAX_QUEUE || 100);
   return Number.isFinite(value) ? Math.min(1000, Math.max(1, Math.floor(value))) : 100;
+})();
+const DOCKER_TIMEOUT_GRACE_MS = (() => {
+  const value = Number(process.env.JUDGE_DOCKER_TIMEOUT_GRACE_MS || 1000);
+  return Number.isFinite(value) ? Math.min(10000, Math.max(250, Math.floor(value))) : 1000;
 })();
 const ALLOWED_LANGUAGES = new Set(["Java", "C++", "Python", "JavaScript"]);
 const IMAGE_BY_LANGUAGE = {
@@ -87,12 +92,23 @@ const bounded = (value, min, max, fallback) => {
   return Number.isFinite(number) ? Math.min(max, Math.max(min, Math.floor(number))) : fallback;
 };
 
-const dockerArgs = ({ image, workDir, command, memoryMb }) => [
-  "run", "--rm", "--network=none", "--read-only", "--cap-drop=ALL",
+const dockerArgs = ({ image, workDir, command, memoryMb, containerName }) => [
+  "run", "--rm", "--name", containerName, "--network=none", "--read-only", "--cap-drop=ALL",
   "--security-opt=no-new-privileges", "--pids-limit=64", `--memory=${memoryMb}m`,
   "--memory-swap", `${memoryMb}m`, "--cpus=1", "--tmpfs", "/tmp:rw,nosuid,nodev,noexec,size=64m",
   "--mount", `type=bind,src=${workDir},dst=/workspace`, "--workdir", "/workspace", image, ...command,
 ];
+
+const cleanupContainer = async (containerName) => {
+  try {
+    await execFileAsync("docker", ["rm", "-f", containerName], {
+      timeout: Math.min(5000, DOCKER_TIMEOUT_GRACE_MS + 2000),
+      maxBuffer: 256 * 1024,
+    });
+  } catch {
+    // The container may already have exited and been removed by --rm.
+  }
+};
 
 const parseInput = (testInput) => {
   let data;
@@ -217,12 +233,24 @@ const runContainer = async ({ job, workDir, testInput }) => {
   const harness = buildHarness(job, testInput);
   await writeFile(join(workDir, sourceFile(job.problem.language)), harness, "utf8");
   const command = job.problem.language === "Java" ? ["sh", "-c", "javac Main.java && java Main"] : job.problem.language === "C++" ? ["sh", "-c", "g++ -std=c++20 -O2 -pipe -o main Main.cpp && ./main"] : job.problem.language === "Python" ? ["python", "main.py"] : ["node", "main.js"];
-  const args = dockerArgs({ image, workDir, command, memoryMb });
+  const containerName = `apna-dsa-${randomUUID()}`;
+  const args = dockerArgs({ image, workDir, command, memoryMb, containerName });
   try {
-    const result = await execFileAsync("docker", args, { timeout: timeLimitMs + 1000, maxBuffer: 1024 * 1024 });
+    const result = await execFileAsync("docker", args, {
+      timeout: timeLimitMs + DOCKER_TIMEOUT_GRACE_MS,
+      killSignal: "SIGKILL",
+      maxBuffer: 1024 * 1024,
+    });
     return { stdout: result.stdout, stderr: result.stderr, executionTimeMs: Date.now() - started, timedOut: false };
   } catch (error) {
-    return { stdout: error.stdout || "", stderr: error.stderr || error.message || "", executionTimeMs: Date.now() - started, timedOut: error.killed || error.code === "ETIMEDOUT" };
+    const timedOut = error.code === "ETIMEDOUT" || error.signal === "SIGKILL";
+    if (timedOut) await cleanupContainer(containerName);
+    return {
+      stdout: error.stdout || "",
+      stderr: error.stderr || error.message || "",
+      executionTimeMs: Date.now() - started,
+      timedOut,
+    };
   }
 };
 
