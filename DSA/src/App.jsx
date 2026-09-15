@@ -3,6 +3,8 @@ import DSALayout from "./components/layout/DSALayout.jsx";
 import Overview from "./pages/Overview.jsx";
 import Problems from "./pages/Problems.jsx";
 import ProblemDetails from "./pages/ProblemDetails.jsx";
+import Topics from "./pages/Topics.jsx";
+import Companies from "./pages/Companies.jsx";
 import Unlock from "./pages/Unlock.jsx";
 
 function Placeholder({ title }) {
@@ -23,8 +25,8 @@ export default function App() {
         <Route path="practice" element={<Problems />} />
         <Route path="practice/:slug" element={<ProblemDetails />} />
         <Route path="practice/code" element={<div />} />
-        <Route path="topics" element={<Placeholder title="DSA Topics" />} />
-        <Route path="companies" element={<Placeholder title="Company Questions" />} />
+        <Route path="topics" element={<Topics />} />
+        <Route path="companies" element={<Companies />} />
         <Route path="daily-challenge" element={<Placeholder title="Daily Challenge" />} />
         <Route path="study-plans" element={<Placeholder title="Study Plans" />} />
         <Route path="progress" element={<Placeholder title="My Progress" />} />
