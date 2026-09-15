@@ -3,6 +3,7 @@ import DSALayout from "./components/layout/DSALayout.jsx";
 import Overview from "./pages/Overview.jsx";
 import Problems from "./pages/Problems.jsx";
 import ProblemDetails from "./pages/ProblemDetails.jsx";
+import Unlock from "./pages/Unlock.jsx";
 
 function Placeholder({ title }) {
   return (
@@ -30,7 +31,7 @@ export default function App() {
         <Route path="submissions" element={<Placeholder title="Submissions" />} />
         <Route path="bookmarks" element={<Placeholder title="Bookmarks" />} />
         <Route path="leaderboard" element={<Placeholder title="Leaderboard" />} />
-        <Route path="unlock" element={<Placeholder title="Unlock All DSA" />} />
+        <Route path="unlock" element={<Unlock />} />
         <Route path="profile" element={<Placeholder title="Profile" />} />
         <Route path="settings" element={<Placeholder title="Settings" />} />
         <Route path="*" element={<Placeholder title="Page Not Found" />} />
