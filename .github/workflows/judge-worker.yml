@@ -1,0 +1,27 @@
+name: DSA Judge Worker Tests
+
+on:
+  push:
+    paths:
+      - "JudgeWorker/**"
+      - ".github/workflows/judge-worker.yml"
+  pull_request:
+    paths:
+      - "JudgeWorker/**"
+      - ".github/workflows/judge-worker.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: JudgeWorker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run validation tests
+        run: npm test
