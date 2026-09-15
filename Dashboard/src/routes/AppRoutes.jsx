@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 
 import DashboardLayout from "../layouts/DashboardLayout";
 import DashboardHome from "../pages/DashboardHome";
@@ -11,7 +11,17 @@ import Notifications from "../pages/Notifications";
 import Profile from "../pages/Profile";
 import Support from "../pages/Support";
 import ProtectedRoute from "./ProtectedRoute";
-import { ROUTES } from "../constants/config";
+import { COURSE_URL, ROUTES } from "../constants/config";
+
+function CertificateVerificationRedirect() {
+  const { certificateId } = useParams();
+
+  window.location.replace(
+    `${COURSE_URL}/certificate/verify/${encodeURIComponent(certificateId || "")}`
+  );
+
+  return null;
+}
 
 export default function AppRoutes() {
   return (
@@ -32,6 +42,7 @@ export default function AppRoutes() {
       </Route>
 
       <Route path="/auth-required" element={<Navigate to={ROUTES.HOME} replace />} />
+      <Route path="/certificate/verify/:certificateId" element={<CertificateVerificationRedirect />} />
       <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
     </Routes>
   );
