@@ -9,6 +9,10 @@ const MAX_TEST_CASES = 1000;
 const MAX_CODE_LENGTH = 50000;
 const MAX_INPUT_LENGTH = 50000;
 const MAX_OUTPUT_LENGTH = 100000;
+const MAX_QUEUE_SIZE = (() => {
+  const value = Number(process.env.JUDGE_MAX_QUEUE || 100);
+  return Number.isFinite(value) ? Math.min(1000, Math.max(1, Math.floor(value))) : 100;
+})();
 const ALLOWED_LANGUAGES = new Set(["Java", "C++", "Python", "JavaScript"]);
 const IMAGE_BY_LANGUAGE = {
   Java: process.env.JUDGE_JAVA_IMAGE || "eclipse-temurin:21-jdk",
@@ -54,9 +58,13 @@ export const isValidJob = (job) => {
   return job.testCases.every((test) => typeof test?.input === "string" && test.input.length <= MAX_INPUT_LENGTH && typeof test?.expectedOutput === "string" && test.expectedOutput.length <= MAX_OUTPUT_LENGTH);
 };
 
+export const getQueueStats = () => ({ queued: queue.length, running, maxQueueSize: MAX_QUEUE_SIZE });
+
 export const enqueueJob = async (job) => {
+  if (queue.length >= MAX_QUEUE_SIZE) return false;
   queue.push(job);
   void processQueue();
+  return true;
 };
 
 const processQueue = async () => {
@@ -103,7 +111,7 @@ const javaLiteral = (type, value) => {
   if (type === "int[]") return `new int[]{${value.map((v) => Number(v)).join(",")}}`;
   if (type === "string[]") return `new String[]{${value.map(quoteJava).join(",")}}`;
   if (type === "int[][]") return `new int[][]{${value.map((row) => `{${row.map((v) => Number(v)).join(",")}}`).join(",")}}`;
-  if (type === "char[][]") return `new char[][]{${value.map((row) => `{${row.map((v) => `${quoteJava(v)}.charAt(0)`).join(",")}}`).join(",")}}`;
+  if (type === "char[][]") return `new char[][]{${value.map((row) => `{${[...(typeof row === "string" ? row : row)].map((v) => `${quoteJava(v)}.charAt(0)`).join(",")}}`).join(",")}}`;
   if (type === "tree") return "buildTree(new Integer[]{" + value.map((v) => v === null ? "null" : Number(v)).join(",") + "})";
   if (type === "treeNode") return `findNode(root, ${Number(value)})`;
   throw new Error(`Unsupported Java argument type: ${type}`);
@@ -116,7 +124,7 @@ const cppLiteral = (type, value) => {
   if (type === "int[]") return `vector<int>{${value.map((v) => Number(v)).join(",")}}`;
   if (type === "string[]") return `vector<string>{${value.map(cppString).join(",")}}`;
   if (type === "int[][]") return `vector<vector<int>>{${value.map((row) => `vector<int>{${row.map((v) => Number(v)).join(",")}}`).join(",")}}`;
-  if (type === "char[][]") return `vector<vector<char>>{${value.map((row) => `vector<char>{${row.map((v) => `'${String(v).replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`).join(",")}}`).join(",")}}`;
+  if (type === "char[][]") return `vector<vector<char>>{${value.map((row) => `vector<char>{${[...(typeof row === "string" ? row : row)].map((v) => `'${String(v).replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`).join(",")}}`).join(",")}}`;
   if (type === "tree") return "buildTree(vector<optional<int>>{" + value.map((v) => v === null ? "nullopt" : `optional<int>(${Number(v)})`).join(",") + "})";
   if (type === "treeNode") return `findNode(root, ${Number(value)})`;
   throw new Error(`Unsupported C++ argument type: ${type}`);
