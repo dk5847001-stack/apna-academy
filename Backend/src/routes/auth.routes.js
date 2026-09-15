@@ -7,6 +7,8 @@ import {
   logout,
   resendVerificationCode,
   verifyRegistrationEmail,
+  forgotPassword,
+  resetPasswordController,
 } from "../controllers/auth.controller.js";
 
 import { authenticate } from "../middleware/auth.middleware.js";
@@ -20,6 +22,10 @@ router.post("/register/resend-otp", resendVerificationCode);
 router.post("/register/verify-otp", verifyRegistrationEmail);
 
 router.post("/login", login);
+
+router.post("/forgot-password", forgotPassword);
+
+router.post("/reset-password", resetPasswordController);
 
 router.get("/me", authenticate, me);
 
