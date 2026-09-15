@@ -1,0 +1,1 @@
+Coding practice route integration is pending in App.jsx.
