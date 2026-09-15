@@ -1,4 +1,4 @@
-import { getProblemBySlug, getProgress, listProblems } from "../services/dsa.service.js";
+import { getProblemBySlug, getProgress, listCompanies, listProblems, listTopics } from "../services/dsa.service.js";
 
 const positiveInt = (value, fallback, max) => {
   const parsed = Number.parseInt(value, 10);
@@ -53,3 +53,16 @@ export const getDsaProgress = async (req, res, next) => {
     return next(error);
   }
 };
+
+export const getDsaTopics = asyncHandler(async (req, res) => {
+  const topics = await listTopics();
+  return res.status(200).json({ success: true, data: topics });
+});
+
+export const getDsaCompanies = asyncHandler(async (req, res) => {
+  const companies = await listCompanies();
+  return res.status(200).json({ success: true, data: companies });
+});
+
+const asyncHandler = (handler) => (req, res, next) =>
+  Promise.resolve(handler(req, res, next)).catch(next);
