@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isValidJob } from "./worker.js";
+import { getQueueStats, isValidJob } from "./worker.js";
 
 const baseJob = {
   submissionId: "507f1f77bcf86cd799439011",
@@ -25,6 +25,14 @@ test("accepts all supported language and adapter pairs", () => {
   for (const [language, slug] of pairs) {
     assert.equal(isValidJob({ ...baseJob, problem: { slug, language } }), true);
   }
+});
+
+test("reports a positive bounded queue capacity", () => {
+  const stats = getQueueStats();
+  assert.equal(stats.queued, 0);
+  assert.equal(stats.running, false);
+  assert.ok(Number.isInteger(stats.maxQueueSize));
+  assert.ok(stats.maxQueueSize >= 1 && stats.maxQueueSize <= 1000);
 });
 
 test("rejects an invalid Mongo submission id", () => {
