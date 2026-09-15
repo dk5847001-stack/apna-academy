@@ -1,7 +1,7 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AppBar, Avatar, Box, IconButton, Stack, Toolbar, Typography } from "@mui/material";
-import { AssessmentOutlined, AutoGraphOutlined, DashboardOutlined, EmailOutlined, HomeOutlined, Menu, NotificationsNoneOutlined, PeopleAltOutlined, PeopleOutline, QuizOutlined, SchoolOutlined, ShoppingBagOutlined, SupportAgentOutlined, WorkspacePremiumOutlined } from "@mui/icons-material";
+import { AssessmentOutlined, AutoGraphOutlined, CodeOutlined, DashboardOutlined, EmailOutlined, HomeOutlined, Menu, NotificationsNoneOutlined, PeopleAltOutlined, PeopleOutline, QuizOutlined, SchoolOutlined, ShoppingBagOutlined, SupportAgentOutlined, WorkspacePremiumOutlined } from "@mui/icons-material";
 import "./index.css";
 import App from "./App.jsx";
 import Analytics from "./pages/Analytics.jsx";
@@ -14,12 +14,14 @@ import Support from "./pages/Support.jsx";
 import Assessments from "./pages/Assessments.jsx";
 import Messages from "./pages/Messages.jsx";
 import Subscribers from "./pages/Subscribers.jsx";
+import DsaProblems from "./pages/DsaProblems.jsx";
 import { getCurrentAdmin } from "./services/adminCourse.service";
 import { DASHBOARD_URL, FRONTEND_URL } from "./constants/config";
 
-const routes={"#analytics":Analytics,"#users":Users,"#notifications":Notifications,"#purchases":Purchases,"#progress":Progress,"#certificates":Certificates,"#support":Support,"#assessments":Assessments,"#messages":Messages,"#subscribers":Subscribers};
+const routes={"#analytics":Analytics,"#users":Users,"#notifications":Notifications,"#purchases":Purchases,"#progress":Progress,"#certificates":Certificates,"#support":Support,"#assessments":Assessments,"#messages":Messages,"#subscribers":Subscribers,"#dsa":DsaProblems};
 const navItems=[
  {href:"",label:"Courses",icon:SchoolOutlined},
+ {href:"#dsa",label:"DSA Problems",icon:CodeOutlined},
  {href:"#analytics",label:"Analytics",icon:AutoGraphOutlined},
  {href:"#users",label:"Users",icon:PeopleOutline},
  {href:"#notifications",label:"Notifications",icon:NotificationsNoneOutlined},
