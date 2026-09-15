@@ -337,7 +337,14 @@ export const createPasswordResetToken = async (email) => {
     user.passwordResetToken = null;
     user.passwordResetExpiresAt = null;
     await user.save().catch(() => {});
-    throw error;
+
+    const passwordResetEmailError = new Error(
+      "Password reset email could not be sent."
+    );
+    passwordResetEmailError.statusCode = 503;
+    passwordResetEmailError.code = "PASSWORD_RESET_EMAIL_FAILED";
+    passwordResetEmailError.cause = error;
+    throw passwordResetEmailError;
   }
 
   return {
