@@ -31,6 +31,8 @@ function CourseLearningPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // The course is fetched only when the course slug changes. Changing a lesson
+  // id is handled from the already-loaded modules below and never refetches.
   useEffect(() => {
     let mounted = true;
 
@@ -125,20 +127,19 @@ function CourseLearningPage() {
     };
   }, [slug, navigate]);
 
+  // React Router URL changes update only the selected lesson from local state.
   useEffect(() => {
     if (!videoId || modules.length === 0) return;
 
     const videos = modules.flatMap((module) =>
       Array.isArray(module?.videos) ? module.videos : []
     );
-
     const selected = videos.find(
       (video) =>
         String(getVideoId(video)) === String(videoId) && !video?.isLocked
     );
 
     if (!selected) return;
-
     if (String(getVideoId(currentVideo)) !== String(getVideoId(selected))) {
       setCurrentVideo(normalizeLearningVideo({ video: selected }));
     }
@@ -146,16 +147,13 @@ function CourseLearningPage() {
 
   const currentPosition = useMemo(() => {
     if (!progress || !currentVideo) return 0;
-
     const lastId = getLastWatchedVideoId(progress.lastWatchedVideo);
     if (!lastId || String(lastId) !== String(getVideoId(currentVideo))) return 0;
-
     return Math.max(0, Number(progress.lastWatchedPosition) || 0);
   }, [progress, currentVideo]);
 
   const handleProgressUpdated = useCallback((updatedProgress) => {
     if (!updatedProgress) return;
-
     setProgress(updatedProgress);
 
     const completedIds = new Set(
@@ -200,17 +198,16 @@ function CourseLearningPage() {
       onCompleted: handleVideoCompleted,
     });
 
+  // Client-side lesson navigation only. BrowserRouter updates the URL/history;
+  // the document itself is never navigated or reloaded.
   const selectLesson = useCallback(
     (video) => {
       if (!video || video.isLocked) return;
-
       const id = getVideoId(video);
       if (!id || !slug) return;
 
       setCurrentVideo(normalizeLearningVideo({ video }));
-      navigate(COURSE_ROUTES.VIDEO(slug, id), {
-        preventScrollReset: true,
-      });
+      navigate(COURSE_ROUTES.VIDEO(slug, id), { preventScrollReset: true });
     },
     [navigate, slug]
   );
@@ -223,12 +220,10 @@ function CourseLearningPage() {
     () => navigate(COURSE_ROUTES.DETAILS(slug)),
     [navigate, slug]
   );
-
   const handleAssessment = useCallback(
     () => navigate(COURSE_ROUTES.ASSESSMENT(slug)),
     [navigate, slug]
   );
-
   const handleCertificate = useCallback(
     () => navigate(COURSE_ROUTES.CERTIFICATE(slug)),
     [navigate, slug]
@@ -240,15 +235,7 @@ function CourseLearningPage() {
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: 2,
-        }}
-      >
+      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
         <Stack spacing={2} alignItems="center">
           <CircularProgress />
           <Typography color="text.secondary">Loading your course...</Typography>
@@ -259,24 +246,10 @@ function CourseLearningPage() {
 
   if (error) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: 2,
-        }}
-      >
+      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
         <Stack spacing={2} maxWidth={520} width="100%">
-          <Alert severity="error" sx={{ borderRadius: 3 }}>
-            {error}
-          </Alert>
-          <Button
-            variant="contained"
-            onClick={() => navigate(COURSE_ROUTES.DETAILS(slug))}
-            sx={{ alignSelf: "flex-start", textTransform: "none", fontWeight: 800 }}
-          >
+          <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
+          <Button variant="contained" onClick={() => navigate(COURSE_ROUTES.DETAILS(slug))} sx={{ alignSelf: "flex-start", textTransform: "none", fontWeight: 800 }}>
             Back to Course
           </Button>
         </Stack>
@@ -309,25 +282,11 @@ function CourseLearningPage() {
 
 function NotFound() {
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        px: 3,
-      }}
-    >
+    <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
       <Stack spacing={2} alignItems="center" textAlign="center">
-        <Typography sx={{ fontSize: "4rem", fontWeight: 900, color: "primary.main" }}>
-          404
-        </Typography>
-        <Typography variant="h5" fontWeight={900}>
-          Page not found
-        </Typography>
-        <Typography color="text.secondary">
-          The page you are looking for does not exist.
-        </Typography>
+        <Typography sx={{ fontSize: "4rem", fontWeight: 900, color: "primary.main" }}>404</Typography>
+        <Typography variant="h5" fontWeight={900}>Page not found</Typography>
+        <Typography color="text.secondary">The page you are looking for does not exist.</Typography>
       </Stack>
     </Box>
   );
