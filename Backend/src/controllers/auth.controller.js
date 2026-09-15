@@ -133,9 +133,17 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  // Always return the same success response for valid email-shaped input.
-  // This prevents callers from discovering whether an account exists.
-  await createPasswordResetToken(normalizedEmail);
+  // Keep the response identical for valid email-shaped input so callers
+  // cannot discover whether an account exists.
+  try {
+    await createPasswordResetToken(normalizedEmail);
+  } catch (error) {
+    // SMTP/provider failures must not turn this endpoint into an account
+    // enumeration oracle. The service clears the reset token before throwing.
+    if (error?.code !== "PASSWORD_RESET_EMAIL_FAILED") {
+      throw error;
+    }
+  }
 
   return successResponse({
     res,
