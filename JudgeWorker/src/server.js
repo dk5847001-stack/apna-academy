@@ -46,7 +46,15 @@ const server = http.createServer(async (req, res) => {
     if (!isValidJob(job)) return sendJson(res, 400, { success: false, message: "Invalid judge job." });
 
     const jobId = randomUUID();
-    enqueueJob({ ...job, jobId }).catch((error) => console.error("Judge job failed:", error.message));
+    const accepted = await enqueueJob({ ...job, jobId });
+    if (!accepted) {
+      return sendJson(res, 429, {
+        success: false,
+        message: "Judge queue is temporarily full. Please retry shortly.",
+        status: "Queue Full",
+      });
+    }
+
     return sendJson(res, 202, { success: true, jobId, status: "Pending" });
   } catch (error) {
     return sendJson(res, error.statusCode || 500, { success: false, message: error.message || "Internal judge error." });
