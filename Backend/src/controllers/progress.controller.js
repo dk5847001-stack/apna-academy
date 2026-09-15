@@ -8,9 +8,6 @@ import { successResponse } from "../utils/apiResponse.js";
 
 const VIDEO_COMPLETION_PERCENTAGE = 80;
 
-/**
- * Get or create progress document.
- */
 const getOrCreateProgress = async (userId, courseId) => {
   let progress = await Progress.findOne({
     user: userId,
@@ -30,16 +27,8 @@ const getOrCreateProgress = async (userId, courseId) => {
   return progress;
 };
 
-/**
- * Calculate overall course progress.
- *
- * Progress is based on ALL published videos
- * in the course.
- */
 const calculateProgress = (completedCount, totalVideos) => {
-  if (!totalVideos || totalVideos <= 0) {
-    return 0;
-  }
+  if (!totalVideos || totalVideos <= 0) return 0;
 
   return Math.min(
     100,
@@ -47,11 +36,6 @@ const calculateProgress = (completedCount, totalVideos) => {
   );
 };
 
-/**
- * GET /api/v1/progress/courses/:courseId
- *
- * Get user's course progress.
- */
 export const getCourseProgress = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
 
@@ -78,21 +62,15 @@ export const getCourseProgress = asyncHandler(async (req, res) => {
   });
 
   const completedVideos = progress.completedVideos || [];
-
   const overallProgress = calculateProgress(
     completedVideos.length,
     totalVideos
   );
 
-  /*
-   * Keep stored progress synchronized with
-   * the actual number of published videos.
-   */
   if (progress.overallProgress !== overallProgress) {
     progress.overallProgress = overallProgress;
     progress.isCompleted =
-      totalVideos > 0 &&
-      completedVideos.length >= totalVideos;
+      totalVideos > 0 && completedVideos.length >= totalVideos;
 
     if (progress.isCompleted && !progress.completedAt) {
       progress.completedAt = new Date();
@@ -118,30 +96,13 @@ export const getCourseProgress = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * POST /api/v1/progress/courses/:courseId/videos/:videoId
- *
- * Save video watch position and optionally mark
- * the video as completed.
- *
- * Body:
- * {
- *   "position": 120,
- *   "completed": true
- * }
- *
- * SECURITY:
- * The server independently validates the 80% completion
- * threshold. A client cannot mark a video complete merely
- * by sending { completed: true }.
- */
 export const updateVideoProgress = asyncHandler(async (req, res) => {
   const { courseId, videoId } = req.params;
-
   const {
     position = 0,
+    duration = 0,
     completed = false,
-  } = req.body;
+  } = req.body || {};
 
   const course = await Course.findOne({
     _id: courseId,
@@ -155,9 +116,6 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
     });
   }
 
-  /*
-   * Only an active paid user can save learning progress.
-   */
   const purchase = await Purchase.findOne({
     user: req.user.userId,
     course: courseId,
@@ -188,12 +146,6 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
     });
   }
 
-  /*
-   * Prevent saving progress for a future locked module.
-   *
-   * All-access users can access every module.
-   * Daily users can only access currently unlocked modules.
-   */
   if (purchase.unlockMode !== "all_access") {
     const purchaseDate = new Date(purchase.purchasedAt);
     const now = new Date();
@@ -221,7 +173,6 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
     );
 
     const Module = (await import("../models/Module.js")).default;
-
     const videoModule = await Module.findById(video.module).lean();
 
     if (!videoModule) {
@@ -252,28 +203,39 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
     ? Math.max(0, numericPosition)
     : 0;
 
-  const videoDuration = Number(video.duration);
+  const numericDuration = Number(duration);
+  const reportedDuration = Number.isFinite(numericDuration)
+    ? Math.max(0, numericDuration)
+    : 0;
+
+  let videoDuration = Number(video.duration);
+
+  /*
+   * Some older Bunny videos may have duration=0 because the
+   * duration was never entered in Admin. The authenticated
+   * player can provide the actual media duration. We only use
+   * this fallback when the database does not have a duration,
+   * then persist it so future requests use the same value.
+   */
+  if (
+    (!Number.isFinite(videoDuration) || videoDuration <= 0) &&
+    reportedDuration > 0
+  ) {
+    videoDuration = reportedDuration;
+
+    await Video.updateOne(
+      { _id: video._id, duration: { $lte: 0 } },
+      { $set: { duration: reportedDuration } }
+    );
+  }
+
   const hasKnownDuration =
     Number.isFinite(videoDuration) && videoDuration > 0;
 
-  /*
-   * Never allow the client to report a position beyond the
-   * known video duration.
-   */
   const clampedPosition = hasKnownDuration
     ? Math.min(safePosition, videoDuration)
     : safePosition;
 
-  /*
-   * SERVER-SIDE completion validation.
-   *
-   * Frontend may request completed=true, but the backend
-   * only accepts it when the reported playback position has
-   * reached the configured 80% threshold.
-   *
-   * If duration is unavailable, completion cannot be proven,
-   * so the server refuses the completion request.
-   */
   const completionThresholdReached =
     hasKnownDuration &&
     clampedPosition >=
@@ -292,16 +254,9 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
     });
   }
 
-  /*
-   * Always update last watched information.
-   */
   progress.lastWatchedVideo = videoId;
   progress.lastWatchedPosition = clampedPosition;
 
-  /*
-   * Mark video completed only after the server-side
-   * threshold validation above has passed.
-   */
   if (Boolean(completed) && completionThresholdReached) {
     const alreadyCompleted = progress.completedVideos.some(
       (id) => id.toString() === videoId.toString()
@@ -312,9 +267,6 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
     }
   }
 
-  /*
-   * Recalculate progress from database.
-   */
   const totalVideos = await Video.countDocuments({
     course: courseId,
     isPublished: true,
@@ -325,9 +277,6 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
     totalVideos
   );
 
-  /*
-   * Course completion.
-   */
   if (
     totalVideos > 0 &&
     progress.completedVideos.length >= totalVideos

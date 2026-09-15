@@ -21,8 +21,8 @@ const getPlayerMetrics = (player) => {
       : 0;
 
   return {
-    currentTime: Number.isFinite(currentTime) ? currentTime : 0,
-    duration: Number.isFinite(duration) ? duration : 0,
+    currentTime: Number.isFinite(currentTime) ? Math.max(0, currentTime) : 0,
+    duration: Number.isFinite(duration) ? Math.max(0, duration) : 0,
   };
 };
 
@@ -48,14 +48,20 @@ export default function useVideoProgress({
   }, [video?._id, video?.id, video?.isCompleted, initialPosition]);
 
   const saveProgress = useCallback(
-    async ({ position, completed = false, force = false }) => {
+    async ({ position, duration = 0, completed = false, force = false }) => {
       if (!courseId || !video) return;
 
       const videoId = video._id || video.id;
       if (!videoId) return;
 
       const safePosition = Math.max(0, Number(position) || 0);
-      const request = { position: safePosition, completed, force };
+      const safeDuration = Math.max(0, Number(duration) || 0);
+      const request = {
+        position: safePosition,
+        duration: safeDuration,
+        completed,
+        force,
+      };
       const now = Date.now();
 
       if (!force && now - lastSaveTime.current < SAVE_INTERVAL) return;
@@ -78,6 +84,7 @@ export default function useVideoProgress({
           courseId,
           videoId,
           position: safePosition,
+          duration: safeDuration,
           completed,
         });
 
@@ -110,9 +117,7 @@ export default function useVideoProgress({
 
       const { duration, currentTime } = getPlayerMetrics(player);
 
-      if (duration <= 0 || !Number.isFinite(currentTime)) {
-        return;
-      }
+      if (duration <= 0 || !Number.isFinite(currentTime)) return;
 
       const watchedPercentage = (currentTime / duration) * 100;
 
@@ -122,6 +127,7 @@ export default function useVideoProgress({
       ) {
         await saveProgress({
           position: currentTime,
+          duration,
           completed: true,
           force: true,
         });
@@ -130,6 +136,7 @@ export default function useVideoProgress({
 
       await saveProgress({
         position: currentTime,
+        duration,
         completed: false,
         force: false,
       });
@@ -144,6 +151,7 @@ export default function useVideoProgress({
 
       await saveProgress({
         position: finalPosition,
+        duration,
         completed: true,
         force: true,
       });
@@ -161,6 +169,7 @@ export default function useVideoProgress({
       if (duration > 0 && currentTime >= completionThreshold) {
         await saveProgress({
           position: currentTime,
+          duration,
           completed: true,
           force: true,
         });
@@ -169,6 +178,7 @@ export default function useVideoProgress({
 
       await saveProgress({
         position: currentTime,
+        duration,
         completed: completionSent.current,
         force: true,
       });
