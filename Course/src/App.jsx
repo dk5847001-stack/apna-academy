@@ -13,12 +13,17 @@ import { getCourseBySlug } from "./services/course.service";
 import { getLearningCourse, normalizeLearningCourse, normalizeLearningVideo } from "./services/learning.service";
 import useVideoProgress from "./hooks/useVideoProgress";
 
-const getVideoId = (video) => video?._id || video?.id || "";
-const getLastWatchedVideoId = (value) => {
-  if (!value) return "";
-  if (typeof value === "object") return value._id || value.id || "";
-  return value;
+const getVideoId = (video) => {
+  if (!video) return "";
+  if (typeof video === "string") return video;
+  if (typeof video === "object") {
+    return video._id || video.id || (typeof video.toString === "function" ? video.toString() : "");
+  }
+  return String(video);
 };
+
+const getLastWatchedVideoId = (value) => getVideoId(value);
+
 const redirectToLogin = () => window.location.assign(`${FRONTEND_URL}/login`);
 
 function CourseLearningPage() {
@@ -79,10 +84,9 @@ function CourseLearningPage() {
         if (!selected) {
           const lastId = getLastWatchedVideoId(normalized.progress?.lastWatchedVideo);
           if (lastId) {
-            selected =
-              unlockedVideos.find(
-                (video) => String(getVideoId(video)) === String(lastId)
-              ) || null;
+            selected = unlockedVideos.find(
+              (video) => String(getVideoId(video)) === String(lastId)
+            ) || null;
           }
         }
 
@@ -201,10 +205,7 @@ function CourseLearningPage() {
       onCompleted: handleVideoCompleted,
     });
 
-  // IMPORTANT: lesson switching must stay inside the existing SPA document.
-  // React Router navigation can remount the learning route in some hosting setups.
-  // We therefore update React state immediately and use History API pushState for
-  // the lesson URL. This changes the address bar without requesting a new HTML page.
+  // Keep the existing lesson-switching behavior unchanged for now.
   const selectLessonWithoutReload = useCallback(
     (video, replace = false) => {
       if (!video || video.isLocked) return;
@@ -227,35 +228,12 @@ function CourseLearningPage() {
     [slug]
   );
 
-  const handleVideoSelect = useCallback(
-    (video) => selectLessonWithoutReload(video),
-    [selectLessonWithoutReload]
-  );
-
-  const handlePrevious = useCallback(
-    (video) => selectLessonWithoutReload(video),
-    [selectLessonWithoutReload]
-  );
-
-  const handleNext = useCallback(
-    (video) => selectLessonWithoutReload(video),
-    [selectLessonWithoutReload]
-  );
-
-  const handleBack = useCallback(
-    () => navigate(COURSE_ROUTES.DETAILS(slug)),
-    [navigate, slug]
-  );
-
-  const handleAssessment = useCallback(
-    () => navigate(COURSE_ROUTES.ASSESSMENT(slug)),
-    [navigate, slug]
-  );
-
-  const handleCertificate = useCallback(
-    () => navigate(COURSE_ROUTES.CERTIFICATE(slug)),
-    [navigate, slug]
-  );
+  const handleVideoSelect = useCallback((video) => selectLessonWithoutReload(video), [selectLessonWithoutReload]);
+  const handlePrevious = useCallback((video) => selectLessonWithoutReload(video), [selectLessonWithoutReload]);
+  const handleNext = useCallback((video) => selectLessonWithoutReload(video), [selectLessonWithoutReload]);
+  const handleBack = useCallback(() => navigate(COURSE_ROUTES.DETAILS(slug)), [navigate, slug]);
+  const handleAssessment = useCallback(() => navigate(COURSE_ROUTES.ASSESSMENT(slug)), [navigate, slug]);
+  const handleCertificate = useCallback(() => navigate(COURSE_ROUTES.CERTIFICATE(slug)), [navigate, slug]);
 
   const courseCompleted = Boolean(
     progress?.isCompleted === true || Number(progress?.overallProgress) >= 100
@@ -263,15 +241,7 @@ function CourseLearningPage() {
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: 2,
-        }}
-      >
+      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
         <Stack spacing={2} alignItems="center">
           <CircularProgress />
           <Typography color="text.secondary">Loading your course...</Typography>
@@ -282,24 +252,10 @@ function CourseLearningPage() {
 
   if (error) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: 2,
-        }}
-      >
+      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 2 }}>
         <Stack spacing={2} maxWidth={520} width="100%">
-          <Alert severity="error" sx={{ borderRadius: 3 }}>
-            {error}
-          </Alert>
-          <Button
-            variant="contained"
-            onClick={() => navigate(COURSE_ROUTES.DETAILS(slug))}
-            sx={{ alignSelf: "flex-start", textTransform: "none", fontWeight: 800 }}
-          >
+          <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>
+          <Button variant="contained" onClick={() => navigate(COURSE_ROUTES.DETAILS(slug))} sx={{ alignSelf: "flex-start", textTransform: "none", fontWeight: 800 }}>
             Back to Course
           </Button>
         </Stack>
@@ -332,25 +288,11 @@ function CourseLearningPage() {
 
 function NotFound() {
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        px: 3,
-      }}
-    >
+    <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
       <Stack spacing={2} alignItems="center" textAlign="center">
-        <Typography sx={{ fontSize: "4rem", fontWeight: 900, color: "primary.main" }}>
-          404
-        </Typography>
-        <Typography variant="h5" fontWeight={900}>
-          Page not found
-        </Typography>
-        <Typography color="text.secondary">
-          The page you are looking for does not exist.
-        </Typography>
+        <Typography sx={{ fontSize: "4rem", fontWeight: 900, color: "primary.main" }}>404</Typography>
+        <Typography variant="h5" fontWeight={900}>Page not found</Typography>
+        <Typography color="text.secondary">The page you are looking for does not exist.</Typography>
       </Stack>
     </Box>
   );
