@@ -3,19 +3,23 @@ import crypto from "crypto";
 
 import User from "../models/User.js";
 import { generateAccessToken } from "../utils/token.js";
-import { sendEmailVerificationOtp } from "./email.service.js";
+import { sendEmailVerificationOtp, sendPasswordResetEmail } from "./email.service.js";
 
 const OTP_EXPIRES_MS = 10 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
 const OTP_MAX_RESENDS_PER_HOUR = 5;
 const OTP_RESEND_WINDOW_MS = 60 * 60 * 1000;
+const PASSWORD_RESET_EXPIRES_MS = 15 * 60 * 1000;
 
 const createOtp = () =>
   crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
 
 const hashOtp = (otp) =>
   crypto.createHash("sha256").update(otp).digest("hex");
+
+const hashPasswordResetToken = (token) =>
+  crypto.createHash("sha256").update(token).digest("hex");
 
 const createVerificationPayload = (user) => ({
   id: user._id,
@@ -315,15 +319,29 @@ export const createPasswordResetToken = async (email) => {
   }
 
   const rawToken = crypto.randomBytes(32).toString("hex");
-  const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+  const hashedToken = hashPasswordResetToken(rawToken);
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_EXPIRES_MS);
 
   user.passwordResetToken = hashedToken;
   user.passwordResetExpiresAt = expiresAt;
   await user.save();
 
+  try {
+    await sendPasswordResetEmail({
+      to: user.email,
+      name: user.name,
+      token: rawToken,
+      expiresInMinutes: PASSWORD_RESET_EXPIRES_MS / 60_000,
+    });
+  } catch (error) {
+    user.passwordResetToken = null;
+    user.passwordResetExpiresAt = null;
+    await user.save().catch(() => {});
+    throw error;
+  }
+
   return {
-    token: rawToken,
+    token: null,
     user: { id: user._id, name: user.name, email: user.email },
     expiresAt,
   };
@@ -334,7 +352,7 @@ export const resetPassword = async ({ token, password }) => {
     throw buildVerificationError("Invalid or missing password reset token.");
   }
 
-  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const hashedToken = hashPasswordResetToken(token);
 
   const user = await User.findOne({
     passwordResetToken: hashedToken,
