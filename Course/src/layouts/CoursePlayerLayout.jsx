@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
   ArrowLeft,
@@ -76,6 +76,7 @@ export default function CoursePlayerLayout({
   onPause,
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // No module is forced open. Every module is independently expandable/collapsible.
   const [openModule, setOpenModule] = useState(null);
   const normalizedProgress = Math.min(100, Math.max(0, Number(progress) || 0));
   const safeModules = useMemo(() => (Array.isArray(modules) ? modules : []), [modules]);
@@ -83,24 +84,6 @@ export default function CoursePlayerLayout({
     () => safeModules.flatMap((module) => (Array.isArray(module?.videos) ? module.videos : [])),
     [safeModules]
   );
-
-  useEffect(() => {
-    if (openModule === null && safeModules.length > 0) {
-      setOpenModule(safeModules[0]?.order ?? safeModules[0]?.id ?? 1);
-    }
-  }, [safeModules, openModule]);
-
-  useEffect(() => {
-    if (!currentVideo) return;
-    const currentModule = safeModules.find((module) =>
-      Array.isArray(module?.videos) && module.videos.some(
-        (video) => String(getVideoId(video)) === String(getVideoId(currentVideo))
-      )
-    );
-    if (currentModule) {
-      setOpenModule(currentModule?.order ?? currentModule?.id ?? 1);
-    }
-  }, [currentVideo, safeModules]);
 
   const currentVideoIndex = currentVideo
     ? allVideos.findIndex((video) => String(getVideoId(video)) === String(getVideoId(currentVideo)))
@@ -212,7 +195,7 @@ export default function CoursePlayerLayout({
           </Box>
         ) : (
           safeModules.map((module, moduleIndex) => {
-            const moduleKey = module?.order ?? module?.id ?? moduleIndex + 1;
+            const moduleKey = module?._id || module?.order || module?.id || moduleIndex + 1;
             const isOpen = String(openModule) === String(moduleKey);
             const moduleVideos = Array.isArray(module?.videos) ? module.videos : [];
             const completedCount = moduleVideos.filter(isVideoCompleted).length;
@@ -232,8 +215,9 @@ export default function CoursePlayerLayout({
                     color: "#334155",
                     backgroundColor: COLORS.white,
                     borderRadius: 0,
-                    borderLeft: isOpen ? `4px solid ${COLORS.active}` : "4px solid transparent",
+                    borderLeft: "4px solid transparent",
                     "&:hover": { backgroundColor: "#f8fafc" },
+                    "&:focus-visible": { outline: "none" },
                   }}
                 >
                   <Box sx={{ minWidth: 0, pr: 1.5 }}>
@@ -269,7 +253,8 @@ export default function CoursePlayerLayout({
                           onClick={() => handleVideoClick(video)}
                           sx={{
                             minHeight: 70,
-                            px: { xs: 2.25, sm: 2.75 },
+                            pl: active ? { xs: 3.4, sm: 3.9 } : { xs: 2.25, sm: 2.75 },
+                            pr: { xs: 2.25, sm: 2.75 },
                             py: 1.35,
                             justifyContent: "flex-start",
                             alignItems: "center",
@@ -278,11 +263,25 @@ export default function CoursePlayerLayout({
                             textTransform: "none",
                             borderRadius: 0,
                             borderTop: "1px solid rgba(255,255,255,0.045)",
-                            borderLeft: active ? "4px solid #7184e7" : "4px solid transparent",
+                            borderLeft: "4px solid transparent",
                             backgroundColor: active ? "#29313c" : COLORS.lesson,
                             color: locked ? "#64748b" : "#ffffff",
+                            transition: "padding-left 180ms ease, background-color 180ms ease",
                             "&:hover": {
                               backgroundColor: locked ? COLORS.lesson : COLORS.lessonHover,
+                            },
+                            "&:focus": {
+                              outline: "none",
+                              boxShadow: "none",
+                            },
+                            "&:focus-visible": {
+                              outline: "none",
+                              boxShadow: "none",
+                            },
+                            "&.Mui-focusVisible": {
+                              backgroundColor: active ? "#29313c" : COLORS.lesson,
+                              boxShadow: "none",
+                              outline: "none",
                             },
                             "&.Mui-disabled": {
                               color: "#64748b",
@@ -486,9 +485,6 @@ export default function CoursePlayerLayout({
                       {getVideoTitle(currentVideo)}
                     </Typography>
                   </Box>
-                  <Typography sx={{ color: "#94a3b8", fontSize: "0.68rem", flexShrink: 0 }}>
-                    Watch at least 80% to complete
-                  </Typography>
                 </Stack>
 
                 {notesPdfUrl && (
