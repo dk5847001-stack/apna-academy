@@ -1,6 +1,6 @@
 import "node:process";
 import http from "node:http";
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { isValidJob, enqueueJob } from "./worker.js";
 
 const PORT = Number(process.env.PORT || 6000);
@@ -30,7 +30,10 @@ const readJson = async (req) => {
 
 const authorized = (req) => {
   const value = req.headers["x-judge-secret"];
-  return typeof value === "string" && value === JUDGE_SERVICE_SECRET;
+  if (typeof value !== "string") return false;
+  const expected = Buffer.from(JUDGE_SERVICE_SECRET, "utf8");
+  const received = Buffer.from(value, "utf8");
+  return expected.length === received.length && timingSafeEqual(expected, received);
 };
 
 const server = http.createServer(async (req, res) => {
