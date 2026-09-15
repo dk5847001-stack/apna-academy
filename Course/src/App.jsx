@@ -39,32 +39,19 @@ function CourseLearningPage() {
         const learningResult = await getLearningCourse(courseId);
         if (!mounted) return;
         const normalized = normalizeLearningCourse(learningResult);
-        if (!normalized?.access?.isPurchased) {
-          navigate(COURSE_ROUTES.DETAILS(slug), { replace: true, state: { message: "Please enroll in this course to start learning." } });
-          return;
-        }
+        if (!normalized?.access?.isPurchased) { navigate(COURSE_ROUTES.DETAILS(slug), { replace: true, state: { message: "Please enroll in this course to start learning." } }); return; }
         const availableModules = normalized.modules || [];
         const videos = availableModules.flatMap((module) => Array.isArray(module?.videos) ? module.videos : []);
         const unlockedVideos = videos.filter((video) => !video?.isLocked);
         if (unlockedVideos.length === 0) throw new Error("No unlocked lessons are currently available.");
         const requestedVideo = videoId ? videos.find((video) => String(getVideoId(video)) === String(videoId)) : null;
         let selected = requestedVideo && !requestedVideo.isLocked ? requestedVideo : null;
-        if (!selected) {
-          const lastId = getLastWatchedVideoId(normalized.progress?.lastWatchedVideo);
-          if (lastId) selected = unlockedVideos.find((video) => String(getVideoId(video)) === String(lastId)) || null;
-        }
+        if (!selected) { const lastId = getLastWatchedVideoId(normalized.progress?.lastWatchedVideo); if (lastId) selected = unlockedVideos.find((video) => String(getVideoId(video)) === String(lastId)) || null; }
         if (!selected) selected = unlockedVideos[0];
-        setCourse(normalized.course || courseData);
-        setModules(availableModules);
-        setProgress(normalized.progress || null);
-        setCurrentVideo(normalizeLearningVideo({ video: selected }));
+        setCourse(normalized.course || courseData); setModules(availableModules); setProgress(normalized.progress || null); setCurrentVideo(normalizeLearningVideo({ video: selected }));
         if (videoId && String(getVideoId(selected)) !== String(videoId)) navigate(COURSE_ROUTES.VIDEO(slug, getVideoId(selected)), { replace: true, preventScrollReset: true });
-      } catch (err) {
-        console.error("Learning page error:", err);
-        if (!mounted) return;
-        if (err?.response?.status === 401) { redirectToLogin(); return; }
-        setError(err?.response?.data?.message || err?.message || "Unable to load your course.");
-      } finally { if (mounted) setLoading(false); }
+      } catch (err) { console.error("Learning page error:", err); if (!mounted) return; if (err?.response?.status === 401) { redirectToLogin(); return; } setError(err?.response?.data?.message || err?.message || "Unable to load your course."); }
+      finally { if (mounted) setLoading(false); }
     };
     if (slug) load();
     return () => { mounted = false; };
@@ -77,29 +64,11 @@ function CourseLearningPage() {
     if (selected && String(getVideoId(currentVideo)) !== String(getVideoId(selected))) setCurrentVideo(normalizeLearningVideo({ video: selected }));
   }, [videoId, modules, currentVideo]);
 
-  const currentPosition = useMemo(() => {
-    if (!progress || !currentVideo) return 0;
-    const lastId = getLastWatchedVideoId(progress.lastWatchedVideo);
-    return !lastId || String(lastId) !== String(getVideoId(currentVideo)) ? 0 : Math.max(0, Number(progress.lastWatchedPosition) || 0);
-  }, [progress, currentVideo]);
-
-  const handleProgressUpdated = useCallback((updatedProgress) => {
-    if (!updatedProgress) return;
-    setProgress(updatedProgress);
-    const completedIds = new Set(Array.isArray(updatedProgress.completedVideos) ? updatedProgress.completedVideos.map((item) => String(getVideoId(item))) : []);
-    setModules((previous) => previous.map((module) => ({ ...module, videos: Array.isArray(module?.videos) ? module.videos.map((video) => ({ ...video, isCompleted: completedIds.has(String(getVideoId(video))) })) : [] })));
-    setCurrentVideo((previous) => previous ? { ...previous, isCompleted: completedIds.has(String(getVideoId(previous))) } : previous);
-  }, []);
+  const currentPosition = useMemo(() => { if (!progress || !currentVideo) return 0; const lastId = getLastWatchedVideoId(progress.lastWatchedVideo); return !lastId || String(lastId) !== String(getVideoId(currentVideo)) ? 0 : Math.max(0, Number(progress.lastWatchedPosition) || 0); }, [progress, currentVideo]);
+  const handleProgressUpdated = useCallback((updatedProgress) => { if (!updatedProgress) return; setProgress(updatedProgress); const completedIds = new Set(Array.isArray(updatedProgress.completedVideos) ? updatedProgress.completedVideos.map((item) => String(getVideoId(item))) : []); setModules((previous) => previous.map((module) => ({ ...module, videos: Array.isArray(module?.videos) ? module.videos.map((video) => ({ ...video, isCompleted: completedIds.has(String(getVideoId(video))) })) : [] }))); setCurrentVideo((previous) => previous ? { ...previous, isCompleted: completedIds.has(String(getVideoId(previous))) } : previous); }, []);
   const handleVideoCompleted = useCallback((updatedProgress) => handleProgressUpdated(updatedProgress), [handleProgressUpdated]);
   const { handleTimeUpdate, handleEnded, handlePause, handleLoadedMetadata } = useVideoProgress({ courseId: course?._id || course?.id || null, video: currentVideo, initialPosition: currentPosition, onProgressUpdated: handleProgressUpdated, onCompleted: handleVideoCompleted });
-
-  const selectLesson = useCallback((video) => {
-    if (!video || video.isLocked) return;
-    const id = getVideoId(video);
-    if (!id || !slug) return;
-    setCurrentVideo(normalizeLearningVideo({ video }));
-    navigate(COURSE_ROUTES.VIDEO(slug, id), { preventScrollReset: true });
-  }, [navigate, slug]);
+  const selectLesson = useCallback((video) => { if (!video || video.isLocked) return; const id = getVideoId(video); if (!id || !slug) return; setCurrentVideo(normalizeLearningVideo({ video })); navigate(COURSE_ROUTES.VIDEO(slug, id), { preventScrollReset: true }); }, [navigate, slug]);
   const handleVideoSelect = useCallback((video) => selectLesson(video), [selectLesson]);
   const handlePrevious = useCallback((video) => selectLesson(video), [selectLesson]);
   const handleNext = useCallback((video) => selectLesson(video), [selectLesson]);
@@ -114,5 +83,4 @@ function CourseLearningPage() {
 }
 
 function NotFound() { return <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}><Stack spacing={2} alignItems="center" textAlign="center"><Typography sx={{ fontSize: "4rem", fontWeight: 900, color: "primary.main" }}>404</Typography><Typography variant="h5" fontWeight={900}>Page not found</Typography><Typography color="text.secondary">The page you are looking for does not exist.</Typography></Stack></Box>; }
-
 export default function App() { return <Routes><Route path="/" element={<Courses />} /><Route path="/courses/:slug" element={<CourseDetails />} /><Route path="/courses/:slug/learn/:videoId?" element={<CourseLearningPage />} /><Route path="/courses/:slug/assessment" element={<Assessment />} /><Route path="/courses/:slug/certificate" element={<Certificate />} /><Route path="/certificate/verify/:certificateId" element={<CertificateVerify />} /><Route path="*" element={<NotFound />} /></Routes>; }
