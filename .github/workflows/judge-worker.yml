@@ -23,5 +23,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Verify Docker runtime
+        run: docker info
       - name: Run validation tests
         run: npm test
+      - name: Run Docker runtime integration smoke test
+        run: npm run test:runtime
+        timeout-minutes: 15
