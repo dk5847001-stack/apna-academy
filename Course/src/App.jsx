@@ -31,8 +31,6 @@ function CourseLearningPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Load the course only when the course itself changes. videoId is deliberately
-  // excluded: lesson navigation must not refetch or reset the whole player.
   useEffect(() => {
     let mounted = true;
 
@@ -127,8 +125,6 @@ function CourseLearningPage() {
     };
   }, [slug, navigate]);
 
-  // When only the URL lesson id changes, select the corresponding lesson from
-  // the already-loaded modules. No network request is made here.
   useEffect(() => {
     if (!videoId || modules.length === 0) return;
 
@@ -204,8 +200,6 @@ function CourseLearningPage() {
       onCompleted: handleVideoCompleted,
     });
 
-  // React Router owns lesson navigation. No direct document navigation or
-  // manual History API event is used for video switching.
   const selectLesson = useCallback(
     (video) => {
       if (!video || video.isLocked) return;
