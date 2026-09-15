@@ -30,6 +30,8 @@ const toQuery = (params = {}) => {
 export const listDsaProblems = (params = {}) => request(`/dsa/problems${toQuery(params)}`);
 export const getDsaProblem = (slug) => request(`/dsa/problems/${encodeURIComponent(slug)}`);
 export const getDsaProgress = () => request("/dsa/progress");
+export const getDsaProgressDashboard = () => request("/dsa/progress/dashboard");
+export const getDsaSubmissions = (params = {}) => request(`/dsa/submissions${toQuery(params)}`);
 export const getDsaTopics = () => request("/dsa/topics");
 export const getDsaCompanies = () => request("/dsa/companies");
 export const getDsaDailyChallenge = () => request("/dsa/daily-challenge");
