@@ -1,0 +1,72 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, CheckCircle2, Code2, Lightbulb, LockKeyhole, Play, ShieldCheck } from "lucide-react";
+import { getDsaProblem } from "../services/dsa.service.js";
+
+const difficultyClass = {
+  Easy: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  Medium: "border-amber-200 bg-amber-50 text-amber-700",
+  Hard: "border-rose-200 bg-rose-50 text-rose-700",
+};
+
+export default function ProblemDetails() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const [problem, setProblem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setLoading(true);
+    setError("");
+    getDsaProblem(slug)
+      .then(setProblem)
+      .catch((requestError) => setError(requestError?.message || "Unable to load this problem."))
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  if (loading) return <div className="mx-auto max-w-5xl space-y-4"><div className="h-10 w-40 animate-pulse rounded-xl bg-slate-200" /><div className="h-80 animate-pulse rounded-3xl bg-white" /></div>;
+  if (error) return <State title="Unable to load problem" text={error} action={<button type="button" onClick={() => navigate(-1)} className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-black text-white">Go back</button>} />;
+  if (!problem) return <State title="Problem not found" text="This problem is not published or no longer available." action={<Link to="/practice" className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-black text-white">Browse problems</Link>} />;
+
+  if (problem.locked) {
+    return (
+      <div className="mx-auto max-w-3xl py-8">
+        <Link to="/practice" className="inline-flex items-center gap-2 text-xs font-black text-slate-600 hover:text-slate-950"><ArrowLeft size={15} /> Back to problems</Link>
+        <section className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div className="bg-slate-950 p-7 text-white sm:p-10"><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10"><LockKeyhole size={22} /></div><p className="mt-6 text-xs font-black uppercase tracking-[0.16em] text-blue-200">Premium problem</p><h1 className="mt-2 text-3xl font-black tracking-tight">{problem.title}</h1><div className="mt-4 flex flex-wrap items-center gap-2"><span className={`rounded-full border px-2.5 py-1 text-[10px] font-black ${difficultyClass[problem.difficulty] || "border-white/20 bg-white/10 text-white"}`}>{problem.difficulty}</span>{(problem.topics || []).map((topic) => <span key={topic} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold text-slate-300">{topic}</span>)}</div></div>
+          <div className="p-7 sm:p-10"><p className="text-sm leading-7 text-slate-600">This problem belongs to the protected 80% premium DSA library. The server intentionally withholds the statement, hints, editorial, solution and starter code until premium entitlement is active.</p><div className="mt-6 grid gap-3 sm:grid-cols-3"><Benefit icon={ShieldCheck} title="Server enforced" text="Frontend flags cannot bypass access control." /><Benefit icon={Code2} title="Full coding access" text="Unlock the complete practice workspace." /><Benefit icon={CheckCircle2} title="Interview library" text="Access premium company-focused problems." /></div><Link to="/unlock" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-xs font-black text-white hover:bg-slate-800"><LockKeyhole size={15} /> Unlock All DSA</Link></div>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-5">
+      <Link to="/practice" className="inline-flex items-center gap-2 text-xs font-black text-slate-600 hover:text-slate-950"><ArrowLeft size={15} /> Back to problems</Link>
+      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="flex flex-wrap items-center gap-2"><span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase ${difficultyClass[problem.difficulty] || "border-slate-200 bg-slate-50 text-slate-600"}`}>{problem.difficulty}</span><span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-700">Free</span>{(problem.companies || []).map((company) => <span key={company} className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold text-slate-500">{company}</span>)}</div>
+        <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{problem.title}</h1>
+        <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600">{problem.description}</p>
+        <div className="mt-5 flex flex-wrap gap-2">{(problem.topics || []).map((topic) => <span key={topic} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-bold text-slate-600">{topic}</span>)}{(problem.patterns || []).map((pattern) => <span key={pattern} className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] font-bold text-slate-500">{pattern}</span>)}</div>
+      </section>
+
+      <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="space-y-5">
+          <Panel title="Examples"><div className="space-y-4">{(problem.examples || []).map((example, index) => <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p className="text-xs font-black text-slate-500">Example {index + 1}</p><pre className="mt-3 overflow-x-auto text-xs leading-6 text-slate-700"><code>Input: {example.input}{"\n"}Output: {example.output}{example.explanation ? `\nExplanation: ${example.explanation}` : ""}</code></pre></div>)}</div></Panel>
+          <Panel title="Constraints"><ul className="space-y-2">{(problem.constraints || []).map((constraint, index) => <li key={index} className="flex gap-2 text-sm leading-6 text-slate-600"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />{constraint}</li>)}</ul></Panel>
+          {problem.hints?.length ? <Panel title="Hints" icon={Lightbulb}><div className="space-y-2">{problem.hints.map((hint, index) => <details key={index} className="rounded-xl border border-slate-200 p-3"><summary className="cursor-pointer text-xs font-black text-slate-700">Hint {index + 1}</summary><p className="mt-2 text-xs leading-6 text-slate-500">{hint}</p></details>)}</div></Panel> : null}
+        </div>
+        <div className="space-y-5">
+          <section className="rounded-2xl bg-slate-950 p-5 text-white shadow-lg"><div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-blue-200">Coding workspace</p><h2 className="mt-1 text-base font-black">Ready to solve?</h2></div><Code2 size={20} className="text-slate-300" /></div><p className="mt-3 text-xs leading-5 text-slate-300">Run sample tests and submit through the secure judge workspace.</p><Link to={`/practice/code?problem=${encodeURIComponent(problem.slug)}`} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-black text-slate-950"><Play size={14} /> Open coding workspace</Link></section>
+          {problem.starterCode && <Panel title="Starter code"><pre className="max-h-96 overflow-auto rounded-xl bg-slate-950 p-4 text-xs leading-6 text-slate-200"><code>{typeof problem.starterCode === "object" ? Object.entries(problem.starterCode).map(([language, code]) => `// ${language}\n${code}`).join("\n\n") : problem.starterCode}</code></pre></Panel>}
+          {problem.editorial ? <Panel title="Editorial"><p className="whitespace-pre-wrap text-sm leading-7 text-slate-600">{problem.editorial}</p></Panel> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Panel({ title, children }) { return <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><h2 className="text-base font-black text-slate-950">{title}</h2><div className="mt-4">{children}</div></section>; }
+function Benefit({ icon: Icon, title, text }) { return <div className="rounded-2xl border border-slate-200 p-4"><Icon size={18} className="text-slate-700" /><p className="mt-3 text-xs font-black text-slate-800">{title}</p><p className="mt-1 text-[11px] leading-5 text-slate-500">{text}</p></div>; }
+function State({ title, text, action }) { return <section className="mx-auto max-w-2xl rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm"><h1 className="text-xl font-black text-slate-950">{title}</h1><p className="mt-2 text-sm leading-6 text-slate-500">{text}</p><div className="mt-5">{action}</div></section>; }
