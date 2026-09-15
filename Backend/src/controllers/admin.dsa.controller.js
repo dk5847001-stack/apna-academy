@@ -1,8 +1,10 @@
-import DsaProblem from "../modules/dsa/models/DsaProblem.js";
-import DsaTestCase from "../modules/dsa/models/DsaTestCase.js";
+import DsaProblem from "../models/DsaProblem.js";
+import DsaTestCase from "../models/DsaTestCase.js";
 
 const asyncHandler = (handler) => (req, res, next) =>
   Promise.resolve(handler(req, res, next)).catch(next);
+
+const normalizeDifficulty = (value) => String(value || "").trim().toLowerCase().replace(/^./, (char) => char.toUpperCase());
 
 export const listProblems = asyncHandler(async (req, res) => {
   const page = Math.max(Number(req.query.page) || 1, 1);
@@ -10,14 +12,25 @@ export const listProblems = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
   const filter = {};
 
-  if (["EASY", "MEDIUM", "HARD"].includes(String(req.query.difficulty || "").toUpperCase())) {
-    filter.difficulty = String(req.query.difficulty).toUpperCase();
-  }
-  if (["FREE", "PREMIUM"].includes(String(req.query.accessType || "").toUpperCase())) {
-    filter.accessType = String(req.query.accessType).toUpperCase();
-  }
-  if (["DRAFT", "REVIEW", "PUBLISHED", "ARCHIVED"].includes(String(req.query.status || "").toUpperCase())) {
-    filter.status = String(req.query.status).toUpperCase();
+  const difficulty = normalizeDifficulty(req.query.difficulty);
+  if (["Easy", "Medium", "Hard"].includes(difficulty)) filter.difficulty = difficulty;
+
+  const accessType = String(req.query.accessType || "").toUpperCase();
+  if (accessType === "FREE") filter.isPremium = false;
+  if (accessType === "PREMIUM") filter.isPremium = true;
+
+  const status = String(req.query.status || "").toUpperCase();
+  if (["DRAFT", "REVIEW", "PUBLISHED", "ARCHIVED"].includes(status)) filter.status = status;
+
+  const search = String(req.query.search || "").trim();
+  if (search) {
+    const safe = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter.$or = [
+      { title: { $regex: safe, $options: "i" } },
+      { slug: { $regex: safe, $options: "i" } },
+      { topics: { $regex: safe, $options: "i" } },
+      { companies: { $regex: safe, $options: "i" } },
+    ];
   }
 
   const [items, total] = await Promise.all([
@@ -25,18 +38,24 @@ export const listProblems = asyncHandler(async (req, res) => {
     DsaProblem.countDocuments(filter),
   ]);
 
-  res.json({ success: true, data: { items, pagination: { page, limit, total, pages: Math.ceil(total / limit) } } });
+  res.json({
+    success: true,
+    data: {
+      items,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    },
+  });
 });
 
 export const createProblem = asyncHandler(async (req, res) => {
-  const problem = await DsaProblem.create({ ...req.body, createdBy: req.admin?._id });
+  const problem = await DsaProblem.create({ ...req.body });
   res.status(201).json({ success: true, data: problem });
 });
 
 export const updateProblem = asyncHandler(async (req, res) => {
   const problem = await DsaProblem.findByIdAndUpdate(
     req.params.problemId,
-    { $set: { ...req.body, updatedBy: req.admin?._id } },
+    { $set: { ...req.body } },
     { new: true, runValidators: true }
   );
   if (!problem) return res.status(404).json({ success: false, message: "DSA problem not found." });
@@ -46,7 +65,7 @@ export const updateProblem = asyncHandler(async (req, res) => {
 export const deleteProblem = asyncHandler(async (req, res) => {
   const problem = await DsaProblem.findByIdAndUpdate(
     req.params.problemId,
-    { $set: { status: "ARCHIVED", updatedBy: req.admin?._id } },
+    { $set: { status: "ARCHIVED" } },
     { new: true }
   );
   if (!problem) return res.status(404).json({ success: false, message: "DSA problem not found." });
