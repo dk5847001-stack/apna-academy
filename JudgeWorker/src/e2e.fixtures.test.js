@@ -39,13 +39,24 @@ const cases = [
   },
 ];
 
+const supportedLanguages = new Set(["Java", "C++", "Python", "JavaScript"]);
+
+const validateFixture = (item) => {
+  assert.ok(item.code.trim().length > 0, item.name);
+  assert.ok(item.slug.length > 0, item.name);
+  assert.ok(supportedLanguages.has(item.language), item.name);
+  assert.ok(["Accepted", "Compilation Error", "Wrong Answer", "Runtime Error", "TLE", "MLE", "Runtime Limit", "Internal Error"].includes(item.expected), item.name);
+};
+
 test("DSA judge E2E fixtures are complete", () => {
   assert.equal(cases.length, 5);
-  assert.deepEqual(new Set(cases.map((item) => item.language)), new Set(["Java", "C++", "Python", "JavaScript"]));
+  assert.deepEqual(new Set(cases.map((item) => item.language)), supportedLanguages);
   assert.ok(cases.some((item) => item.expected === "Compilation Error"));
   assert.ok(cases.some((item) => item.slug === "number-of-islands"));
-  for (const item of cases) {
-    assert.ok(item.code.trim().length > 0, item.name);
-    assert.ok(item.slug.length > 0, item.name);
-  }
+  cases.forEach(validateFixture);
+});
+
+test("fixtures cover both success and failure execution paths", () => {
+  assert.ok(cases.some((item) => item.expected === "Accepted"));
+  assert.ok(cases.some((item) => item.expected !== "Accepted"));
 });
