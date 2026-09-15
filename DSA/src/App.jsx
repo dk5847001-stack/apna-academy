@@ -8,6 +8,8 @@ import Companies from "./pages/Companies.jsx";
 import DailyChallenge from "./pages/DailyChallenge.jsx";
 import StudyPlans from "./pages/StudyPlans.jsx";
 import StudyPlanDetails from "./pages/StudyPlanDetails.jsx";
+import Progress from "./pages/Progress.jsx";
+import Submissions from "./pages/Submissions.jsx";
 import Unlock from "./pages/Unlock.jsx";
 
 function Placeholder({ title }) {
@@ -33,8 +35,8 @@ export default function App() {
         <Route path="daily-challenge" element={<DailyChallenge />} />
         <Route path="study-plans" element={<StudyPlans />} />
         <Route path="study-plans/:slug" element={<StudyPlanDetails />} />
-        <Route path="progress" element={<Placeholder title="My Progress" />} />
-        <Route path="submissions" element={<Placeholder title="Submissions" />} />
+        <Route path="progress" element={<Progress />} />
+        <Route path="submissions" element={<Submissions />} />
         <Route path="bookmarks" element={<Placeholder title="Bookmarks" />} />
         <Route path="leaderboard" element={<Placeholder title="Leaderboard" />} />
         <Route path="unlock" element={<Unlock />} />
