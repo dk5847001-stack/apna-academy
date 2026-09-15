@@ -30,7 +30,7 @@ export const isValidJob = (job) => {
 
 export const enqueueJob = async (job) => {
   queue.push(job);
-  processQueue();
+  void processQueue();
 };
 
 const processQueue = async () => {
@@ -38,8 +38,23 @@ const processQueue = async () => {
   running = true;
   while (queue.length) {
     const job = queue.shift();
-    try { await executeJob(job); }
-    catch (error) { console.error(`Job ${job.jobId} failed:`, error.message); }
+    try {
+      await executeJob(job);
+    } catch (error) {
+      console.error(`Judge job ${job.jobId} failed:`, error.message);
+      try {
+        await sendResult(job, {
+          status: "Internal Error",
+          passedTests: 0,
+          totalTests: job.testCases.length,
+          executionTimeMs: null,
+          memoryUsedMb: null,
+          judgeMessage: "Judge worker failed while executing the submission.",
+        });
+      } catch (callbackError) {
+        console.error(`Judge callback ${job.jobId} failed:`, callbackError.message);
+      }
+    }
   }
   running = false;
 };
@@ -49,7 +64,7 @@ const bounded = (value, min, max, fallback) => {
   return Number.isFinite(number) ? Math.min(max, Math.max(min, Math.floor(number))) : fallback;
 };
 
-const dockerArgs = ({ image, workDir, command, memoryMb, timeLimitMs }) => [
+const dockerArgs = ({ image, workDir, command, memoryMb }) => [
   "run", "--rm",
   "--network=none",
   "--read-only",
@@ -64,14 +79,13 @@ const dockerArgs = ({ image, workDir, command, memoryMb, timeLimitMs }) => [
   "--workdir", "/workspace",
   image,
   ...command,
-  "__TIMEOUT_MS__", String(timeLimitMs),
 ];
 
 const languageCommand = (language) => {
-  if (language === "Java") return ["sh", "-c", "javac Main.java && java Main"];
-  if (language === "C++") return ["sh", "-c", "g++ -std=c++20 -O2 -pipe -o main Main.cpp && ./main"];
-  if (language === "Python") return ["python", "main.py"];
-  return ["node", "main.js"];
+  if (language === "Java") return ["sh", "-c", "javac Main.java && java Main < /workspace/input.txt"];
+  if (language === "C++") return ["sh", "-c", "g++ -std=c++20 -O2 -pipe -o main Main.cpp && ./main < /workspace/input.txt"];
+  if (language === "Python") return ["sh", "-c", "python main.py < /workspace/input.txt"];
+  return ["sh", "-c", "node main.js < /workspace/input.txt"];
 };
 
 const sourceFile = (language) => ({ Java: "Main.java", "C++": "Main.cpp", Python: "main.py", JavaScript: "main.js" })[language];
@@ -80,14 +94,19 @@ const runContainer = async ({ job, workDir, input }) => {
   const memoryMb = bounded(job.problem.memoryLimitMb, 16, 2048, 256);
   const timeLimitMs = bounded(job.problem.timeLimitMs, 100, 30000, 2000);
   const image = IMAGE_BY_LANGUAGE[job.problem.language];
-  const command = languageCommand(job.problem.language);
-  const args = dockerArgs({ image, workDir, command, memoryMb, timeLimitMs }).filter((item) => item !== "__TIMEOUT_MS__" && item !== String(timeLimitMs));
+  const args = dockerArgs({ image, workDir, command: languageCommand(job.problem.language), memoryMb });
+  await writeFile(join(workDir, "input.txt"), input, "utf8");
   const started = Date.now();
   try {
-    const result = await execFileAsync("docker", args, { input, timeout: timeLimitMs + 1000, maxBuffer: 1024 * 1024 });
+    const result = await execFileAsync("docker", args, { timeout: timeLimitMs + 1000, maxBuffer: 1024 * 1024 });
     return { stdout: result.stdout, stderr: result.stderr, executionTimeMs: Date.now() - started, timedOut: false };
   } catch (error) {
-    return { stdout: error.stdout || "", stderr: error.stderr || error.message || "", executionTimeMs: Date.now() - started, timedOut: error.killed || error.code === "ETIMEDOUT" };
+    return {
+      stdout: error.stdout || "",
+      stderr: error.stderr || error.message || "",
+      executionTimeMs: Date.now() - started,
+      timedOut: error.killed || error.code === "ETIMEDOUT",
+    };
   }
 };
 
@@ -105,8 +124,16 @@ const executeJob = async (job) => {
     for (const testCase of job.testCases) {
       const result = await runContainer({ job, workDir, input: testCase.input });
       maxTime = Math.max(maxTime, result.executionTimeMs);
-      if (result.timedOut) { status = "TLE"; judgeMessage = "Execution time limit exceeded."; break; }
-      if (result.stderr && /compil|syntax|error/i.test(result.stderr) && !result.stdout) { status = "Compilation Error"; judgeMessage = result.stderr.slice(0, 5000); break; }
+      if (result.timedOut) {
+        status = "TLE";
+        judgeMessage = "Execution time limit exceeded.";
+        break;
+      }
+      if (result.stderr && !result.stdout) {
+        status = /compil|syntax/i.test(result.stderr) ? "Compilation Error" : "Runtime Error";
+        judgeMessage = result.stderr.slice(0, 5000);
+        break;
+      }
       if (normalize(result.stdout) !== normalize(testCase.expectedOutput)) {
         status = "Wrong Answer";
         judgeMessage = "Output does not match the expected result.";
@@ -115,7 +142,14 @@ const executeJob = async (job) => {
       passed += 1;
     }
 
-    await sendResult(job, { status, passedTests: passed, totalTests: job.testCases.length, executionTimeMs: maxTime, memoryUsedMb: null, judgeMessage });
+    await sendResult(job, {
+      status,
+      passedTests: passed,
+      totalTests: job.testCases.length,
+      executionTimeMs: maxTime,
+      memoryUsedMb: null,
+      judgeMessage,
+    });
   } finally {
     await rm(workDir, { recursive: true, force: true });
   }
