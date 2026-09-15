@@ -31,9 +31,8 @@ function CourseLearningPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Course data is loaded only when the course slug changes.
-  // The lesson id is intentionally excluded so switching lessons never reloads
-  // the course page or repeats the initial course/learning API requests.
+  // Load the course only when the course itself changes. videoId is deliberately
+  // excluded: lesson navigation must not refetch or reset the whole player.
   useEffect(() => {
     let mounted = true;
 
@@ -126,11 +125,10 @@ function CourseLearningPage() {
     return () => {
       mounted = false;
     };
-  }, [slug, navigate, videoId]);
+  }, [slug, navigate]);
 
-  // Once the course is already loaded, URL changes are handled entirely from
-  // the existing module data. This keeps browser Back/Forward synchronized
-  // without fetching the course again.
+  // When only the URL lesson id changes, select the corresponding lesson from
+  // the already-loaded modules. No network request is made here.
   useEffect(() => {
     if (!videoId || modules.length === 0) return;
 
@@ -206,9 +204,8 @@ function CourseLearningPage() {
       onCompleted: handleVideoCompleted,
     });
 
-  // Video changes use React Router's SPA navigation. No window.location,
-  // location.assign, href assignment, pushState, or manual popstate event is
-  // involved, so the current document and player layout stay mounted.
+  // Use React Router's SPA navigation for lesson changes. This keeps the same
+  // document mounted and lets BrowserRouter own the browser history.
   const selectLesson = useCallback(
     (video) => {
       if (!video || video.isLocked) return;
