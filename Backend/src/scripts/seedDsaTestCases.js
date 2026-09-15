@@ -16,7 +16,7 @@ const cases = {
   "best-time-to-buy-and-sell-stock": [tc([[7,1,5,3,6,4]],5,false,1),tc([[7,6,4,3,1]],0,true,2)],
   "binary-search": [tc([[-1,0,3,5,9,12],9],4,false,1),tc([[5],2],-1,true,2)],
   "contains-duplicate": [tc([[1,2,3,1]],true,false,1),tc([[1,2,3,4]],false,true,2)],
-  "product-of-array-except-self": [tc([[1,2,3,4]],[24,12,8,6],false,1),tc([[-1,1,0,-3,3],[0,0,9,0,0]],true,2)],
+  "product-of-array-except-self": [tc([[1,2,3,4]],[24,12,8,6],false,1),tc([[-1,1,0,-3,3]],[0,0,9,0,0],true,2)],
   "maximum-subarray": [tc([[-2,1,-3,4,-1,2,1,-5,4]],6,false,1),tc([[5,4,-1,7,8]],23,true,2)],
   "merge-intervals": [tc([[[1,3],[2,6],[8,10],[15,18]]],[[1,6],[8,10],[15,18]],false,1),tc([[[1,4],[4,5]]],[[1,5]],true,2)],
   "longest-substring-without-repeating-characters": [tc(["abcabcbb"],3,false,1),tc(["bbbbb"],1,true,2)],
