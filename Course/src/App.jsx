@@ -204,8 +204,8 @@ function CourseLearningPage() {
       onCompleted: handleVideoCompleted,
     });
 
-  // Use React Router's SPA navigation for lesson changes. This keeps the same
-  // document mounted and lets BrowserRouter own the browser history.
+  // React Router owns lesson navigation. No direct document navigation or
+  // manual History API event is used for video switching.
   const selectLesson = useCallback(
     (video) => {
       if (!video || video.isLocked) return;
