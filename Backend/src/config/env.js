@@ -10,6 +10,7 @@ const requiredEnvVariables = [
 const productionEnvVariables = [
   "BACKEND_PUBLIC_URL",
   "COURSE_PUBLIC_URL",
+  "FRONTEND_PUBLIC_URL",
   "CORS_ALLOWED_ORIGINS",
 ];
 
@@ -46,6 +47,7 @@ export const validateEnv = () => {
     for (const variable of [
       "BACKEND_PUBLIC_URL",
       "COURSE_PUBLIC_URL",
+      "FRONTEND_PUBLIC_URL",
     ]) {
       const value = process.env[variable].trim();
 
