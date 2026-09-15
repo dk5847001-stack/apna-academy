@@ -36,7 +36,7 @@ export const getDsaDailyChallenge = () => request("/dsa/daily-challenge");
 export const getDsaStudyPlans = () => request("/dsa/study-plans");
 export const getDsaStudyPlan = (slug) => request(`/dsa/study-plans/${encodeURIComponent(slug)}`);
 export const getDsaProgressDashboard = () => request("/dsa/progress/dashboard");
-export const listDsaSubmissions = (params = {}) => request(`/dsa/progress/submissions${toQuery(params)}`);
+export const listDsaSubmissions = (params = {}) => request(`/dsa/submissions${toQuery(params)}`);
 export const submitDsaSolution = (payload) => request("/dsa/submissions", { method: "POST", body: JSON.stringify(payload) });
 export const getDsaSubmission = (submissionId) => request(`/dsa/submissions/${encodeURIComponent(submissionId)}`);
 export const getDsaSubscription = () => request("/dsa/payments/subscription");
