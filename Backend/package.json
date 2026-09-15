@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed:dsa": "node src/scripts/seedDsaProblems.js"
+    "seed:dsa": "node src/scripts/seedDsaProblems.js",
+    "seed:dsa:phase13": "node src/scripts/seedDsaPhase13.js"
   },
   "keywords": [
     "apnaacademy",
