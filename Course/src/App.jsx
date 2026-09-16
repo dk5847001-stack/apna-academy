@@ -3,6 +3,7 @@ import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 import Courses from "./pages/Courses";
 import CourseDetails from "./pages/CourseDetails";
+import DemoClass from "./pages/DemoClass";
 import CoursePlayerLayout from "./layouts/CoursePlayerLayout";
 import Certificate from "./pages/Certificate";
 import CertificateVerify from "./pages/CertificateVerify";
@@ -281,10 +282,33 @@ function NotFound() {
 }
 
 export default function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleDemoButtonClick = (event) => {
+      const button = event.target?.closest?.("button");
+      if (!button) return;
+
+      const label = button.textContent?.replace(/\s+/g, " ").trim();
+      if (label !== "Watch Demo Class") return;
+
+      const match = window.location.pathname.match(/^\/courses\/([^/]+)$/);
+      if (!match) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      navigate(`/courses/${encodeURIComponent(match[1])}/demo`);
+    };
+
+    document.addEventListener("click", handleDemoButtonClick, true);
+    return () => document.removeEventListener("click", handleDemoButtonClick, true);
+  }, [navigate]);
+
   return (
     <Routes>
       <Route path="/" element={<Courses />} />
       <Route path="/courses/:slug" element={<CourseDetails />} />
+      <Route path="/courses/:slug/demo" element={<DemoClass />} />
       <Route path="/courses/:slug/learn/:videoId?" element={<CourseLearningPage />} />
       <Route path="/courses/:slug/assessment" element={<Assessment />} />
       <Route path="/courses/:slug/certificate" element={<Certificate />} />
