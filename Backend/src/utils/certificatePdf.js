@@ -96,14 +96,19 @@ const drawRibbon = (doc) => {
 
 const drawLogo = (doc) => {
   doc.save();
-  const x = 555;
-  doc.font("Helvetica-Bold").fontSize(25).fillColor(COLORS.gold).text("APNA", x, 55, {
-    width: 90,
+  // Keep the complete COLLEGE word on one line. The previous 98pt box was too narrow,
+  // causing PDFKit to wrap it into "COLLE" + "GE".
+  const logoX = 505;
+  const logoWidth = 190;
+  doc.font("Helvetica-Bold").fontSize(25).fillColor(COLORS.gold).text("APNA", logoX, 55, {
+    width: logoWidth,
     align: "center",
+    lineBreak: false,
   });
-  doc.font("Helvetica-Bold").fontSize(25).fillColor(COLORS.navy).text("COLLEGE", x - 4, 78, {
-    width: 98,
+  doc.font("Helvetica-Bold").fontSize(25).fillColor(COLORS.navy).text("COLLEGE", logoX, 78, {
+    width: logoWidth,
     align: "center",
+    lineBreak: false,
   });
   doc.restore();
 };
