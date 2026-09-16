@@ -67,33 +67,117 @@ function CourseDetailsDemoPrompt() {
 
   if (!open || !isCourseDetails) return null;
 
+  const openDemoClass = () => {
+    navigate(`/courses/${encodeURIComponent(slug)}/demo`);
+  };
+
   return (
     <div
       role="dialog"
       aria-label="Demo Class"
       className="apna-demo-prompt"
+      style={{
+        position: "fixed",
+        right: 24,
+        bottom: 24,
+        zIndex: 99999,
+        width: "min(390px, calc(100vw - 32px))",
+        border: "1px solid rgba(96,165,250,.35)",
+        borderRadius: 16,
+        overflow: "hidden",
+        background: "linear-gradient(145deg,#0f172a,#132d4d)",
+        color: "#fff",
+        boxShadow: "0 30px 90px rgba(0,0,0,.55)",
+      }}
     >
-      <button
-        type="button"
-        aria-label="Close Demo Class notification"
-        className="apna-demo-prompt-close"
-        onClick={() => setOpen(false)}
+      <div
+        style={{
+          padding: "18px 20px 20px",
+          background:
+            "radial-gradient(circle at top right,rgba(37,99,235,.28),transparent 45%)",
+        }}
       >
-        ×
-      </button>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <button
+            type="button"
+            aria-label="Close Demo Class notification"
+            onClick={() => setOpen(false)}
+            style={{
+              width: 34,
+              height: 34,
+              padding: 0,
+              border: 0,
+              borderRadius: 999,
+              background: "rgba(255,255,255,.08)",
+              color: "#94a3b8",
+              cursor: "pointer",
+              fontSize: 24,
+              lineHeight: 1,
+              display: "grid",
+              placeItems: "center",
+            }}
+          >
+            ×
+          </button>
+        </div>
 
-      <button
-        type="button"
-        className="apna-demo-prompt-action"
-        onClick={() => navigate(`/courses/${encodeURIComponent(slug)}/demo`)}
-      >
-        <span className="apna-demo-prompt-icon">▶</span>
-        <span className="apna-demo-prompt-copy">
-          <strong>Demo Class</strong>
-          <span>Watch the free demo class</span>
-        </span>
-        <span className="apna-demo-prompt-arrow">›</span>
-      </button>
+        <div
+          style={{
+            width: 62,
+            height: 62,
+            borderRadius: 12,
+            display: "grid",
+            placeItems: "center",
+            background: "rgba(37,99,235,.18)",
+            border: "1px solid rgba(96,165,250,.3)",
+            marginBottom: 16,
+          }}
+        >
+          <span style={{ fontSize: 30, lineHeight: 1 }}>🔒</span>
+        </div>
+
+        <div
+          style={{
+            fontSize: "1.35rem",
+            fontWeight: 950,
+            lineHeight: 1.15,
+            color: "#fff",
+          }}
+        >
+          Enjoying the demo?
+        </div>
+
+        <div
+          style={{
+            marginTop: 10,
+            color: "#b6c4d6",
+            lineHeight: 1.65,
+            fontSize: ".92rem",
+          }}
+        >
+          Continue with the free demo class to explore the course before you enroll.
+        </div>
+
+        <button
+          type="button"
+          onClick={openDemoClass}
+          style={{
+            width: "100%",
+            marginTop: 20,
+            padding: "12px 18px",
+            border: 0,
+            borderRadius: 10,
+            color: "#fff",
+            fontSize: ".95rem",
+            fontWeight: 950,
+            cursor: "pointer",
+            background: "linear-gradient(135deg,#0875ff,#1d8cff)",
+            boxShadow: "0 14px 30px rgba(14,116,255,.3)",
+          }}
+        >
+          Watch Demo Class
+        </button>
+      </div>
     </div>
   );
 }
