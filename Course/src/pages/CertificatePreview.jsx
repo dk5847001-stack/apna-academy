@@ -86,17 +86,44 @@ export default function CertificatePreview({ course: providedCourse = null }) {
 
   if (loading || authLoading) {
     return (
-      <Box sx={{ py: 8, display: "grid", placeItems: "center" }}>
+      <Box
+        sx={{
+          py: 10,
+          width: "100vw",
+          ml: "calc(50% - 50vw)",
+          display: "grid",
+          placeItems: "center",
+          background: "linear-gradient(180deg, #061a33 0%, #081f3d 100%)",
+        }}
+      >
         <Stack alignItems="center" spacing={2}>
-          <CircularProgress />
-          <Typography color="text.secondary">Preparing your certificate preview...</Typography>
+          <CircularProgress sx={{ color: "#60a5fa" }} />
+          <Typography sx={{ color: "#cbd5e1" }}>
+            Preparing your certificate preview...
+          </Typography>
         </Stack>
       </Box>
     );
   }
 
   if (error && !course) {
-    return <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>;
+    return (
+      <Box
+        sx={{
+          py: 6,
+          px: 2,
+          width: "100vw",
+          ml: "calc(50% - 50vw)",
+          background: "#061a33",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <Alert severity="error" sx={{ width: "min(100%, 760px)", borderRadius: 3 }}>
+          {error}
+        </Alert>
+      </Box>
+    );
   }
 
   const title = safeCourseTitle(course);
@@ -106,20 +133,76 @@ export default function CertificatePreview({ course: providedCourse = null }) {
       component="section"
       aria-label="Locked certificate preview"
       sx={{
-        mt: { xs: 6, md: 8 },
-        mb: { xs: 4, md: 7 },
-        px: { xs: 0, sm: 1 },
+        mt: { xs: 5, md: 7 },
+        mb: { xs: 0, md: 1 },
+        pt: { xs: 6, md: 8 },
+        pb: { xs: 5, md: 7 },
+        px: { xs: 2, sm: 3, md: 5 },
+        width: "100vw",
+        ml: "calc(50% - 50vw)",
+        position: "relative",
+        overflow: "hidden",
+        background:
+          "radial-gradient(circle at 50% 0%, rgba(37,99,235,.18), transparent 34%), linear-gradient(180deg, #061a33 0%, #071d38 48%, #06172d 100%)",
+        borderTop: "1px solid rgba(96,165,250,.16)",
+        borderBottom: "1px solid rgba(96,165,250,.12)",
       }}
     >
-      <Stack spacing={1} alignItems="center" textAlign="center" sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <WorkspacePremium sx={{ color: "#f4c84a" }} />
-          <Typography sx={{ fontWeight: 950, color: "#fff", fontSize: { xs: "1.35rem", md: "1.65rem" } }}>
-            Your Certificate Preview
+      <Box
+        sx={{
+          position: "absolute",
+          width: 420,
+          height: 420,
+          borderRadius: "50%",
+          left: "-180px",
+          top: "80px",
+          background: "rgba(14,116,144,.10)",
+          filter: "blur(10px)",
+          pointerEvents: "none",
+        }}
+      />
+      <Box
+        sx={{
+          position: "absolute",
+          width: 360,
+          height: 360,
+          borderRadius: "50%",
+          right: "-160px",
+          bottom: "30px",
+          background: "rgba(37,99,235,.10)",
+          filter: "blur(10px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <Stack
+        spacing={1}
+        alignItems="center"
+        textAlign="center"
+        sx={{ width: "100%", maxWidth: 820, mx: "auto", mb: { xs: 3.5, md: 4.5 }, position: "relative", zIndex: 1 }}
+      >
+        <Stack direction="row" spacing={1.2} alignItems="center" justifyContent="center">
+          <WorkspacePremium sx={{ color: "#f4c84a", fontSize: { xs: 25, md: 30 } }} />
+          <Typography
+            sx={{
+              fontWeight: 950,
+              color: "#fff",
+              fontSize: { xs: "1.35rem", sm: "1.55rem", md: "1.85rem" },
+              letterSpacing: "-.02em",
+            }}
+          >
+            Certificate Preview
           </Typography>
         </Stack>
-        <Typography sx={{ color: "#94a3b8", maxWidth: 680 }}>
-          Your registered name will appear automatically. Complete the course and required assessment to unlock the official certificate.
+        <Typography
+          sx={{
+            color: "#9fb3c8",
+            maxWidth: 720,
+            fontSize: { xs: ".86rem", md: ".98rem" },
+            lineHeight: 1.7,
+          }}
+        >
+          Your registered name is shown on the preview. Complete the course and required assessment to unlock your official certificate.
         </Typography>
       </Stack>
 
@@ -133,8 +216,9 @@ export default function CertificatePreview({ course: providedCourse = null }) {
           overflow: "hidden",
           borderRadius: { xs: 2.5, md: 4 },
           background: "#fffef8",
-          border: "1px solid rgba(210,187,89,.55)",
-          boxShadow: "0 30px 90px rgba(0,0,0,.38), inset 0 0 0 8px rgba(210,187,89,.08)",
+          border: "1px solid rgba(210,187,89,.6)",
+          boxShadow: "0 35px 100px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.04)",
+          zIndex: 1,
         }}
       >
         <Box sx={{ position: "absolute", inset: 0, opacity: 0.72 }}>
@@ -184,18 +268,53 @@ export default function CertificatePreview({ course: providedCourse = null }) {
           </Stack>
         </Box>
 
-        <Box sx={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "rgba(6,26,53,.28)", backdropFilter: "blur(2.2px)", zIndex: 4 }}>
-          <Stack alignItems="center" spacing={1.2} sx={{ px: 2, py: 1.5, borderRadius: 3, background: "rgba(6,26,53,.88)", border: "1px solid rgba(147,197,253,.3)", boxShadow: "0 18px 50px rgba(0,0,0,.35)" }}>
-            <Box sx={{ width: 48, height: 48, borderRadius: "50%", display: "grid", placeItems: "center", background: "rgba(255,255,255,.1)", color: "#fff" }}><Lock /></Box>
-            <Typography sx={{ color: "#fff", fontWeight: 950, fontSize: { xs: ".9rem", md: "1.15rem" } }}>Certificate Locked</Typography>
-            <Typography sx={{ color: "#cbd5e1", fontSize: { xs: ".62rem", md: ".8rem" }, textAlign: "center" }}>Complete the course & required assessment to unlock</Typography>
-          </Stack>
-        </Box>
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 4,
+            background: "rgba(4,18,38,.24)",
+            backdropFilter: "blur(2px)",
+            pointerEvents: "none",
+          }}
+        />
+
+        <Stack
+          alignItems="center"
+          spacing={1.1}
+          sx={{
+            position: "absolute",
+            zIndex: 5,
+            left: "50%",
+            top: { xs: "27%", md: "29%" },
+            transform: "translate(-50%, -50%)",
+            width: { xs: "min(86%, 300px)", sm: "min(58%, 360px)", md: "min(42%, 400px)" },
+            px: { xs: 2, sm: 2.5 },
+            py: { xs: 1.25, sm: 1.5 },
+            borderRadius: { xs: 2.5, md: 3 },
+            background: "linear-gradient(135deg, rgba(7,30,58,.96), rgba(9,42,78,.94))",
+            border: "1px solid rgba(147,197,253,.28)",
+            boxShadow: "0 20px 55px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.06)",
+            textAlign: "center",
+          }}
+        >
+          <Box sx={{ width: { xs: 38, md: 44 }, height: { xs: 38, md: 44 }, borderRadius: "50%", display: "grid", placeItems: "center", background: "rgba(255,255,255,.1)", color: "#fff", border: "1px solid rgba(255,255,255,.1)" }}>
+            <Lock sx={{ fontSize: { xs: 19, md: 22 } }} />
+          </Box>
+          <Typography sx={{ color: "#fff", fontWeight: 950, fontSize: { xs: ".82rem", sm: ".95rem", md: "1.05rem" } }}>
+            Certificate Locked
+          </Typography>
+          <Typography sx={{ color: "#cbd5e1", fontSize: { xs: ".56rem", sm: ".65rem", md: ".72rem" }, lineHeight: 1.45 }}>
+            Complete the course & required assessment to unlock your official certificate.
+          </Typography>
+        </Stack>
       </Box>
 
-      <Stack direction="row" justifyContent="center" spacing={1} sx={{ mt: 2 }}>
+      <Stack direction="row" justifyContent="center" spacing={1} alignItems="center" sx={{ mt: 2.5, position: "relative", zIndex: 1 }}>
         <Verified sx={{ color: "#60a5fa", fontSize: 18 }} />
-        <Typography sx={{ color: "#94a3b8", fontSize: ".82rem" }}>Secure certificate preview • Official certificate remains locked</Typography>
+        <Typography sx={{ color: "#91a7bd", fontSize: { xs: ".72rem", md: ".82rem" }, textAlign: "center" }}>
+          Secure certificate preview • Official certificate remains locked
+        </Typography>
       </Stack>
     </Box>
   );
