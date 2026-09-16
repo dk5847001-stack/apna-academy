@@ -49,6 +49,7 @@ import {
 import {
   COURSE_URL,
   DASHBOARD_URL,
+  ADMIN_URL,
 } from "../constants/config";
 
 /* ============================================================
@@ -110,9 +111,7 @@ function getInitials(user) {
     return parts[0].slice(0, 2).toUpperCase();
   }
 
-  return `${parts[0][0]}${parts[
-    parts.length - 1
-  ][0]}`.toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
 /* ============================================================
@@ -135,9 +134,7 @@ function FooterColumn({ title, children }) {
         {title}
       </Typography>
 
-      <div className="space-y-1">
-        {children}
-      </div>
+      <div className="space-y-1">{children}</div>
     </div>
   );
 }
@@ -162,32 +159,16 @@ export default function MainLayout() {
   const location = useLocation();
 
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const [profileAnchor, setProfileAnchor] =
-    useState(null);
-
-  const [notificationAnchor, setNotificationAnchor] =
-    useState(null);
-
+  const [profileAnchor, setProfileAnchor] = useState(null);
+  const [notificationAnchor, setNotificationAnchor] = useState(null);
   const [user, setUser] = useState(getStoredUser);
-
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem("theme") === "dark";
   });
 
-  /*
-   * Authentication is determined from BOTH token and
-   * locally stored user information.
-   */
-  const isLoggedIn = Boolean(
-    localStorage.getItem("token") && user
-  );
-
+  const isLoggedIn = Boolean(localStorage.getItem("token") && user);
   const profileOpen = Boolean(profileAnchor);
-
-  const notificationOpen = Boolean(
-    notificationAnchor
-  );
+  const notificationOpen = Boolean(notificationAnchor);
 
   /* ==========================================================
      AUTH STATE SYNC
@@ -201,34 +182,19 @@ export default function MainLayout() {
     window.addEventListener("storage", syncAuth);
 
     return () => {
-      window.removeEventListener(
-        "storage",
-        syncAuth
-      );
+      window.removeEventListener("storage", syncAuth);
     };
   }, []);
 
-  /*
-   * Custom event support.
-   *
-   * Login/Register in the same browser tab can dispatch
-   * "apnaacademy-auth-change" after updating localStorage.
-   */
   useEffect(() => {
     const syncCurrentAuth = () => {
       setUser(getStoredUser());
     };
 
-    window.addEventListener(
-      "apnaacademy-auth-change",
-      syncCurrentAuth
-    );
+    window.addEventListener("apnaacademy-auth-change", syncCurrentAuth);
 
     return () => {
-      window.removeEventListener(
-        "apnaacademy-auth-change",
-        syncCurrentAuth
-      );
+      window.removeEventListener("apnaacademy-auth-change", syncCurrentAuth);
     };
   }, []);
 
@@ -260,17 +226,9 @@ export default function MainLayout() {
      NAVIGATION HELPERS
   ========================================================== */
 
-  const closeMobileMenu = () => {
-    setMobileOpen(false);
-  };
-
-  const closeProfileMenu = () => {
-    setProfileAnchor(null);
-  };
-
-  const closeNotificationMenu = () => {
-    setNotificationAnchor(null);
-  };
+  const closeMobileMenu = () => setMobileOpen(false);
+  const closeProfileMenu = () => setProfileAnchor(null);
+  const closeNotificationMenu = () => setNotificationAnchor(null);
 
   const handleCourses = () => {
     closeMobileMenu();
@@ -295,38 +253,40 @@ export default function MainLayout() {
     closeProfileMenu();
     closeMobileMenu();
     closeNotificationMenu();
-
     window.location.href = DASHBOARD_URL;
   };
 
   const handleProfile = () => {
     closeProfileMenu();
     closeMobileMenu();
-
-    window.location.href =
-      `${DASHBOARD_URL}/profile`;
+    window.location.href = `${DASHBOARD_URL}/profile`;
   };
 
   const handleMyCourses = () => {
     closeProfileMenu();
     closeMobileMenu();
-
-    window.location.href =
-      `${DASHBOARD_URL}/courses`;
+    window.location.href = `${DASHBOARD_URL}/courses`;
   };
 
   const handleNotifications = () => {
     closeNotificationMenu();
     closeMobileMenu();
-
-    window.location.href =
-      `${DASHBOARD_URL}/notifications`;
+    window.location.href = `${DASHBOARD_URL}/notifications`;
   };
 
   const handleLearningApp = () => {
     closeMobileMenu();
-
     window.location.href = COURSE_URL;
+  };
+
+  const handleAdminApp = () => {
+    closeMobileMenu();
+    window.location.href = ADMIN_URL;
+  };
+
+  const handleDsaApp = () => {
+    closeMobileMenu();
+    window.location.href = "/dsa";
   };
 
   /* ==========================================================
@@ -336,7 +296,6 @@ export default function MainLayout() {
   const handleSupport = () => {
     closeProfileMenu();
     closeMobileMenu();
-
     navigate("/contact");
   };
 
@@ -349,21 +308,13 @@ export default function MainLayout() {
     localStorage.removeItem("user");
 
     setUser(null);
-
     closeProfileMenu();
     closeNotificationMenu();
     closeMobileMenu();
 
-    /*
-     * Notify components in the same tab.
-     */
-    window.dispatchEvent(
-      new Event("apnaacademy-auth-change")
-    );
+    window.dispatchEvent(new Event("apnaacademy-auth-change"));
 
-    navigate("/login", {
-      replace: true,
-    });
+    navigate("/login", { replace: true });
   };
 
   /* ==========================================================
@@ -387,10 +338,8 @@ export default function MainLayout() {
         sx={{
           backgroundColor: "#ffffff",
           color: "#0f172a",
-          borderBottom:
-            "1px solid #e2e8f0",
-          boxShadow:
-            "0 1px 3px rgba(15, 23, 42, 0.04)",
+          borderBottom: "1px solid #e2e8f0",
+          boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
           zIndex: 1200,
         }}
       >
@@ -398,10 +347,6 @@ export default function MainLayout() {
           disableGutters
           className="mx-auto flex min-h-[68px] w-full max-w-7xl px-4 sm:px-6 lg:px-8"
         >
-          {/* ==================================================
-              BRAND
-          =================================================== */}
-
           <Link
             to="/"
             onClick={closeMobileMenu}
@@ -424,7 +369,6 @@ export default function MainLayout() {
               >
                 ApnaAcademy
               </Typography>
-
               <Typography
                 component="div"
                 sx={{
@@ -438,10 +382,6 @@ export default function MainLayout() {
               </Typography>
             </div>
           </Link>
-
-          {/* ==================================================
-              DESKTOP NAVIGATION
-          =================================================== */}
 
           <nav className="ml-8 hidden items-center gap-1 lg:flex">
             {navItems.map((item) => (
@@ -462,13 +402,7 @@ export default function MainLayout() {
             ))}
           </nav>
 
-          {/* ==================================================
-              RIGHT NAVBAR ACTIONS
-          =================================================== */}
-
           <div className="ml-auto flex items-center gap-1.5">
-            {/* Search */}
-
             <Tooltip title="Search courses">
               <IconButton
                 onClick={handleSearch}
@@ -478,79 +412,41 @@ export default function MainLayout() {
                   height: 40,
                   color: "#475569",
                   backgroundColor: "#ffffff",
-                  "&:hover": {
-                    color: "#1d4ed8",
-                    backgroundColor: "#eff6ff",
-                  },
+                  "&:hover": { color: "#1d4ed8", backgroundColor: "#eff6ff" },
                 }}
               >
                 <Search fontSize="small" />
               </IconButton>
             </Tooltip>
 
-            {/* =================================================
-                THEME TOGGLE
-            ================================================== */}
-
-            <Tooltip
-              title={
-                isDarkMode
-                  ? "Switch to light mode"
-                  : "Switch to dark mode"
-              }
-            >
+            <Tooltip title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}>
               <IconButton
-                onClick={() =>
-                  setIsDarkMode(
-                    (previous) => !previous
-                  )
-                }
+                onClick={() => setIsDarkMode((previous) => !previous)}
                 aria-label="Toggle theme"
                 sx={{
-                  display: {
-                    xs: "none",
-                    sm: "inline-flex",
-                  },
+                  display: { xs: "none", sm: "inline-flex" },
                   width: 40,
                   height: 40,
                   color: "#475569",
                   backgroundColor: "#ffffff",
-                  "&:hover": {
-                    color: "#1d4ed8",
-                    backgroundColor: "#eff6ff",
-                  },
+                  "&:hover": { color: "#1d4ed8", backgroundColor: "#eff6ff" },
                 }}
               >
-                {isDarkMode ? (
-                  <LightMode fontSize="small" />
-                ) : (
-                  <DarkMode fontSize="small" />
-                )}
+                {isDarkMode ? <LightMode fontSize="small" /> : <DarkMode fontSize="small" />}
               </IconButton>
             </Tooltip>
-
-            {/* =================================================
-                NOTIFICATIONS
-            ================================================== */}
 
             {isLoggedIn && (
               <Tooltip title="Notifications">
                 <IconButton
-                  onClick={(event) =>
-                    setNotificationAnchor(
-                      event.currentTarget
-                    )
-                  }
+                  onClick={(event) => setNotificationAnchor(event.currentTarget)}
                   aria-label="Notifications"
                   sx={{
                     width: 40,
                     height: 40,
                     color: "#475569",
                     backgroundColor: "#ffffff",
-                    "&:hover": {
-                      color: "#1d4ed8",
-                      backgroundColor: "#eff6ff",
-                    },
+                    "&:hover": { color: "#1d4ed8", backgroundColor: "#eff6ff" },
                   }}
                 >
                   <Notifications fontSize="small" />
@@ -558,51 +454,20 @@ export default function MainLayout() {
               </Tooltip>
             )}
 
-            {/* =================================================
-                DESKTOP AUTH
-            ================================================== */}
-
             {!isLoggedIn ? (
               <div className="ml-1 hidden items-center gap-2 md:flex">
                 <Button
                   onClick={handleLogin}
                   variant="text"
-                  startIcon={
-                    <Login fontSize="small" />
-                  }
-                  sx={{
-                    minHeight: 40,
-                    px: 1.5,
-                    borderRadius: "9px",
-                    color: "#334155",
-                    fontWeight: 700,
-                    textTransform: "none",
-                    "&:hover": {
-                      color: "#1d4ed8",
-                      backgroundColor: "#eff6ff",
-                    },
-                  }}
+                  startIcon={<Login fontSize="small" />}
+                  sx={{ minHeight: 40, px: 1.5, borderRadius: "9px", color: "#334155", fontWeight: 700, textTransform: "none", "&:hover": { color: "#1d4ed8", backgroundColor: "#eff6ff" } }}
                 >
                   Login
                 </Button>
-
                 <Button
                   onClick={handleRegister}
                   variant="contained"
-                  sx={{
-                    minHeight: 40,
-                    px: 2,
-                    borderRadius: "9px",
-                    backgroundColor: "#2563eb",
-                    color: "#ffffff",
-                    fontWeight: 700,
-                    textTransform: "none",
-                    boxShadow: "none",
-                    "&:hover": {
-                      backgroundColor: "#1d4ed8",
-                      boxShadow: "none",
-                    },
-                  }}
+                  sx={{ minHeight: 40, px: 2, borderRadius: "9px", backgroundColor: "#2563eb", color: "#ffffff", fontWeight: 700, textTransform: "none", boxShadow: "none", "&:hover": { backgroundColor: "#1d4ed8", boxShadow: "none" } }}
                 >
                   Get Started
                 </Button>
@@ -610,979 +475,105 @@ export default function MainLayout() {
             ) : (
               <div className="ml-1 hidden md:block">
                 <Button
-                  onClick={(event) =>
-                    setProfileAnchor(
-                      event.currentTarget
-                    )
-                  }
-                  endIcon={
-                    <KeyboardArrowDown
-                      sx={{
-                        color: "#64748b",
-                      }}
-                    />
-                  }
-                  sx={{
-                    minHeight: 42,
-                    px: 1,
-                    borderRadius: "10px",
-                    color: "#0f172a",
-                    backgroundColor: "#ffffff",
-                    textTransform: "none",
-                    "&:hover": {
-                      color: "#0f172a",
-                      backgroundColor: "#f8fafc",
-                    },
-                  }}
+                  onClick={(event) => setProfileAnchor(event.currentTarget)}
+                  endIcon={<KeyboardArrowDown sx={{ color: "#64748b" }} />}
+                  sx={{ minHeight: 42, px: 1, borderRadius: "10px", color: "#0f172a", backgroundColor: "#ffffff", textTransform: "none", "&:hover": { color: "#0f172a", backgroundColor: "#f8fafc" } }}
                 >
-                  <Avatar
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      mr: 1,
-                      backgroundColor: "#dbeafe",
-                      color: "#1d4ed8",
-                      fontSize: "0.8rem",
-                      fontWeight: 800,
-                    }}
-                  >
+                  <Avatar sx={{ width: 32, height: 32, mr: 1, backgroundColor: "#dbeafe", color: "#1d4ed8", fontSize: "0.8rem", fontWeight: 800 }}>
                     {getInitials(user)}
                   </Avatar>
-
                   <span className="max-w-[110px] truncate text-sm font-bold">
-                    {user?.name ||
-                      user?.fullName ||
-                      user?.username ||
-                      "Student"}
+                    {user?.name || user?.fullName || user?.username || "Student"}
                   </span>
                 </Button>
               </div>
             )}
 
-            {/* =================================================
-                MOBILE MENU
-            ================================================== */}
-
             <IconButton
-              onClick={() =>
-                setMobileOpen(true)
-              }
-              aria-label="Open menu"
-              sx={{
-                ml: 0.5,
-                display: {
-                  xs: "inline-flex",
-                  md: "none",
-                },
-                width: 42,
-                height: 42,
-                color: "#0f172a",
-                backgroundColor: "#ffffff",
-                border:
-                  "1px solid #e2e8f0",
-                borderRadius: "10px",
-                "&:hover": {
-                  backgroundColor: "#f8fafc",
-                  color: "#1d4ed8",
-                },
-              }}
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open navigation menu"
+              sx={{ display: { xs: "inline-flex", lg: "none" }, width: 40, height: 40, color: "#334155" }}
             >
-              <MenuIcon />
+              <MenuIcon fontSize="small" />
             </IconButton>
           </div>
         </Toolbar>
       </AppBar>
 
       {/* ======================================================
-          PROFILE MENU
+          MENUS
       ======================================================= */}
 
       <Menu
         anchorEl={profileAnchor}
         open={profileOpen}
         onClose={closeProfileMenu}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        slotProps={{
-          paper: {
-            sx: {
-              mt: 1,
-              width: 250,
-              borderRadius: "12px",
-              border:
-                "1px solid #e2e8f0",
-              backgroundColor: "#ffffff",
-              boxShadow:
-                "0 14px 35px rgba(15, 23, 42, 0.12)",
-              overflow: "hidden",
-            },
-          },
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        {/* Profile header */}
-
-        <Box
-          sx={{
-            px: 2,
-            py: 1.75,
-            backgroundColor: "#f8fafc",
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <Avatar
-              sx={{
-                width: 40,
-                height: 40,
-                backgroundColor: "#dbeafe",
-                color: "#1d4ed8",
-                fontWeight: 800,
-              }}
-            >
-              {getInitials(user)}
-            </Avatar>
-
-            <div className="min-w-0">
-              <Typography
-                sx={{
-                  color: "#0f172a",
-                  fontSize: "0.9rem",
-                  fontWeight: 800,
-                }}
-                noWrap
-              >
-                {user?.name ||
-                  user?.fullName ||
-                  user?.username ||
-                  "Student"}
-              </Typography>
-
-              <Typography
-                sx={{
-                  color: "#64748b",
-                  fontSize: "0.72rem",
-                }}
-                noWrap
-              >
-                {user?.email ||
-                  "Student account"}
-              </Typography>
-            </div>
-          </div>
-        </Box>
-
-        <Divider />
-
-        {/* Profile */}
-
-        <MenuItem
-          onClick={handleProfile}
-          sx={{
-            minHeight: 44,
-            color: "#334155",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            "&:hover": {
-              backgroundColor: "#eff6ff",
-              color: "#1d4ed8",
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 36,
-              color: "inherit",
-            }}
-          >
-            <Person fontSize="small" />
-          </ListItemIcon>
-
-          Profile
-        </MenuItem>
-
-        {/* My Courses */}
-
-        <MenuItem
-          onClick={handleMyCourses}
-          sx={{
-            minHeight: 44,
-            color: "#334155",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            "&:hover": {
-              backgroundColor: "#eff6ff",
-              color: "#1d4ed8",
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 36,
-              color: "inherit",
-            }}
-          >
-            <MenuBook fontSize="small" />
-          </ListItemIcon>
-
-          My Courses
-        </MenuItem>
-
-        {/* Dashboard */}
-
-        <MenuItem
-          onClick={handleDashboard}
-          sx={{
-            minHeight: 44,
-            color: "#334155",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            "&:hover": {
-              backgroundColor: "#eff6ff",
-              color: "#1d4ed8",
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 36,
-              color: "inherit",
-            }}
-          >
-            <Dashboard fontSize="small" />
-          </ListItemIcon>
-
+        <MenuItem onClick={handleDashboard}>
+          <ListItemIcon><Dashboard fontSize="small" /></ListItemIcon>
           Dashboard
         </MenuItem>
-
-        {/* Support */}
-
-        <MenuItem
-          onClick={handleSupport}
-          sx={{
-            minHeight: 44,
-            color: "#334155",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            "&:hover": {
-              backgroundColor: "#eff6ff",
-              color: "#1d4ed8",
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 36,
-              color: "inherit",
-            }}
-          >
-            <SupportAgent fontSize="small" />
-          </ListItemIcon>
-
-          Support
+        <MenuItem onClick={handleProfile}>
+          <ListItemIcon><Person fontSize="small" /></ListItemIcon>
+          Profile
         </MenuItem>
-
+        <MenuItem onClick={handleMyCourses}>
+          <ListItemIcon><MenuBook fontSize="small" /></ListItemIcon>
+          My Courses
+        </MenuItem>
         <Divider />
-
-        {/* Logout */}
-
-        <MenuItem
-          onClick={handleLogout}
-          sx={{
-            minHeight: 44,
-            color: "#dc2626",
-            fontSize: "0.875rem",
-            fontWeight: 700,
-            "&:hover": {
-              backgroundColor: "#fef2f2",
-              color: "#b91c1c",
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 36,
-              color: "inherit",
-            }}
-          >
-            <Logout fontSize="small" />
-          </ListItemIcon>
-
+        <MenuItem onClick={handleLogout}>
+          <ListItemIcon><Logout fontSize="small" /></ListItemIcon>
           Logout
         </MenuItem>
       </Menu>
-
-      {/* ======================================================
-          NOTIFICATION MENU
-      ======================================================= */}
 
       <Menu
         anchorEl={notificationAnchor}
         open={notificationOpen}
         onClose={closeNotificationMenu}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        slotProps={{
-          paper: {
-            sx: {
-              mt: 1,
-              width: 310,
-              maxWidth: "calc(100vw - 24px)",
-              borderRadius: "12px",
-              border:
-                "1px solid #e2e8f0",
-              backgroundColor: "#ffffff",
-              boxShadow:
-                "0 14px 35px rgba(15, 23, 42, 0.12)",
-              overflow: "hidden",
-            },
-          },
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <Box
-          sx={{
-            px: 2,
-            py: 1.5,
-          }}
-        >
-          <div className="flex items-center gap-2">
-            <Notifications
-              sx={{
-                color: "#2563eb",
-                fontSize: 20,
-              }}
-            />
-
-            <Typography
-              sx={{
-                color: "#0f172a",
-                fontWeight: 800,
-                fontSize: "0.9rem",
-              }}
-            >
-              Notifications
-            </Typography>
-          </div>
-
-          <Typography
-            sx={{
-              mt: 0.5,
-              color: "#64748b",
-              fontSize: "0.75rem",
-              lineHeight: 1.5,
-            }}
-          >
-            Stay updated with your learning
-            activity and new course updates.
-          </Typography>
-        </Box>
-
-        <Divider />
-
-        <MenuItem
-          onClick={handleNotifications}
-          sx={{
-            minHeight: 54,
-            color: "#334155",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            "&:hover": {
-              backgroundColor: "#eff6ff",
-              color: "#1d4ed8",
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 36,
-              color: "inherit",
-            }}
-          >
-            <Notifications fontSize="small" />
-          </ListItemIcon>
-
-          View all notifications
+        <MenuItem onClick={handleNotifications}>
+          <ListItemIcon><Notifications fontSize="small" /></ListItemIcon>
+          View Notifications
         </MenuItem>
       </Menu>
 
-      {/* ======================================================
-          MOBILE DRAWER
-      ======================================================= */}
-
-      <Drawer
-        anchor="right"
-        open={mobileOpen}
-        onClose={closeMobileMenu}
-        slotProps={{
-          paper: {
-            sx: {
-              width: {
-                xs: "88%",
-                sm: 360,
-              },
-              maxWidth: 380,
-              backgroundColor: "#ffffff",
-              color: "#0f172a",
-              borderLeft:
-                "1px solid #e2e8f0",
-            },
-          },
-        }}
-      >
-        <div className="flex h-full flex-col bg-white">
-          {/* Drawer header */}
-
-          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
-            <Link
-              to="/"
-              onClick={closeMobileMenu}
-              className="flex items-center gap-2.5 no-underline"
-            >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
-                <School fontSize="small" />
-              </div>
-
-              <div>
-                <Typography
-                  sx={{
-                    color: "#0f172a",
-                    fontWeight: 900,
-                    fontSize: "1rem",
-                    lineHeight: 1.1,
-                  }}
-                >
-                  ApnaAcademy
-                </Typography>
-
-                <Typography
-                  sx={{
-                    color: "#64748b",
-                    fontSize: "0.65rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  Learn. Build. Grow.
-                </Typography>
-              </div>
-            </Link>
-
-            <IconButton
-              onClick={closeMobileMenu}
-              aria-label="Close menu"
-              sx={{
-                width: 40,
-                height: 40,
-                color: "#475569",
-                "&:hover": {
-                  backgroundColor: "#f8fafc",
-                  color: "#1d4ed8",
-                },
-              }}
-            >
-              <Close fontSize="small" />
-            </IconButton>
+      <Drawer anchor="right" open={mobileOpen} onClose={closeMobileMenu}>
+        <Box sx={{ width: { xs: "min(88vw, 360px)", sm: 360 }, p: 2 }} role="presentation">
+          <div className="mb-2 flex items-center justify-between">
+            <Typography sx={{ fontWeight: 900, color: "#0f172a" }}>ApnaAcademy</Typography>
+            <IconButton onClick={closeMobileMenu} aria-label="Close navigation menu"><Close /></IconButton>
           </div>
-
-          {/* User section */}
-
-          {isLoggedIn && (
-            <div className="border-b border-slate-200 bg-slate-50 px-4 py-4">
-              <div className="flex items-center gap-3">
-                <Avatar
-                  sx={{
-                    width: 42,
-                    height: 42,
-                    backgroundColor: "#dbeafe",
-                    color: "#1d4ed8",
-                    fontWeight: 800,
-                  }}
-                >
-                  {getInitials(user)}
-                </Avatar>
-
-                <div className="min-w-0">
-                  <Typography
-                    sx={{
-                      color: "#0f172a",
-                      fontWeight: 800,
-                      fontSize: "0.9rem",
-                    }}
-                    noWrap
-                  >
-                    {user?.name ||
-                      user?.fullName ||
-                      user?.username ||
-                      "Student"}
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      color: "#64748b",
-                      fontSize: "0.72rem",
-                    }}
-                    noWrap
-                  >
-                    {user?.email ||
-                      "Student account"}
-                  </Typography>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Mobile navigation */}
-
-          <List
-            sx={{
-              px: 1.5,
-              py: 2,
-              flex: 1,
-              overflowY: "auto",
-            }}
-          >
+          <Divider />
+          <List>
             {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === "/"}
-                onClick={closeMobileMenu}
-                className="no-underline"
-              >
-                {({ isActive }) => (
-                  <ListItemButton
-                    sx={{
-                      minHeight: 46,
-                      mb: 0.5,
-                      borderRadius: "9px",
-                      color: isActive
-                        ? "#1d4ed8"
-                        : "#334155",
-                      backgroundColor:
-                        isActive
-                          ? "#eff6ff"
-                          : "transparent",
-                      "&:hover": {
-                        backgroundColor:
-                          "#f8fafc",
-                        color: "#1d4ed8",
-                      },
-                    }}
-                  >
-                    <ListItemIcon
-                      sx={{
-                        minWidth: 38,
-                        color: "inherit",
-                      }}
-                    >
-                      {item.path === "/" ? (
-                        <School fontSize="small" />
-                      ) : item.path ===
-                        "/courses" ? (
-                        <MenuBook fontSize="small" />
-                      ) : item.path ===
-                        "/about" ? (
-                        <InfoOutlined fontSize="small" />
-                      ) : (
-                        <ContactSupport fontSize="small" />
-                      )}
-                    </ListItemIcon>
-
-                    <ListItemText
-                      primary={item.label}
-                      slotProps={{
-                        primary: {
-                          sx: {
-                            fontSize: "0.9rem",
-                            fontWeight: isActive
-                              ? 800
-                              : 600,
-                          },
-                        },
-                      }}
-                    />
-                  </ListItemButton>
-                )}
-              </NavLink>
+              <ListItemButton key={item.path} component={NavLink} to={item.path} onClick={closeMobileMenu}>
+                <ListItemText primary={item.label} />
+              </ListItemButton>
             ))}
-
-            {/* Search */}
-
-            <ListItemButton
-              onClick={handleSearch}
-              sx={{
-                minHeight: 46,
-                mb: 0.5,
-                borderRadius: "9px",
-                color: "#334155",
-                "&:hover": {
-                  backgroundColor: "#f8fafc",
-                  color: "#1d4ed8",
-                },
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: 38,
-                  color: "inherit",
-                }}
-              >
-                <Search fontSize="small" />
-              </ListItemIcon>
-
-              <ListItemText
-                primary="Search Courses"
-                slotProps={{
-                  primary: {
-                    sx: {
-                      fontSize: "0.9rem",
-                      fontWeight: 600,
-                    },
-                  },
-                }}
-              />
+            <ListItemButton onClick={handleLearningApp}>
+              <ListItemIcon><MenuBook fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Learning App" />
             </ListItemButton>
-
-            {/* Theme */}
-
-            <ListItemButton
-              onClick={() =>
-                setIsDarkMode(
-                  (previous) => !previous
-                )
-              }
-              sx={{
-                minHeight: 46,
-                mb: 0.5,
-                borderRadius: "9px",
-                color: "#334155",
-                "&:hover": {
-                  backgroundColor: "#f8fafc",
-                  color: "#1d4ed8",
-                },
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: 38,
-                  color: "inherit",
-                }}
-              >
-                {isDarkMode ? (
-                  <LightMode fontSize="small" />
-                ) : (
-                  <DarkMode fontSize="small" />
-                )}
-              </ListItemIcon>
-
-              <ListItemText
-                primary={
-                  isDarkMode
-                    ? "Light Mode"
-                    : "Dark Mode"
-                }
-                slotProps={{
-                  primary: {
-                    sx: {
-                      fontSize: "0.9rem",
-                      fontWeight: 600,
-                    },
-                  },
-                }}
-              />
+            <ListItemButton onClick={handleDsaApp}>
+              <ListItemIcon><School fontSize="small" /></ListItemIcon>
+              <ListItemText primary="DSA Practice" />
             </ListItemButton>
-
-            {isLoggedIn && (
-              <>
-                <Divider sx={{ my: 1.5 }} />
-
-                {/* Dashboard */}
-
-                <ListItemButton
-                  onClick={handleDashboard}
-                  sx={{
-                    minHeight: 46,
-                    mb: 0.5,
-                    borderRadius: "9px",
-                    color: "#334155",
-                    "&:hover": {
-                      backgroundColor: "#eff6ff",
-                      color: "#1d4ed8",
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 38,
-                      color: "inherit",
-                    }}
-                  >
-                    <Dashboard fontSize="small" />
-                  </ListItemIcon>
-
-                  <ListItemText
-                    primary="Dashboard"
-                    slotProps={{
-                      primary: {
-                        sx: {
-                          fontSize: "0.9rem",
-                          fontWeight: 600,
-                        },
-                      },
-                    }}
-                  />
-                </ListItemButton>
-
-                {/* Profile */}
-
-                <ListItemButton
-                  onClick={handleProfile}
-                  sx={{
-                    minHeight: 46,
-                    mb: 0.5,
-                    borderRadius: "9px",
-                    color: "#334155",
-                    "&:hover": {
-                      backgroundColor: "#eff6ff",
-                      color: "#1d4ed8",
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 38,
-                      color: "inherit",
-                    }}
-                  >
-                    <Person fontSize="small" />
-                  </ListItemIcon>
-
-                  <ListItemText
-                    primary="Profile"
-                    slotProps={{
-                      primary: {
-                        sx: {
-                          fontSize: "0.9rem",
-                          fontWeight: 600,
-                        },
-                      },
-                    }}
-                  />
-                </ListItemButton>
-
-                {/* My Courses */}
-
-                <ListItemButton
-                  onClick={handleMyCourses}
-                  sx={{
-                    minHeight: 46,
-                    mb: 0.5,
-                    borderRadius: "9px",
-                    color: "#334155",
-                    "&:hover": {
-                      backgroundColor: "#eff6ff",
-                      color: "#1d4ed8",
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 38,
-                      color: "inherit",
-                    }}
-                  >
-                    <MenuBook fontSize="small" />
-                  </ListItemIcon>
-
-                  <ListItemText
-                    primary="My Courses"
-                    slotProps={{
-                      primary: {
-                        sx: {
-                          fontSize: "0.9rem",
-                          fontWeight: 600,
-                        },
-                      },
-                    }}
-                  />
-                </ListItemButton>
-
-                {/* Notifications */}
-
-                <ListItemButton
-                  onClick={handleNotifications}
-                  sx={{
-                    minHeight: 46,
-                    mb: 0.5,
-                    borderRadius: "9px",
-                    color: "#334155",
-                    "&:hover": {
-                      backgroundColor: "#eff6ff",
-                      color: "#1d4ed8",
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 38,
-                      color: "inherit",
-                    }}
-                  >
-                    <Notifications fontSize="small" />
-                  </ListItemIcon>
-
-                  <ListItemText
-                    primary="Notifications"
-                    slotProps={{
-                      primary: {
-                        sx: {
-                          fontSize: "0.9rem",
-                          fontWeight: 600,
-                        },
-                      },
-                    }}
-                  />
-                </ListItemButton>
-
-                {/* Support */}
-
-                <ListItemButton
-                  onClick={handleSupport}
-                  sx={{
-                    minHeight: 46,
-                    mb: 0.5,
-                    borderRadius: "9px",
-                    color: "#334155",
-                    "&:hover": {
-                      backgroundColor: "#eff6ff",
-                      color: "#1d4ed8",
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 38,
-                      color: "inherit",
-                    }}
-                  >
-                    <SupportAgent fontSize="small" />
-                  </ListItemIcon>
-
-                  <ListItemText
-                    primary="Support"
-                    slotProps={{
-                      primary: {
-                        sx: {
-                          fontSize: "0.9rem",
-                          fontWeight: 600,
-                        },
-                      },
-                    }}
-                  />
-                </ListItemButton>
-
-                {/* Logout */}
-
-                <ListItemButton
-                  onClick={handleLogout}
-                  sx={{
-                    minHeight: 46,
-                    mb: 0.5,
-                    borderRadius: "9px",
-                    color: "#dc2626",
-                    "&:hover": {
-                      backgroundColor: "#fef2f2",
-                      color: "#b91c1c",
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 38,
-                      color: "inherit",
-                    }}
-                  >
-                    <Logout fontSize="small" />
-                  </ListItemIcon>
-
-                  <ListItemText
-                    primary="Logout"
-                    slotProps={{
-                      primary: {
-                        sx: {
-                          fontSize: "0.9rem",
-                          fontWeight: 700,
-                        },
-                      },
-                    }}
-                  />
-                </ListItemButton>
-              </>
-            )}
+            <ListItemButton onClick={handleAdminApp}>
+              <ListItemIcon><Settings fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Admin Portal" />
+            </ListItemButton>
+            <ListItemButton onClick={handleSupport}>
+              <ListItemIcon><SupportAgent fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Support" />
+            </ListItemButton>
           </List>
-
-          {/* ==================================================
-              MOBILE AUTH
-          =================================================== */}
-
-          {!isLoggedIn && (
-            <div className="border-t border-slate-200 p-4">
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  onClick={handleLogin}
-                  variant="outlined"
-                  startIcon={
-                    <Login fontSize="small" />
-                  }
-                  sx={{
-                    minHeight: 44,
-                    borderRadius: "9px",
-                    borderColor: "#cbd5e1",
-                    color: "#334155",
-                    fontWeight: 700,
-                    textTransform: "none",
-                    "&:hover": {
-                      borderColor: "#2563eb",
-                      backgroundColor: "#eff6ff",
-                      color: "#1d4ed8",
-                    },
-                  }}
-                >
-                  Login
-                </Button>
-
-                <Button
-                  onClick={handleRegister}
-                  variant="contained"
-                  sx={{
-                    minHeight: 44,
-                    borderRadius: "9px",
-                    backgroundColor: "#2563eb",
-                    color: "#ffffff",
-                    fontWeight: 700,
-                    textTransform: "none",
-                    boxShadow: "none",
-                    "&:hover": {
-                      backgroundColor: "#1d4ed8",
-                      boxShadow: "none",
-                    },
-                  }}
-                >
-                  Register
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+        </Box>
       </Drawer>
 
       {/* ======================================================
@@ -1599,199 +590,109 @@ export default function MainLayout() {
 
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
-            {/* =================================================
-                BRAND
-            ================================================== */}
-
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.45fr_1fr_1fr_1.15fr_1fr]">
+            {/* BRAND */}
             <div className="max-w-md">
-              <Link
-                to="/"
-                className="inline-flex items-center gap-2.5 no-underline"
-              >
+              <Link to="/" className="inline-flex items-center gap-2.5 no-underline">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
                   <School fontSize="small" />
                 </div>
-
-                <Typography
-                  sx={{
-                    color: "#0f172a",
-                    fontWeight: 900,
-                    fontSize: "1.1rem",
-                  }}
-                >
+                <Typography sx={{ color: "#0f172a", fontWeight: 900, fontSize: "1.1rem" }}>
                   ApnaAcademy
                 </Typography>
               </Link>
 
-              <Typography
-                sx={{
-                  mt: 2,
-                  maxWidth: 430,
-                  color: "#64748b",
-                  fontSize: "0.875rem",
-                  lineHeight: 1.7,
-                }}
-              >
-                Build practical skills through
-                structured courses, hands-on
-                learning and outcome-focused
-                education.
+              <Typography sx={{ mt: 2, maxWidth: 430, color: "#64748b", fontSize: "0.875rem", lineHeight: 1.7 }}>
+                Build practical skills through structured courses, hands-on learning and outcome-focused education.
               </Typography>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
-                  Practical Learning
-                </span>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">Practical Learning</span>
+                <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Career Focused</span>
+              </div>
 
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
-                  Career Focused
-                </span>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <Button onClick={handleCourses} variant="contained" size="small" startIcon={<MenuBook fontSize="small" />} sx={{ borderRadius: 2, textTransform: "none", fontWeight: 800, boxShadow: "none" }}>
+                  Explore Courses
+                </Button>
+                <Button onClick={isLoggedIn ? handleDashboard : handleRegister} variant="outlined" size="small" startIcon={<Dashboard fontSize="small" />} sx={{ borderRadius: 2, textTransform: "none", fontWeight: 800 }}>
+                  {isLoggedIn ? "Open Dashboard" : "Get Started"}
+                </Button>
               </div>
             </div>
 
-            {/* =================================================
-                PLATFORM
-            ================================================== */}
+            {/* QUICK LINKS */}
+            <FooterColumn title="Quick Links">
+              <FooterLink to="/">Home</FooterLink>
+              <FooterLink to="/courses">All Courses</FooterLink>
+              <FooterLink to="/about">About Us</FooterLink>
+              <FooterLink to="/contact">Contact</FooterLink>
+              <FooterLink to="/login">Login</FooterLink>
+              <FooterLink to="/register">Create Account</FooterLink>
+            </FooterColumn>
 
-            <FooterColumn title="Platform">
-              <FooterLink to="/courses">
-                Courses
-              </FooterLink>
+            {/* LEARNING */}
+            <FooterColumn title="Learning">
+              <button type="button" onClick={handleLearningApp} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">Learning App</button>
+              {isLoggedIn && (
+                <>
+                  <button type="button" onClick={handleMyCourses} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">My Courses</button>
+                  <button type="button" onClick={handleNotifications} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">Notifications</button>
+                </>
+              )}
+              <FooterLink to="/contact">Learning Support</FooterLink>
+            </FooterColumn>
 
-              <FooterLink to="/about">
-                About Us
-              </FooterLink>
+            {/* APPS */}
+            <FooterColumn title="ApnaAcademy Apps">
+              <button type="button" onClick={handleDashboard} className="group flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-blue-700 shadow-sm"><Dashboard fontSize="small" /></span>
+                <span><span className="block text-sm font-bold text-slate-800">Student Dashboard</span><span className="block text-[11px] text-slate-500">Profile & progress</span></span>
+              </button>
 
-              <FooterLink to="/contact">
-                Contact
-              </FooterLink>
+              <button type="button" onClick={handleLearningApp} className="group mt-2 flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-blue-700 shadow-sm"><MenuBook fontSize="small" /></span>
+                <span><span className="block text-sm font-bold text-slate-800">Learning App</span><span className="block text-[11px] text-slate-500">Courses & lessons</span></span>
+              </button>
 
-              <button
-                type="button"
-                onClick={handleLearningApp}
-                className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
-              >
-                Learning App
+              <button type="button" onClick={handleDsaApp} className="group mt-2 flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-violet-700 shadow-sm"><School fontSize="small" /></span>
+                <span><span className="block text-sm font-bold text-slate-800">DSA Practice</span><span className="block text-[11px] text-slate-500">Practice & challenges</span></span>
+              </button>
+
+              <button type="button" onClick={handleAdminApp} className="group mt-2 flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-100">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-slate-700 shadow-sm"><Settings fontSize="small" /></span>
+                <span><span className="block text-sm font-bold text-slate-800">Admin Portal</span><span className="block text-[11px] text-slate-500">Administration</span></span>
               </button>
             </FooterColumn>
 
-            {/* =================================================
-                SUPPORT
-            ================================================== */}
-
-            <FooterColumn title="Support">
-              <FooterLink to="/contact">
-                Help Center
-              </FooterLink>
-
-              <FooterLink to="/contact">
-                Contact Support
-              </FooterLink>
-
-              <FooterLink to="/about">
-                About ApnaAcademy
-              </FooterLink>
-            </FooterColumn>
-
-            {/* =================================================
-                ACCOUNT
-            ================================================== */}
-
-            <FooterColumn title="Account">
+            {/* ACCOUNT / SUPPORT */}
+            <FooterColumn title="Account & Support">
               {isLoggedIn ? (
                 <>
-                  <button
-                    type="button"
-                    onClick={handleDashboard}
-                    className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
-                  >
-                    Dashboard
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleMyCourses}
-                    className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
-                  >
-                    My Courses
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleProfile}
-                    className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700"
-                  >
-                    Profile
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-red-600 transition-colors duration-200 hover:text-red-700"
-                  >
-                    Logout
-                  </button>
+                  <button type="button" onClick={handleDashboard} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">Dashboard</button>
+                  <button type="button" onClick={handleProfile} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">Profile</button>
+                  <button type="button" onClick={handleLogout} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-red-600 transition-colors duration-200 hover:text-red-700">Logout</button>
                 </>
               ) : (
                 <>
-                  <FooterLink to="/login">
-                    Login
-                  </FooterLink>
-
-                  <FooterLink to="/register">
-                    Create Account
-                  </FooterLink>
+                  <FooterLink to="/login">Sign In</FooterLink>
+                  <FooterLink to="/register">Start Learning</FooterLink>
                 </>
               )}
+              <FooterLink to="/contact">Help Center</FooterLink>
+              <FooterLink to="/contact">Contact Support</FooterLink>
             </FooterColumn>
           </div>
 
-          {/* =================================================
-              FOOTER BOTTOM
-          ================================================== */}
-
           <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <Typography
-              sx={{
-                color: "#64748b",
-                fontSize: "0.75rem",
-              }}
-            >
-              © {new Date().getFullYear()}{" "}
-              ApnaAcademy. All rights reserved.
+            <Typography sx={{ color: "#64748b", fontSize: "0.75rem" }}>
+              © {new Date().getFullYear()} ApnaAcademy. All rights reserved.
             </Typography>
-
             <div className="flex flex-wrap items-center gap-4">
-              <Link
-                to="/about"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"
-              >
-                <InfoOutlined
-                  sx={{ fontSize: 15 }}
-                />
-                About
-              </Link>
-
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"
-              >
-                <ContactSupport
-                  sx={{ fontSize: 15 }}
-                />
-                Support
-              </Link>
-
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"
-              >
-                <Settings
-                  sx={{ fontSize: 15 }}
-                />
-                Contact
-              </Link>
+              <Link to="/about" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"><InfoOutlined sx={{ fontSize: 15 }} />About</Link>
+              <Link to="/contact" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"><ContactSupport sx={{ fontSize: 15 }} />Support</Link>
+              <Link to="/contact" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"><Settings sx={{ fontSize: 15 }} />Contact</Link>
             </div>
           </div>
         </div>
