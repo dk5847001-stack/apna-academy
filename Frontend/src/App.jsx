@@ -24,7 +24,7 @@ function BlogNavigationGuard() {
   useEffect(() => {
     const syncBlogStyles = () => {
       const links = document.querySelectorAll(
-        'a[href="/blog"], a[data-apna-blog="true"]'
+        'a[href="/blog"]:not(footer[data-premium-footer="true"] a), a[data-apna-blog="true"]:not(footer[data-premium-footer="true"] a)'
       );
 
       const isBlogActive = location.pathname === "/blog";
@@ -55,7 +55,7 @@ function BlogNavigationGuard() {
       const link = target.closest(
         'a[href="/blog"], a[data-apna-blog="true"]'
       );
-      if (!link) return;
+      if (!link || link.closest('footer[data-premium-footer="true"]')) return;
 
       event.preventDefault();
       navigate("/blog");
@@ -111,7 +111,7 @@ function PricingNavigationGuard() {
 
     const syncPricingStyles = () => {
       const links = document.querySelectorAll(
-        'a[href="/pricing"], a[data-apna-pricing="true"]'
+        'a[href="/pricing"]:not(footer[data-premium-footer="true"] a), a[data-apna-pricing="true"]:not(footer[data-premium-footer="true"] a)'
       );
 
       const isPricingActive = location.pathname === "/pricing";
@@ -150,7 +150,7 @@ function PricingNavigationGuard() {
       const link = target.closest(
         'a[href="/pricing"], a[data-apna-pricing="true"]'
       );
-      if (!link) return;
+      if (!link || link.closest('footer[data-premium-footer="true"]')) return;
 
       event.preventDefault();
       navigate("/pricing");
