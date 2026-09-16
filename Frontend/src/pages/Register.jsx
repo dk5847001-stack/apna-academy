@@ -402,7 +402,7 @@ export default function Register() {
                           </InputAdornment>
                         ),
                       }}
-                    />
+                    /><br/><br/>
 
                     <TextField
                       fullWidth
@@ -420,7 +420,7 @@ export default function Register() {
                           </InputAdornment>
                         ),
                       }}
-                    />
+                    /><br/><br/>
 
                     <TextField
                       fullWidth
@@ -450,7 +450,7 @@ export default function Register() {
                           </InputAdornment>
                         ),
                       }}
-                    />
+                    /><br/><br/>
 
                     <TextField
                       fullWidth
@@ -480,7 +480,7 @@ export default function Register() {
                           </InputAdornment>
                         ),
                       }}
-                    />
+                    /><br/><br/>
 
                     <Button
                       type="submit"
