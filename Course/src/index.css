@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+/* Course details resource actions: keep the three action buttons on one row. */
+.MuiStack-root:has(> a.MuiButton-root + a.MuiButton-root) {
+  flex-direction: row !important;
+  width: 100% !important;
+}
+
+.MuiStack-root:has(> a.MuiButton-root + a.MuiButton-root) > a.MuiButton-root {
+  flex: 1 1 0 !important;
+  min-width: 0;
+}
