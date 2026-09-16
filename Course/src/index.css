@@ -85,16 +85,14 @@ body.apna-course-learning-page #root > * {
   }
 
   /* ---------------- RIGHT CONTENT ---------------- */
-  /*
-     Keep the browser document locked, but allow the right lesson
-     viewport to scroll enough to reveal the notes/action section
-     below the video. The left sidebar does NOT move with it.
-  */
+  /* Keep the browser document locked while the right lesson
+     viewport can scroll independently to reveal notes/actions. */
   body.apna-course-learning-page #root > * > .MuiBox-root:last-child > main {
     height: 100% !important;
     min-height: 0 !important;
     min-width: 0 !important;
-    flex: 1 1 auto !important;
+    width: 0 !important;
+    flex: 1 1 0 !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     overscroll-behavior: contain;
@@ -103,19 +101,25 @@ body.apna-course-learning-page #root > * {
     display: block !important;
   }
 
-  /* Allow content below the video to contribute to scroll height. */
+  /* The inner content must occupy the entire main column. */
   body.apna-course-learning-page #root > * > .MuiBox-root:last-child > main > .MuiBox-root {
     width: 100% !important;
+    min-width: 0 !important;
     min-height: 100% !important;
     height: auto !important;
     overflow: visible !important;
     display: flex !important;
     flex-direction: column !important;
+    align-items: stretch !important;
   }
 
-  /* Do not let the lesson Paper clip the notes/actions section. */
-  body.apna-course-learning-page #root > * > .MuiBox-root:last-child > main .MuiPaper-root {
+  /* Make the lesson card/video use all available right-side width. */
+  body.apna-course-learning-page #root > * > .MuiBox-root:last-child > main > .MuiBox-root > .MuiPaper-root {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
     flex: 0 0 auto !important;
+    align-self: stretch !important;
     overflow: visible !important;
   }
 }
