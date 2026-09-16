@@ -10,9 +10,9 @@ function CourseLearningViewportLock() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const isLearningRoute = /^\/courses\/[^/]+\/learn(?:\/|$)/.test(pathname);
+    const isCoursePlayerRoute = /^\/courses\/[^/]+\/(?:learn|demo)(?:\/|$)/.test(pathname);
 
-    document.body.classList.toggle("apna-course-learning-page", isLearningRoute);
+    document.body.classList.toggle("apna-course-learning-page", isCoursePlayerRoute);
 
     return () => {
       document.body.classList.remove("apna-course-learning-page");
