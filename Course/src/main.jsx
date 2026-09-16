@@ -29,6 +29,7 @@ function CourseDetailsDemoPrompt() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   const match = pathname.match(/^\/courses\/([^/]+)\/?$/);
   const slug = match ? decodeURIComponent(match[1]) : "";
@@ -36,11 +37,13 @@ function CourseDetailsDemoPrompt() {
 
   useEffect(() => {
     setOpen(false);
+    setVisible(false);
 
     if (!isCourseDetails) return undefined;
 
     const timer = window.setTimeout(() => {
       setOpen(true);
+      window.requestAnimationFrame(() => setVisible(true));
     }, 10000);
 
     return () => window.clearTimeout(timer);
@@ -65,16 +68,10 @@ function CourseDetailsDemoPrompt() {
     return () => document.removeEventListener("click", handleDemoButtonClick, true);
   }, [isCourseDetails, navigate, slug]);
 
-  useEffect(() => {
-    if (!open || !isCourseDetails) return undefined;
-
-    const handleEscape = (event) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [open, isCourseDetails]);
+  const closeNotification = () => {
+    setVisible(false);
+    window.setTimeout(() => setOpen(false), 220);
+  };
 
   if (!open || !isCourseDetails) return null;
 
@@ -84,59 +81,68 @@ function CourseDetailsDemoPrompt() {
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="course-demo-prompt-title"
-      aria-describedby="course-demo-prompt-description"
-      className="fixed inset-0 z-[99999] flex min-h-screen items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md sm:p-6"
+      role="status"
+      aria-live="polite"
+      aria-label="Demo Class notification"
+      className={`fixed right-5 top-5 z-[99999] w-[min(390px,calc(100vw-40px))] transform-gpu transition-all duration-300 ease-out sm:right-7 sm:top-7 ${
+        visible ? "translate-x-0 opacity-100" : "translate-x-[120%] opacity-0"
+      }`}
     >
-      <div
-        className="relative w-full max-w-md overflow-hidden rounded-3xl border border-blue-400/30 bg-slate-950/90 shadow-[0_30px_100px_rgba(0,0,0,0.65),0_0_60px_rgba(37,99,235,0.14)] backdrop-blur-2xl"
-      >
-        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 -left-20 h-56 w-56 rounded-full bg-cyan-500/10 blur-3xl" />
+      <div className="relative overflow-hidden rounded-2xl border border-emerald-400/30 bg-slate-950/95 shadow-[0_18px_55px_rgba(0,0,0,0.38)] backdrop-blur-xl">
+        <div className="absolute inset-y-0 left-0 w-1 bg-emerald-400" />
 
-        <button
-          type="button"
-          aria-label="Close Demo Class popup"
-          onClick={() => setOpen(false)}
-          className="absolute right-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/10 text-2xl leading-none text-slate-300 backdrop-blur-md transition hover:scale-105 hover:bg-white/15 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          ×
-        </button>
-
-        <div className="relative p-6 sm:p-8">
-          <div className="mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-blue-400/30 bg-blue-500/15 text-3xl shadow-[0_12px_35px_rgba(14,116,255,0.18)] backdrop-blur-xl">
-            ▶
+        <div className="flex items-start gap-3.5 p-4 pl-5">
+          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-400/25 bg-emerald-400/10 text-emerald-400">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-5 w-5"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" />
+            </svg>
           </div>
 
-          <p className="mb-2 text-xs font-black uppercase tracking-[0.22em] text-blue-300">
-            Free Preview
-          </p>
+          <div className="min-w-0 flex-1 pr-6">
+            <div className="flex items-center gap-2">
+              <span className="text-[0.72rem] font-bold uppercase tracking-[0.16em] text-emerald-400">
+                Available now
+              </span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
+            </div>
 
-          <h2
-            id="course-demo-prompt-title"
-            className="text-2xl font-black leading-tight text-white sm:text-3xl"
-          >
-            Demo Class is ready
-          </h2>
+            <h3 className="mt-1 text-[0.98rem] font-extrabold leading-tight text-white">
+              Demo Class is ready
+            </h3>
 
-          <p
-            id="course-demo-prompt-description"
-            className="mt-3 max-w-sm text-sm leading-7 text-slate-300 sm:text-base"
-          >
-            Explore the free demo class and get a preview of the course before you enroll.
-          </p>
+            <p className="mt-1.5 text-[0.78rem] leading-5 text-slate-400">
+              Explore the free demo before you enroll.
+            </p>
+
+            <button
+              type="button"
+              onClick={openDemoClass}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3.5 py-2 text-xs font-extrabold text-slate-950 shadow-[0_8px_22px_rgba(16,185,129,0.22)] transition hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/60"
+            >
+              Watch Demo Class
+              <span aria-hidden="true" className="text-sm leading-none">→</span>
+            </button>
+          </div>
 
           <button
             type="button"
-            onClick={openDemoClass}
-            className="mt-7 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3.5 text-sm font-black text-white shadow-[0_14px_35px_rgba(14,116,255,0.28)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(14,116,255,0.38)] focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-slate-950"
+            aria-label="Close Demo Class notification"
+            onClick={closeNotification}
+            className="absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full text-lg leading-none text-slate-500 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
           >
-            Watch Demo Class
-            <span aria-hidden="true" className="text-lg leading-none">→</span>
+            ×
           </button>
         </div>
+
+        <div className="h-px w-full bg-gradient-to-r from-emerald-400/40 via-emerald-400/10 to-transparent" />
       </div>
     </div>
   );
