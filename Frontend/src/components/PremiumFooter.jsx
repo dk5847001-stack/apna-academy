@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Dashboard, Facebook, GitHub, Instagram, LinkedIn, MenuBook, School, Settings } from "@mui/icons-material";
 import { ADMIN_URL, API_BASE_URL, COURSE_URL, DASHBOARD_URL } from "../constants/config";
@@ -183,7 +183,6 @@ export default function PremiumFooter() {
               <AppCard icon={Dashboard} title="Student Dashboard" description="Profile & progress" onClick={() => goTo(DASHBOARD_URL)} />
               <AppCard icon={MenuBook} title="Learning App" description="Courses & lessons" onClick={() => goTo(COURSE_URL)} />
               <AppCard icon={School} title="DSA Practice" description="Practice & challenges" accent="violet" onClick={() => goTo("/dsa")} />
-              <AppCard icon={Settings} title="Admin Portal" description="Administration" accent="slate" onClick={() => goTo(ADMIN_URL)} />
             </div>
           </div>
         </div>
