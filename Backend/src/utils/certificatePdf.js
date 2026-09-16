@@ -2,21 +2,26 @@ import fs from "fs";
 import path from "path";
 import PDFDocument from "pdfkit";
 
-const CERTIFICATE_WIDTH = 1280;
-const CERTIFICATE_HEIGHT = 720;
+// The supplied reference certificate is a 4:3 landscape composition.
+// Keeping the same aspect ratio prevents the artwork from looking stretched.
+const CERTIFICATE_WIDTH = 1200;
+const CERTIFICATE_HEIGHT = 900;
 
 const COLORS = {
-  paper: "#fffef8",
-  navy: "#0d4d73",
-  blue: "#1788c9",
-  muted: "#5e788a",
-  gold: "#d2bb59",
-  goldLight: "#eee5bd",
-  green: "#4f9d59",
-  yellow: "#f5d516",
-  orange: "#ef6a32",
-  white: "#ffffff",
+  paper: "#ffffff",
+  navy: "#0b3768",
+  navyDark: "#082f5b",
+  muted: "#35577d",
+  gold: "#c9b43c",
+  goldLight: "#e8dfaa",
+  green: "#5aa44b",
+  react: "#27aee4",
+  js: "#f4dc1b",
+  css: "#2469a9",
+  html: "#e64a2e",
+  mongo: "#65b64a",
   black: "#111111",
+  skin: "#f4c6a4",
 };
 
 const ensureDirectory = (directory) => {
@@ -32,177 +37,311 @@ const safeFileName = (value) => String(value || "certificate")
 const formatDate = (date) => {
   const parsed = new Date(date);
   if (Number.isNaN(parsed.getTime())) return "";
-  return parsed.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
+  return parsed.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
 };
 
-const drawNetworkCluster = (doc, points, triangles = []) => {
+const drawPolygon = (doc, points, color, lineWidth = 1.2) => {
+  if (!points.length) return;
   doc.save();
-  doc.lineWidth(1.5).strokeColor(COLORS.navy);
-  triangles.forEach(([a, b, c]) => {
-    const p1 = points[a]; const p2 = points[b]; const p3 = points[c];
-    if (!p1 || !p2 || !p3) return;
-    doc.moveTo(p1[0], p1[1]).lineTo(p2[0], p2[1]).lineTo(p3[0], p3[1]).lineTo(p1[0], p1[1]).stroke();
-  });
-  doc.lineWidth(0.8).strokeColor("#7aa6bd");
-  for (let i = 0; i < points.length; i += 1) {
-    for (let j = i + 1; j < points.length; j += 1) {
-      const [x1, y1] = points[i]; const [x2, y2] = points[j];
-      if (Math.hypot(x2 - x1, y2 - y1) < 145) doc.moveTo(x1, y1).lineTo(x2, y2).stroke();
-    }
-  }
-  points.forEach(([x, y], index) => doc.circle(x, y, index % 3 === 0 ? 3.2 : 2.2).fill(index % 3 === 0 ? COLORS.blue : COLORS.navy));
+  doc.lineWidth(lineWidth).strokeColor(color).moveTo(points[0][0], points[0][1]);
+  points.slice(1).forEach(([x, y]) => doc.lineTo(x, y));
+  doc.closePath().stroke();
   doc.restore();
 };
 
-const drawCornerGraphics = (doc) => {
-  drawNetworkCluster(doc,
-    [[-10, 35], [58, 4], [115, 76], [190, 40], [245, 96], [208, 170], [105, 145], [52, 216], [-8, 184]],
-    [[0, 1, 2], [1, 2, 3], [2, 3, 4], [2, 4, 5], [2, 5, 6], [5, 6, 7], [6, 7, 8], [0, 2, 8]]
-  );
-  drawNetworkCluster(doc,
-    [[-5, 275], [48, 230], [102, 300], [171, 268], [225, 322], [168, 388], [86, 360], [20, 430], [-8, 382]],
-    [[0, 1, 2], [1, 2, 3], [2, 3, 4], [2, 4, 5], [2, 5, 6], [5, 6, 7], [6, 7, 8], [0, 2, 8]]
-  );
+const drawGeometricCluster = (doc, ox, oy, scale = 1) => {
+  const p = [
+    [0, 0], [60, -16], [120, 30], [185, 10], [235, 55],
+    [205, 130], [125, 145], [55, 205], [5, 175], [72, 78],
+    [132, 80], [95, 125],
+  ].map(([x, y]) => [ox + x * scale, oy + y * scale]);
+
+  const triangles = [
+    [0, 1, 9], [1, 2, 9], [1, 3, 2], [2, 4, 5], [2, 5, 10],
+    [2, 10, 9], [9, 10, 11], [9, 11, 8], [11, 6, 8], [6, 7, 8],
+    [5, 6, 10], [10, 6, 11], [0, 9, 8],
+  ];
+
+  triangles.forEach(([a, b, c]) => drawPolygon(doc, [p[a], p[b], p[c]], COLORS.navy, 1.25));
+  doc.save();
+  doc.fillColor(COLORS.navy);
+  p.forEach(([x, y], index) => doc.circle(x, y, index % 3 === 0 ? 2.6 : 1.8).fill());
+  doc.restore();
 };
 
-const drawGoldRibbon = (doc) => {
+const drawLeftArtwork = (doc) => {
+  drawGeometricCluster(doc, 42, 25, 1.02);
+  drawGeometricCluster(doc, 44, 330, 0.92);
+};
+
+const drawRibbon = (doc) => {
   doc.save();
-  doc.rect(1178, 0, 54, 166).fill(COLORS.gold);
-  doc.rect(1232, 0, 32, 166).fill(COLORS.goldLight);
-  const medalX = 1205; const medalY = 145;
-  doc.circle(medalX, medalY, 56).fill(COLORS.goldLight);
-  doc.circle(medalX, medalY, 47).fill(COLORS.gold);
-  doc.circle(medalX, medalY, 38).fill(COLORS.paper);
-  doc.circle(medalX, medalY, 34).lineWidth(1.5).strokeColor(COLORS.navy).stroke();
-  doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.navy).text("★", medalX - 8, medalY - 26, { width: 16, align: "center" });
-  doc.font("Helvetica-Bold").fontSize(9).fillColor(COLORS.navy).text("APNA", medalX - 24, medalY - 5, { width: 48, align: "center" });
-  doc.font("Helvetica").fontSize(7).fillColor(COLORS.navy).text("COLLEGE", medalX - 29, medalY + 8, { width: 58, align: "center" });
-  doc.moveTo(1172, 190).lineTo(1192, 300).lineTo(1205, 275).lineTo(1220, 300).lineTo(1240, 190).closePath().fill(COLORS.gold);
-  doc.moveTo(1185, 190).lineTo(1205, 305).lineTo(1225, 190).closePath().fill(COLORS.goldLight);
+  doc.rect(1084, 0, 43, 158).fill(COLORS.gold);
+  doc.rect(1127, 0, 25, 158).fill(COLORS.goldLight);
+
+  const medalX = 1099;
+  const medalY = 184;
+  doc.circle(medalX, medalY, 43).fill(COLORS.goldLight);
+  doc.circle(medalX, medalY, 35).fill(COLORS.gold);
+  doc.circle(medalX, medalY, 29).fill(COLORS.paper);
+  doc.circle(medalX, medalY, 26).lineWidth(1.2).strokeColor(COLORS.navy).stroke();
+
+  doc.moveTo(1074, 218).lineTo(1086, 320).lineTo(1100, 292).lineTo(1114, 320).lineTo(1127, 218).closePath().fill(COLORS.gold);
+  doc.moveTo(1086, 218).lineTo(1100, 326).lineTo(1114, 218).closePath().fill(COLORS.goldLight);
   doc.restore();
 };
 
 const drawLogo = (doc) => {
-  const center = CERTIFICATE_WIDTH / 2;
   doc.save();
-  doc.roundedRect(center - 116, 36, 62, 62, 15).fill(COLORS.blue);
-  doc.fillColor(COLORS.white).moveTo(center - 104, 60).lineTo(center - 85, 49).lineTo(center - 66, 60).lineTo(center - 85, 71).closePath().fill();
-  doc.rect(center - 82, 70, 14, 4).fill();
-  doc.circle(center - 85, 79, 3).fill();
-  doc.font("Helvetica-Bold").fontSize(30).fillColor(COLORS.navy).text("Apna", center - 43, 43, { continued: true });
-  doc.fillColor(COLORS.blue).text("College");
-  doc.font("Helvetica").fontSize(10).fillColor(COLORS.navy).text("Learn  •  Build  •  Achieve", center - 43, 79, { width: 210, align: "center", characterSpacing: 1.4 });
+  const x = 555;
+  const y = 42;
+
+  doc.font("Helvetica-Bold").fontSize(24).fillColor(COLORS.gold).text("APNA", x, y, {
+    width: 90,
+    align: "center",
+  });
+  doc.font("Helvetica-Bold").fontSize(25).fillColor(COLORS.navy).text("COLLEGE", x - 2, y + 22, {
+    width: 94,
+    align: "center",
+  });
   doc.restore();
 };
 
-const drawTitle = (doc) => {
-  const center = CERTIFICATE_WIDTH / 2;
+const drawHeading = (doc) => {
   doc.save();
-  doc.font("Helvetica-Bold").fontSize(58).fillColor(COLORS.navy).text("CERTIFICATE", 0, 125, { width: CERTIFICATE_WIDTH, align: "center", characterSpacing: 0.5 });
-  doc.font("Helvetica").fontSize(27).fillColor(COLORS.navy).text("OF COMPLETION", 0, 190, { width: CERTIFICATE_WIDTH, align: "center", characterSpacing: 1.8 });
-  doc.moveTo(center - 185, 235).lineTo(center + 185, 235).lineWidth(1).strokeColor(COLORS.navy).stroke();
-  doc.circle(center, 235, 3).fill(COLORS.navy);
+  doc.font("Helvetica-Bold").fontSize(57).fillColor(COLORS.navy).text("CERTIFICATE", 0, 133, {
+    width: CERTIFICATE_WIDTH,
+    align: "center",
+    characterSpacing: 0.2,
+  });
+  doc.font("Helvetica").fontSize(26).fillColor(COLORS.navy).text("OF COMPLETION", 0, 194, {
+    width: CERTIFICATE_WIDTH,
+    align: "center",
+    characterSpacing: 1.2,
+  });
   doc.restore();
 };
 
 const drawStudentIllustration = (doc) => {
-  const x = 112; const y = 505;
+  const x = 88;
+  const y = 655;
   doc.save();
-  doc.fillColor(COLORS.black).ellipse(x + 90, y + 24, 43, 53).fill();
-  doc.fillColor("#f4c6a4").ellipse(x + 91, y + 53, 31, 39).fill();
-  doc.fillColor(COLORS.black).circle(x + 89, y + 13, 16).fill();
-  doc.fillColor(COLORS.navy).roundedRect(x + 54, y + 91, 77, 105, 18).fill();
-  doc.fillColor(COLORS.blue).moveTo(x + 54, y + 112).lineTo(x + 33, y + 171).lineTo(x + 58, y + 174).lineTo(x + 75, y + 132).closePath().fill();
-  doc.fillColor(COLORS.blue).moveTo(x + 131, y + 112).lineTo(x + 151, y + 174).lineTo(x + 126, y + 176).lineTo(x + 110, y + 132).closePath().fill();
-  doc.fillColor("#1f2937").roundedRect(x + 12, y + 161, 145, 78, 8).fill();
-  doc.fillColor(COLORS.navy).roundedRect(x + 23, y + 170, 123, 58, 5).fill();
-  doc.fillColor(COLORS.white).font("Helvetica-Bold").fontSize(10).text("APNA", x + 63, y + 192, { width: 45, align: "center" });
-  doc.fillColor(COLORS.blue).font("Helvetica-Bold").fontSize(7).text("COLLEGE", x + 56, y + 206, { width: 64, align: "center" });
+
+  // Hair/head.
+  doc.fillColor(COLORS.black).ellipse(x + 92, y + 42, 39, 52).fill();
+  doc.fillColor(COLORS.skin).ellipse(x + 93, y + 67, 28, 36).fill();
+  doc.fillColor(COLORS.black).circle(x + 92, y + 26, 16).fill();
+
+  // Body and arms.
+  doc.fillColor(COLORS.navy).roundedRect(x + 55, y + 101, 76, 105, 17).fill();
+  doc.fillColor(COLORS.react).moveTo(x + 56, y + 117).lineTo(x + 31, y + 177).lineTo(x + 57, y + 181).lineTo(x + 76, y + 138).closePath().fill();
+  doc.fillColor(COLORS.react).moveTo(x + 130, y + 117).lineTo(x + 151, y + 179).lineTo(x + 127, y + 181).lineTo(x + 111, y + 138).closePath().fill();
+
+  // Laptop.
+  doc.fillColor("#171717").roundedRect(x + 9, y + 170, 148, 76, 8).fill();
+  doc.fillColor(COLORS.navy).roundedRect(x + 20, y + 180, 126, 57, 4).fill();
+  doc.fillColor(COLORS.paper).font("Helvetica-Bold").fontSize(9).text("APNA", x + 61, y + 200, { width: 45, align: "center" });
+  doc.fillColor(COLORS.react).font("Helvetica-Bold").fontSize(6.5).text("COLLEGE", x + 55, y + 213, { width: 58, align: "center" });
+  doc.restore();
+};
+
+const drawTechIcon = (doc, type, x, y) => {
+  doc.save();
+  if (type === "react") {
+    doc.strokeColor(COLORS.react).lineWidth(2);
+    doc.ellipse(x, y, 22, 8).stroke();
+    doc.save();
+    doc.rotate(60, { origin: [x, y] });
+    doc.ellipse(x, y, 22, 8).stroke();
+    doc.rotate(60, { origin: [x, y] });
+    doc.ellipse(x, y, 22, 8).stroke();
+    doc.restore();
+    doc.circle(x, y, 3).fill(COLORS.react);
+  } else if (type === "js") {
+    doc.rect(x - 17, y - 17, 34, 34).fill(COLORS.js);
+    doc.font("Helvetica-Bold").fontSize(16).fillColor(COLORS.black).text("JS", x - 17, y - 8, { width: 34, align: "center" });
+  } else if (type === "node") {
+    doc.font("Helvetica-Bold").fontSize(17).fillColor(COLORS.black).text("n", x - 25, y - 8, { continued: true });
+    doc.fillColor(COLORS.green).text("ode");
+  } else if (type === "mongo") {
+    doc.fillColor(COLORS.mongo).ellipse(x, y + 2, 9, 19).fill();
+    doc.fillColor(COLORS.mongo).ellipse(x, y - 14, 5, 11).fill();
+  } else if (type === "css") {
+    doc.fillColor(COLORS.css).polygon?.();
+    doc.fillColor(COLORS.css).moveTo(x, y - 20).lineTo(x + 18, y - 14).lineTo(x + 15, y + 17).lineTo(x, y + 22).lineTo(x - 15, y + 17).lineTo(x - 18, y - 14).closePath().fill();
+    doc.font("Helvetica-Bold").fontSize(11).fillColor(COLORS.paper).text("3", x - 7, y - 5, { width: 14, align: "center" });
+  } else if (type === "html") {
+    doc.fillColor(COLORS.html).moveTo(x - 18, y - 18).lineTo(x + 18, y - 18).lineTo(x + 13, y + 19).lineTo(x, y + 24).lineTo(x - 13, y + 19).closePath().fill();
+    doc.font("Helvetica-Bold").fontSize(10).fillColor(COLORS.paper).text("5", x - 7, y - 5, { width: 14, align: "center" });
+  }
   doc.restore();
 };
 
 const drawTechBadges = (doc) => {
-  const items = [
-    { x: 130, y: 450, label: "⚛", color: "#2fb8ec", size: 26 },
-    { x: 235, y: 437, label: "JS", color: COLORS.yellow, size: 13 },
-    { x: 48, y: 530, label: "node", color: COLORS.green, size: 16 },
-    { x: 292, y: 518, label: "3", color: "#2676c9", size: 22 },
-  ];
-  items.forEach((item) => {
-    doc.save();
-    if (item.label === "JS") {
-      doc.rect(item.x, item.y, 38, 38).fill(item.color);
-      doc.font("Helvetica-Bold").fontSize(19).fillColor(COLORS.black).text("JS", item.x, item.y + 9, { width: 38, align: "center" });
-    } else if (item.label === "node") {
-      doc.font("Helvetica-Bold").fontSize(item.size).fillColor(COLORS.black).text("n", item.x, item.y, { continued: true });
-      doc.fillColor(COLORS.green).text("ode");
-    } else {
-      doc.font("Helvetica").fontSize(42).fillColor(item.color).text(item.label, item.x, item.y - 10, { width: 55, align: "center" });
-    }
-    doc.restore();
-  });
-};
-
-const drawQrImage = (doc, qrCodePath) => {
-  if (!qrCodePath || !fs.existsSync(qrCodePath)) return;
-  doc.image(qrCodePath, 592, 548, { fit: [78, 78], align: "center", valign: "center" });
-  doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.muted).text("SCAN TO VERIFY", 578, 632, { width: 106, align: "center", characterSpacing: 0.7 });
+  drawTechIcon(doc, "react", 165, 622);
+  drawTechIcon(doc, "js", 255, 620);
+  drawTechIcon(doc, "node", 91, 675);
+  drawTechIcon(doc, "mongo", 90, 720);
+  drawTechIcon(doc, "css", 325, 675);
+  drawTechIcon(doc, "html", 325, 725);
 };
 
 const drawSignature = (doc) => {
   doc.save();
-  doc.font("Helvetica-Oblique").fontSize(25).fillColor(COLORS.navy).text("Shreela Kapoor", 855, 578, { width: 195, align: "center" });
-  doc.moveTo(850, 617).lineTo(1055, 617).lineWidth(0.8).strokeColor(COLORS.navy).stroke();
-  doc.font("Helvetica-Bold").fontSize(8.5).fillColor(COLORS.muted).text("AUTHORIZED SIGNATORY", 855, 630, { width: 195, align: "center", characterSpacing: 1.5 });
-  doc.font("Helvetica").fontSize(8).fillColor(COLORS.muted).text("APNA COLLEGE", 855, 646, { width: 195, align: "center", characterSpacing: 2 });
+  doc.font("Helvetica-Oblique").fontSize(29).fillColor(COLORS.navy).text("Shradha Khapra", 785, 675, {
+    width: 275,
+    align: "center",
+  });
+  doc.moveTo(800, 722).lineTo(1045, 722).lineWidth(0.9).strokeColor(COLORS.navy).stroke();
+  doc.font("Helvetica-Bold").fontSize(14).fillColor(COLORS.navy).text("CO-FOUNDER", 800, 737, {
+    width: 245,
+    align: "center",
+  });
+  doc.font("Helvetica-Bold").fontSize(13).fillColor(COLORS.navy).text("Shradha Khapra", 800, 758, {
+    width: 245,
+    align: "center",
+  });
   doc.restore();
 };
 
-const drawFooterMetadata = (doc, { certificateId, issueDate, verificationUrl }) => {
+const drawDynamicText = (doc, { recipientName, courseTitle }) => {
+  // White-out only the sample's dynamic text from the supplied reference layout.
   doc.save();
-  doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.muted).text("ISSUED ON", 470, 588, { width: 180, align: "center", characterSpacing: 1.2 });
-  doc.font("Helvetica").fontSize(9).fillColor(COLORS.navy).text(formatDate(issueDate), 470, 606, { width: 180, align: "center" });
-  doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.muted).text("CERTIFICATE ID", 470, 635, { width: 180, align: "center", characterSpacing: 1.2 });
-  doc.font("Helvetica").fontSize(7.5).fillColor(COLORS.navy).text(certificateId, 445, 653, { width: 230, align: "center" });
-  doc.font("Helvetica").fontSize(5.8).fillColor("#91a5b2").text(verificationUrl || "Certificate verification available online", 430, 688, { width: 420, align: "center" });
+  doc.fillColor(COLORS.paper).rect(355, 315, 490, 72).fill();
+  doc.fillColor(COLORS.paper).rect(365, 405, 470, 58).fill();
+
+  const nameSize = String(recipientName).length > 30 ? 27 : 34;
+  doc.font("Helvetica").fontSize(nameSize).fillColor(COLORS.black).text(recipientName, 320, 326, {
+    width: 560,
+    align: "center",
+    ellipsis: true,
+  });
+  doc.moveTo(360, 374).lineTo(840, 374).lineWidth(1.2).strokeColor(COLORS.navy).stroke();
+
+  doc.font("Helvetica").fontSize(17).fillColor(COLORS.muted).text("for successfully completing the course of", 0, 397, {
+    width: CERTIFICATE_WIDTH,
+    align: "center",
+  });
+
+  const title = String(courseTitle);
+  const titleSize = title.length > 48 ? 14 : title.length > 34 ? 16 : 18;
+  doc.font("Helvetica").fontSize(titleSize).fillColor(COLORS.navy).text(title, 310, 426, {
+    width: 580,
+    align: "center",
+    ellipsis: true,
+  });
   doc.restore();
 };
 
-export const generateCertificatePdf = async ({ outputDirectory, certificateId, recipientName, courseTitle, issueDate, verificationUrl, qrCodePath = "" }) => {
+const drawQrAndMetadata = (doc, { qrCodePath, certificateId, issueDate, verificationUrl }) => {
+  // Deliberately reserved center-bottom zone. It does not overlap the illustration or signature.
+  const qrX = 565;
+  const qrY = 665;
+  const qrSize = 82;
+
+  if (qrCodePath && fs.existsSync(qrCodePath)) {
+    doc.image(qrCodePath, qrX, qrY, {
+      fit: [qrSize, qrSize],
+      align: "center",
+      valign: "center",
+    });
+  }
+
+  doc.save();
+  doc.font("Helvetica-Bold").fontSize(8).fillColor(COLORS.muted).text("SCAN TO VERIFY", 548, 751, {
+    width: 116,
+    align: "center",
+    characterSpacing: 0.7,
+  });
+
+  // Metadata stays below the scanner, so neither the QR nor the text collides with the artwork.
+  doc.font("Helvetica-Bold").fontSize(7).fillColor(COLORS.muted).text("ISSUED ON", 505, 782, {
+    width: 205,
+    align: "center",
+    characterSpacing: 1,
+  });
+  doc.font("Helvetica").fontSize(8).fillColor(COLORS.navy).text(formatDate(issueDate), 505, 797, {
+    width: 205,
+    align: "center",
+  });
+  doc.font("Helvetica-Bold").fontSize(7).fillColor(COLORS.muted).text("CERTIFICATE ID", 505, 817, {
+    width: 205,
+    align: "center",
+    characterSpacing: 1,
+  });
+  doc.font("Helvetica").fontSize(6.5).fillColor(COLORS.navy).text(certificateId, 485, 831, {
+    width: 245,
+    align: "center",
+    ellipsis: true,
+  });
+  if (verificationUrl) {
+    doc.font("Helvetica").fontSize(4.5).fillColor("#7890a8").text(verificationUrl, 440, 849, {
+      width: 320,
+      align: "center",
+      ellipsis: true,
+    });
+  }
+  doc.restore();
+};
+
+export const generateCertificatePdf = async ({
+  outputDirectory,
+  certificateId,
+  recipientName,
+  courseTitle,
+  issueDate,
+  verificationUrl,
+  qrCodePath = "",
+}) => {
   if (!outputDirectory) throw new Error("Certificate output directory is required.");
   if (!certificateId) throw new Error("Certificate ID is required.");
   if (!recipientName) throw new Error("Certificate recipient name is required.");
   if (!courseTitle) throw new Error("Course title is required.");
+
   ensureDirectory(outputDirectory);
   const fileName = `${safeFileName(certificateId)}.pdf`;
   const outputPath = path.join(outputDirectory, fileName);
+
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: [CERTIFICATE_WIDTH, CERTIFICATE_HEIGHT], margin: 0, info: { Title: "Apna College Certificate of Completion", Author: "Apna College", Subject: `Certificate ${certificateId}`, Keywords: "Apna College, Certificate, Completion, Verification" } });
+    const doc = new PDFDocument({
+      size: [CERTIFICATE_WIDTH, CERTIFICATE_HEIGHT],
+      margin: 0,
+      info: {
+        Title: "Apna College Certificate of Completion",
+        Author: "Apna College",
+        Subject: `Certificate ${certificateId}`,
+        Keywords: "Apna College, Certificate, Completion, Verification",
+      },
+    });
+
     const stream = fs.createWriteStream(outputPath);
     stream.on("finish", () => resolve({ fileName, filePath: outputPath }));
     stream.on("error", reject);
     doc.on("error", reject);
     doc.pipe(stream);
+
     doc.rect(0, 0, CERTIFICATE_WIDTH, CERTIFICATE_HEIGHT).fill(COLORS.paper);
-    doc.save();
-    doc.circle(650, 360, 330).fill("#f8fcfd");
-    doc.circle(650, 360, 250).fill("#fbfdf9");
-    doc.restore();
-    drawCornerGraphics(doc);
-    drawGoldRibbon(doc);
+    drawLeftArtwork(doc);
+    drawRibbon(doc);
     drawLogo(doc);
-    drawTitle(doc);
-    doc.font("Helvetica").fontSize(17).fillColor(COLORS.muted).text("This certificate is proudly presented to", 0, 282, { width: CERTIFICATE_WIDTH, align: "center" });
-    doc.font("Helvetica").fontSize(34).fillColor(COLORS.black).text(recipientName, 330, 323, { width: 620, align: "center" });
-    doc.moveTo(360, 372).lineTo(920, 372).lineWidth(1.2).strokeColor(COLORS.navy).stroke();
-    doc.font("Helvetica").fontSize(17).fillColor(COLORS.muted).text("for successfully completing the course of", 0, 397, { width: CERTIFICATE_WIDTH, align: "center" });
-    const courseSize = String(courseTitle).length > 52 ? 19 : String(courseTitle).length > 35 ? 22 : 25;
-    doc.font("Helvetica-Bold").fontSize(courseSize).fillColor(COLORS.navy).text(courseTitle, 300, 428, { width: 680, align: "center", lineGap: 3 });
+    drawHeading(doc);
+
+    doc.font("Helvetica").fontSize(17).fillColor(COLORS.muted).text("This certificate is proudly presented to", 0, 281, {
+      width: CERTIFICATE_WIDTH,
+      align: "center",
+    });
+
+    // The reference has the name and course in this exact central hierarchy.
+    drawDynamicText(doc, { recipientName, courseTitle });
     drawTechBadges(doc);
     drawStudentIllustration(doc);
+    drawQrAndMetadata(doc, { qrCodePath, certificateId, issueDate, verificationUrl });
     drawSignature(doc);
-    drawFooterMetadata(doc, { certificateId, issueDate, verificationUrl });
-    drawQrImage(doc, qrCodePath);
+
     doc.end();
   });
 };
