@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowUpRight,
   Dashboard,
   Facebook,
   GitHub,
@@ -57,7 +56,12 @@ function FooterLink({ to, children }) {
       className="group inline-flex w-fit items-center gap-1 rounded-md py-1 text-sm text-slate-400 no-underline transition duration-200 hover:text-white"
     >
       <span>{children}</span>
-      <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition duration-200 group-hover:translate-x-0.5 group-hover:opacity-100" />
+      <span
+        aria-hidden="true"
+        className="text-xs opacity-0 transition duration-200 group-hover:translate-x-0.5 group-hover:opacity-100"
+      >
+        ↗
+      </span>
     </Link>
   );
 }
