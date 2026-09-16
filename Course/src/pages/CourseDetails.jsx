@@ -77,7 +77,7 @@ const resolvePreviewUrl = (video) => {
         url.hostname = "player.mediadelivery.net";
         url.pathname = `/${parts.join("/")}`;
         url.searchParams.set("autoplay", "true");
-        url.searchParams.set("muted", "true");
+        url.searchParams.set("muted", "false");
         return url.toString();
       }
     }
