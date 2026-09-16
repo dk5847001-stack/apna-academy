@@ -34,6 +34,18 @@ const courseSchema = new mongoose.Schema(
       default: "",
     },
 
+    previewSyllabusPdfUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    freeResourcesUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     category: {
       type: String,
       required: true,

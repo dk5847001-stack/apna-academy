@@ -508,6 +508,56 @@ export default function CourseDetails() {
               Watch Demo Class
             </Button>
 
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1.5}
+              sx={{ mt: 1.5 }}
+            >
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<Book />}
+                component="a"
+                href={course.previewSyllabusPdfUrl || undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                disabled={!course.previewSyllabusPdfUrl}
+                sx={{
+                  py: 1.25,
+                  borderRadius: 2.5,
+                  textTransform: "none",
+                  fontWeight: 900,
+                  color: "#dbeafe",
+                  borderColor: "rgba(148,163,184,.5)",
+                  "&:hover": { borderColor: "#60a5fa", bgcolor: "rgba(37,99,235,.08)" },
+                }}
+              >
+                Preview Syllabus
+              </Button>
+
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<Bolt />}
+                component="a"
+                href={course.freeResourcesUrl || undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                disabled={!course.freeResourcesUrl}
+                sx={{
+                  py: 1.25,
+                  borderRadius: 2.5,
+                  textTransform: "none",
+                  fontWeight: 900,
+                  color: "#dbeafe",
+                  borderColor: "rgba(148,163,184,.5)",
+                  "&:hover": { borderColor: "#60a5fa", bgcolor: "rgba(37,99,235,.08)" },
+                }}
+              >
+                Free Resources
+              </Button>
+            </Stack>
+
             <Box sx={{ mt: { xs: 4, md: 5 } }}>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 <Chip

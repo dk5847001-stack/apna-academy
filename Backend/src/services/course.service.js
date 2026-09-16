@@ -13,6 +13,8 @@ const formatCourse = (course) => {
     shortDescription: course.shortDescription,
     description: course.description,
     thumbnail: course.thumbnail,
+    previewSyllabusPdfUrl: course.previewSyllabusPdfUrl || "",
+    freeResourcesUrl: course.freeResourcesUrl || "",
     category: course.category,
     level: course.level,
     language: course.language,

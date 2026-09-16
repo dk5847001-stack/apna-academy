@@ -50,6 +50,12 @@ export const normalizeCourse = (course) => {
     thumbnail:
       course.thumbnail || "",
 
+    previewSyllabusPdfUrl:
+      course.previewSyllabusPdfUrl || "",
+
+    freeResourcesUrl:
+      course.freeResourcesUrl || "",
+
     category:
       course.category || "General",
 
