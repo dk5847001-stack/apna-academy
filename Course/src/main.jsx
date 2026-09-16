@@ -65,6 +65,17 @@ function CourseDetailsDemoPrompt() {
     return () => document.removeEventListener("click", handleDemoButtonClick, true);
   }, [isCourseDetails, navigate, slug]);
 
+  useEffect(() => {
+    if (!open || !isCourseDetails) return undefined;
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open, isCourseDetails]);
+
   if (!open || !isCourseDetails) return null;
 
   const openDemoClass = () => {
@@ -74,109 +85,58 @@ function CourseDetailsDemoPrompt() {
   return (
     <div
       role="dialog"
-      aria-label="Demo Class"
-      className="apna-demo-prompt"
-      style={{
-        position: "fixed",
-        right: 24,
-        bottom: 24,
-        zIndex: 99999,
-        width: "min(390px, calc(100vw - 32px))",
-        border: "1px solid rgba(96,165,250,.35)",
-        borderRadius: 16,
-        overflow: "hidden",
-        background: "linear-gradient(145deg,#0f172a,#132d4d)",
-        color: "#fff",
-        boxShadow: "0 30px 90px rgba(0,0,0,.55)",
-      }}
+      aria-modal="true"
+      aria-labelledby="course-demo-prompt-title"
+      aria-describedby="course-demo-prompt-description"
+      className="fixed inset-0 z-[99999] flex min-h-screen items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md sm:p-6"
     >
       <div
-        style={{
-          padding: "18px 20px 20px",
-          background:
-            "radial-gradient(circle at top right,rgba(37,99,235,.28),transparent 45%)",
-        }}
+        className="relative w-full max-w-md overflow-hidden rounded-3xl border border-blue-400/30 bg-slate-950/90 shadow-[0_30px_100px_rgba(0,0,0,0.65),0_0_60px_rgba(37,99,235,0.14)] backdrop-blur-2xl"
       >
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button
-            type="button"
-            aria-label="Close Demo Class notification"
-            onClick={() => setOpen(false)}
-            style={{
-              width: 34,
-              height: 34,
-              padding: 0,
-              border: 0,
-              borderRadius: 999,
-              background: "rgba(255,255,255,.08)",
-              color: "#94a3b8",
-              cursor: "pointer",
-              fontSize: 24,
-              lineHeight: 1,
-              display: "grid",
-              placeItems: "center",
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        <div
-          style={{
-            width: 62,
-            height: 62,
-            borderRadius: 12,
-            display: "grid",
-            placeItems: "center",
-            background: "rgba(37,99,235,.18)",
-            border: "1px solid rgba(96,165,250,.3)",
-            marginBottom: 16,
-          }}
-        >
-          <span style={{ fontSize: 30, lineHeight: 1 }}>🔒</span>
-        </div>
-
-        <div
-          style={{
-            fontSize: "1.35rem",
-            fontWeight: 950,
-            lineHeight: 1.15,
-            color: "#fff",
-          }}
-        >
-          Enjoying the demo?
-        </div>
-
-        <div
-          style={{
-            marginTop: 10,
-            color: "#b6c4d6",
-            lineHeight: 1.65,
-            fontSize: ".92rem",
-          }}
-        >
-          Continue with the free demo class to explore the course before you enroll.
-        </div>
+        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-28 -left-20 h-56 w-56 rounded-full bg-cyan-500/10 blur-3xl" />
 
         <button
           type="button"
-          onClick={openDemoClass}
-          style={{
-            width: "100%",
-            marginTop: 20,
-            padding: "12px 18px",
-            border: 0,
-            borderRadius: 10,
-            color: "#fff",
-            fontSize: ".95rem",
-            fontWeight: 950,
-            cursor: "pointer",
-            background: "linear-gradient(135deg,#0875ff,#1d8cff)",
-            boxShadow: "0 14px 30px rgba(14,116,255,.3)",
-          }}
+          aria-label="Close Demo Class popup"
+          onClick={() => setOpen(false)}
+          className="absolute right-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/10 text-2xl leading-none text-slate-300 backdrop-blur-md transition hover:scale-105 hover:bg-white/15 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
-          Watch Demo Class
+          ×
         </button>
+
+        <div className="relative p-6 sm:p-8">
+          <div className="mb-6 grid h-16 w-16 place-items-center rounded-2xl border border-blue-400/30 bg-blue-500/15 text-3xl shadow-[0_12px_35px_rgba(14,116,255,0.18)] backdrop-blur-xl">
+            ▶
+          </div>
+
+          <p className="mb-2 text-xs font-black uppercase tracking-[0.22em] text-blue-300">
+            Free Preview
+          </p>
+
+          <h2
+            id="course-demo-prompt-title"
+            className="text-2xl font-black leading-tight text-white sm:text-3xl"
+          >
+            Demo Class is ready
+          </h2>
+
+          <p
+            id="course-demo-prompt-description"
+            className="mt-3 max-w-sm text-sm leading-7 text-slate-300 sm:text-base"
+          >
+            Explore the free demo class and get a preview of the course before you enroll.
+          </p>
+
+          <button
+            type="button"
+            onClick={openDemoClass}
+            className="mt-7 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3.5 text-sm font-black text-white shadow-[0_14px_35px_rgba(14,116,255,0.28)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(14,116,255,0.38)] focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-slate-950"
+          >
+            Watch Demo Class
+            <span aria-hidden="true" className="text-lg leading-none">→</span>
+          </button>
+        </div>
       </div>
     </div>
   );
