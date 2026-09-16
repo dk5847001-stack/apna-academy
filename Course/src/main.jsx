@@ -68,8 +68,42 @@ function CourseDetailsDemoPrompt() {
     return () => document.removeEventListener("click", handleDemoButtonClick, true);
   }, [isCourseDetails, navigate, slug]);
 
+  // MUI's original demo Dialog can lock the document body while it remains
+  // mounted. The notification replaces that automatic Dialog visually, so
+  // explicitly release any stale modal scroll lock when this notification is
+  // closed or when the course-details route is entered.
+  useEffect(() => {
+    if (!isCourseDetails || open) return undefined;
+
+    const restorePageScroll = () => {
+      document.documentElement.style.removeProperty("overflow");
+      document.documentElement.style.removeProperty("padding-right");
+      document.body.style.removeProperty("overflow");
+      document.body.style.removeProperty("padding-right");
+      document.body.classList.remove("MuiModal-open");
+    };
+
+    restorePageScroll();
+    const timer = window.setTimeout(restorePageScroll, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [isCourseDetails, open]);
+
   const closeNotification = () => {
     setVisible(false);
+
+    // Release MUI's body scroll lock immediately, then again after the
+    // notification exit transition has completed.
+    const restorePageScroll = () => {
+      document.documentElement.style.removeProperty("overflow");
+      document.documentElement.style.removeProperty("padding-right");
+      document.body.style.removeProperty("overflow");
+      document.body.style.removeProperty("padding-right");
+      document.body.classList.remove("MuiModal-open");
+    };
+
+    restorePageScroll();
+    window.setTimeout(restorePageScroll, 250);
     window.setTimeout(() => setOpen(false), 220);
   };
 
