@@ -45,16 +45,26 @@ body.apna-course-learning-page #root > * {
 }
 
 @media (min-width: 900px) {
-  /* The actual desktop course-player columns. */
+  /* Desktop course-player columns. */
   body.apna-course-learning-page #root aside {
     width: 390px !important;
     flex: 0 0 390px !important;
     min-width: 390px !important;
     max-width: 390px !important;
-    height: 100% !important;
+    height: 100dvh !important;
     min-height: 0 !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
+  }
+
+  /* Preserve the existing XL sidebar width from the component. */
+  @media (min-width: 1536px) {
+    body.apna-course-learning-page #root aside {
+      width: 430px !important;
+      flex-basis: 430px !important;
+      min-width: 430px !important;
+      max-width: 430px !important;
+    }
   }
 
   /* The sidebar's own module list is the only left-side scroll surface. */
@@ -85,11 +95,9 @@ body.apna-course-learning-page #root > * {
 
   /* =======================================================
      RIGHT CONTENT
-     The critical fix is width: 0 + flex: 1 on the <main> flex
-     item. This makes the main column consume ALL remaining
-     horizontal space after the fixed sidebar. min-width: 0 is
-     required so a child cannot force the flex item to shrink to
-     its content width.
+     width: 0 + flex: 1 makes <main> consume ALL horizontal
+     space left after the fixed sidebar. min-width: 0 prevents
+     the lesson card/video from forcing a content-sized column.
   ======================================================= */
   body.apna-course-learning-page #root main {
     display: flex !important;
@@ -97,7 +105,7 @@ body.apna-course-learning-page #root > * {
     width: 0 !important;
     min-width: 0 !important;
     max-width: none !important;
-    height: 100% !important;
+    height: 100dvh !important;
     min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
