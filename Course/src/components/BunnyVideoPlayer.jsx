@@ -235,7 +235,10 @@ export default function BunnyVideoPlayer({
                 currentTime: position,
               });
 
-              emitBunnyProgress();
+              // Start polling as soon as the Bunny bridge is ready. Relying
+              // only on the Player.js "play" event can miss progress when
+              // the embedded Bunny player does not emit that event reliably.
+              startBunnyProgressPolling();
             });
           });
         });
