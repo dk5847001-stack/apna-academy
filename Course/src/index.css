@@ -10,3 +10,25 @@
   flex: 1 1 0 !important;
   min-width: 0;
 }
+
+/*
+ * Course learning page only:
+ * lock the browser/document viewport so the desktop course player does not
+ * scroll as one large page. The lesson sidebar owns its own vertical scroll.
+ * Other Course pages keep their normal document scrolling behavior.
+ */
+html:has(body.apna-course-learning-page),
+body.apna-course-learning-page,
+body.apna-course-learning-page #root {
+  height: 100%;
+}
+
+body.apna-course-learning-page {
+  margin: 0;
+  overflow: hidden;
+}
+
+body.apna-course-learning-page #root {
+  min-height: 0;
+  overflow: hidden;
+}
