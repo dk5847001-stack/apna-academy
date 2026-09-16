@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import About from "../pages/About";
+import About from "../pages/AboutPremium";
 import Blog from "../pages/Blog";
 import ContactNew from "../pages/ContactNew";
 import Courses from "../pages/Courses";
@@ -31,7 +31,6 @@ export default function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
       </Route>
-
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
