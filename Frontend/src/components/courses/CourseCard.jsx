@@ -331,7 +331,7 @@ export default function CourseCard({ course }) {
           "
         >
           <Typography
-            component="h2"
+            component="h3"
             className="
               line-clamp-2
               !text-[11px]
@@ -370,7 +370,7 @@ export default function CourseCard({ course }) {
 
         {/* =================================================
             INSTRUCTOR
-        ====================================================== */}
+        ================================================= */}
 
         <div
           className="
