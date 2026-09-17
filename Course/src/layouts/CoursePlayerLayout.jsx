@@ -432,6 +432,7 @@ export default function CoursePlayerLayout({
                 sx={{
                   minHeight: { xs: 48, sm: 54 },
                   px: { xs: 1.5, sm: 2.5 },
+                  columnGap: { xs: 3, sm: 5, md: 8 },
                   backgroundColor: "#111827",
                   borderBottom: `1px solid ${COLORS.border}`,
                 }}
