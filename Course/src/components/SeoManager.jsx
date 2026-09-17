@@ -76,6 +76,7 @@ const absoluteUrl = (value, fallback) => {
 export default function SeoManager() {
   const { pathname } = useLocation();
   const [course, setCourse] = useState(null);
+  const [catalogCourses, setCatalogCourses] = useState([]);
 
   useEffect(() => {
     const courseSlug = getCourseSlug(pathname);
@@ -111,6 +112,24 @@ export default function SeoManager() {
     return () => {
       cancelled = true;
       window.removeEventListener("apnaacademy-course-loaded", eventHandler);
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    const isCatalog = pathname === "/" || pathname === "";
+    if (!isCatalog) {
+      setCatalogCourses([]);
+      return undefined;
+    }
+
+    const catalogHandler = (event) => {
+      const loaded = Array.isArray(event.detail) ? event.detail : [];
+      setCatalogCourses(loaded);
+    };
+
+    window.addEventListener("apnaacademy-course-catalog-loaded", catalogHandler);
+    return () => {
+      window.removeEventListener("apnaacademy-course-catalog-loaded", catalogHandler);
     };
   }, [pathname]);
 
@@ -280,6 +299,24 @@ export default function SeoManager() {
       removeJsonLd("catalog");
     } else {
       removeJsonLd("course");
+
+      const seenSlugs = new Set();
+      const catalogItems = catalogCourses
+        .map((item) => {
+          const slug = cleanText(item?.slug);
+          const name = cleanText(item?.title);
+          if (!slug || !name || seenSlugs.has(slug)) return null;
+          seenSlugs.add(slug);
+
+          return {
+            "@type": "ListItem",
+            position: seenSlugs.size,
+            name,
+            url: `${SITE_URL}/courses/${encodeURIComponent(slug)}`,
+          };
+        })
+        .filter(Boolean);
+
       setJsonLd("catalog", {
         "@context": "https://schema.org",
         "@type": "CollectionPage",
@@ -289,12 +326,12 @@ export default function SeoManager() {
         mainEntity: {
           "@type": "ItemList",
           itemListOrder: "https://schema.org/ItemListOrderAscending",
-          numberOfItems: 0,
-          itemListElement: [],
+          numberOfItems: catalogItems.length,
+          itemListElement: catalogItems,
         },
       });
     }
-  }, [pathname, course]);
+  }, [pathname, course, catalogCourses]);
 
   return null;
 }
