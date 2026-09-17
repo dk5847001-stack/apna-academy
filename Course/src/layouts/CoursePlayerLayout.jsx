@@ -67,6 +67,33 @@ const hasVideoSource = (video) => {
   return !isEmptyMediaValue(videoUrl) || !isEmptyMediaValue(bunnyVideoId);
 };
 
+const getUnlockDaysRemaining = ({ moduleOrder, purchasedAt, unlockMode }) => {
+  if (unlockMode === "all_access" || !purchasedAt) return null;
+
+  const order = Number(moduleOrder);
+  const purchaseDate = new Date(purchasedAt);
+  if (!Number.isFinite(order) || order <= 0 || Number.isNaN(purchaseDate.getTime())) return null;
+
+  const purchaseDay = new Date(
+    purchaseDate.getFullYear(),
+    purchaseDate.getMonth(),
+    purchaseDate.getDate()
+  );
+  const currentDate = new Date();
+  const currentDay = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    currentDate.getDate()
+  );
+  const unlockDay = new Date(purchaseDay);
+  unlockDay.setDate(unlockDay.getDate() + Math.max(0, order - 1));
+
+  return Math.max(
+    0,
+    Math.ceil((unlockDay.getTime() - currentDay.getTime()) / (24 * 60 * 60 * 1000))
+  );
+};
+
 const COLORS = {
   page: "#0b1220",
   panel: "#111827",
@@ -84,6 +111,7 @@ export default function CoursePlayerLayout({
   course = null,
   courseTitle = "",
   modules = [],
+  access = null,
   progress = 0,
   currentVideo = null,
   currentPosition = 0,
@@ -159,6 +187,12 @@ export default function CoursePlayerLayout({
             const isOpen = String(openModule) === String(moduleKey);
             const moduleVideos = Array.isArray(module?.videos) ? module.videos : [];
             const completedCount = moduleVideos.filter(isVideoCompleted).length;
+            const moduleOrder = Number(module?.order) || moduleIndex + 1;
+            const moduleUnlockDays = getUnlockDaysRemaining({
+              moduleOrder,
+              purchasedAt: access?.purchasedAt,
+              unlockMode: access?.unlockMode,
+            });
             return (
               <Box key={module?._id || moduleKey} sx={{ borderBottom: "1px solid #e2e8f0" }}>
                 <Button fullWidth onClick={() => setOpenModule(isOpen ? null : moduleKey)} sx={{ minHeight: 66, px: { xs: 2.25, sm: 2.75 }, py: 1.5, justifyContent: "space-between", textAlign: "left", textTransform: "none", color: "#334155", backgroundColor: COLORS.white, borderRadius: 0, borderLeft: "4px solid transparent", "&:hover": { backgroundColor: "#f8fafc" }, "&:focus-visible": { outline: "none" } }}>
@@ -187,7 +221,29 @@ export default function CoursePlayerLayout({
                               {video?.isPreview && <Chip label="Preview" size="small" sx={{ height: 18, color: "#bfdbfe", backgroundColor: "#1e3a5f", fontSize: "0.58rem", fontWeight: 700 }} />}
                             </Stack>
                           </Box>
-                          {getVideoDuration(video) && <Typography sx={{ flexShrink: 0, fontSize: "0.68rem", color: locked ? "#64748b" : "#a8b2c1", fontWeight: 700 }}>{getVideoDuration(video)}</Typography>}
+                          {locked && moduleUnlockDays !== null ? (
+                            <Chip
+                              icon={<WorkspacePremium sx={{ fontSize: 15 }} />}
+                              label={`Unlocks in ${moduleUnlockDays} day${moduleUnlockDays === 1 ? "" : "s"}`}
+                              size="small"
+                              sx={{
+                                flexShrink: 0,
+                                height: 26,
+                                maxWidth: { xs: 118, sm: 142 },
+                                color: "#dbeafe",
+                                background: "linear-gradient(135deg, #1e3a8a 0%, #312e81 100%)",
+                                border: "1px solid rgba(147,197,253,0.35)",
+                                borderRadius: 999,
+                                fontSize: { xs: "0.53rem", sm: "0.58rem" },
+                                fontWeight: 800,
+                                letterSpacing: "0.01em",
+                                "& .MuiChip-icon": { color: "#bfdbfe", ml: 0.65 },
+                                "& .MuiChip-label": { px: 0.8, overflow: "hidden", textOverflow: "ellipsis" },
+                              }}
+                            />
+                          ) : getVideoDuration(video) ? (
+                            <Typography sx={{ flexShrink: 0, fontSize: "0.68rem", color: locked ? "#64748b" : "#a8b2c1", fontWeight: 700 }}>{getVideoDuration(video)}</Typography>
+                          ) : null}
                         </Button>
                       );
                     })}
