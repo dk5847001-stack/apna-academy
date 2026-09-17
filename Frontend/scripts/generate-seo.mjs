@@ -64,7 +64,7 @@ const replaceMetaContent = (
 
   return html.replace(tagPattern, (tag) =>
     tag.replace(
-      /content\\s*=\\s*[\"'][^\"']*[\"']/i,
+      /content\s*=\s*["'][^"']*["']/i,
       `content="${value}"`
     )
   );
@@ -72,24 +72,24 @@ const replaceMetaContent = (
 
 const replaceCanonical = (html, value) =>
   html.replace(
-    /<link\\s+[^>]*rel\\s*=\\s*[\"']canonical[\"'][^>]*>/i,
+    /<link\s+[^>]*rel\s*=\s*["']canonical["'][^>]*>/i,
     (tag) =>
       tag.replace(
-        /href\\s*=\\s*[\"'][^\"']*[\"']/i,
+        /href\s*=\s*["'][^"']*["']/i,
         `href="${value}"`
       )
   );
 
 const ensureOgUrl = (html, value) => {
   const ogUrlPattern =
-    /<meta\\s+[^>]*property\\s*=\\s*[\"']og:url[\"'][^>]*>/i;
+    /<meta\s+[^>]*property\s*=\s*["']og:url["'][^>]*>/i;
 
   if (ogUrlPattern.test(html)) {
     return replaceMetaContent(html, "property", "og:url", value);
   }
 
   const ogTypePattern =
-    /<meta\\s+[^>]*property\\s*=\\s*[\"']og:type[\"'][^>]*>\\s*/i;
+    /<meta\s+[^>]*property\s*=\s*["']og:type["'][^>]*>\s*/i;
 
   if (!ogTypePattern.test(html)) {
     return html;
