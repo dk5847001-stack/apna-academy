@@ -47,6 +47,13 @@ export const login = async ({
   return response.data;
 };
 
+/*
+ * Share an in-flight /auth/me request. React StrictMode and multiple
+ * dashboard consumers can otherwise hit the same endpoint at the same time,
+ * needlessly consuming MongoDB pool capacity.
+ */
+let currentUserRequest = null;
+
 /**
  * Get currently authenticated user.
  *
@@ -54,11 +61,16 @@ export const login = async ({
  * automatically because api.js uses withCredentials.
  */
 export const getCurrentUser = async () => {
-  const response = await api.get(
-    "/auth/me"
-  );
+  if (!currentUserRequest) {
+    currentUserRequest = api
+      .get("/auth/me")
+      .then((response) => response?.data?.data || null)
+      .finally(() => {
+        currentUserRequest = null;
+      });
+  }
 
-  return response?.data?.data || null;
+  return currentUserRequest;
 };
 
 /**
