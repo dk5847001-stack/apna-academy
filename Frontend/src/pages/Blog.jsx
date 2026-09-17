@@ -84,6 +84,25 @@ export default function Blog() {
       </section>
 
       <Container maxWidth="lg">
+        <section
+          aria-labelledby="learning-insights-heading"
+          className="border-b border-slate-200 py-10"
+        >
+          <Typography
+            id="learning-insights-heading"
+            component="h2"
+            className="!text-2xl !font-black !tracking-tight !text-slate-950 sm:!text-3xl"
+          >
+            Practical learning insights for students and developers
+          </Typography>
+          <Typography className="!mt-3 !max-w-4xl !text-sm !leading-7 !text-slate-600 sm:!text-base">
+            Explore guidance on web development, project-based learning, technical
+            interview preparation and building practical technology skills. These
+            resources complement ApnaAcademy courses by helping learners turn
+            concepts into projects and career-ready experience.
+          </Typography>
+        </section>
+
         <div className="grid gap-6 py-12 md:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
             <Card
