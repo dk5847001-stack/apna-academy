@@ -46,19 +46,50 @@ const robots = `User-agent: *\nAllow: /\nDisallow: /login\nDisallow: /register\n
 await writeFile(resolve(publicDir, "sitemap.xml"), sitemap, "utf8");
 await writeFile(resolve(publicDir, "robots.txt"), robots, "utf8");
 
-const indexHtml = await readFile(indexHtmlPath, "utf8");
-const productionIndexHtml = indexHtml
-  .replace(/(<meta\s+property=["']og:url["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/$2`)
-  .replace(/(<meta\s+property=["']og:image["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/favicon.png$2`)
-  .replace(/(<meta\s+name=["']twitter:image["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/favicon.png$2`)
-  .replace(/(<link\s+rel=["']canonical["']\s+href=["'])[^"']*(["'])/i, `$1${origin}/$2`);
+let indexHtml = await readFile(indexHtmlPath, "utf8");
 
-if (productionIndexHtml === indexHtml) {
+const replaceMetaContent = (html, attribute, value) => {
+  const escapedAttribute = attribute.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(
+    `(<meta\\s+[^>]*${escapedAttribute}\\s*=\\s*[\"'][^\"']+[\"'][^>]*\\s+content\\s*=\\s*[\"'])[^\"']*([\"'])`,
+    "i"
+  );
+  return html.replace(pattern, `$1${value}$2`);
+};
+
+const replaceCanonical = (html, value) =>
+  html.replace(
+    /(<link\\s+[^>]*rel\\s*=\\s*[\"']canonical[\"'][^>]*href\\s*=\\s*[\"'])[^\"']*([\"'])/i,
+    `$1${value}$2`
+  );
+
+const ensureOgUrl = (html, value) => {
+  if (/property\\s*=\\s*[\"']og:url[\"']/i.test(html)) {
+    return replaceMetaContent(html, "property[\\s\\S]*?og:url", value);
+  }
+
+  const ogTypeMatch = html.match(/\\s*<meta\\s+property\\s*=\\s*[\"']og:type[\"'][^>]*>\\s*/i);
+  if (!ogTypeMatch) {
+    return html;
+  }
+
+  const tag = `\\n    <meta\\n      property="og:url"\\n      content="${value}"\\n    />\\n`;
+  return html.replace(ogTypeMatch[0], `${ogTypeMatch[0]}${tag}`);
+};
+
+const originalIndexHtml = indexHtml;
+
+indexHtml = ensureOgUrl(indexHtml, `${origin}/`);
+indexHtml = replaceMetaContent(indexHtml, 'property\\s*=\\s*["']og:image', `${origin}/favicon.png`);
+indexHtml = replaceMetaContent(indexHtml, 'name\\s*=\\s*["']twitter:image', `${origin}/favicon.png`);
+indexHtml = replaceCanonical(indexHtml, `${origin}/`);
+
+if (indexHtml === originalIndexHtml) {
   throw new Error(
-    "Could not update Frontend index.html SEO URLs. Expected og:url, social images or canonical metadata was not found."
+    "Could not update Frontend index.html SEO URLs. Expected canonical or social metadata was not found."
   );
 }
 
-await writeFile(indexHtmlPath, productionIndexHtml, "utf8");
+await writeFile(indexHtmlPath, indexHtml, "utf8");
 
 console.log(`SEO files and production head metadata generated for ${origin}`);
