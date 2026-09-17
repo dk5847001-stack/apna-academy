@@ -140,6 +140,7 @@ export default function CourseCard({ course }) {
               : "ApnaAcademy course"
           }
           loading="lazy"
+          decoding="async"
           className="
             h-full
             w-full
