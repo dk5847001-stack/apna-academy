@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import NavbarFunctionality from "./components/NavbarFunctionality";
 import AuthNavbarSync from "./components/AuthNavbarSync";
 import PublicSiteEnhancements from "./components/PublicSiteEnhancements";
+import SeoManager from "./components/SeoManager";
 import AppRoutes from "./routes/AppRoutes";
 
 const BLOG_INACTIVE_CLASSES =
@@ -366,6 +367,7 @@ function CompanyMarqueeEnhancement() {
 function AppContent() {
   return (
     <>
+      <SeoManager />
       <BlogNavigationGuard />
       <PricingNavigationGuard />
       <CompanyMarqueeEnhancement />
