@@ -30,10 +30,6 @@ const navigationItems = [
   },
 ];
 
-function navigateExternal(url) {
-  window.location.assign(url);
-}
-
 function Sidebar({ open, onClose }) {
   return (
     <>
@@ -52,9 +48,8 @@ function Sidebar({ open, onClose }) {
         }`}
       >
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-5">
-          <button
-            type="button"
-            onClick={() => navigateExternal(FRONTEND_APP_URL)}
+          <a
+            href={FRONTEND_APP_URL}
             className="flex min-w-0 items-center gap-3 text-left"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
@@ -68,7 +63,7 @@ function Sidebar({ open, onClose }) {
                 Learning Platform
               </span>
             </span>
-          </button>
+          </a>
 
           <button
             type="button"
@@ -86,7 +81,11 @@ function Sidebar({ open, onClose }) {
           </div>
 
           <nav className="space-y-2" aria-label="Course navigation">
-            <div className="flex items-center gap-3 rounded-xl bg-blue-50 px-3 py-3 text-blue-700 ring-1 ring-inset ring-blue-100">
+            <a
+              href="/"
+              aria-current="page"
+              className="flex items-center gap-3 rounded-xl bg-blue-50 px-3 py-3 text-blue-700 ring-1 ring-inset ring-blue-100"
+            >
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
                 <MenuBook fontSize="small" />
               </span>
@@ -96,13 +95,12 @@ function Sidebar({ open, onClose }) {
                   Learning catalog
                 </span>
               </span>
-            </div>
+            </a>
 
             {navigationItems.map(({ label, description, icon: Icon, href }) => (
-              <button
+              <a
                 key={label}
-                type="button"
-                onClick={() => navigateExternal(href)}
+                href={href}
                 className="group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-slate-700 transition hover:bg-slate-50 hover:text-blue-700"
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition group-hover:bg-blue-50 group-hover:text-blue-600">
@@ -114,7 +112,7 @@ function Sidebar({ open, onClose }) {
                     {description}
                   </span>
                 </span>
-              </button>
+              </a>
             ))}
           </nav>
 
@@ -171,15 +169,14 @@ export default function CourseNavigation({ children }) {
 
           <div className="flex shrink-0 items-center gap-2">
             {navigationItems.map(({ label, icon: Icon, href }) => (
-              <button
+              <a
                 key={label}
-                type="button"
-                onClick={() => navigateExternal(href)}
+                href={href}
                 className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-extrabold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:px-3"
               >
                 <Icon sx={{ fontSize: 17 }} />
                 <span className="hidden sm:inline">{label}</span>
-              </button>
+              </a>
             ))}
           </div>
         </div>
