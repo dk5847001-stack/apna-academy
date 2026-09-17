@@ -2,6 +2,32 @@ import Course from "../models/Course.js";
 import Module from "../models/Module.js";
 import Video from "../models/Video.js";
 
+const COURSE_LIST_PROJECTION = [
+  "title",
+  "slug",
+  "shortDescription",
+  "thumbnail",
+  "previewSyllabusPdfUrl",
+  "freeResourcesUrl",
+  "category",
+  "level",
+  "language",
+  "instructor",
+  "price",
+  "allAccessPrice",
+  "durationDays",
+  "isPublished",
+  "isFeatured",
+  "tags",
+  "totalModules",
+  "totalVideos",
+  "createdAt",
+  "updatedAt",
+].join(" ");
+
+const escapeRegex = (value) =>
+  String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /**
  * Convert course document into public course object.
  */
@@ -66,68 +92,47 @@ export const getPublishedCourses = async ({
   featured,
 }) => {
   const currentPage = Math.max(Number(page) || 1, 1);
-  const currentLimit = Math.min(
-    Math.max(Number(limit) || 12, 1),
-    50
-  );
-
+  const currentLimit = Math.min(Math.max(Number(limit) || 12, 1), 50);
   const skip = (currentPage - 1) * currentLimit;
 
   const filter = {
     isPublished: true,
   };
 
-  if (search.trim()) {
+  const rawSearch = String(search || "").trim().slice(0, 100);
+  if (rawSearch) {
+    const term = escapeRegex(rawSearch);
     filter.$or = [
-      {
-        title: {
-          $regex: search.trim(),
-          $options: "i",
-        },
-      },
-      {
-        shortDescription: {
-          $regex: search.trim(),
-          $options: "i",
-        },
-      },
-      {
-        category: {
-          $regex: search.trim(),
-          $options: "i",
-        },
-      },
-      {
-        tags: {
-          $regex: search.trim(),
-          $options: "i",
-        },
-      },
+      { title: { $regex: term, $options: "i" } },
+      { shortDescription: { $regex: term, $options: "i" } },
+      { category: { $regex: term, $options: "i" } },
+      { tags: { $regex: term, $options: "i" } },
     ];
   }
 
-  if (category.trim()) {
+  const rawCategory = String(category || "").trim().slice(0, 100);
+  if (rawCategory) {
     filter.category = {
-      $regex: `^${category.trim()}$`,
+      $regex: `^${escapeRegex(rawCategory)}$`,
       $options: "i",
     };
   }
 
-  if (level.trim()) {
+  const rawLevel = String(level || "").trim().slice(0, 50);
+  if (rawLevel) {
     filter.level = {
-      $regex: `^${level.trim()}$`,
+      $regex: `^${escapeRegex(rawLevel)}$`,
       $options: "i",
     };
   }
 
-  if (featured !== undefined) {
-    if (featured === "true") {
-      filter.isFeatured = true;
-    }
+  if (featured === "true" || featured === true) {
+    filter.isFeatured = true;
   }
 
   const [courses, total] = await Promise.all([
     Course.find(filter)
+      .select(COURSE_LIST_PROJECTION)
       .sort({
         isFeatured: -1,
         createdAt: -1,
@@ -135,7 +140,6 @@ export const getPublishedCourses = async ({
       .skip(skip)
       .limit(currentLimit)
       .lean(),
-
     Course.countDocuments(filter),
   ]);
 
