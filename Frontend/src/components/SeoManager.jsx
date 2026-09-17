@@ -67,7 +67,7 @@ export default function SeoManager() {
 
     const origin = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, "");
     const canonicalUrl = `${origin}${normalizedPath === "/" ? "/" : normalizedPath}`;
-    const imageUrl = `${origin}/favicon.svg`;
+    const imageUrl = `${origin}/favicon.png`;
 
     document.documentElement.lang = "en";
     document.title = page.title;

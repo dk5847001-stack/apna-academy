@@ -49,8 +49,8 @@ await writeFile(resolve(publicDir, "robots.txt"), robots, "utf8");
 const indexHtml = await readFile(indexHtmlPath, "utf8");
 const productionIndexHtml = indexHtml
   .replace(/(<meta\s+property=["']og:url["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/$2`)
-  .replace(/(<meta\s+property=["']og:image["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/favicon.svg$2`)
-  .replace(/(<meta\s+name=["']twitter:image["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/favicon.svg$2`)
+  .replace(/(<meta\s+property=["']og:image["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/favicon.png$2`)
+  .replace(/(<meta\s+name=["']twitter:image["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/favicon.png$2`)
   .replace(/(<link\s+rel=["']canonical["']\s+href=["'])[^"']*(["'])/i, `$1${origin}/$2`);
 
 if (productionIndexHtml === indexHtml) {
