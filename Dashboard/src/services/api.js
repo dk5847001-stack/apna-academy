@@ -5,75 +5,44 @@ import {
   API_TIMEOUT,
 } from "../constants/config";
 
-/* =========================================================
-   AXIOS API CLIENT
-========================================================= */
-
-/*
- * Authentication is handled exclusively by the Backend
- * HttpOnly cookie.
- *
- * The browser automatically sends the cookie because
- * withCredentials is enabled.
- *
- * We intentionally DO NOT read or attach JWT tokens
- * from localStorage.
- */
-
 const api = axios.create({
   baseURL: API_BASE_URL,
-
   timeout: API_TIMEOUT,
-
   withCredentials: true,
-
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
 });
 
-/* =========================================================
-   REQUEST INTERCEPTOR
-========================================================= */
+const RETRYABLE_STATUS_CODES = new Set([502, 503, 504]);
+const RETRY_DELAY_MS = 350;
 
-api.interceptors.request.use(
-  (config) => {
-    /*
-     * No Authorization: Bearer token.
-     *
-     * Authentication is handled by the HttpOnly cookie.
-     */
-
-    return config;
-  },
-
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-/* =========================================================
-   RESPONSE INTERCEPTOR
-========================================================= */
+const sleep = (ms) =>
+  new Promise((resolve) => window.setTimeout(resolve, ms));
 
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-
-  (error) => {
+  (response) => response,
+  async (error) => {
+    const request = error?.config;
+    const method = String(request?.method || "get").toUpperCase();
     const status = error?.response?.status;
 
-    /*
-     * Backend says that the current session is not
-     * authenticated.
-     *
-     * We cannot clear the HttpOnly cookie from JavaScript.
-     *
-     * The backend /auth/logout endpoint is responsible
-     * for clearing the authentication cookie.
-     */
+    const retryableNetworkFailure =
+      !error?.response &&
+      error?.code !== "ECONNABORTED" &&
+      error?.code !== "ETIMEDOUT";
+
+    if (
+      request &&
+      method === "GET" &&
+      !request.__apnaAcademyRetried &&
+      (RETRYABLE_STATUS_CODES.has(status) || retryableNetworkFailure)
+    ) {
+      request.__apnaAcademyRetried = true;
+      await sleep(RETRY_DELAY_MS);
+      return api.request(request);
+    }
 
     if (status === 401) {
       window.dispatchEvent(
@@ -84,4 +53,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 export default api;
