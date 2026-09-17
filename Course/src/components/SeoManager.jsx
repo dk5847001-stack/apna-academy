@@ -6,7 +6,7 @@ const APP_NAME = "ApnaAcademy";
 const DEFAULT_DESCRIPTION =
   "Explore practical online courses with structured lessons, projects and skill-focused learning at ApnaAcademy.";
 const SITE_URL = String(import.meta.env.VITE_COURSE_URL || window.location.origin).replace(/\/$/, "");
-const DEFAULT_IMAGE = `${SITE_URL}/favicon.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/favicon.svg`;
 
 const PRIVATE_PATTERNS = [
   /^\/courses\/[^/]+\/learn(?:\/|$)/,
@@ -252,9 +252,7 @@ export default function SeoManager() {
           "@type": "Thing",
           name: category,
         },
-        ...(courseTags.length
-          ? { teaches: courseTags }
-          : {}),
+        ...(courseTags.length ? { teaches: courseTags } : {}),
         keywords: [cleanText(course.title), category, level, language, ...courseTags]
           .filter(Boolean)
           .join(", "),
