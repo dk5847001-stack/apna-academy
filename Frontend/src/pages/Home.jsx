@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -46,7 +46,7 @@ function formatPrice(price) {
     return "Free";
   }
 
-  return `₹${numericPrice.toLocaleString("en-IN")}`;
+  return `Γé╣${numericPrice.toLocaleString("en-IN")}`;
 }
 
 function getInstructorName(instructor) {
@@ -393,7 +393,7 @@ export default function Home() {
             <div>
               <Chip
                 icon={<AutoAwesome />}
-                label="Learn • Build • Grow"
+                label="Learn ΓÇó Build ΓÇó Grow"
                 className="
                   !mb-5
                   !rounded-full
@@ -681,8 +681,8 @@ export default function Home() {
       </section>
 
       {/* =====================================================
-          FEATURED COURSES
-      ====================================================== */
+    FEATURED COURSES
+====================================================== */}
 
       <section className="border-b border-slate-200 bg-white">
         <Container maxWidth="lg">
