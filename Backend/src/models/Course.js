@@ -124,6 +124,14 @@ const courseSchema = new mongoose.Schema(
   }
 );
 
+/*
+ * Admin course list sorts by newest course first.
+ * Public catalog filters published courses and sorts featured/newest.
+ * These indexes keep both hot read paths on indexed plans.
+ */
+courseSchema.index({ createdAt: -1 });
+courseSchema.index({ isPublished: 1, isFeatured: -1, createdAt: -1 });
+
 const Course = mongoose.model("Course", courseSchema);
 
 export default Course;
