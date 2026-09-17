@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const siteUrl = (process.env.VITE_SITE_URL || "").trim().replace(/\/$/, "");
@@ -11,6 +11,7 @@ if (!siteUrl) {
 
 const origin = siteUrl;
 const publicDir = resolve(process.cwd(), "public");
+const indexHtmlPath = resolve(process.cwd(), "index.html");
 await mkdir(publicDir, { recursive: true });
 
 const publicRoutes = [
@@ -45,4 +46,19 @@ const robots = `User-agent: *\nAllow: /\nDisallow: /login\nDisallow: /register\n
 await writeFile(resolve(publicDir, "sitemap.xml"), sitemap, "utf8");
 await writeFile(resolve(publicDir, "robots.txt"), robots, "utf8");
 
-console.log(`SEO files generated for ${origin}`);
+const indexHtml = await readFile(indexHtmlPath, "utf8");
+const productionIndexHtml = indexHtml
+  .replace(/(<meta\s+property=["']og:url["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/$2`)
+  .replace(/(<meta\s+property=["']og:image["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/favicon.svg$2`)
+  .replace(/(<meta\s+name=["']twitter:image["']\s+content=["'])[^"']*(["'])/i, `$1${origin}/favicon.svg$2`)
+  .replace(/(<link\s+rel=["']canonical["']\s+href=["'])[^"']*(["'])/i, `$1${origin}/$2`);
+
+if (productionIndexHtml === indexHtml) {
+  throw new Error(
+    "Could not update Frontend index.html SEO URLs. Expected og:url, social images or canonical metadata was not found."
+  );
+}
+
+await writeFile(indexHtmlPath, productionIndexHtml, "utf8");
+
+console.log(`SEO files and production head metadata generated for ${origin}`);
