@@ -20,6 +20,12 @@ const escapeXml = (value) =>
     .replace(/\"/g, "&quot;")
     .replace(/'/g, "&apos;");
 
+const toIsoDate = (value, fallback) => {
+  if (!value) return fallback;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? fallback : date.toISOString().split("T")[0];
+};
+
 const fetchPublishedCourses = async () => {
   const courses = [];
   let page = 1;
@@ -49,20 +55,32 @@ const fetchPublishedCourses = async () => {
 };
 
 const buildSitemap = (courses) => {
-  const urls = [
-    `${siteUrl}/`,
-    ...courses
-      .map((course) => course?.slug)
-      .filter(Boolean)
-      .map((slug) => `${siteUrl}/courses/${encodeURIComponent(slug)}`),
-  ];
+  const fallbackLastmod = new Date().toISOString().split("T")[0];
+  const entriesByUrl = new Map();
 
-  const uniqueUrls = [...new Set(urls)];
-  const lastmod = new Date().toISOString().split("T")[0];
+  entriesByUrl.set(`${siteUrl}/`, {
+    url: `${siteUrl}/`,
+    lastmod: fallbackLastmod,
+  });
 
-  const entries = uniqueUrls
+  courses.forEach((course) => {
+    const slug = String(course?.slug || "").trim();
+    if (!slug) return;
+
+    const url = `${siteUrl}/courses/${encodeURIComponent(slug)}`;
+    const lastmod = toIsoDate(course?.updatedAt || course?.createdAt, fallbackLastmod);
+    const existing = entriesByUrl.get(url);
+
+    entriesByUrl.set(url, {
+      url,
+      lastmod: existing?.lastmod || lastmod,
+    });
+  });
+
+  const entries = [...entriesByUrl.values()]
     .map(
-      (url) => `  <url>\n    <loc>${escapeXml(url)}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`
+      ({ url, lastmod }) =>
+        `  <url>\n    <loc>${escapeXml(url)}</loc>\n    <lastmod>${escapeXml(lastmod)}</lastmod>\n  </url>`,
     )
     .join("\n");
 
