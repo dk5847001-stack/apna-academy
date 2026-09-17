@@ -187,7 +187,7 @@ export default function CoursePlayerLayout({
         <Box component="main" sx={{ minWidth: 0, flex: 1, backgroundColor: COLORS.page }}>
           <Box sx={{ width: "100%", minHeight: "100vh", display: "flex", flexDirection: "column", p: { xs: 0.75, sm: 1.5, lg: 2.5, xl: 3.5 } }}>
             <Paper elevation={0} sx={{ flex: 1, overflow: "hidden", border: `1px solid ${COLORS.border}`, borderRadius: { xs: 1.5, sm: 2.5 }, backgroundColor: "#0f172a", boxShadow: "0 20px 55px rgba(0,0,0,0.3)" }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: { xs: 48, sm: 54 }, px: { xs: 1.5, sm: 2.5 }, columnGap: { xs: 3, sm: 4, md: 5 }, backgroundColor: "#111827", borderBottom: `1px solid ${COLORS.border}` }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: { xs: 48, sm: 54 }, px: { xs: 1.5, sm: 2.5 }, columnGap: { xs: 2, sm: 3, md: 4 }, backgroundColor: "#111827", borderBottom: `1px solid ${COLORS.border}` }}>
                 <Button variant="text" startIcon={<ChevronLeft />} onClick={() => previousVideo && onPrevious?.(previousVideo)} disabled={!previousVideo} sx={{ color: "#e2e8f0", textTransform: "none", fontWeight: 700, minWidth: 0, "&.Mui-disabled": { color: "#475569" } }}>previous</Button>
                 <Button variant="text" endIcon={<ChevronRight />} onClick={() => nextVideo && onNext?.(nextVideo)} disabled={!nextVideo} sx={{ color: "#e2e8f0", textTransform: "none", fontWeight: 700, minWidth: 0, "&.Mui-disabled": { color: "#475569" } }}>next</Button>
               </Stack>
