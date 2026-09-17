@@ -48,40 +48,73 @@ await writeFile(resolve(publicDir, "robots.txt"), robots, "utf8");
 
 let indexHtml = await readFile(indexHtmlPath, "utf8");
 
-const replaceMetaContent = (html, attribute, value) => {
-  const escapedAttribute = attribute.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(
-    `(<meta\\s+[^>]*${escapedAttribute}\\s*=\\s*[\"'][^\"']+[\"'][^>]*\\s+content\\s*=\\s*[\"'])[^\"']*([\"'])`,
+const escapeRegex = (value) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const replaceMetaContent = (
+  html,
+  attributeName,
+  attributeValue,
+  value
+) => {
+  const tagPattern = new RegExp(
+    `<meta\\s+[^>]*${escapeRegex(attributeName)}\\s*=\\s*[\"']${escapeRegex(attributeValue)}[\"'][^>]*>`,
     "i"
   );
-  return html.replace(pattern, `$1${value}$2`);
+
+  return html.replace(tagPattern, (tag) =>
+    tag.replace(
+      /content\\s*=\\s*[\"'][^\"']*[\"']/i,
+      `content="${value}"`
+    )
+  );
 };
 
 const replaceCanonical = (html, value) =>
   html.replace(
-    /(<link\\s+[^>]*rel\\s*=\\s*[\"']canonical[\"'][^>]*href\\s*=\\s*[\"'])[^\"']*([\"'])/i,
-    `$1${value}$2`
+    /<link\\s+[^>]*rel\\s*=\\s*[\"']canonical[\"'][^>]*>/i,
+    (tag) =>
+      tag.replace(
+        /href\\s*=\\s*[\"'][^\"']*[\"']/i,
+        `href="${value}"`
+      )
   );
 
 const ensureOgUrl = (html, value) => {
-  if (/property\\s*=\\s*[\"']og:url[\"']/i.test(html)) {
-    return replaceMetaContent(html, "property[\\s\\S]*?og:url", value);
+  const ogUrlPattern =
+    /<meta\\s+[^>]*property\\s*=\\s*[\"']og:url[\"'][^>]*>/i;
+
+  if (ogUrlPattern.test(html)) {
+    return replaceMetaContent(html, "property", "og:url", value);
   }
 
-  const ogTypeMatch = html.match(/\\s*<meta\\s+property\\s*=\\s*[\"']og:type[\"'][^>]*>\\s*/i);
-  if (!ogTypeMatch) {
+  const ogTypePattern =
+    /<meta\\s+[^>]*property\\s*=\\s*[\"']og:type[\"'][^>]*>\\s*/i;
+
+  if (!ogTypePattern.test(html)) {
     return html;
   }
 
-  const tag = `\\n    <meta\\n      property="og:url"\\n      content="${value}"\\n    />\\n`;
-  return html.replace(ogTypeMatch[0], `${ogTypeMatch[0]}${tag}`);
+  const tag = `    <meta\n      property="og:url"\n      content="${value}"\n    />\n\n`;
+
+  return html.replace(ogTypePattern, (match) => `${match}${tag}`);
 };
 
 const originalIndexHtml = indexHtml;
 
 indexHtml = ensureOgUrl(indexHtml, `${origin}/`);
-indexHtml = replaceMetaContent(indexHtml, 'property\\s*=\\s*["']og:image', `${origin}/favicon.png`);
-indexHtml = replaceMetaContent(indexHtml, 'name\\s*=\\s*["']twitter:image', `${origin}/favicon.png`);
+indexHtml = replaceMetaContent(
+  indexHtml,
+  "property",
+  "og:image",
+  `${origin}/favicon.png`
+);
+indexHtml = replaceMetaContent(
+  indexHtml,
+  "name",
+  "twitter:image",
+  `${origin}/favicon.png`
+);
 indexHtml = replaceCanonical(indexHtml, `${origin}/`);
 
 if (indexHtml === originalIndexHtml) {
