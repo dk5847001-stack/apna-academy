@@ -62,22 +62,27 @@ const replaceMetaContent = (
     "i"
   );
 
-  return html.replace(tagPattern, (tag) =>
-    tag.replace(
-      /content\s*=\s*["'][^"']*["']/i,
-      `content="${value}"`
-    )
-  );
+  return html.replace(tagPattern, (tag) => {
+    const contentPattern = /content\s*=\s*["'][^"']*["']/i;
+    if (!contentPattern.test(tag)) {
+      return tag;
+    }
+
+    return tag.replace(contentPattern, `content="${value}"`);
+  });
 };
 
 const replaceCanonical = (html, value) =>
   html.replace(
     /<link\s+[^>]*rel\s*=\s*["']canonical["'][^>]*>/i,
-    (tag) =>
-      tag.replace(
-        /href\s*=\s*["'][^"']*["']/i,
-        `href="${value}"`
-      )
+    (tag) => {
+      const hrefPattern = /href\s*=\s*["'][^"']*["']/i;
+      if (!hrefPattern.test(tag)) {
+        return tag;
+      }
+
+      return tag.replace(hrefPattern, `href="${value}"`);
+    }
   );
 
 const ensureOgUrl = (html, value) => {
@@ -117,12 +122,20 @@ indexHtml = replaceMetaContent(
 );
 indexHtml = replaceCanonical(indexHtml, `${origin}/`);
 
-if (indexHtml === originalIndexHtml) {
+const hasSeoMetadata =
+  /<link\s+[^>]*rel\s*=\s*["']canonical["'][^>]*>/i.test(indexHtml) ||
+  /<meta\s+[^>]*property\s*=\s*["']og:url["'][^>]*>/i.test(indexHtml) ||
+  /<meta\s+[^>]*property\s*=\s*["']og:image["'][^>]*>/i.test(indexHtml) ||
+  /<meta\s+[^>]*name\s*=\s*["']twitter:image["'][^>]*>/i.test(indexHtml);
+
+if (!hasSeoMetadata) {
   throw new Error(
     "Could not update Frontend index.html SEO URLs. Expected canonical or social metadata was not found."
   );
 }
 
-await writeFile(indexHtmlPath, indexHtml, "utf8");
+if (indexHtml !== originalIndexHtml) {
+  await writeFile(indexHtmlPath, indexHtml, "utf8");
+}
 
 console.log(`SEO files and production head metadata generated for ${origin}`);
