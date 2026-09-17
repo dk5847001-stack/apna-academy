@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { getCourseBySlug, normalizeCourse } from "../services/course.service";
 
 const APP_NAME = "ApnaAcademy";
 const DEFAULT_DESCRIPTION =
@@ -83,6 +84,8 @@ export default function SeoManager() {
       return undefined;
     }
 
+    let cancelled = false;
+
     const eventHandler = (event) => {
       const loaded = event.detail;
       if (loaded?.slug && String(loaded.slug) === String(courseSlug)) {
@@ -91,7 +94,27 @@ export default function SeoManager() {
     };
 
     window.addEventListener("apnaacademy-course-loaded", eventHandler);
-    return () => window.removeEventListener("apnaacademy-course-loaded", eventHandler);
+
+    // CourseDetails can publish its data after the SEO manager mounts. Fetching
+    // here is a safe fallback so structured metadata is still populated when
+    // the page is opened directly or the event arrives later.
+    const loadCourseMetadata = async () => {
+      try {
+        const result = await getCourseBySlug(courseSlug);
+        if (cancelled) return;
+        const normalized = normalizeCourse(result?.course);
+        if (normalized) setCourse(normalized);
+      } catch {
+        // The page itself owns user-facing course loading/error handling.
+      }
+    };
+
+    loadCourseMetadata();
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("apnaacademy-course-loaded", eventHandler);
+    };
   }, [pathname]);
 
   useEffect(() => {
@@ -189,12 +212,11 @@ export default function SeoManager() {
       const language = cleanText(course.language, "English");
       const instructorName = cleanText(course.instructor?.name);
       const instructorImage = absoluteUrl(course.instructor?.avatar, "");
-      const courseName = cleanText(course.title);
 
       const courseSchema = {
         "@context": "https://schema.org",
         "@type": "Course",
-        name: courseName,
+        name: cleanText(course.title),
         description,
         url: canonical,
         mainEntityOfPage: {
@@ -205,7 +227,7 @@ export default function SeoManager() {
           "@type": "Thing",
           name: category,
         },
-        keywords: [courseName, category, level, language]
+        keywords: [cleanText(course.title), category, level, language]
           .filter(Boolean)
           .join(", "),
         provider: {
@@ -215,8 +237,25 @@ export default function SeoManager() {
         },
         educationalLevel: level,
         inLanguage: language,
+        courseMode: "online",
         ...(Number(course.durationDays) > 0
-          ? { timeRequired: `P${Number(course.durationDays)}D` }
+          ? {
+              timeRequired: `P${Number(course.durationDays)}D`,
+              hasCourseInstance: {
+                "@type": "CourseInstance",
+                courseMode: "online",
+                inLanguage: language,
+                ...(instructorName
+                  ? {
+                      instructor: {
+                        "@type": "Person",
+                        name: instructorName,
+                        ...(instructorImage ? { image: instructorImage } : {}),
+                      },
+                    }
+                  : {}),
+              },
+            }
           : {}),
         ...(instructorName
           ? {
@@ -239,26 +278,7 @@ export default function SeoManager() {
             }
           : {}),
         ...(course.thumbnail ? { image } : {}),
-        hasCourseInstance: {
-          "@type": "CourseInstance",
-          courseMode: "online",
-          courseWorkload:
-            Number(course.durationDays) > 0
-              ? `P${Number(course.durationDays)}D`
-              : undefined,
-          ...(instructorName
-            ? {
-                instructor: {
-                  "@type": "Person",
-                  name: instructorName,
-                  ...(instructorImage ? { image: instructorImage } : {}),
-                },
-              }
-            : {}),
-        },
-        ...(category ? { teaches: category } : {}),
       };
-
       setJsonLd("course", courseSchema);
       removeJsonLd("catalog");
     } else {
