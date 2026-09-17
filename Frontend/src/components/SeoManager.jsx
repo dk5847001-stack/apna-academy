@@ -6,128 +6,52 @@ const SITE_DESCRIPTION =
   "ApnaAcademy is a modern online learning platform for practical courses, skill development and career-focused learning.";
 
 const PAGE_SEO = {
-  "/": {
-    title: "ApnaAcademy | Learn Skills. Build Your Future.",
-    description:
-      "Learn practical, career-focused skills with ApnaAcademy courses, guided learning and structured skill development.",
-    type: "website",
-    indexable: true,
-  },
-  "/courses": {
-    title: "Online Courses | ApnaAcademy",
-    description:
-      "Explore ApnaAcademy's practical online courses for web development, programming, data science, AI and career-focused skills.",
-    type: "website",
-    indexable: true,
-  },
-  "/pricing": {
-    title: "Course Pricing | ApnaAcademy",
-    description:
-      "Explore ApnaAcademy's course pricing and choose a practical learning plan for your skill-development goals.",
-    type: "website",
-    indexable: true,
-  },
-  "/about": {
-    title: "About ApnaAcademy | Practical Online Learning",
-    description:
-      "Learn about ApnaAcademy, our practical learning approach, career-focused courses and mission to make skill development accessible.",
-    type: "website",
-    indexable: true,
-  },
-  "/contact": {
-    title: "Contact ApnaAcademy | Support & Enquiries",
-    description:
-      "Contact ApnaAcademy for course, learning platform, support and general enquiries.",
-    type: "website",
-    indexable: true,
-  },
-  "/blog": {
-    title: "ApnaAcademy Blog | Learning & Career Resources",
-    description:
-      "Read ApnaAcademy learning resources, career guidance and practical technology content for students and aspiring developers.",
-    type: "website",
-    indexable: true,
-  },
-  "/privacy-policy": {
-    title: "Privacy Policy | ApnaAcademy",
-    description: "Read the ApnaAcademy privacy policy and information about data handling.",
-    type: "website",
-    indexable: true,
-  },
-  "/refund-policy": {
-    title: "Refund Policy | ApnaAcademy",
-    description: "Read the ApnaAcademy refund policy and applicable terms.",
-    type: "website",
-    indexable: true,
-  },
-  "/login": {
-    title: "Login | ApnaAcademy",
-    description: "Sign in to your ApnaAcademy account.",
-    type: "website",
-    indexable: false,
-  },
-  "/register": {
-    title: "Create Your Account | ApnaAcademy",
-    description: "Create an ApnaAcademy account to access courses and learning features.",
-    type: "website",
-    indexable: false,
-  },
-  "/forgot-password": {
-    title: "Forgot Password | ApnaAcademy",
-    description: "Reset your ApnaAcademy account password securely.",
-    type: "website",
-    indexable: false,
-  },
-  "/reset-password": {
-    title: "Reset Password | ApnaAcademy",
-    description: "Reset your ApnaAcademy account password.",
-    type: "website",
-    indexable: false,
-  },
+  "/": { title: "ApnaAcademy | Learn Skills. Build Your Future.", description: "Learn practical, career-focused skills with ApnaAcademy courses, guided learning and structured skill development.", type: "website", indexable: true },
+  "/courses": { title: "Online Courses | ApnaAcademy", description: "Explore ApnaAcademy's practical online courses for web development, programming, data science, AI and career-focused skills.", type: "website", indexable: true },
+  "/pricing": { title: "Course Pricing | ApnaAcademy", description: "Explore ApnaAcademy's course pricing and choose a practical learning plan for your skill-development goals.", type: "website", indexable: true },
+  "/about": { title: "About ApnaAcademy | Practical Online Learning", description: "Learn about ApnaAcademy, our practical learning approach, career-focused courses and mission to make skill development accessible.", type: "website", indexable: true },
+  "/contact": { title: "Contact ApnaAcademy | Support & Enquiries", description: "Contact ApnaAcademy for course, learning platform, support and general enquiries.", type: "website", indexable: true },
+  "/blog": { title: "ApnaAcademy Blog | Learning & Career Resources", description: "Read ApnaAcademy learning resources, career guidance and practical technology content for students and aspiring developers.", type: "website", indexable: true },
+  "/privacy-policy": { title: "Privacy Policy | ApnaAcademy", description: "Read the ApnaAcademy privacy policy and information about data handling.", type: "website", indexable: true },
+  "/refund-policy": { title: "Refund Policy | ApnaAcademy", description: "Read the ApnaAcademy refund policy and applicable terms.", type: "website", indexable: true },
+  "/login": { title: "Login | ApnaAcademy", description: "Sign in to your ApnaAcademy account.", type: "website", indexable: false },
+  "/register": { title: "Create Your Account | ApnaAcademy", description: "Create an ApnaAcademy account to access courses and learning features.", type: "website", indexable: false },
+  "/forgot-password": { title: "Forgot Password | ApnaAcademy", description: "Reset your ApnaAcademy account password securely.", type: "website", indexable: false },
+  "/reset-password": { title: "Reset Password | ApnaAcademy", description: "Reset your ApnaAcademy account password.", type: "website", indexable: false },
 };
 
 const upsertMeta = (selector, attributes, content) => {
   let element = document.head.querySelector(selector);
-
   if (!element) {
     element = document.createElement("meta");
-    Object.entries(attributes).forEach(([key, value]) => {
-      element.setAttribute(key, value);
-    });
+    Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
     document.head.appendChild(element);
   }
-
   element.setAttribute("content", content);
 };
 
 const upsertLink = (selector, rel, href) => {
   let element = document.head.querySelector(selector);
-
   if (!element) {
     element = document.createElement("link");
     element.setAttribute("rel", rel);
     document.head.appendChild(element);
   }
-
   element.setAttribute("href", href);
 };
 
 const upsertJsonLd = (id, data) => {
   let element = document.head.querySelector(`script[data-apna-seo="${id}"]`);
-
   if (!element) {
     element = document.createElement("script");
     element.type = "application/ld+json";
     element.dataset.apnaSeo = id;
     document.head.appendChild(element);
   }
-
   element.textContent = JSON.stringify(data);
 };
 
-const removeJsonLd = (id) => {
-  document.head.querySelector(`script[data-apna-seo="${id}"]`)?.remove();
-};
+const removeJsonLd = (id) => document.head.querySelector(`script[data-apna-seo="${id}"]`)?.remove();
 
 export default function SeoManager() {
   const { pathname } = useLocation();
@@ -141,9 +65,7 @@ export default function SeoManager() {
       indexable: false,
     };
 
-    const origin = (
-      import.meta.env.VITE_SITE_URL || window.location.origin
-    ).replace(/\/$/, "");
+    const origin = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, "");
     const canonicalUrl = `${origin}${normalizedPath === "/" ? "/" : normalizedPath}`;
     const imageUrl = `${origin}/favicon.svg`;
 
@@ -151,35 +73,23 @@ export default function SeoManager() {
     document.title = page.title;
 
     upsertMeta('meta[name="description"]', { name: "description" }, page.description);
-    upsertMeta(
-      'meta[name="robots"]',
-      { name: "robots" },
-      page.indexable ? "index, follow, max-image-preview:large" : "noindex, nofollow, noarchive"
-    );
+    upsertMeta('meta[name="robots"]', { name: "robots" }, page.indexable ? "index, follow, max-image-preview:large" : "noindex, nofollow, noarchive");
     upsertMeta('meta[name="googlebot"]', { name: "googlebot" }, page.indexable ? "index, follow" : "noindex, nofollow");
     upsertMeta('meta[property="og:type"]', { property: "og:type" }, page.type);
     upsertMeta('meta[property="og:title"]', { property: "og:title" }, page.title);
     upsertMeta('meta[property="og:description"]', { property: "og:description" }, page.description);
     upsertMeta('meta[property="og:url"]', { property: "og:url" }, canonicalUrl);
     upsertMeta('meta[property="og:site_name"]', { property: "og:site_name" }, SITE_NAME);
+    upsertMeta('meta[property="og:locale"]', { property: "og:locale" }, "en_IN");
     upsertMeta('meta[property="og:image"]', { property: "og:image" }, imageUrl);
     upsertMeta('meta[property="og:image:alt"]', { property: "og:image:alt" }, `${SITE_NAME} logo`);
     upsertMeta('meta[name="twitter:card"]', { name: "twitter:card" }, "summary");
     upsertMeta('meta[name="twitter:title"]', { name: "twitter:title" }, page.title);
     upsertMeta('meta[name="twitter:description"]', { name: "twitter:description" }, page.description);
     upsertMeta('meta[name="twitter:image"]', { name: "twitter:image" }, imageUrl);
-
     upsertLink('link[rel="canonical"]', "canonical", canonicalUrl);
 
-    const breadcrumbItems = [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: SITE_NAME,
-        item: `${origin}/`,
-      },
-    ];
-
+    const breadcrumbItems = [{ "@type": "ListItem", position: 1, name: SITE_NAME, item: `${origin}/` }];
     if (normalizedPath !== "/") {
       const segmentName = normalizedPath
         .slice(1)
@@ -187,38 +97,22 @@ export default function SeoManager() {
         .filter(Boolean)
         .map((segment) => segment.replace(/-/g, " "))
         .join(" ");
-
-      breadcrumbItems.push({
-        "@type": "ListItem",
-        position: 2,
-        name: segmentName.replace(/\b\w/g, (char) => char.toUpperCase()),
-        item: canonicalUrl,
-      });
+      breadcrumbItems.push({ "@type": "ListItem", position: 2, name: segmentName.replace(/\b\w/g, (char) => char.toUpperCase()), item: canonicalUrl });
     }
 
-    upsertJsonLd("breadcrumb", {
+    upsertJsonLd("breadcrumb", { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: breadcrumbItems });
+    upsertJsonLd("webpage", {
       "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: breadcrumbItems,
+      "@type": normalizedPath === "/courses" ? "CollectionPage" : "WebPage",
+      name: page.title,
+      description: page.description,
+      url: canonicalUrl,
+      isPartOf: { "@type": "WebSite", name: SITE_NAME, url: `${origin}/` },
     });
 
     if (normalizedPath === "/") {
-      upsertJsonLd("website", {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: SITE_NAME,
-        url: `${origin}/`,
-        description: SITE_DESCRIPTION,
-      });
-
-      upsertJsonLd("organization", {
-        "@context": "https://schema.org",
-        "@type": "EducationalOrganization",
-        name: SITE_NAME,
-        url: `${origin}/`,
-        logo: imageUrl,
-        description: SITE_DESCRIPTION,
-      });
+      upsertJsonLd("website", { "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: `${origin}/`, description: SITE_DESCRIPTION });
+      upsertJsonLd("organization", { "@context": "https://schema.org", "@type": "EducationalOrganization", name: SITE_NAME, url: `${origin}/`, logo: imageUrl, description: SITE_DESCRIPTION });
     } else {
       removeJsonLd("website");
       removeJsonLd("organization");
