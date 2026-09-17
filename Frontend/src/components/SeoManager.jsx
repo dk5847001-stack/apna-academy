@@ -100,6 +100,14 @@ export default function SeoManager() {
       breadcrumbItems.push({ "@type": "ListItem", position: 2, name: segmentName.replace(/\b\w/g, (char) => char.toUpperCase()), item: canonicalUrl });
     }
 
+    const organizationEntity = {
+      "@type": "EducationalOrganization",
+      name: SITE_NAME,
+      url: `${origin}/`,
+      logo: imageUrl,
+      description: SITE_DESCRIPTION,
+    };
+
     upsertJsonLd("breadcrumb", { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: breadcrumbItems });
     upsertJsonLd("webpage", {
       "@context": "https://schema.org",
@@ -107,12 +115,14 @@ export default function SeoManager() {
       name: page.title,
       description: page.description,
       url: canonicalUrl,
+      inLanguage: "en-IN",
       isPartOf: { "@type": "WebSite", name: SITE_NAME, url: `${origin}/` },
+      publisher: organizationEntity,
     });
 
     if (normalizedPath === "/") {
-      upsertJsonLd("website", { "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: `${origin}/`, description: SITE_DESCRIPTION });
-      upsertJsonLd("organization", { "@context": "https://schema.org", "@type": "EducationalOrganization", name: SITE_NAME, url: `${origin}/`, logo: imageUrl, description: SITE_DESCRIPTION });
+      upsertJsonLd("website", { "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: `${origin}/`, description: SITE_DESCRIPTION, inLanguage: "en-IN" });
+      upsertJsonLd("organization", { "@context": "https://schema.org", ...organizationEntity });
     } else {
       removeJsonLd("website");
       removeJsonLd("organization");
