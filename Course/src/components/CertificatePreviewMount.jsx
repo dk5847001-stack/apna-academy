@@ -31,7 +31,20 @@ export default function CertificatePreviewMount() {
         setLoading(true);
         const result = await getCourseBySlug(slug);
         if (!mounted) return;
-        setCourse(result?.course ? normalizeCourse(result.course) : null);
+
+        const normalizedCourse = result?.course
+          ? normalizeCourse(result.course)
+          : null;
+
+        setCourse(normalizedCourse);
+
+        if (normalizedCourse) {
+          window.dispatchEvent(
+            new CustomEvent("apnaacademy-course-loaded", {
+              detail: normalizedCourse,
+            }),
+          );
+        }
       } catch (error) {
         if (mounted) setCourse(null);
         console.error("Certificate preview mount error:", error);
