@@ -76,7 +76,6 @@ export default function CoursePlayerLayout({
   onPause,
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // No module is forced open. Every module is independently expandable/collapsible.
   const [openModule, setOpenModule] = useState(null);
   const normalizedProgress = Math.min(100, Math.max(0, Number(progress) || 0));
   const safeModules = useMemo(() => (Array.isArray(modules) ? modules : []), [modules]);
@@ -114,250 +113,55 @@ export default function CoursePlayerLayout({
   };
 
   const renderSidebarContent = (mobile = false) => (
-    <Box
-      sx={{
-        width: mobile ? "min(390px, 92vw)" : { lg: 390, xl: 430 },
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: COLORS.white,
-      }}
-    >
-      <Box
-        sx={{
-          px: { xs: 2.5, sm: 3 },
-          py: { xs: 2.5, sm: 3 },
-          backgroundColor: "#343d4b",
-          color: COLORS.white,
-          borderBottom: "1px solid #4a5565",
-        }}
-      >
+    <Box sx={{ width: mobile ? "min(390px, 92vw)" : { lg: 390, xl: 430 }, height: "100%", display: "flex", flexDirection: "column", backgroundColor: COLORS.white }}>
+      <Box sx={{ px: { xs: 2.5, sm: 3 }, py: { xs: 2.5, sm: 3 }, backgroundColor: "#343d4b", color: COLORS.white, borderBottom: "1px solid #4a5565" }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-          <Button
-            variant="text"
-            startIcon={<ArrowLeft />}
-            onClick={onBack}
-            sx={{
-              textTransform: "none",
-              fontWeight: 700,
-              color: "#ffffff",
-              px: 0,
-              minWidth: 0,
-              "&:hover": { backgroundColor: "transparent", color: "#dbeafe" },
-            }}
-          >
-            Back to course page
-          </Button>
-          {mobile && (
-            <IconButton onClick={() => setSidebarOpen(false)} aria-label="Close course menu" sx={{ color: "#fff" }}>
-              <X />
-            </IconButton>
-          )}
+          <Button variant="text" startIcon={<ArrowLeft />} onClick={onBack} sx={{ textTransform: "none", fontWeight: 700, color: "#ffffff", px: 0, minWidth: 0, "&:hover": { backgroundColor: "transparent", color: "#dbeafe" } }}>Back to course page</Button>
+          {mobile && <IconButton onClick={() => setSidebarOpen(false)} aria-label="Close course menu" sx={{ color: "#fff" }}><X /></IconButton>}
         </Stack>
-
-        <Typography
-          sx={{
-            mt: 2.5,
-            fontSize: { xs: "1.15rem", sm: "1.35rem" },
-            fontWeight: 800,
-            lineHeight: 1.3,
-            color: "#ffffff",
-          }}
-        >
-          {courseTitle || course?.title || "Course"}
-        </Typography>
-
+        <Typography sx={{ mt: 2.5, fontSize: { xs: "1.15rem", sm: "1.35rem" }, fontWeight: 800, lineHeight: 1.3, color: "#ffffff" }}>{courseTitle || course?.title || "Course"}</Typography>
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 2.5 }}>
-          <LinearProgress
-            variant="determinate"
-            value={normalizedProgress}
-            sx={{
-              flex: 1,
-              height: 5,
-              borderRadius: 999,
-              backgroundColor: "#5c6677",
-              "& .MuiLinearProgress-bar": {
-                borderRadius: 999,
-                backgroundColor: "#7184e7",
-              },
-            }}
-          />
-          <Typography sx={{ color: "#ffffff", fontSize: "0.8rem", fontWeight: 800, minWidth: 30 }}>
-            {Math.round(normalizedProgress)}%
-          </Typography>
+          <LinearProgress variant="determinate" value={normalizedProgress} sx={{ flex: 1, height: 5, borderRadius: 999, backgroundColor: "#5c6677", "& .MuiLinearProgress-bar": { borderRadius: 999, backgroundColor: "#7184e7" } }} />
+          <Typography sx={{ color: "#ffffff", fontSize: "0.8rem", fontWeight: 800, minWidth: 30 }}>{Math.round(normalizedProgress)}%</Typography>
         </Stack>
       </Box>
-
       <Box sx={{ flex: 1, overflowY: "auto", backgroundColor: COLORS.white }}>
         {safeModules.length === 0 ? (
-          <Box sx={{ p: 3 }}>
-            <Typography variant="body2" color="text.secondary">No course modules available.</Typography>
-          </Box>
+          <Box sx={{ p: 3 }}><Typography variant="body2" color="text.secondary">No course modules available.</Typography></Box>
         ) : (
           safeModules.map((module, moduleIndex) => {
             const moduleKey = module?._id || module?.order || module?.id || moduleIndex + 1;
             const isOpen = String(openModule) === String(moduleKey);
             const moduleVideos = Array.isArray(module?.videos) ? module.videos : [];
             const completedCount = moduleVideos.filter(isVideoCompleted).length;
-
             return (
               <Box key={module?._id || moduleKey} sx={{ borderBottom: "1px solid #e2e8f0" }}>
-                <Button
-                  fullWidth
-                  onClick={() => setOpenModule(isOpen ? null : moduleKey)}
-                  sx={{
-                    minHeight: 66,
-                    px: { xs: 2.25, sm: 2.75 },
-                    py: 1.5,
-                    justifyContent: "space-between",
-                    textAlign: "left",
-                    textTransform: "none",
-                    color: "#334155",
-                    backgroundColor: COLORS.white,
-                    borderRadius: 0,
-                    borderLeft: "4px solid transparent",
-                    "&:hover": { backgroundColor: "#f8fafc" },
-                    "&:focus-visible": { outline: "none" },
-                  }}
-                >
+                <Button fullWidth onClick={() => setOpenModule(isOpen ? null : moduleKey)} sx={{ minHeight: 66, px: { xs: 2.25, sm: 2.75 }, py: 1.5, justifyContent: "space-between", textAlign: "left", textTransform: "none", color: "#334155", backgroundColor: COLORS.white, borderRadius: 0, borderLeft: "4px solid transparent", "&:hover": { backgroundColor: "#f8fafc" }, "&:focus-visible": { outline: "none" } }}>
                   <Box sx={{ minWidth: 0, pr: 1.5 }}>
-                    <Typography sx={{ fontSize: { xs: "0.88rem", sm: "0.93rem" }, fontWeight: 800, lineHeight: 1.35 }}>
-                      {moduleIndex + 1}. {module?.title || "Module"}
-                    </Typography>
-                    <Typography sx={{ mt: 0.4, fontSize: "0.68rem", color: "#94a3b8", fontWeight: 600 }}>
-                      {moduleVideos.length} lesson{moduleVideos.length === 1 ? "" : "s"}{completedCount > 0 ? ` • ${completedCount} completed` : ""}
-                    </Typography>
+                    <Typography sx={{ fontSize: { xs: "0.88rem", sm: "0.93rem" }, fontWeight: 800, lineHeight: 1.35 }}>{moduleIndex + 1}. {module?.title || "Module"}</Typography>
+                    <Typography sx={{ mt: 0.4, fontSize: "0.68rem", color: "#94a3b8", fontWeight: 600 }}>{moduleVideos.length} lesson{moduleVideos.length === 1 ? "" : "s"}{completedCount > 0 ? ` • ${completedCount} completed` : ""}</Typography>
                   </Box>
-                  <ExpandMore
-                    sx={{
-                      flexShrink: 0,
-                      color: "#64748b",
-                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 180ms ease",
-                    }}
-                  />
+                  <ExpandMore sx={{ flexShrink: 0, color: "#64748b", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 180ms ease" }} />
                 </Button>
-
                 {isOpen && moduleVideos.length > 0 && (
                   <Box sx={{ backgroundColor: COLORS.lesson }}>
                     {moduleVideos.map((video) => {
                       const active = String(getVideoId(currentVideo)) === String(getVideoId(video));
                       const locked = isVideoLocked(video);
                       const completed = isVideoCompleted(video);
-
                       return (
-                        <Button
-                          key={getVideoId(video)}
-                          fullWidth
-                          disabled={locked}
-                          onClick={() => handleVideoClick(video)}
-                          sx={{
-                            minHeight: 70,
-                            pl: { xs: 2.25, sm: 2.75 },
-                            pr: { xs: 2.25, sm: 2.75 },
-                            py: 1.35,
-                            justifyContent: "flex-start",
-                            alignItems: "center",
-                            gap: 1.3,
-                            textAlign: "left",
-                            textTransform: "none",
-                            borderRadius: 0,
-                            borderTop: "1px solid rgba(255,255,255,0.045)",
-                            borderLeft: "4px solid transparent",
-                            backgroundColor: active ? "#29313c" : COLORS.lesson,
-                            color: locked ? "#64748b" : "#ffffff",
-                            transition: "background-color 180ms ease",
-                            "&:hover": {
-                              backgroundColor: locked ? COLORS.lesson : COLORS.lessonHover,
-                              "& .course-video-title": {
-                                transform: locked ? "translateX(0)" : "translateX(6px)",
-                              },
-                            },
-                            "&:focus": {
-                              outline: "none",
-                              boxShadow: "none",
-                            },
-                            "&:focus-visible": {
-                              outline: "none",
-                              boxShadow: "none",
-                            },
-                            "&.Mui-focusVisible": {
-                              backgroundColor: active ? "#29313c" : COLORS.lesson,
-                              boxShadow: "none",
-                              outline: "none",
-                            },
-                            "&.Mui-disabled": {
-                              color: "#64748b",
-                              opacity: 1,
-                            },
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: 32,
-                              height: 32,
-                              flexShrink: 0,
-                              borderRadius: "50%",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              backgroundColor: completed ? "#16351f" : active ? "#33427a" : "#303844",
-                              border: "1px solid",
-                              borderColor: completed ? "#3b8150" : active ? "#6274d0" : "#4a5565",
-                            }}
-                          >
-                            {completed ? (
-                              <Check sx={{ fontSize: 17, color: "#69d58a" }} />
-                            ) : locked ? (
-                              <Lock sx={{ fontSize: 15, color: "#94a3b8" }} />
-                            ) : (
-                              <PlayCircle sx={{ fontSize: 18, color: active ? "#9caaf8" : "#e2e8f0" }} />
-                            )}
+                        <Button key={getVideoId(video)} fullWidth disabled={locked} onClick={() => handleVideoClick(video)} sx={{ minHeight: 70, pl: { xs: 2.25, sm: 2.75 }, pr: { xs: 2.25, sm: 2.75 }, py: 1.35, justifyContent: "flex-start", alignItems: "center", gap: 1.3, textAlign: "left", textTransform: "none", borderRadius: 0, borderTop: "1px solid rgba(255,255,255,0.045)", borderLeft: "4px solid transparent", backgroundColor: active ? "#29313c" : COLORS.lesson, color: locked ? "#64748b" : "#ffffff", transition: "background-color 180ms ease", "&:hover": { backgroundColor: locked ? COLORS.lesson : COLORS.lessonHover, "& .course-video-title": { transform: locked ? "translateX(0)" : "translateX(6px)" } }, "&:focus": { outline: "none", boxShadow: "none" }, "&:focus-visible": { outline: "none", boxShadow: "none" }, "&.Mui-focusVisible": { backgroundColor: active ? "#29313c" : COLORS.lesson, boxShadow: "none", outline: "none" }, "&.Mui-disabled": { color: "#64748b", opacity: 1 } }}>
+                          <Box sx={{ width: 32, height: 32, flexShrink: 0, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: completed ? "#16351f" : active ? "#33427a" : "#303844", border: "1px solid", borderColor: completed ? "#3b8150" : active ? "#6274d0" : "#4a5565" }}>
+                            {completed ? <Check sx={{ fontSize: 17, color: "#69d58a" }} /> : locked ? <Lock sx={{ fontSize: 15, color: "#94a3b8" }} /> : <PlayCircle sx={{ fontSize: 18, color: active ? "#9caaf8" : "#e2e8f0" }} />}
                           </Box>
-
                           <Box sx={{ minWidth: 0, flex: 1 }}>
-                            <Typography
-                              className="course-video-title"
-                              sx={{
-                                display: "block",
-                                transform: "translateX(0)",
-                                transition: "transform 180ms ease",
-                                fontSize: { xs: "0.78rem", sm: "0.82rem" },
-                                fontWeight: active ? 800 : 650,
-                                color: locked ? "#64748b" : "#f8fafc",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                willChange: "transform",
-                              }}
-                            >
-                              {getVideoTitle(video)}
-                            </Typography>
+                            <Typography className="course-video-title" sx={{ display: "block", transform: "translateX(0)", transition: "transform 180ms ease", fontSize: { xs: "0.78rem", sm: "0.82rem" }, fontWeight: active ? 800 : 650, color: locked ? "#64748b" : "#f8fafc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", willChange: "transform" }}>{getVideoTitle(video)}</Typography>
                             <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mt: 0.45 }}>
-                              <Typography sx={{ fontSize: "0.64rem", color: locked ? "#64748b" : "#a8b2c1" }}>
-                                video
-                              </Typography>
-                              {video?.isPreview && (
-                                <Chip
-                                  label="Preview"
-                                  size="small"
-                                  sx={{
-                                    height: 18,
-                                    color: "#bfdbfe",
-                                    backgroundColor: "#1e3a5f",
-                                    fontSize: "0.58rem",
-                                    fontWeight: 700,
-                                  }}
-                                />
-                              )}
+                              <Typography sx={{ fontSize: "0.64rem", color: locked ? "#64748b" : "#a8b2c1" }}>video</Typography>
+                              {video?.isPreview && <Chip label="Preview" size="small" sx={{ height: 18, color: "#bfdbfe", backgroundColor: "#1e3a5f", fontSize: "0.58rem", fontWeight: 700 }} />}
                             </Stack>
                           </Box>
-
-                          {getVideoDuration(video) && (
-                            <Typography sx={{ flexShrink: 0, fontSize: "0.68rem", color: locked ? "#64748b" : "#a8b2c1", fontWeight: 700 }}>
-                              {getVideoDuration(video)}
-                            </Typography>
-                          )}
+                          {getVideoDuration(video) && <Typography sx={{ flexShrink: 0, fontSize: "0.68rem", color: locked ? "#64748b" : "#a8b2c1", fontWeight: 700 }}>{getVideoDuration(video)}</Typography>}
                         </Button>
                       );
                     })}
@@ -373,175 +177,31 @@ export default function CoursePlayerLayout({
 
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: COLORS.page, color: COLORS.white, overflow: "hidden" }}>
-      <Box
-        sx={{
-          display: { xs: "flex", lg: "none" },
-          height: 60,
-          alignItems: "center",
-          justifyContent: "space-between",
-          px: 1.25,
-          backgroundColor: "#111827",
-          borderBottom: `1px solid ${COLORS.border}`,
-          position: "sticky",
-          top: 0,
-          zIndex: 20,
-        }}
-      >
-        <IconButton onClick={() => setSidebarOpen(true)} aria-label="Open course menu" sx={{ color: "#fff" }}>
-          <Menu />
-        </IconButton>
-        <Typography sx={{ maxWidth: "72%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 800, fontSize: "0.9rem" }}>
-          {courseTitle || course?.title || "Course"}
-        </Typography>
+      <Box sx={{ display: { xs: "flex", lg: "none" }, height: 60, alignItems: "center", justifyContent: "space-between", px: 1.25, backgroundColor: "#111827", borderBottom: `1px solid ${COLORS.border}`, position: "sticky", top: 0, zIndex: 20 }}>
+        <IconButton onClick={() => setSidebarOpen(true)} aria-label="Open course menu" sx={{ color: "#fff" }}><Menu /></IconButton>
+        <Typography sx={{ maxWidth: "72%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 800, fontSize: "0.9rem" }}>{courseTitle || course?.title || "Course"}</Typography>
         <Box sx={{ width: 40 }} />
       </Box>
-
       <Box sx={{ display: "flex", minHeight: { xs: "calc(100vh - 60px)", lg: "100vh" } }}>
-        <Box
-          component="aside"
-          sx={{
-            display: { xs: "none", lg: "block" },
-            width: { lg: 390, xl: 430 },
-            flexShrink: 0,
-            backgroundColor: COLORS.white,
-            boxShadow: "8px 0 28px rgba(0,0,0,0.12)",
-            position: "relative",
-            zIndex: 4,
-          }}
-        >
-          {renderSidebarContent(false)}
-        </Box>
-
+        <Box component="aside" sx={{ display: { xs: "none", lg: "block" }, width: { lg: 390, xl: 430 }, flexShrink: 0, backgroundColor: COLORS.white, boxShadow: "8px 0 28px rgba(0,0,0,0.12)", position: "relative", zIndex: 4 }}>{renderSidebarContent(false)}</Box>
         <Box component="main" sx={{ minWidth: 0, flex: 1, backgroundColor: COLORS.page }}>
           <Box sx={{ width: "100%", minHeight: "100vh", display: "flex", flexDirection: "column", p: { xs: 0.75, sm: 1.5, lg: 2.5, xl: 3.5 } }}>
-            <Paper
-              elevation={0}
-              sx={{
-                flex: 1,
-                overflow: "hidden",
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: { xs: 1.5, sm: 2.5 },
-                backgroundColor: "#0f172a",
-                boxShadow: "0 20px 55px rgba(0,0,0,0.3)",
-              }}
-            >
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                sx={{
-                  minHeight: { xs: 48, sm: 54 },
-                  px: { xs: 1.5, sm: 2.5 },
-                  columnGap: { xs: 3, sm: 5, md: 8 },
-                  backgroundColor: "#111827",
-                  borderBottom: `1px solid ${COLORS.border}`,
-                }}
-              >
-                <Button
-                  variant="text"
-                  startIcon={<ChevronLeft />}
-                  onClick={() => previousVideo && onPrevious?.(previousVideo)}
-                  disabled={!previousVideo}
-                  sx={{
-                    color: "#e2e8f0",
-                    textTransform: "none",
-                    fontWeight: 700,
-                    minWidth: 0,
-                    "&.Mui-disabled": { color: "#475569" },
-                  }}
-                >
-                  previous
-                </Button>
-                <Button
-                  variant="text"
-                  endIcon={<ChevronRight />}
-                  onClick={() => nextVideo && onNext?.(nextVideo)}
-                  disabled={!nextVideo}
-                  sx={{
-                    color: "#e2e8f0",
-                    textTransform: "none",
-                    fontWeight: 700,
-                    minWidth: 0,
-                    "&.Mui-disabled": { color: "#475569" },
-                  }}
-                >
-                  next
-                </Button>
+            <Paper elevation={0} sx={{ flex: 1, overflow: "hidden", border: `1px solid ${COLORS.border}`, borderRadius: { xs: 1.5, sm: 2.5 }, backgroundColor: "#0f172a", boxShadow: "0 20px 55px rgba(0,0,0,0.3)" }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: { xs: 48, sm: 54 }, px: { xs: 1.5, sm: 2.5 }, columnGap: { xs: 3, sm: 4, md: 5 }, backgroundColor: "#111827", borderBottom: `1px solid ${COLORS.border}` }}>
+                <Button variant="text" startIcon={<ChevronLeft />} onClick={() => previousVideo && onPrevious?.(previousVideo)} disabled={!previousVideo} sx={{ color: "#e2e8f0", textTransform: "none", fontWeight: 700, minWidth: 0, "&.Mui-disabled": { color: "#475569" } }}>previous</Button>
+                <Button variant="text" endIcon={<ChevronRight />} onClick={() => nextVideo && onNext?.(nextVideo)} disabled={!nextVideo} sx={{ color: "#e2e8f0", textTransform: "none", fontWeight: 700, minWidth: 0, "&.Mui-disabled": { color: "#475569" } }}>next</Button>
               </Stack>
-
-              <Box sx={{ backgroundColor: "#000000", width: "100%" }}>
-                <BunnyVideoPlayer
-                  video={currentVideo}
-                  currentTime={currentPosition}
-                  onTimeUpdate={onTimeUpdate}
-                  onLoadedMetadata={onLoadedMetadata}
-                  onEnded={onEnded}
-                  onPlay={onPlay}
-                  onPause={onPause}
-                />
-              </Box>
-
+              <Box sx={{ backgroundColor: "#000000", width: "100%" }}><BunnyVideoPlayer video={currentVideo} currentTime={currentPosition} onTimeUpdate={onTimeUpdate} onLoadedMetadata={onLoadedMetadata} onEnded={onEnded} onPlay={onPlay} onPause={onPause} /></Box>
               <Box sx={{ backgroundColor: "#111827", px: { xs: 1.5, sm: 2.5, md: 3 }, py: { xs: 1.5, sm: 2.25 } }}>
-                <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" spacing={1.5}>
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ color: "#7184e7", fontSize: "0.64rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.13em" }}>
-                      Now learning
-                    </Typography>
-                    <Typography sx={{ mt: 0.45, color: "#ffffff", fontWeight: 850, fontSize: { xs: "0.95rem", sm: "1.05rem" }, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {getVideoTitle(currentVideo)}
-                    </Typography>
-                  </Box>
-                </Stack>
-
-                {notesPdfUrl && (
-                  <Paper
-                    variant="outlined"
-                    sx={{ mt: 2, p: { xs: 1.25, sm: 1.5 }, borderRadius: 2, borderColor: COLORS.border, backgroundColor: COLORS.panel }}
-                  >
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} alignItems={{ xs: "stretch", sm: "center" }} justifyContent="space-between">
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Description sx={{ color: "#93c5fd", fontSize: 20 }} />
-                        <Box>
-                          <Typography sx={{ color: "#fff", fontSize: "0.8rem", fontWeight: 800 }}>Lesson Notes</Typography>
-                          <Typography sx={{ color: "#94a3b8", fontSize: "0.66rem" }}>PDF notes for this lesson</Typography>
-                        </Box>
-                      </Stack>
-                      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                        <Button component="a" href={notesPdfUrl} target="_blank" rel="noopener noreferrer" variant="outlined" startIcon={<Description />} sx={{ textTransform: "none", fontWeight: 800, color: "#dbeafe", borderColor: "#475569" }}>View Notes</Button>
-                        <Button component="a" href={notesPdfUrl} target="_blank" rel="noopener noreferrer" variant="contained" startIcon={<Download />} sx={{ textTransform: "none", fontWeight: 800 }}>Open PDF</Button>
-                      </Stack>
-                    </Stack>
-                  </Paper>
-                )}
-
-                {courseCompleted && (
-                  <Alert
-                    severity="success"
-                    icon={<Check />}
-                    sx={{ mt: 2, borderRadius: 2, backgroundColor: "#10251a", color: "#dcfce7", border: "1px solid #245d37", "& .MuiAlert-icon": { color: "#69d58a" } }}
-                  >
-                    <Typography fontWeight={800}>Course completed!</Typography>
-                    <Typography variant="body2">You have finished all required lessons. Continue to the assessment and certificate.</Typography>
-                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 1.25 }}>
-                      <Button variant="contained" startIcon={<Quiz />} onClick={onAssessment} sx={{ textTransform: "none", fontWeight: 800 }}>Take Assessment</Button>
-                      <Button variant="outlined" startIcon={<WorkspacePremium />} onClick={onCertificate} sx={{ textTransform: "none", fontWeight: 800, color: "#dcfce7", borderColor: "#3b8150" }}>Certificate</Button>
-                    </Stack>
-                  </Alert>
-                )}
+                <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" spacing={1.5}><Box sx={{ minWidth: 0 }}><Typography sx={{ color: "#7184e7", fontSize: "0.64rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.13em" }}>Now learning</Typography><Typography sx={{ mt: 0.45, color: "#ffffff", fontWeight: 850, fontSize: { xs: "0.95rem", sm: "1.05rem" }, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getVideoTitle(currentVideo)}</Typography></Box></Stack>
+                {notesPdfUrl && <Paper variant="outlined" sx={{ mt: 2, p: { xs: 1.25, sm: 1.5 }, borderRadius: 2, borderColor: COLORS.border, backgroundColor: COLORS.panel }}><Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} alignItems={{ xs: "stretch", sm: "center" }} justifyContent="space-between"><Stack direction="row" spacing={1} alignItems="center"><Description sx={{ color: "#93c5fd", fontSize: 20 }} /><Box><Typography sx={{ color: "#fff", fontSize: "0.8rem", fontWeight: 800 }}>Lesson Notes</Typography><Typography sx={{ color: "#94a3b8", fontSize: "0.66rem" }}>PDF notes for this lesson</Typography></Box></Stack><Stack direction={{ xs: "column", sm: "row" }} spacing={1}><Button component="a" href={notesPdfUrl} target="_blank" rel="noopener noreferrer" variant="outlined" startIcon={<Description />} sx={{ textTransform: "none", fontWeight: 800, color: "#dbeafe", borderColor: "#475569" }}>View Notes</Button><Button component="a" href={notesPdfUrl} target="_blank" rel="noopener noreferrer" variant="contained" startIcon={<Download />} sx={{ textTransform: "none", fontWeight: 800 }}>Open PDF</Button></Stack></Stack></Paper>}
+                {courseCompleted && <Alert severity="success" icon={<Check />} sx={{ mt: 2, borderRadius: 2, backgroundColor: "#10251a", color: "#dcfce7", border: "1px solid #245d37", "& .MuiAlert-icon": { color: "#69d58a" } }}><Typography fontWeight={800}>Course completed!</Typography><Typography variant="body2">You have finished all required lessons. Continue to the assessment and certificate.</Typography><Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 1.25 }}><Button variant="contained" startIcon={<Quiz />} onClick={onAssessment} sx={{ textTransform: "none", fontWeight: 800 }}>Take Assessment</Button><Button variant="outlined" startIcon={<WorkspacePremium />} onClick={onCertificate} sx={{ textTransform: "none", fontWeight: 800, color: "#dcfce7", borderColor: "#3b8150" }}>Certificate</Button></Stack></Alert>}
               </Box>
             </Paper>
           </Box>
         </Box>
       </Box>
-
-      <Drawer
-        anchor="left"
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        ModalProps={{ keepMounted: true }}
-      >
-        {renderSidebarContent(true)}
-      </Drawer>
+      <Drawer anchor="left" open={sidebarOpen} onClose={() => setSidebarOpen(false)} ModalProps={{ keepMounted: true }}>{renderSidebarContent(true)}</Drawer>
     </Box>
   );
 }
