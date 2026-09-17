@@ -78,6 +78,12 @@ const videoSchema = new mongoose.Schema(
   }
 );
 
+/*
+ * Course detail/catalog reads fetch videos by course + module and then
+ * return them in module/order sequence. Keep this hot query covered by a
+ * single compound index instead of making MongoDB combine separate indexes.
+ */
+videoSchema.index({ course: 1, module: 1, order: 1 });
 videoSchema.index({ module: 1, order: 1 });
 
 const Video = mongoose.model("Video", videoSchema);
