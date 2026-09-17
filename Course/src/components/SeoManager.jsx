@@ -189,11 +189,12 @@ export default function SeoManager() {
       const language = cleanText(course.language, "English");
       const instructorName = cleanText(course.instructor?.name);
       const instructorImage = absoluteUrl(course.instructor?.avatar, "");
+      const courseName = cleanText(course.title);
 
       const courseSchema = {
         "@context": "https://schema.org",
         "@type": "Course",
-        name: cleanText(course.title),
+        name: courseName,
         description,
         url: canonical,
         mainEntityOfPage: {
@@ -204,7 +205,7 @@ export default function SeoManager() {
           "@type": "Thing",
           name: category,
         },
-        keywords: [cleanText(course.title), category, level, language]
+        keywords: [courseName, category, level, language]
           .filter(Boolean)
           .join(", "),
         provider: {
@@ -238,7 +239,26 @@ export default function SeoManager() {
             }
           : {}),
         ...(course.thumbnail ? { image } : {}),
+        hasCourseInstance: {
+          "@type": "CourseInstance",
+          courseMode: "online",
+          courseWorkload:
+            Number(course.durationDays) > 0
+              ? `P${Number(course.durationDays)}D`
+              : undefined,
+          ...(instructorName
+            ? {
+                instructor: {
+                  "@type": "Person",
+                  name: instructorName,
+                  ...(instructorImage ? { image: instructorImage } : {}),
+                },
+              }
+            : {}),
+        },
+        ...(category ? { teaches: category } : {}),
       };
+
       setJsonLd("course", courseSchema);
       removeJsonLd("catalog");
     } else {
