@@ -228,12 +228,21 @@ export default function SeoManager() {
       const language = cleanText(course.language, "English");
       const instructorName = cleanText(course.instructor?.name);
       const instructorImage = absoluteUrl(course.instructor?.avatar, "");
+      const schemaDescription = cleanText(
+        course.description || course.shortDescription,
+        DEFAULT_DESCRIPTION,
+      ).slice(0, 5000);
+      const courseTags = Array.isArray(course.tags)
+        ? course.tags.map((tag) => cleanText(tag)).filter(Boolean)
+        : [];
+      const durationDays = Number(course.durationDays) || 0;
+      const price = Number(course.price);
 
       const courseSchema = {
         "@context": "https://schema.org",
         "@type": "Course",
         name: cleanText(course.title),
-        description,
+        description: schemaDescription,
         url: canonical,
         mainEntityOfPage: {
           "@type": "WebPage",
@@ -243,7 +252,10 @@ export default function SeoManager() {
           "@type": "Thing",
           name: category,
         },
-        keywords: [cleanText(course.title), category, level, language]
+        ...(courseTags.length
+          ? { teaches: courseTags }
+          : {}),
+        keywords: [cleanText(course.title), category, level, language, ...courseTags]
           .filter(Boolean)
           .join(", "),
         provider: {
@@ -254,13 +266,14 @@ export default function SeoManager() {
         educationalLevel: level,
         inLanguage: language,
         courseMode: "online",
-        ...(Number(course.durationDays) > 0
+        ...(durationDays > 0
           ? {
-              timeRequired: `P${Number(course.durationDays)}D`,
+              timeRequired: `P${durationDays}D`,
               hasCourseInstance: {
                 "@type": "CourseInstance",
                 courseMode: "online",
                 inLanguage: language,
+                courseWorkload: `P${durationDays}D`,
                 ...(instructorName
                   ? {
                       instructor: {
@@ -282,17 +295,18 @@ export default function SeoManager() {
               },
             }
           : {}),
-        ...(Number(course.price) > 0
+        ...(Number.isFinite(price) && price > 0
           ? {
               offers: {
                 "@type": "Offer",
-                price: Number(course.price).toFixed(2),
+                price: price.toFixed(2),
                 priceCurrency: "INR",
                 url: canonical,
                 availability: "https://schema.org/InStock",
               },
             }
           : {}),
+        isAccessibleForFree: !(Number.isFinite(price) && price > 0),
         ...(course.thumbnail ? { image } : {}),
       };
       setJsonLd("course", courseSchema);
