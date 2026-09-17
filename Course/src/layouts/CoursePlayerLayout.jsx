@@ -163,8 +163,8 @@ export default function CoursePlayerLayout({
               <Box key={module?._id || moduleKey} sx={{ borderBottom: "1px solid #e2e8f0" }}>
                 <Button fullWidth onClick={() => setOpenModule(isOpen ? null : moduleKey)} sx={{ minHeight: 66, px: { xs: 2.25, sm: 2.75 }, py: 1.5, justifyContent: "space-between", textAlign: "left", textTransform: "none", color: "#334155", backgroundColor: COLORS.white, borderRadius: 0, borderLeft: "4px solid transparent", "&:hover": { backgroundColor: "#f8fafc" }, "&:focus-visible": { outline: "none" } }}>
                   <Box sx={{ minWidth: 0, pr: 1.5 }}>
-                    <Typography sx={{ fontSize: { xs: "0.88rem", sm: "0.93rem" }, fontWeight: 800, lineHeight: 1.35 }}>{moduleIndex + 1}. {module?.title || "Module"}</Typography>
-                    <Typography sx={{ mt: 0.4, fontSize: "0.68rem", color: "#94a3b8", fontWeight: 600 }}>{moduleVideos.length} lesson{moduleVideos.length === 1 ? "" : "s"}{completedCount > 0 ? ` • ${completedCount} completed` : ""}</Typography>
+                    <Typography sx={{ fontSize: { xs: "0.88rem", sm: "0.93rem" }, fontWeight: 600, lineHeight: 1.35, color: "#64748b" }}>{moduleIndex + 1}. {module?.title || "Module"}</Typography>
+                    <Typography sx={{ mt: 0.4, fontSize: "0.68rem", color: "#94a3b8", fontWeight: 500 }}>{moduleVideos.length} lesson{moduleVideos.length === 1 ? "" : "s"}{completedCount > 0 ? ` • ${completedCount} completed` : ""}</Typography>
                   </Box>
                   <ExpandMore sx={{ flexShrink: 0, color: "#64748b", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 180ms ease" }} />
                 </Button>
