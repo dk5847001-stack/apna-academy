@@ -128,9 +128,15 @@ export default function BunnyVideoPlayer({
     return isNativeVideoUrl(rawUrl) ? rawUrl : "";
   }, [video?.videoUrl]);
 
+  const pdfUrl = useMemo(() => {
+    const rawUrl = typeof video?.notesPdfUrl === "string" ? video.notesPdfUrl.trim() : "";
+    return rawUrl;
+  }, [video?.notesPdfUrl]);
+
   const useBunnyEmbed = Boolean(bunnyEmbedUrl);
   const useNativeVideo = !useBunnyEmbed && Boolean(nativeVideoUrl);
   const hasVideoSource = useBunnyEmbed || useNativeVideo;
+  const hasPdfSource = Boolean(pdfUrl);
 
   const stopBunnyProgressPolling = () => {
     if (progressPollRef.current) {
@@ -316,11 +322,66 @@ export default function BunnyVideoPlayer({
   }
 
   if (!hasVideoSource) {
+    if (hasPdfSource) {
+      return (
+        <Box
+          sx={{
+            position: "relative",
+            width: "100%",
+            aspectRatio: "16 / 9",
+            backgroundColor: "#111827",
+            overflow: "hidden",
+          }}
+        >
+          <iframe
+            src={pdfUrl}
+            title={video.title || "Course PDF"}
+            loading="lazy"
+            style={{
+              width: "100%",
+              height: "100%",
+              border: 0,
+              display: "block",
+              backgroundColor: "#ffffff",
+            }}
+          />
+          <Box
+            sx={{
+              position: "absolute",
+              right: 12,
+              bottom: 12,
+              zIndex: 2,
+              backgroundColor: "rgba(15, 23, 42, 0.9)",
+              borderRadius: 1.5,
+              px: 1.5,
+              py: 0.75,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+            }}
+          >
+            <Typography
+              component="a"
+              href={pdfUrl}
+              target="_blank"
+              rel="noreferrer"
+              sx={{
+                color: "#ffffff",
+                textDecoration: "none",
+                fontSize: 12,
+                fontWeight: 700,
+                "&:hover": { textDecoration: "underline" },
+              }}
+            >
+              Open PDF ↗
+            </Typography>
+          </Box>
+        </Box>
+      );
+    }
+
     return (
       <Box sx={{ width: "100%", aspectRatio: "16 / 9", backgroundColor: "#000000", display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
         <Stack spacing={1.5} alignItems="center" textAlign="center">
-          <CircularProgress size={30} sx={{ color: "#ffffff" }} />
-          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.65)" }}>Video source is unavailable.</Typography>
+          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.65)" }}>Learning content is unavailable.</Typography>
         </Stack>
       </Box>
     );
