@@ -20,7 +20,7 @@ import { API_BASE_URL } from "../constants/config";
 const api = axios.create({
   baseURL: API_BASE_URL,
 
-  timeout: 15000,
+  timeout: 60000,
 
   withCredentials: true,
 
