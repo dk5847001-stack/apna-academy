@@ -117,21 +117,37 @@ function CourseLearningPage() {
     };
   }, [slug, navigate]);
 
+  // Lesson clicks intentionally stay inside the mounted learning page. The
+  // URL is managed with the History API so React Router does not remount the
+  // route and trigger the full course loader again. Popstate keeps browser
+  // Back/Forward working for lesson-to-lesson navigation.
   useEffect(() => {
-    if (!videoId || modules.length === 0) return;
+    if (!slug || modules.length === 0) return undefined;
 
-    const videos = modules.flatMap((module) =>
-      Array.isArray(module?.videos) ? module.videos : []
-    );
+    const handlePopState = () => {
+      const match = window.location.pathname.match(/^\/courses\/([^/]+)\/learn\/([^/]+)\/?$/);
+      if (!match) return;
 
-    const selected = videos.find(
-      (video) => String(getVideoId(video)) === String(videoId) && !video?.isLocked
-    );
+      const pathSlug = decodeURIComponent(match[1]);
+      const pathVideoId = decodeURIComponent(match[2]);
+      if (pathSlug !== slug) return;
 
-    if (selected && String(getVideoId(currentVideo)) !== String(getVideoId(selected))) {
-      setCurrentVideo(normalizeLearningVideo({ video: selected }));
-    }
-  }, [videoId, modules, currentVideo]);
+      const videos = modules.flatMap((module) =>
+        Array.isArray(module?.videos) ? module.videos : []
+      );
+
+      const selected = videos.find(
+        (video) => String(getVideoId(video)) === String(pathVideoId) && !video?.isLocked
+      );
+
+      if (selected) {
+        setCurrentVideo(normalizeLearningVideo({ video: selected }));
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [slug, modules]);
 
   const currentPosition = useMemo(() => {
     if (!progress || !currentVideo) return 0;
@@ -205,10 +221,10 @@ function CourseLearningPage() {
 
       setCurrentVideo(normalizeLearningVideo({ video }));
 
-      // Keep lesson switching inside the already-mounted player. Updating the
-      // browser URL directly avoids a React Router transition, which would
-      // otherwise re-enter the route-level loading state and refetch the course.
-      window.history.replaceState(
+      // pushState changes only the browser URL. It does NOT trigger a React
+      // Router navigation, so the player remains mounted and no course-level
+      // loading spinner/refetch occurs when a lesson is selected.
+      window.history.pushState(
         window.history.state,
         "",
         COURSE_ROUTES.VIDEO(slug, id)
