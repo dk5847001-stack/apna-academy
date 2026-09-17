@@ -184,27 +184,45 @@ export default function SeoManager() {
     setJsonLd("breadcrumb", breadcrumb);
 
     if (isCourseDetails && course) {
+      const category = cleanText(course.category, "Development");
+      const level = cleanText(course.level, "beginner");
+      const language = cleanText(course.language, "English");
+      const instructorName = cleanText(course.instructor?.name);
+      const instructorImage = absoluteUrl(course.instructor?.avatar, "");
+
       const courseSchema = {
         "@context": "https://schema.org",
         "@type": "Course",
         name: cleanText(course.title),
         description,
         url: canonical,
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": canonical,
+        },
+        about: {
+          "@type": "Thing",
+          name: category,
+        },
+        keywords: [cleanText(course.title), category, level, language]
+          .filter(Boolean)
+          .join(", "),
         provider: {
           "@type": "Organization",
           name: APP_NAME,
           url: SITE_URL,
         },
-        educationalLevel: cleanText(course.level, "beginner"),
-        inLanguage: cleanText(course.language, "English"),
+        educationalLevel: level,
+        inLanguage: language,
         ...(Number(course.durationDays) > 0
           ? { timeRequired: `P${Number(course.durationDays)}D` }
           : {}),
-        ...(course.instructor?.name
+        ...(instructorName
           ? {
               instructor: {
                 "@type": "Person",
-                name: cleanText(course.instructor.name),
+                name: instructorName,
+                ...(instructorImage ? { image: instructorImage } : {}),
               },
             }
           : {}),
