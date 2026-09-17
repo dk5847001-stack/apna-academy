@@ -181,23 +181,48 @@ export const listAdminCourses = async ({ page = 1, limit = 20, search = "" }) =>
 
 export const getAdminCourse = async (courseId) => {
   ensureObjectId(courseId, "course id");
-  const course = await Course.findById(courseId).lean();
+
+  /*
+   * These reads are independent. Running them together removes one full
+   * database round-trip from every course-detail request.
+   */
+  const [course, modules] = await Promise.all([
+    Course.findById(courseId).lean(),
+    Module.find({ course: courseId }).sort({ order: 1 }).lean(),
+  ]);
+
   if (!course) {
     const error = new Error("Course not found.");
     error.statusCode = 404;
     throw error;
   }
 
-  const modules = await Module.find({ course: course._id }).sort({ order: 1 }).lean();
   const moduleIds = modules.map((module) => module._id);
   const videos = moduleIds.length
-    ? await Video.find({ course: course._id, module: { $in: moduleIds } }).sort({ module: 1, order: 1 }).lean()
+    ? await Video.find({
+        course: course._id,
+        module: { $in: moduleIds },
+      })
+        .sort({ module: 1, order: 1 })
+        .lean()
     : [];
+
+  /* Avoid repeatedly scanning the full video array for every module. */
+  const videosByModule = new Map();
+  for (const video of videos) {
+    const key = String(video.module);
+    const bucket = videosByModule.get(key);
+    if (bucket) {
+      bucket.push(video);
+    } else {
+      videosByModule.set(key, [video]);
+    }
+  }
 
   return formatCourse(
     course,
     modules.map((module) =>
-      formatModule(module, videos.filter((video) => String(video.module) === String(module._id)))
+      formatModule(module, videosByModule.get(String(module._id)) || [])
     )
   );
 };
