@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const siteUrl = (process.env.VITE_SITE_URL || "").trim().replace(/\/$/, "");
@@ -23,6 +23,24 @@ const pages = [
   { path: "/refund-policy", title: "Refund Policy | ApnaAcademy", description: "Read the ApnaAcademy refund policy and applicable terms.", type: "WebPage", indexable: true },
 ];
 
+const blogPosts = [
+  {
+    title: "How to Build Job-Ready Web Development Skills",
+    date: "2026-09-14",
+    description: "A practical roadmap for frontend, backend, APIs, databases and real-world projects.",
+  },
+  {
+    title: "Why Project-Based Learning Works",
+    date: "2026-09-10",
+    description: "Move from passive tutorials to structured projects and measurable progress.",
+  },
+  {
+    title: "A Better Way to Prepare for Technical Interviews",
+    date: "2026-09-05",
+    description: "Balance DSA, computer science fundamentals, projects and communication.",
+  },
+];
+
 const escapeHtml = (value) =>
   String(value)
     .replaceAll("&", "&amp;")
@@ -32,11 +50,6 @@ const escapeHtml = (value) =>
     .replaceAll("'", "&#39;");
 
 const escapeJson = (value) => JSON.stringify(value).replace(/</g, "\\u003c");
-
-const replaceTagContent = (html, selectorPattern, value) => {
-  const pattern = new RegExp(`(<${selectorPattern}[^>]*\\bcontent\\s*=\\s*["'])[^"']*(["'][^>]*>)`, "i");
-  return html.replace(pattern, `$1${escapeHtml(value)}$2`);
-};
 
 const replaceLinkHref = (html, rel, href) =>
   html.replace(
@@ -68,7 +81,7 @@ const injectPageSeo = (template, page) => {
   html = replaceOrAddMeta(html, { property: "og:title" }, page.title);
   html = replaceOrAddMeta(html, { property: "og:description" }, page.description);
   html = replaceOrAddMeta(html, { property: "og:url" }, canonicalUrl);
-  html = replaceOrAddMeta(html, { property: "og:type" }, page.type === "WebSite" ? "website" : "website");
+  html = replaceOrAddMeta(html, { property: "og:type" }, "website");
   html = replaceOrAddMeta(html, { property: "og:image" }, logoUrl);
   html = replaceOrAddMeta(html, { property: "og:image:alt" }, "ApnaAcademy logo");
   html = replaceOrAddMeta(html, { name: "twitter:title" }, page.title);
@@ -79,25 +92,56 @@ const injectPageSeo = (template, page) => {
 
   html = html.replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*data-apna-seo=["'][^"']+["'][^>]*>[\s\S]*?<\/script>/gi, "");
 
-  const schema = page.type === "WebSite"
-    ? {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: "ApnaAcademy",
-        url: `${origin}/`,
-        description: "ApnaAcademy is a modern online learning platform for practical courses, skill development and career-focused learning.",
-        inLanguage: "en-IN",
-      }
-    : {
-        "@context": "https://schema.org",
-        "@type": page.type,
-        name: page.title,
-        description: page.description,
-        url: canonicalUrl,
-        inLanguage: "en-IN",
-        isPartOf: { "@type": "WebSite", name: "ApnaAcademy", url: `${origin}/` },
-        publisher: { "@type": "EducationalOrganization", name: "ApnaAcademy", url: `${origin}/`, logo: logoUrl },
-      };
+  const publisher = {
+    "@type": "EducationalOrganization",
+    name: "ApnaAcademy",
+    url: `${origin}/`,
+    logo: logoUrl,
+    description: "ApnaAcademy is a modern online learning platform for practical courses, skill development and career-focused learning.",
+  };
+
+  let schema;
+  if (page.type === "WebSite") {
+    schema = {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "ApnaAcademy",
+      url: `${origin}/`,
+      description: "ApnaAcademy is a modern online learning platform for practical courses, skill development and career-focused learning.",
+      inLanguage: "en-IN",
+    };
+  } else if (page.path === "/blog") {
+    schema = {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      name: "ApnaAcademy Blog",
+      description: page.description,
+      url: canonicalUrl,
+      inLanguage: "en-IN",
+      publisher,
+      blogPost: blogPosts.map((post) => ({
+        "@type": "BlogPosting",
+        headline: post.title,
+        datePublished: post.date,
+        dateModified: post.date,
+        description: post.description,
+        mainEntityOfPage: canonicalUrl,
+        author: { "@type": "Organization", name: "ApnaAcademy", url: `${origin}/` },
+        publisher,
+      })),
+    };
+  } else {
+    schema = {
+      "@context": "https://schema.org",
+      "@type": page.type,
+      name: page.title,
+      description: page.description,
+      url: canonicalUrl,
+      inLanguage: "en-IN",
+      isPartOf: { "@type": "WebSite", name: "ApnaAcademy", url: `${origin}/` },
+      publisher,
+    };
+  }
 
   html = html.replace(/<\/head>/i, `    <script type="application/ld+json" data-apna-seo="static-page">${escapeJson(schema)}</script>\n  </head>`);
   return html;
