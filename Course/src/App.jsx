@@ -91,10 +91,11 @@ function CourseLearningPage() {
         setCurrentVideo(normalizeLearningVideo({ video: selected }));
 
         if (videoId && String(getVideoId(selected)) !== String(videoId)) {
-          navigate(COURSE_ROUTES.VIDEO(slug, getVideoId(selected)), {
-            replace: true,
-            preventScrollReset: true,
-          });
+          window.history.replaceState(
+            window.history.state,
+            "",
+            COURSE_ROUTES.VIDEO(slug, getVideoId(selected))
+          );
         }
       } catch (err) {
         console.error("Learning page error:", err);
@@ -203,9 +204,17 @@ function CourseLearningPage() {
       if (!id || !slug) return;
 
       setCurrentVideo(normalizeLearningVideo({ video }));
-      navigate(COURSE_ROUTES.VIDEO(slug, id), { preventScrollReset: true });
+
+      // Keep lesson switching inside the already-mounted player. Updating the
+      // browser URL directly avoids a React Router transition, which would
+      // otherwise re-enter the route-level loading state and refetch the course.
+      window.history.replaceState(
+        window.history.state,
+        "",
+        COURSE_ROUTES.VIDEO(slug, id)
+      );
     },
-    [navigate, slug]
+    [slug]
   );
 
   const handleVideoSelect = useCallback((video) => selectLesson(video), [selectLesson]);
