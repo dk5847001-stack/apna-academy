@@ -30,24 +30,14 @@ const api = axios.create({
   },
 });
 
+const RETRYABLE_STATUS_CODES = new Set([502, 503, 504]);
+const RETRY_DELAY_MS = 350;
+
+const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
 /* =========================================================
    REQUEST INTERCEPTOR
 ========================================================= */
-
-/*
- * No Authorization: Bearer token here.
- *
- * Authentication source of truth:
- *
- * Frontend
- *    ↓
- * HttpOnly Cookie
- *    ↓
- * Backend /auth/me
- *
- * HttpOnly cookies cannot be read by JavaScript,
- * which is intentional for security.
- */
 
 api.interceptors.request.use(
   (config) => {
@@ -67,19 +57,26 @@ api.interceptors.response.use(
     return response;
   },
 
-  (error) => {
+  async (error) => {
+    const request = error?.config;
+    const method = String(request?.method || "get").toUpperCase();
     const status = error?.response?.status;
 
-    /*
-     * A 401 means the backend does not consider the
-     * current browser session authenticated.
-     *
-     * We do NOT try to remove the HttpOnly cookie here
-     * because JavaScript cannot access it.
-     *
-     * The backend /auth/logout endpoint is responsible
-     * for clearing the authentication cookie.
-     */
+    const retryableNetworkFailure =
+      !error?.response &&
+      error?.code !== "ECONNABORTED" &&
+      error?.code !== "ETIMEDOUT";
+
+    if (
+      request &&
+      method === "GET" &&
+      !request.__apnaAcademyRetried &&
+      (RETRYABLE_STATUS_CODES.has(status) || retryableNetworkFailure)
+    ) {
+      request.__apnaAcademyRetried = true;
+      await sleep(RETRY_DELAY_MS);
+      return api.request(request);
+    }
 
     if (status === 401) {
       window.dispatchEvent(
