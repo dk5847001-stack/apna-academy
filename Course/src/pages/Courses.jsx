@@ -187,8 +187,11 @@ export default function Courses() {
 
   return (
     <CourseNavigation>
-      <main className="min-h-screen bg-white text-slate-900">
-        <section className="border-b border-slate-200 bg-slate-50/70">
+      <main className="min-h-screen bg-white text-slate-900" aria-label="ApnaAcademy course catalog">
+        <section
+          aria-labelledby="course-catalog-title"
+          className="border-b border-slate-200 bg-slate-50/70"
+        >
           <Container maxWidth="lg">
             <div className="py-10 sm:py-14 lg:py-16">
               <div className="max-w-3xl">
@@ -199,6 +202,7 @@ export default function Courses() {
                   className="!rounded-full !bg-blue-50 !font-bold !text-blue-700"
                 />
                 <Typography
+                  id="course-catalog-title"
                   component="h1"
                   className="!mt-4 !text-3xl !font-black !tracking-tight !text-slate-950 sm:!text-4xl lg:!text-5xl"
                 >
@@ -236,12 +240,16 @@ export default function Courses() {
           </Container>
         </section>
 
-        <section className="border-b border-slate-200 bg-white">
+        <section
+          aria-labelledby="course-filters-title"
+          className="border-b border-slate-200 bg-white"
+        >
           <Container maxWidth="lg">
             <div className="flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-center gap-2">
                 <Tune className="!text-[20px] !text-blue-600" />
                 <Typography
+                  id="course-filters-title"
                   component="span"
                   className="!text-sm !font-black !text-slate-900"
                 >
@@ -256,7 +264,7 @@ export default function Courses() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[650px]">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-[650px]" aria-label="Course catalog filters">
                 <FormControl fullWidth size="small">
                   <InputLabel>Category</InputLabel>
                   <Select
@@ -309,7 +317,7 @@ export default function Courses() {
             </div>
 
             {hasActiveFilters && (
-              <div className="flex flex-wrap items-center gap-2 pb-5">
+              <div className="flex flex-wrap items-center gap-2 pb-5" aria-label="Active course filters">
                 {search.trim() && (
                   <Chip
                     label={`Search: ${search}`}
@@ -347,10 +355,14 @@ export default function Courses() {
           </Container>
         </section>
 
-        <section className="bg-white py-9 sm:py-12">
+        <section
+          id="course-catalog"
+          aria-labelledby="available-courses-title"
+          className="bg-white py-9 sm:py-12"
+        >
           <Container maxWidth="lg">
             {loading ? (
-              <div className="flex min-h-[360px] items-center justify-center">
+              <div className="flex min-h-[360px] items-center justify-center" role="status" aria-live="polite">
                 <Stack spacing={2} alignItems="center">
                   <CircularProgress size={34} />
                   <Typography
@@ -362,7 +374,7 @@ export default function Courses() {
                 </Stack>
               </div>
             ) : error ? (
-              <div className="mx-auto max-w-2xl">
+              <div className="mx-auto max-w-2xl" role="alert">
                 <Alert
                   severity="error"
                   className="!rounded-2xl"
@@ -384,6 +396,7 @@ export default function Courses() {
                 <div className="mb-7 flex items-end justify-between gap-4">
                   <div>
                     <Typography
+                      id="available-courses-title"
                       component="h2"
                       className="!text-xl !font-black !text-slate-950 sm:!text-2xl"
                     >
@@ -413,6 +426,7 @@ export default function Courses() {
                   <Search />
                 </div>
                 <Typography
+                  id="available-courses-title"
                   component="h2"
                   className="!mt-5 !text-lg !font-black !text-slate-950"
                 >
@@ -439,10 +453,11 @@ export default function Courses() {
           </Container>
         </section>
 
-        <section className="border-t border-slate-200 bg-slate-50 py-12">
+        <section aria-labelledby="course-catalog-cta-title" className="border-t border-slate-200 bg-slate-50 py-12">
           <Container maxWidth="md">
             <div className="rounded-3xl border border-blue-100 bg-blue-50 px-6 py-9 text-center sm:px-10">
               <Typography
+                id="course-catalog-cta-title"
                 component="h2"
                 className="!text-2xl !font-black !text-slate-950"
               >
