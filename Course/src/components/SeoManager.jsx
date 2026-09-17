@@ -95,9 +95,6 @@ export default function SeoManager() {
 
     window.addEventListener("apnaacademy-course-loaded", eventHandler);
 
-    // CourseDetails can publish its data after the SEO manager mounts. Fetching
-    // here is a safe fallback so structured metadata is still populated when
-    // the page is opened directly or the event arrives later.
     const loadCourseMetadata = async () => {
       try {
         const result = await getCourseBySlug(courseSlug);
@@ -289,6 +286,12 @@ export default function SeoManager() {
         name: `${APP_NAME} Courses`,
         description,
         url: `${SITE_URL}/`,
+        mainEntity: {
+          "@type": "ItemList",
+          itemListOrder: "https://schema.org/ItemListOrderAscending",
+          numberOfItems: 0,
+          itemListElement: [],
+        },
       });
     }
   }, [pathname, course]);
