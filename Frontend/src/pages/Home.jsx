@@ -158,6 +158,7 @@ function CoursePreviewCard({ course }) {
           src={course?.thumbnail || FALLBACK_THUMBNAIL}
           alt={`${title} course`}
           loading="lazy"
+          decoding="async"
           className="
             h-full
             w-full
@@ -594,9 +595,9 @@ export default function Home() {
 
                         <Typography
                           component="p"
-                          className="!mt-1 !text-lg !font-black !text-slate-950"
+                          className="!mt-1 !text-sm !font-black !text-slate-900"
                         >
-                          Practical
+                          Career Ready
                         </Typography>
                       </div>
 
@@ -612,7 +613,7 @@ export default function Home() {
 
                         <Typography
                           component="p"
-                          className="!mt-1 !text-lg !font-black !text-slate-950"
+                          className="!mt-1 !text-sm !font-black !text-slate-900"
                         >
                           Verified
                         </Typography>
@@ -622,154 +623,58 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="absolute -bottom-5 -left-3 hidden rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-xl sm:block">
-                <div className="flex items-center gap-3">
-                  <Box className="flex !h-9 !w-9 items-center justify-center !rounded-xl !bg-blue-50 !text-blue-600">
-                    <Verified fontSize="small" />
-                  </Box>
-
-                  <div>
-                    <Typography
-                      component="p"
-                      className="!text-[10px] !font-semibold !text-slate-500"
-                    >
-                      Achievement
-                    </Typography>
-
-                    <Typography
-                      component="p"
-                      className="!text-xs !font-black !text-slate-950"
-                    >
-                      Certificate Ready
-                    </Typography>
-                  </div>
-                </div>
-              </div>
+              <div
+                aria-hidden="true"
+                className="
+                  absolute
+                  -bottom-4
+                  -left-4
+                  hidden
+                  h-20
+                  w-20
+                  rounded-2xl
+                  border
+                  border-blue-100
+                  bg-white
+                  shadow-xl
+                  sm:block
+                "
+              />
             </div>
           </div>
         </Container>
       </section>
 
       {/* =====================================================
-          FEATURE STRIP
+          TRUST / VALUE
       ====================================================== */}
 
-      <section className="border-b border-slate-200 bg-slate-50/70">
+      <section className="border-b border-slate-200 bg-slate-50">
         <Container maxWidth="lg">
-          <div className="grid grid-cols-2 divide-x divide-slate-200 md:grid-cols-4">
-            {[
-              {
-                value: "Practical",
-                label: "Learning approach",
-              },
-              {
-                value: "Structured",
-                label: "Course experience",
-              },
-              {
-                value: "Progress",
-                label: "Learning tracking",
-              },
-              {
-                value: "Verified",
-                label: "Digital achievement",
-              },
-            ].map((item) => (
+          <div className="grid gap-4 py-8 sm:grid-cols-2 lg:grid-cols-4">
+            {features.map((feature) => (
               <div
-                key={item.value}
-                className="px-4 py-6 text-center sm:px-6"
+                key={feature.title}
+                className="rounded-2xl border border-slate-200 bg-white p-5"
               >
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  {feature.icon}
+                </div>
+
                 <Typography
-                  component="p"
-                  className="!text-sm !font-black !text-slate-950 sm:!text-base"
+                  component="h2"
+                  className="!mt-4 !text-sm !font-black !text-slate-900"
                 >
-                  {item.value}
+                  {feature.title}
                 </Typography>
 
                 <Typography
                   component="p"
-                  className="!mt-1 !text-[10px] !font-medium !text-slate-500 sm:!text-xs"
+                  className="!mt-2 !text-xs !leading-5 !text-slate-500 sm:!text-sm"
                 >
-                  {item.label}
+                  {feature.description}
                 </Typography>
               </div>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      {/* =====================================================
-          FEATURES
-      ====================================================== */}
-
-      <section className="bg-white py-16 sm:py-20">
-        <Container maxWidth="lg">
-          <div className="mx-auto max-w-2xl text-center">
-            <Chip
-              label="Why ApnaAcademy"
-              size="small"
-              className="!bg-blue-50 !font-bold !text-blue-700"
-            />
-
-            <Typography
-              component="h2"
-              className="
-                !mt-4
-                !text-3xl
-                !font-black
-                !tracking-tight
-                !text-slate-950
-                sm:!text-4xl
-              "
-            >
-              Learning designed around outcomes.
-            </Typography>
-
-            <Typography
-              component="p"
-              className="!mt-3 !text-sm !leading-6 !text-slate-500 sm:!text-base"
-            >
-              Everything is designed to keep learning simple,
-              structured and focused on building useful skills.
-            </Typography>
-          </div>
-
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature) => (
-              <Card
-                key={feature.title}
-                elevation={0}
-                className="
-                  !rounded-2xl
-                  !border
-                  !border-slate-200
-                  !bg-white
-                  transition-all
-                  duration-200
-                  hover:-translate-y-1
-                  hover:shadow-lg
-                "
-              >
-                <CardContent className="!p-5">
-                  <Box className="flex !h-11 !w-11 items-center justify-center !rounded-xl !bg-blue-50 !text-blue-600">
-                    {feature.icon}
-                  </Box>
-
-                  <Typography
-                    component="h3"
-                    className="!mt-5 !text-base !font-black !text-slate-950"
-                  >
-                    {feature.title}
-                  </Typography>
-
-                  <Typography
-                    component="p"
-                    className="!mt-2 !text-sm !leading-6 !text-slate-500"
-                  >
-                    {feature.description}
-                  </Typography>
-                </CardContent>
-              </Card>
             ))}
           </div>
         </Container>
@@ -777,182 +682,137 @@ export default function Home() {
 
       {/* =====================================================
           FEATURED COURSES
-      ====================================================== */}
+      ====================================================== */
 
-      <section className="border-y border-slate-200 bg-slate-50/60 py-16 sm:py-20">
+      <section className="border-b border-slate-200 bg-white">
         <Container maxWidth="lg">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <Chip
-                label="Featured Courses"
-                size="small"
-                className="!bg-blue-50 !font-bold !text-blue-700"
-              />
+          <div className="py-14 sm:py-18 lg:py-20">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="max-w-2xl">
+                <Typography
+                  component="p"
+                  className="!text-xs !font-black !uppercase !tracking-[0.18em] !text-blue-600"
+                >
+                  Featured learning
+                </Typography>
 
-              <Typography
-                component="h2"
-                className="!mt-3 !text-3xl !font-black !tracking-tight !text-slate-950"
-              >
-                Start learning today.
-              </Typography>
+                <Typography
+                  component="h2"
+                  className="!mt-2 !text-3xl !font-black !tracking-tight !text-slate-950 sm:!text-4xl"
+                >
+                  Explore courses built for practical skills.
+                </Typography>
 
-              <Typography
-                component="p"
-                className="!mt-2 !max-w-2xl !text-sm !leading-6 !text-slate-500"
-              >
-                Explore our latest learning opportunities and
-                choose the path that fits your goals.
-              </Typography>
-            </div>
-
-            <Button
-              variant="outlined"
-              endIcon={<ArrowForward />}
-              onClick={() => navigate("/courses")}
-              className="
-                !w-fit
-                !rounded-xl
-                !border-slate-200
-                !px-4
-                !py-2.5
-                !font-bold
-                !normal-case
-                !text-slate-700
-                hover:!border-blue-300
-                hover:!bg-blue-50
-                hover:!text-blue-700
-              "
-            >
-              View All Courses
-            </Button>
-          </div>
-
-          {loadingCourses ? (
-            <div className="flex min-h-64 items-center justify-center">
-              <CircularProgress size={32} />
-            </div>
-          ) : featuredCourses.length > 0 ? (
-            <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredCourses.map((course) => (
-                <CoursePreviewCard
-                  key={course._id || course.id || course.slug}
-                  course={course}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="mt-9 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-              <Typography
-                component="h3"
-                className="!text-base !font-black !text-slate-900"
-              >
-                Courses are being prepared.
-              </Typography>
-
-              <Typography
-                component="p"
-                className="!mt-2 !text-sm !text-slate-500"
-              >
-                Explore the courses section to see the latest
-                available learning programs.
-              </Typography>
+                <Typography
+                  component="p"
+                  className="!mt-3 !text-sm !leading-6 !text-slate-500 sm:!text-base"
+                >
+                  Discover structured courses designed to help you learn useful skills, build confidence and move closer to your career goals.
+                </Typography>
+              </div>
 
               <Button
-                variant="contained"
-                onClick={() => navigate("/courses")}
-                className="!mt-5 !rounded-xl !bg-blue-600 !font-bold !normal-case hover:!bg-blue-700"
+                href="/courses"
+                endIcon={<ArrowForward />}
+                className="!w-fit !rounded-xl !px-3 !py-2 !font-bold !normal-case !text-blue-700 hover:!bg-blue-50"
               >
-                Explore Courses
+                View all courses
               </Button>
             </div>
-          )}
+
+            <div className="mt-8">
+              {loadingCourses ? (
+                <div className="flex min-h-40 items-center justify-center">
+                  <CircularProgress size={28} />
+                </div>
+              ) : featuredCourses.length > 0 ? (
+                <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                  {featuredCourses.map((course) => (
+                    <CoursePreviewCard
+                      key={course?._id || course?.id || course?.slug}
+                      course={course}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                  <Typography
+                    component="h3"
+                    className="!text-base !font-black !text-slate-800"
+                  >
+                    Courses are being prepared.
+                  </Typography>
+
+                  <Typography
+                    component="p"
+                    className="!mt-2 !text-sm !text-slate-500"
+                  >
+                    Please check back soon for new learning opportunities.
+                  </Typography>
+                </div>
+              )}
+            </div>
+          </div>
         </Container>
       </section>
 
       {/* =====================================================
-          HOW IT WORKS
+          LEARNING PROCESS
       ====================================================== */}
 
-      <section className="bg-white py-16 sm:py-20">
+      <section className="border-b border-slate-200 bg-slate-50">
         <Container maxWidth="lg">
-          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-            <div>
-              <Chip
-                label="How It Works"
-                size="small"
-                className="!bg-blue-50 !font-bold !text-blue-700"
-              />
+          <div className="py-14 sm:py-18 lg:py-20">
+            <div className="mx-auto max-w-2xl text-center">
+              <Typography
+                component="p"
+                className="!text-xs !font-black !uppercase !tracking-[0.18em] !text-blue-600"
+              >
+                How it works
+              </Typography>
 
               <Typography
                 component="h2"
-                className="!mt-4 !text-3xl !font-black !leading-tight !text-slate-950 sm:!text-4xl"
+                className="!mt-2 !text-3xl !font-black !tracking-tight !text-slate-950 sm:!text-4xl"
               >
                 A simple path from learning to achievement.
               </Typography>
 
               <Typography
                 component="p"
-                className="!mt-4 !max-w-xl !text-sm !leading-7 !text-slate-500 sm:!text-base"
+                className="!mt-3 !text-sm !leading-6 !text-slate-500 sm:!text-base"
               >
-                Choose your course, learn through structured
-                content, track your progress and complete the
-                requirements for your achievement.
+                Follow a structured learning journey that keeps your progress clear and focused.
               </Typography>
-
-              <Button
-                variant="contained"
-                endIcon={<ArrowForward />}
-                onClick={() => navigate("/courses")}
-                className="
-                  !mt-6
-                  !rounded-xl
-                  !bg-blue-600
-                  !px-5
-                  !py-2.5
-                  !font-bold
-                  !normal-case
-                  hover:!bg-blue-700
-                "
-              >
-                Find Your Course
-              </Button>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {learningSteps.map((step) => (
-                <Card
+                <div
                   key={step.number}
-                  elevation={0}
-                  className="
-                    !rounded-2xl
-                    !border
-                    !border-slate-200
-                    !bg-white
-                  "
+                  className="rounded-2xl border border-slate-200 bg-white p-5"
                 >
-                  <CardContent className="!p-5">
-                    <Typography
-                      component="span"
-                      className="!text-xs !font-black !tracking-widest !text-blue-600"
-                    >
-                      {step.number}
-                    </Typography>
+                  <Typography
+                    component="span"
+                    className="!text-xs !font-black !tracking-[0.18em] !text-blue-600"
+                  >
+                    {step.number}
+                  </Typography>
 
-                    <Typography
-                      component="h3"
-                      className="!mt-3 !text-base !font-black !text-slate-950"
-                    >
-                      {step.title}
-                    </Typography>
+                  <Typography
+                    component="h3"
+                    className="!mt-3 !text-base !font-black !text-slate-900"
+                  >
+                    {step.title}
+                  </Typography>
 
-                    <Typography
-                      component="p"
-                      className="!mt-2 !text-sm !leading-6 !text-slate-500"
-                    >
-                      {step.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
+                  <Typography
+                    component="p"
+                    className="!mt-2 !text-sm !leading-6 !text-slate-500"
+                  >
+                    {step.description}
+                  </Typography>
+                </div>
               ))}
             </div>
           </div>
@@ -963,65 +823,56 @@ export default function Home() {
           CTA
       ====================================================== */}
 
-      <section className="bg-slate-50 py-16 sm:py-20">
-        <Container maxWidth="md">
-          <div className="rounded-3xl border border-blue-100 bg-blue-50 px-6 py-10 text-center sm:px-10">
-            <Box className="mx-auto flex !h-12 !w-12 items-center justify-center !rounded-2xl !bg-white !text-blue-600 !shadow-sm">
-              <Groups />
-            </Box>
+      <section className="bg-white">
+        <Container maxWidth="lg">
+          <div className="py-14 sm:py-18 lg:py-20">
+            <div className="relative overflow-hidden rounded-3xl border border-blue-100 bg-blue-50 px-6 py-10 sm:px-10 sm:py-14">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-white/60 blur-3xl"
+              />
 
-            <Typography
-              component="h2"
-              className="!mt-5 !text-2xl !font-black !text-slate-950 sm:!text-3xl"
-            >
-              Ready to start your learning journey?
-            </Typography>
+              <div className="relative max-w-3xl">
+                <Typography
+                  component="p"
+                  className="!text-xs !font-black !uppercase !tracking-[0.18em] !text-blue-700"
+                >
+                  Start your journey
+                </Typography>
 
-            <Typography
-              component="p"
-              className="!mx-auto !mt-3 !max-w-xl !text-sm !leading-6 !text-slate-600 sm:!text-base"
-            >
-              Join ApnaAcademy and start building practical
-              skills with a structured learning experience.
-            </Typography>
+                <Typography
+                  component="h2"
+                  className="!mt-2 !text-3xl !font-black !tracking-tight !text-slate-950 sm:!text-4xl"
+                >
+                  Build skills that stay useful beyond the classroom.
+                </Typography>
 
-            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-              <Button
-                variant="contained"
-                endIcon={<ArrowForward />}
-                onClick={() => navigate("/courses")}
-                className="
-                  !rounded-xl
-                  !bg-blue-600
-                  !px-6
-                  !py-3
-                  !font-bold
-                  !normal-case
-                  hover:!bg-blue-700
-                "
-              >
-                Explore Courses
-              </Button>
+                <Typography
+                  component="p"
+                  className="!mt-4 !max-w-2xl !text-sm !leading-6 !text-slate-600 sm:!text-base"
+                >
+                  Explore practical learning paths, build your knowledge step by step and work toward verified achievements with ApnaAcademy.
+                </Typography>
 
-              <Button
-                variant="outlined"
-                onClick={() => navigate("/register")}
-                className="
-                  !rounded-xl
-                  !border-slate-300
-                  !bg-white
-                  !px-6
-                  !py-3
-                  !font-bold
-                  !normal-case
-                  !text-slate-700
-                  hover:!border-blue-300
-                  hover:!bg-white
-                  hover:!text-blue-700
-                "
-              >
-                Create Account
-              </Button>
+                <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                  <Button
+                    variant="contained"
+                    endIcon={<ArrowForward />}
+                    onClick={() => navigate("/courses")}
+                    className="!rounded-xl !bg-blue-600 !px-5 !py-2.5 !font-bold !normal-case hover:!bg-blue-700"
+                  >
+                    Explore Courses
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate("/about")}
+                    className="!rounded-xl !border-slate-200 !px-5 !py-2.5 !font-bold !normal-case !text-slate-700 hover:!border-blue-300 hover:!bg-white"
+                  >
+                    Learn About Us
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </Container>
