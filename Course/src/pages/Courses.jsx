@@ -30,6 +30,14 @@ const getLevel = (course) =>
     : "All Levels";
 const getCategory = (course) => course?.category || "Other";
 
+const publishCourseCatalog = (courses) => {
+  window.dispatchEvent(
+    new CustomEvent("apnaacademy-course-catalog-loaded", {
+      detail: Array.isArray(courses) ? courses : [],
+    }),
+  );
+};
+
 export default function Courses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +61,7 @@ export default function Courses() {
             ? data.courses
             : [];
       setCourses(list);
+      publishCourseCatalog(list);
     } catch (err) {
       console.error("Course catalog fetch error:", err);
       setError(
@@ -85,6 +94,7 @@ export default function Courses() {
               : [];
 
         setCourses(list);
+        publishCourseCatalog(list);
       } catch (err) {
         if (mounted) {
           setError(
