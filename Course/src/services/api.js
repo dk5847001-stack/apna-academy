@@ -11,32 +11,57 @@ const api = axios.create({
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 
+const RETRYABLE_STATUS_CODES = new Set([502, 503, 504]);
+const RETRY_DELAY_MS = 350;
+
+const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
 /* =========================================================
-   AUTHENTICATION
-   HttpOnly cookie is the sole authentication source.
+   TRANSIENT GET RECOVERY
 ========================================================= */
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const request = error?.config;
+    const method = String(request?.method || "get").toUpperCase();
     const status = error?.response?.status;
 
-    if (status === 401) {
+    const retryableNetworkFailure =
+      !error?.response &&
+      error?.code !== "ECONNABORTED" &&
+      error?.code !== "ETIMEDOUT";
+
+    if (
+      request &&
+      method === "GET" &&
+      !request.__apnaAcademyRetried &&
+      (RETRYABLE_STATUS_CODES.has(status) || retryableNetworkFailure)
+    ) {
+      request.__apnaAcademyRetried = true;
+      await sleep(RETRY_DELAY_MS);
+      return api.request(request);
+    }
+
+    const authStatus = error?.response?.status;
+
+    if (authStatus === 401) {
       console.warn("Authentication required or session expired.");
     }
 
-    if (status === 403) {
+    if (authStatus === 403) {
       console.warn("You are not authorized to access this resource.");
     }
 
-    if (status === 404) {
+    if (authStatus === 404) {
       console.warn("Requested resource was not found.");
     }
 
-    if (status >= 500) {
+    if (authStatus >= 500) {
       console.error("ApnaAcademy server error.");
     }
 
