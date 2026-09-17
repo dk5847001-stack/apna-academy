@@ -41,10 +41,30 @@ const getVideoDuration = (video) => {
 const isVideoLocked = (video) => Boolean(video?.isLocked ?? video?.locked);
 const isVideoCompleted = (video) => Boolean(video?.isCompleted ?? video?.completed);
 const getNotesPdfUrl = (video) => (typeof video?.notesPdfUrl === "string" ? video.notesPdfUrl.trim() : "");
+
+const normalizeMediaValue = (value) => (typeof value === "string" ? value.trim() : "");
+const isEmptyMediaValue = (value) => {
+  const normalized = normalizeMediaValue(value).toLowerCase();
+  return !normalized || ["null", "undefined", "none", "n/a", "na", "#"].includes(normalized);
+};
 const hasVideoSource = (video) => {
-  const videoUrl = typeof video?.videoUrl === "string" ? video.videoUrl.trim() : "";
-  const bunnyVideoId = typeof video?.bunnyVideoId === "string" ? video.bunnyVideoId.trim() : "";
-  return Boolean(videoUrl || bunnyVideoId);
+  if (!video) return false;
+
+  // Explicit PDF/content-type flags always take precedence over generic media fields.
+  if (video?.isPdfOnly === true || video?.pdfOnly === true) return false;
+  if (["pdf", "document", "notes"].includes(normalizeMediaValue(video?.contentType).toLowerCase())) return false;
+  if (["pdf", "document", "notes"].includes(normalizeMediaValue(video?.type).toLowerCase())) return false;
+
+  const videoUrl = normalizeMediaValue(video?.videoUrl);
+  const bunnyVideoId = normalizeMediaValue(video?.bunnyVideoId);
+  const notesPdfUrl = getNotesPdfUrl(video);
+
+  // Treat placeholder values and a PDF URL accidentally stored in videoUrl as non-video content.
+  if (isEmptyMediaValue(videoUrl) && isEmptyMediaValue(bunnyVideoId)) return false;
+  if (notesPdfUrl && videoUrl && videoUrl === notesPdfUrl && isEmptyMediaValue(bunnyVideoId)) return false;
+  if (/\.pdf(?:$|[?#])/i.test(videoUrl) && isEmptyMediaValue(bunnyVideoId)) return false;
+
+  return !isEmptyMediaValue(videoUrl) || !isEmptyMediaValue(bunnyVideoId);
 };
 
 const COLORS = {
@@ -154,7 +174,7 @@ export default function CoursePlayerLayout({
                       const active = String(getVideoId(currentVideo)) === String(getVideoId(video));
                       const locked = isVideoLocked(video);
                       const completed = isVideoCompleted(video);
-                      const pdfOnly = !hasVideoSource(video) && Boolean(getNotesPdfUrl(video));
+                      const pdfOnly = Boolean(getNotesPdfUrl(video)) && !hasVideoSource(video);
                       return (
                         <Button key={getVideoId(video)} fullWidth disabled={locked} onClick={() => handleVideoClick(video)} sx={{ minHeight: 70, pl: { xs: 2.25, sm: 2.75 }, pr: { xs: 2.25, sm: 2.75 }, py: 1.35, justifyContent: "flex-start", alignItems: "center", gap: 1.3, textAlign: "left", textTransform: "none", borderRadius: 0, borderTop: "1px solid rgba(255,255,255,0.045)", borderLeft: "4px solid transparent", backgroundColor: active ? "#29313c" : COLORS.lesson, color: locked ? "#64748b" : "#ffffff", transition: "background-color 180ms ease", "&:hover": { backgroundColor: locked ? COLORS.lesson : COLORS.lessonHover, "& .course-video-title": { transform: locked ? "translateX(0)" : "translateX(6px)" } }, "&:focus": { outline: "none", boxShadow: "none" }, "&:focus-visible": { outline: "none", boxShadow: "none" }, "&.Mui-focusVisible": { backgroundColor: active ? "#29313c" : COLORS.lesson, boxShadow: "none", outline: "none" }, "&.Mui-disabled": { color: "#64748b", opacity: 1 } }}>
                           <Box sx={{ width: 32, height: 32, flexShrink: 0, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: completed ? "#16351f" : active ? "#33427a" : "#303844", border: "1px solid", borderColor: completed ? "#3b8150" : active ? "#6274d0" : "#4a5565" }}>
@@ -163,7 +183,7 @@ export default function CoursePlayerLayout({
                           <Box sx={{ minWidth: 0, flex: 1 }}>
                             <Typography className="course-video-title" sx={{ display: "block", transform: "translateX(0)", transition: "transform 180ms ease", fontSize: { xs: "0.78rem", sm: "0.82rem" }, fontWeight: active ? 800 : 650, color: locked ? "#64748b" : "#f8fafc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", willChange: "transform" }}>{getVideoTitle(video)}</Typography>
                             <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mt: 0.45 }}>
-                              <Typography sx={{ fontSize: "0.64rem", color: locked ? "#64748b" : "#a8b2c1" }}>video</Typography>
+                              <Typography sx={{ fontSize: "0.64rem", color: locked ? "#64748b" : "#a8b2c1" }}>{pdfOnly ? "PDF" : "video"}</Typography>
                               {video?.isPreview && <Chip label="Preview" size="small" sx={{ height: 18, color: "#bfdbfe", backgroundColor: "#1e3a5f", fontSize: "0.58rem", fontWeight: 700 }} />}
                             </Stack>
                           </Box>
