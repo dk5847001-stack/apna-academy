@@ -140,7 +140,13 @@ export default function CourseDetails() {
         setError("");
         const result = await getCourseBySlug(slug);
         if (!mounted) return;
-        setCourse(normalizeCourse(result?.course));
+        const normalizedCourse = normalizeCourse(result?.course);
+        setCourse(normalizedCourse);
+        window.dispatchEvent(
+          new CustomEvent("apnaacademy-course-loaded", {
+            detail: normalizedCourse,
+          })
+        );
         setModules(Array.isArray(result?.modules) ? result.modules : []);
         setExpandedModule(null);
       } catch (err) {
@@ -431,6 +437,7 @@ export default function CourseDetails() {
                       playsInline
                       controls
                       preload="auto"
+                      aria-label={`${course.title} preview video`}
                       sx={{
                         width: "100%",
                         height: "100%",
@@ -459,7 +466,7 @@ export default function CourseDetails() {
                       <Box
                         component="img"
                         src={course.thumbnail}
-                        alt={course.title}
+                        alt={`${course.title} course thumbnail`}
                         sx={{
                           width: "100%",
                           height: "100%",
@@ -558,7 +565,7 @@ export default function CourseDetails() {
               </Button>
             </Stack>
 
-            <Box sx={{ mt: { xs: 4, md: 5 } }}>
+            <Box component="article" sx={{ mt: { xs: 4, md: 5 } }}>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                 <Chip
                   label={course.category || "Development"}
@@ -593,6 +600,7 @@ export default function CourseDetails() {
               </Typography>
 
               <Typography
+                component="p"
                 sx={{
                   mt: 2,
                   color: "#9fb1c7",
@@ -612,6 +620,7 @@ export default function CourseDetails() {
                 useFlexGap
                 spacing={1.2}
                 sx={{ mt: 3 }}
+                aria-label="Course overview"
               >
                 <Chip
                   icon={<Book />}
@@ -657,6 +666,8 @@ export default function CourseDetails() {
 
               {course.instructor?.name && (
                 <Paper
+                  component="section"
+                  aria-label="Course instructor"
                   elevation={0}
                   sx={{
                     mt: 3,
@@ -674,7 +685,7 @@ export default function CourseDetails() {
                     <Box
                       component="img"
                       src={course.instructor.avatar}
-                      alt={course.instructor.name}
+                      alt={`${course.instructor.name}, course instructor`}
                       sx={{
                         width: 52,
                         height: 52,
@@ -684,6 +695,7 @@ export default function CourseDetails() {
                     />
                   ) : (
                     <Box
+                      aria-hidden="true"
                       sx={{
                         width: 52,
                         height: 52,
@@ -699,10 +711,10 @@ export default function CourseDetails() {
                     </Box>
                   )}
                   <Box>
-                    <Typography variant="caption" sx={{ color: "#7891ad" }}>
+                    <Typography component="p" variant="caption" sx={{ color: "#7891ad" }}>
                       Instructor
                     </Typography>
-                    <Typography fontWeight={900} sx={{ color: "#fff" }}>
+                    <Typography component="p" fontWeight={900} sx={{ color: "#fff" }}>
                       {course.instructor.name}
                     </Typography>
                   </Box>
@@ -710,23 +722,26 @@ export default function CourseDetails() {
               )}
             </Box>
 
-            <Box sx={{ mt: 5 }}>
-              <Typography variant="h5" fontWeight={900}>
+            <Box component="section" aria-labelledby="course-curriculum-heading" sx={{ mt: 5 }}>
+              <Typography id="course-curriculum-heading" component="h2" variant="h5" fontWeight={900}>
                 Course Curriculum
               </Typography>
-              <Typography sx={{ mt: 0.8, color: "#8ea5c0" }}>
+              <Typography component="p" sx={{ mt: 0.8, color: "#8ea5c0" }}>
                 Explore the modules and preview lessons before enrolling.
               </Typography>
 
-              <Box sx={{ mt: 2 }}>
+              <Box component="div" sx={{ mt: 2 }}>
                 {modules.map((module, index) => {
                   const moduleId = getId(module) || `module-${index}`;
                   const videos = Array.isArray(module?.videos) ? module.videos : [];
                   const expanded = expandedModule === moduleId;
+                  const moduleHeadingId = `${moduleId}-heading`;
 
                   return (
                     <Accordion
                       key={moduleId}
+                      component="section"
+                      aria-labelledby={moduleHeadingId}
                       expanded={expanded}
                       onChange={() =>
                         setExpandedModule(expanded ? null : moduleId)
@@ -744,18 +759,20 @@ export default function CourseDetails() {
                     >
                       <AccordionSummary
                         expandIcon={<ExpandMore sx={{ color: "#93c5fd" }} />}
+                        aria-controls={`${moduleId}-content`}
+                        id={moduleHeadingId}
                       >
                         <Box sx={{ minWidth: 0 }}>
-                          <Typography fontWeight={900}>
+                          <Typography component="h3" fontWeight={900}>
                             {module.title || `Module ${index + 1}`}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: "#7891ad" }}>
+                          <Typography component="p" variant="caption" sx={{ color: "#7891ad" }}>
                             {videos.length} {videos.length === 1 ? "lesson" : "lessons"}
                           </Typography>
                         </Box>
                       </AccordionSummary>
 
-                      <AccordionDetails sx={{ pt: 0 }}>
+                      <AccordionDetails id={`${moduleId}-content`}>
                         <Stack spacing={0.8}>
                           {videos.map((video, videoIndex) => {
                             const isPreview =
@@ -767,6 +784,7 @@ export default function CourseDetails() {
 
                             return (
                               <Box
+                                component="article"
                                 key={getId(video) || `${moduleId}-${videoIndex}`}
                                 sx={{
                                   display: "flex",
@@ -785,11 +803,11 @@ export default function CourseDetails() {
                                   minWidth={0}
                                 >
                                   {isPreview ? (
-                                    <PlayCircle sx={{ color: "#60a5fa" }} />
+                                    <PlayCircle sx={{ color: "#60a5fa" }} aria-hidden="true" />
                                   ) : (
-                                    <Lock sx={{ color: "#64748b" }} />
+                                    <Lock sx={{ color: "#64748b" }} aria-hidden="true" />
                                   )}
-                                  <Typography noWrap fontWeight={700}>
+                                  <Typography component="p" noWrap fontWeight={700}>
                                     {video.title || `Lesson ${videoIndex + 1}`}
                                   </Typography>
                                 </Stack>
@@ -806,9 +824,10 @@ export default function CourseDetails() {
                                       }}
                                     />
                                   ) : (
-                                    <Lock sx={{ color: "#64748b", fontSize: 18 }} />
+                                    <Lock sx={{ color: "#64748b", fontSize: 18 }} aria-hidden="true" />
                                   )}
                                   <Typography
+                                    component="span"
                                     variant="caption"
                                     sx={{ color: "#7891ad" }}
                                   >
@@ -828,6 +847,8 @@ export default function CourseDetails() {
           </Box>
 
           <Card
+            component="aside"
+            aria-label="Course enrollment"
             elevation={0}
             sx={{
               position: { lg: "sticky" },
@@ -850,7 +871,7 @@ export default function CourseDetails() {
                 <Box
                   component="img"
                   src={course.thumbnail}
-                  alt={course.title}
+                  alt={`${course.title} course thumbnail`}
                   sx={{
                     width: "100%",
                     height: "100%",
@@ -867,7 +888,7 @@ export default function CourseDetails() {
                     bgcolor: "#102f55",
                   }}
                 >
-                  <School sx={{ fontSize: 68, color: "#60a5fa" }} />
+                  <School sx={{ fontSize: 68, color: "#60a5fa" }} aria-hidden="true" />
                 </Box>
               )}
 
@@ -885,8 +906,8 @@ export default function CourseDetails() {
                   gap: 0.7,
                 }}
               >
-                <Security sx={{ color: "#16a34a", fontSize: 18 }} />
-                <Typography variant="caption" fontWeight={900} sx={{ color: "#0f172a" }}>
+                <Security sx={{ color: "#16a34a", fontSize: 18 }} aria-hidden="true" />
+                <Typography component="span" variant="caption" fontWeight={900} sx={{ color: "#0f172a" }}>
                   Server-verified access
                 </Typography>
               </Box>
@@ -894,12 +915,14 @@ export default function CourseDetails() {
 
             <CardContent sx={{ p: { xs: 2.5, md: 3 } }}>
               <Typography
+                component="p"
                 variant="caption"
                 sx={{ color: "#7f9ab7", fontWeight: 800, letterSpacing: ".08em" }}
               >
                 COURSE PRICE
               </Typography>
               <Typography
+                component="p"
                 sx={{ mt: 0.4, fontSize: "2.6rem", fontWeight: 950, color: "#fff" }}
               >
                 ₹{Number(course.price || 0).toLocaleString("en-IN")}
@@ -909,6 +932,7 @@ export default function CourseDetails() {
                 Number(course.originalPrice) > Number(course.price || 0) && (
                   <Stack direction="row" spacing={1.2} alignItems="center">
                     <Typography
+                      component="p"
                       sx={{
                         color: "#7891ad",
                         textDecoration: "line-through",
@@ -976,7 +1000,7 @@ export default function CourseDetails() {
               </Button>
 
               <Divider sx={{ my: 2.2, borderColor: "rgba(148,163,184,.2)" }}>
-                <Typography variant="caption" sx={{ color: "#7891ad", fontWeight: 800 }}>
+                <Typography component="span" variant="caption" sx={{ color: "#7891ad", fontWeight: 800 }}>
                   OR
                 </Typography>
               </Divider>
@@ -1003,6 +1027,7 @@ export default function CourseDetails() {
               </Button>
 
               <Typography
+                component="p"
                 variant="caption"
                 display="block"
                 textAlign="center"
@@ -1014,6 +1039,7 @@ export default function CourseDetails() {
 
               <Stack direction="row" spacing={1} sx={{ mt: 2.5 }}>
                 <Paper
+                  component="section"
                   elevation={0}
                   sx={{
                     flex: 1,
@@ -1023,12 +1049,13 @@ export default function CourseDetails() {
                     borderRadius: 2,
                   }}
                 >
-                  <Typography sx={{ color: "#fff", fontWeight: 900 }}>∞</Typography>
-                  <Typography variant="caption" sx={{ color: "#7891ad" }}>
+                  <Typography component="span" sx={{ color: "#fff", fontWeight: 900 }}>∞</Typography>
+                  <Typography component="p" variant="caption" sx={{ color: "#7891ad" }}>
                     Learn at your pace
                   </Typography>
                 </Paper>
                 <Paper
+                  component="section"
                   elevation={0}
                   sx={{
                     flex: 1,
@@ -1038,8 +1065,8 @@ export default function CourseDetails() {
                     borderRadius: 2,
                   }}
                 >
-                  <Typography sx={{ color: "#fff", fontWeight: 900 }}>✓</Typography>
-                  <Typography variant="caption" sx={{ color: "#7891ad" }}>
+                  <Typography component="span" sx={{ color: "#fff", fontWeight: 900 }}>✓</Typography>
+                  <Typography component="p" variant="caption" sx={{ color: "#7891ad" }}>
                     Certificate included
                   </Typography>
                 </Paper>
@@ -1072,10 +1099,10 @@ export default function CourseDetails() {
             sx={{ mb: 1.5, px: 0.5 }}
           >
             <Box>
-              <Typography variant="h6" fontWeight={950}>
+              <Typography component="h2" variant="h6" fontWeight={950}>
                 Demo Class
               </Typography>
-              <Typography variant="body2" sx={{ color: "#7891ad" }}>
+              <Typography component="p" variant="body2" sx={{ color: "#7891ad" }}>
                 {previewVideo?.title || course.title}
               </Typography>
             </Box>
@@ -1108,6 +1135,7 @@ export default function CourseDetails() {
                   controls
                   playsInline
                   preload="auto"
+                  aria-label={`${course.title} demo class video`}
                   sx={{ width: "100%", height: "100%", display: "block" }}
                 />
               ) : (
