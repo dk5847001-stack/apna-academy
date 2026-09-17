@@ -4,20 +4,57 @@ const ADMIN_COURSES = "/admin/courses";
 const ADMIN_MODULES = "/admin/courses/modules";
 const ADMIN_VIDEOS = "/admin/courses/videos";
 
+/*
+ * React development StrictMode intentionally re-runs effects. More than one
+ * component can also request the same resource during bootstrap. Share the
+ * in-flight GET instead of creating duplicate database work.
+ */
+let currentAdminRequest = null;
+const adminCourseListRequests = new Map();
+const adminCourseDetailRequests = new Map();
+
+const requestOnce = (map, key, requestFactory) => {
+  if (map.has(key)) return map.get(key);
+
+  const request = requestFactory().finally(() => {
+    map.delete(key);
+  });
+
+  map.set(key, request);
+  return request;
+};
+
 export const getCurrentAdmin = async () => {
-  const response = await api.get("/auth/me");
-  return response.data.data;
+  if (!currentAdminRequest) {
+    currentAdminRequest = api
+      .get("/auth/me")
+      .then((response) => response.data.data)
+      .finally(() => {
+        currentAdminRequest = null;
+      });
+  }
+
+  return currentAdminRequest;
 };
 
 export const listAdminCourses = async (params = {}) => {
-  const response = await api.get(ADMIN_COURSES, { params });
-  return response.data.data;
+  const key = JSON.stringify({
+    page: params.page ?? 1,
+    limit: params.limit ?? 20,
+    search: params.search ?? "",
+  });
+
+  return requestOnce(adminCourseListRequests, key, async () => {
+    const response = await api.get(ADMIN_COURSES, { params });
+    return response.data.data;
+  });
 };
 
-export const getAdminCourse = async (courseId) => {
-  const response = await api.get(`${ADMIN_COURSES}/${courseId}`);
-  return response.data.data;
-};
+export const getAdminCourse = async (courseId) =>
+  requestOnce(adminCourseDetailRequests, String(courseId), async () => {
+    const response = await api.get(`${ADMIN_COURSES}/${courseId}`);
+    return response.data.data;
+  });
 
 export const createAdminCourse = async (payload) => {
   const response = await api.post(ADMIN_COURSES, payload);
