@@ -4,6 +4,26 @@ import { useLocation } from "react-router-dom";
 const SITE_NAME = "ApnaAcademy";
 const SITE_DESCRIPTION =
   "ApnaAcademy is a modern online learning platform for practical courses, skill development and career-focused learning.";
+const BLOG_POSTS = [
+  {
+    title: "How to Build Job-Ready Web Development Skills",
+    date: "2026-09-14",
+    description:
+      "A practical roadmap for frontend, backend, APIs, databases and real-world projects.",
+  },
+  {
+    title: "Why Project-Based Learning Works",
+    date: "2026-09-10",
+    description:
+      "Move from passive tutorials to structured projects and measurable progress.",
+  },
+  {
+    title: "A Better Way to Prepare for Technical Interviews",
+    date: "2026-09-05",
+    description:
+      "Balance DSA, computer science fundamentals, projects and communication.",
+  },
+];
 
 const PAGE_SEO = {
   "/": { title: "ApnaAcademy | Learn Skills. Build Your Future.", description: "Learn practical, career-focused skills with ApnaAcademy courses, guided learning and structured skill development.", type: "website", indexable: true },
@@ -119,6 +139,32 @@ export default function SeoManager() {
       isPartOf: { "@type": "WebSite", name: SITE_NAME, url: `${origin}/` },
       publisher: organizationEntity,
     });
+
+    if (normalizedPath === "/blog") {
+      const blogPosts = BLOG_POSTS.map((post) => ({
+        "@type": "BlogPosting",
+        headline: post.title,
+        datePublished: post.date,
+        dateModified: post.date,
+        description: post.description,
+        mainEntityOfPage: `${origin}/blog`,
+        author: { "@type": "Organization", name: SITE_NAME, url: `${origin}/` },
+        publisher: organizationEntity,
+      }));
+
+      upsertJsonLd("blog", {
+        "@context": "https://schema.org",
+        "@type": "Blog",
+        name: "ApnaAcademy Blog",
+        description: page.description,
+        url: canonicalUrl,
+        inLanguage: "en-IN",
+        publisher: organizationEntity,
+        blogPost: blogPosts,
+      });
+    } else {
+      removeJsonLd("blog");
+    }
 
     if (normalizedPath === "/") {
       upsertJsonLd("website", { "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: `${origin}/`, description: SITE_DESCRIPTION, inLanguage: "en-IN" });
