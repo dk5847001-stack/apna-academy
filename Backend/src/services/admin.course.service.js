@@ -4,6 +4,27 @@ import Course from "../models/Course.js";
 import Module from "../models/Module.js";
 import Video from "../models/Video.js";
 
+const ADMIN_COURSE_LIST_PROJECTION = [
+  "title",
+  "slug",
+  "shortDescription",
+  "thumbnail",
+  "category",
+  "level",
+  "language",
+  "instructor",
+  "price",
+  "allAccessPrice",
+  "durationDays",
+  "isPublished",
+  "isFeatured",
+  "tags",
+  "totalModules",
+  "totalVideos",
+  "createdAt",
+  "updatedAt",
+].join(" ");
+
 const ensureObjectId = (value, label = "id") => {
   if (!mongoose.Types.ObjectId.isValid(value)) {
     const error = new Error(`Invalid ${label}.`);
@@ -21,6 +42,9 @@ const makeSlug = (value) =>
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+
+const escapeRegex = (value) =>
+  String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const uniqueSlug = async (title, excludeId = null) => {
   const base = makeSlug(title);
@@ -120,8 +144,9 @@ export const listAdminCourses = async ({ page = 1, limit = 20, search = "" }) =>
   const skip = (currentPage - 1) * currentLimit;
   const filter = {};
 
-  if (String(search).trim()) {
-    const term = String(search).trim();
+  const rawSearch = String(search || "").trim().slice(0, 100);
+  if (rawSearch) {
+    const term = escapeRegex(rawSearch);
     filter.$or = [
       { title: { $regex: term, $options: "i" } },
       { slug: { $regex: term, $options: "i" } },
@@ -130,9 +155,16 @@ export const listAdminCourses = async ({ page = 1, limit = 20, search = "" }) =>
   }
 
   const [courses, total] = await Promise.all([
-    Course.find(filter).sort({ createdAt: -1 }).skip(skip).limit(currentLimit).lean(),
+    Course.find(filter)
+      .select(ADMIN_COURSE_LIST_PROJECTION)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(currentLimit)
+      .lean(),
     Course.countDocuments(filter),
   ]);
+
+  const totalPages = Math.ceil(total / currentLimit);
 
   return {
     courses: courses.map((course) => formatCourse(course)),
@@ -140,8 +172,8 @@ export const listAdminCourses = async ({ page = 1, limit = 20, search = "" }) =>
       page: currentPage,
       limit: currentLimit,
       total,
-      totalPages: Math.ceil(total / currentLimit),
-      hasNextPage: currentPage < Math.ceil(total / currentLimit),
+      totalPages,
+      hasNextPage: currentPage < totalPages,
       hasPreviousPage: currentPage > 1,
     },
   };
