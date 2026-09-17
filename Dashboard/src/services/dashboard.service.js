@@ -37,15 +37,9 @@ const ensureSuccess = (
  * IMPORTANT:
  * No JWT/token is read from localStorage.
  *
- * The dashboard endpoint is a relatively expensive authenticated
- * read because the backend assembles courses, progress, purchases,
- * certificates and notifications. A sleeping/cold backend can
- * legitimately need longer than a normal API request.
- *
- * We therefore retry ONLY this idempotent GET once when the browser
- * reports a timeout/network failure. We intentionally do not put
- * retry logic in the global Axios interceptor because that could
- * duplicate non-idempotent requests such as payments.
+ * The dashboard endpoint is an idempotent GET. A single retry is
+ * therefore safe when a backend is temporarily waking up or the
+ * browser reports a transient timeout/network failure.
  */
 export const getDashboard = async () => {
   try {
@@ -58,20 +52,15 @@ export const getDashboard = async () => {
       "Unable to load your dashboard."
     );
   } catch (error) {
-    const isTimeout =
+    const isTransientFailure =
       error?.code === "ECONNABORTED" ||
       error?.code === "ETIMEDOUT" ||
-      error?.message ===
-        "Network Error";
+      error?.message === "Network Error";
 
-    if (!isTimeout) {
+    if (!isTransientFailure) {
       throw error;
     }
 
-    /*
-     * Give a temporarily waking backend a short recovery window.
-     * This is deliberately a single retry for this GET only.
-     */
     await new Promise((resolve) =>
       window.setTimeout(resolve, 1000)
     );
@@ -159,11 +148,298 @@ export const getCourseBySlug = async (
   }
 
   const response = await api.get(
-    `/courses/${encodeURIComponent(slug)}`
+    `/courses/${encodeURIComponent(
+      slug
+    )}`
   );
 
   return ensureSuccess(
     response,
-    "Unable to load course."
+    "Unable to load course details."
   );
 };
+
+/* =========================================================
+   AUTHENTICATED LEARNING
+========================================================= */
+
+/**
+ * Get authenticated user's learning
+ * structure for a specific course.
+ *
+ * GET /api/v1/learning/courses/:courseId
+ */
+export const getLearningCourse = async (
+  courseId
+) => {
+  if (!courseId) {
+    throw new Error(
+      "Course ID is required."
+    );
+  }
+
+  const response = await api.get(
+    `/learning/courses/${encodeURIComponent(
+      courseId
+    )}`
+  );
+
+  return ensureSuccess(
+    response,
+    "Unable to load your course."
+  );
+};
+
+/**
+ * Get an individual authorized
+ * learning video.
+ *
+ * GET /api/v1/learning/courses/:courseId/videos/:videoId
+ */
+export const getLearningVideo = async ({
+  courseId,
+  videoId,
+}) => {
+  if (!courseId || !videoId) {
+    throw new Error(
+      "Course ID and video ID are required."
+    );
+  }
+
+  const response = await api.get(
+    `/learning/courses/${encodeURIComponent(
+      courseId
+    )}/videos/${encodeURIComponent(
+      videoId
+    )}`
+  );
+
+  return ensureSuccess(
+    response,
+    "Unable to load the learning video."
+  );
+};
+
+/* =========================================================
+   COURSE PROGRESS
+========================================================= */
+
+/**
+ * Get current user's progress
+ * for a course.
+ *
+ * GET /api/v1/progress/courses/:courseId
+ */
+export const getCourseProgress = async (
+  courseId
+) => {
+  if (!courseId) {
+    throw new Error(
+      "Course ID is required."
+    );
+  }
+
+  const response = await api.get(
+    `/progress/courses/${encodeURIComponent(
+      courseId
+    )}`
+  );
+
+  return ensureSuccess(
+    response,
+    "Unable to load course progress."
+  );
+};
+
+/**
+ * Save video watch position
+ * or completion.
+ *
+ * POST /api/v1/progress/courses/:courseId/videos/:videoId
+ */
+export const updateVideoProgress = async ({
+  courseId,
+  videoId,
+  position = 0,
+  completed = false,
+}) => {
+  if (!courseId || !videoId) {
+    throw new Error(
+      "Course ID and video ID are required."
+    );
+  }
+
+  const response = await api.post(
+    `/progress/courses/${encodeURIComponent(
+      courseId
+    )}/videos/${encodeURIComponent(
+      videoId
+    )}`,
+    {
+      position,
+      completed,
+    }
+  );
+
+  return ensureSuccess(
+    response,
+    "Unable to save learning progress."
+  );
+};
+
+/* =========================================================
+   DASHBOARD DATA NORMALIZERS
+========================================================= */
+
+/**
+ * Normalize learning data for
+ * dashboard components.
+ *
+ * This does not invent backend fields.
+ */
+export const normalizeLearningData = (
+  learningData
+) => {
+  if (!learningData) {
+    return {
+      course: null,
+      access: null,
+      progress: null,
+      modules: [],
+    };
+  }
+
+  return {
+    course:
+      learningData.course || null,
+
+    access:
+      learningData.access || null,
+
+    progress: {
+      overallProgress:
+        Number(
+          learningData.progress
+            ?.overallProgress
+        ) || 0,
+
+      completedVideos:
+        learningData.progress
+          ?.completedVideos || [],
+
+      lastWatchedVideo:
+        learningData.progress
+          ?.lastWatchedVideo || null,
+
+      lastWatchedPosition:
+        Number(
+          learningData.progress
+            ?.lastWatchedPosition
+        ) || 0,
+
+      isCompleted:
+        Boolean(
+          learningData.progress
+            ?.isCompleted
+        ),
+    },
+
+    modules:
+      learningData.modules || [],
+  };
+};
+
+/* =========================================================
+   CONTINUE LEARNING
+========================================================= */
+
+/**
+ * Convert authenticated learning data
+ * into the structure required by the
+ * Dashboard Continue Learning component.
+ */
+export const getContinueLearningData = (
+  learningData
+) => {
+  const normalized =
+    normalizeLearningData(
+      learningData
+    );
+
+  const {
+    course,
+    progress,
+  } = normalized;
+
+  if (
+    !course ||
+    !progress?.lastWatchedVideo
+  ) {
+    return null;
+  }
+
+  let lastVideo = null;
+  let lastModule = null;
+
+  for (const module of normalized.modules) {
+    const video = (
+      module.videos || []
+    ).find(
+      (item) =>
+        String(
+          item._id || item.id
+        ) ===
+        String(
+          progress.lastWatchedVideo
+        )
+    );
+
+    if (video) {
+      lastVideo = video;
+      lastModule = module;
+      break;
+    }
+  }
+
+  return {
+    course,
+
+    progress:
+      progress.overallProgress,
+
+    lastWatchedVideo:
+      progress.lastWatchedVideo,
+
+    lastWatchedPosition:
+      progress.lastWatchedPosition,
+
+    video: lastVideo,
+
+    module: lastModule,
+
+    isCompleted:
+      progress.isCompleted,
+  };
+};
+
+/* =========================================================
+   DASHBOARD SERVICE OBJECT
+========================================================= */
+
+const dashboardService = {
+  getDashboard,
+
+  getCourses,
+  getCourseBySlug,
+
+  getLearningCourse,
+  getLearningVideo,
+
+  getCourseProgress,
+  updateVideoProgress,
+
+  normalizeLearningData,
+  getContinueLearningData,
+};
+
+export default dashboardService;
