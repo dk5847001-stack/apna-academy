@@ -23,7 +23,7 @@ export const APP_ENV =
 export const IS_PRODUCTION =
   APP_ENV === "production";
 
-export const API_TIMEOUT = 15000;
+export const API_TIMEOUT = 60000;
 
 export const STORAGE_KEYS = {
   // UI-only compatibility marker. Real authentication uses the HttpOnly cookie.
