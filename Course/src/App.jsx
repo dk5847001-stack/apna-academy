@@ -29,6 +29,7 @@ function CourseLearningPage() {
   const [course, setCourse] = useState(null);
   const [modules, setModules] = useState([]);
   const [progress, setProgress] = useState(null);
+  const [access, setAccess] = useState(null);
   const [currentVideo, setCurrentVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -87,6 +88,7 @@ function CourseLearningPage() {
 
         setCourse(normalized.course || courseData);
         setModules(availableModules);
+        setAccess(normalized.access || null);
         setProgress(normalized.progress || null);
         setCurrentVideo(normalizeLearningVideo({ video: selected }));
 
@@ -276,6 +278,7 @@ function CourseLearningPage() {
       course={course}
       courseTitle={course?.title || ""}
       modules={modules}
+      access={access}
       progress={progress?.overallProgress || 0}
       currentVideo={currentVideo}
       currentPosition={currentPosition}
