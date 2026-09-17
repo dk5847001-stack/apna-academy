@@ -22,7 +22,12 @@ export const APP_ENV =
 export const IS_PRODUCTION =
   APP_ENV === "production";
 
-export const API_TIMEOUT = 15000;
+/*
+ * Dashboard data is assembled from several authenticated MongoDB queries.
+ * Keep enough headroom for a cold local/deployed backend while still
+ * preventing a genuinely stuck request from hanging forever.
+ */
+export const API_TIMEOUT = 60000;
 
 export const STORAGE_KEYS = {
   TOKEN: "token",
@@ -54,6 +59,7 @@ export const COURSE_ROUTES = {
 
   CERTIFICATE: (slug) =>
     `${COURSE_URL}/courses/${encodeURIComponent(slug)}/certificate`,
+
 };
 
 export const EXTERNAL_ROUTES = {
