@@ -2,18 +2,14 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const siteUrl = (process.env.VITE_SITE_URL || "").trim().replace(/\/$/, "");
-const isProduction = process.env.NODE_ENV === "production" || process.env.CI === "true";
 
 if (!siteUrl) {
-  if (isProduction) {
-    throw new Error(
-      "VITE_SITE_URL is required for a production Frontend build. Example: https://your-domain.com"
-    );
-  }
-  console.warn("VITE_SITE_URL is not set; using http://localhost:5173 for local SEO files.");
+  throw new Error(
+    "VITE_SITE_URL is required for a Frontend build because canonical URLs, robots.txt and sitemap.xml must point to the real production origin."
+  );
 }
 
-const origin = siteUrl || "http://localhost:5173";
+const origin = siteUrl;
 const publicDir = resolve(process.cwd(), "public");
 await mkdir(publicDir, { recursive: true });
 
