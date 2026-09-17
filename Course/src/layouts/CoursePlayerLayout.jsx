@@ -253,7 +253,7 @@ export default function CoursePlayerLayout({
                           onClick={() => handleVideoClick(video)}
                           sx={{
                             minHeight: 70,
-                            pl: active ? { xs: 3.4, sm: 3.9 } : { xs: 2.25, sm: 2.75 },
+                            pl: { xs: 2.25, sm: 2.75 },
                             pr: { xs: 2.25, sm: 2.75 },
                             py: 1.35,
                             justifyContent: "flex-start",
@@ -266,9 +266,12 @@ export default function CoursePlayerLayout({
                             borderLeft: "4px solid transparent",
                             backgroundColor: active ? "#29313c" : COLORS.lesson,
                             color: locked ? "#64748b" : "#ffffff",
-                            transition: "padding-left 180ms ease, background-color 180ms ease",
+                            transition: "background-color 180ms ease",
                             "&:hover": {
                               backgroundColor: locked ? COLORS.lesson : COLORS.lessonHover,
+                              "& .course-video-title": {
+                                transform: locked ? "translateX(0)" : "translateX(6px)",
+                              },
                             },
                             "&:focus": {
                               outline: "none",
@@ -314,13 +317,18 @@ export default function CoursePlayerLayout({
 
                           <Box sx={{ minWidth: 0, flex: 1 }}>
                             <Typography
+                              className="course-video-title"
                               sx={{
+                                display: "block",
+                                transform: "translateX(0)",
+                                transition: "transform 180ms ease",
                                 fontSize: { xs: "0.78rem", sm: "0.82rem" },
                                 fontWeight: active ? 800 : 650,
                                 color: locked ? "#64748b" : "#f8fafc",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
+                                willChange: "transform",
                               }}
                             >
                               {getVideoTitle(video)}
