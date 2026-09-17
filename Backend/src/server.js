@@ -8,6 +8,28 @@ import { validateEnv } from "./config/env.js";
 
 const PORT = process.env.PORT || 5000;
 
+/*
+ * Lightweight request timing. It does not change request handling; it only
+ * makes backend-side latency visible when a request crosses the 1 second
+ * threshold. This is especially useful for distinguishing Mongo/network
+ * latency from frontend timeout issues.
+ */
+app.use((req, res, next) => {
+  const startedAt = process.hrtime.bigint();
+
+  res.on("finish", () => {
+    const durationMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
+
+    if (durationMs >= 1000) {
+      console.warn(
+        `🐢 Slow API ${req.method} ${req.originalUrl} → ${res.statusCode} in ${durationMs.toFixed(0)}ms`
+      );
+    }
+  });
+
+  next();
+});
+
 const startServer = async () => {
   try {
     /*
