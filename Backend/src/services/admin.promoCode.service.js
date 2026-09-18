@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import PromoCode from "../models/PromoCode.js";
 import PromoRedemption from "../models/PromoRedemption.js";
 import PromoReservation from "../models/PromoReservation.js";
+import PromoAuditEvent from "../models/PromoAuditEvent.js";
 
 const assertObjectId = (id, message = "Invalid promo code id.") => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -80,7 +81,9 @@ export const createAdminPromoCode = async ({ actorId, payload }) => {
   assertObjectId(actorId, "Invalid administrator id.");
   const data = buildPayload(payload);
   if (await PromoCode.exists({ code: data.code })) { const e = new Error("A promo code with this code already exists."); e.statusCode = 409; throw e; }
-  return sanitize((await PromoCode.create({ ...data, createdBy: actorId, updatedBy: actorId })).toObject());
+  const created = await PromoCode.create({ ...data, createdBy: actorId, updatedBy: actorId });
+  await audit({ promoCode: created._id, actor: actorId, action: "created", codeSnapshot: created.code, changes: data });
+  return sanitize(created.toObject());
 };
 
 export const updateAdminPromoCode = async ({ promoId, actorId, payload }) => {
@@ -91,14 +94,19 @@ export const updateAdminPromoCode = async ({ promoId, actorId, payload }) => {
   if (data.code !== promo.code && (promo.usedCount > 0 || promo.reservedCount > 0)) { const e = new Error("A promo code cannot be renamed after it has been used or reserved."); e.statusCode = 409; throw e; }
   if (data.usageLimit !== null && data.usageLimit < promo.usedCount + promo.reservedCount) { const e = new Error("Usage limit cannot be lower than current used and reserved usage."); e.statusCode = 400; throw e; }
   if (await PromoCode.exists({ code: data.code, _id: { $ne: promoId } })) { const e = new Error("A promo code with this code already exists."); e.statusCode = 409; throw e; }
-  Object.assign(promo, data); promo.updatedBy = actorId; await promo.save(); return sanitize(promo.toObject());
+  const before = { code: promo.code, discountType: promo.discountType, discountValue: promo.discountValue, maxDiscountAmount: promo.maxDiscountAmount, minPurchaseAmount: promo.minPurchaseAmount, usageLimit: promo.usageLimit, perUserLimit: promo.perUserLimit, startsAt: promo.startsAt, expiresAt: promo.expiresAt, isActive: promo.isActive };
+  Object.assign(promo, data); promo.updatedBy = actorId; await promo.save();
+  await audit({ promoCode: promo._id, actor: actorId, action: "updated", codeSnapshot: promo.code, changes: { before, after: data } });
+  return sanitize(promo.toObject());
 };
 
 export const toggleAdminPromoCode = async ({ promoId, actorId, isActive }) => {
   assertObjectId(promoId); assertObjectId(actorId, "Invalid administrator id.");
   const promo = await PromoCode.findById(promoId);
   if (!promo) { const e = new Error("Promo code not found."); e.statusCode = 404; throw e; }
-  promo.isActive = Boolean(isActive); promo.updatedBy = actorId; await promo.save(); return sanitize(promo.toObject());
+  const next = Boolean(isActive); const previous = Boolean(promo.isActive); promo.isActive = next; promo.updatedBy = actorId; await promo.save();
+  if (previous !== next) await audit({ promoCode: promo._id, actor: actorId, action: next ? "activated" : "deactivated", codeSnapshot: promo.code, changes: { from: previous, to: next } });
+  return sanitize(promo.toObject());
 };
 
 export const deleteAdminPromoCode = async ({ promoId }) => {
@@ -106,5 +114,57 @@ export const deleteAdminPromoCode = async ({ promoId }) => {
   const promo = await PromoCode.findById(promoId);
   if (!promo) { const e = new Error("Promo code not found."); e.statusCode = 404; throw e; }
   if (promo.usedCount > 0 || promo.reservedCount > 0) { const e = new Error("Used or reserved promo codes cannot be deleted. Deactivate them instead."); e.statusCode = 409; throw e; }
-  await PromoCode.deleteOne({ _id: promoId }); return { id: promoId, deleted: true };
+  await PromoCode.deleteOne({ _id: promoId });
+  await audit({ promoCode: null, actor: null, action: "deleted", codeSnapshot: promo.code, changes: { deletedPromoId: promoId } });
+  return { id: promoId, deleted: true };
+};
+
+const audit = async ({ promoCode = null, actor, action, codeSnapshot, changes = null }) => {
+  await PromoAuditEvent.create({ promoCode, actor, action, codeSnapshot, changes });
+};
+
+export const getAdminPromoAnalytics = async ({ from, to } = {}) => {
+  const now = new Date();
+  const end = to ? new Date(to) : now;
+  const start = from ? new Date(from) : new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
+    const e = new Error("Invalid analytics date range."); e.statusCode = 400; throw e;
+  }
+  const [totals, active, redemptionAgg, topCodes, currentReservations, auditCounts] = await Promise.all([
+    PromoCode.countDocuments(),
+    PromoCode.countDocuments({ isActive: true }),
+    PromoRedemption.aggregate([
+      { $match: { redeemedAt: { $gte: start, $lte: end } } },
+      { $group: { _id: null, redemptions: { $sum: 1 }, discountAmount: { $sum: "$discountAmount" }, orderAmount: { $sum: "$orderAmount" }, finalAmount: { $sum: "$finalAmount" }, uniqueUsers: { $addToSet: "$user" }, uniquePromos: { $addToSet: "$promoCode" } } },
+      { $project: { _id: 0, redemptions: 1, discountAmount: 1, orderAmount: 1, finalAmount: 1, uniqueUsers: { $size: "$uniqueUsers" }, uniquePromos: { $size: "$uniquePromos" } } },
+    ]),
+    PromoRedemption.aggregate([
+      { $match: { redeemedAt: { $gte: start, $lte: end } } },
+      { $group: { _id: "$promoCode", redemptions: { $sum: 1 }, discountAmount: { $sum: "$discountAmount" }, finalAmount: { $sum: "$finalAmount" }, orderAmount: { $sum: "$orderAmount" } } },
+      { $sort: { redemptions: -1, discountAmount: -1 } }, { $limit: 10 },
+      { $lookup: { from: "promocodes", localField: "_id", foreignField: "_id", as: "promo" } },
+      { $unwind: { path: "$promo", preserveNullAndEmptyArrays: true } },
+      { $project: { _id: 0, promoCodeId: "$_id", code: { $ifNull: ["$promo.code", "Deleted promo"] }, redemptions: 1, discountAmount: 1, finalAmount: 1, orderAmount: 1 } },
+    ]),
+    PromoReservation.countDocuments({ status: "reserved" }),
+    PromoAuditEvent.aggregate([{ $match: { createdAt: { $gte: start, $lte: end } } }, { $group: { _id: "$action", count: { $sum: 1 } } }]),
+  ]);
+  const r=redemptionAgg[0] || { redemptions:0, discountAmount:0, orderAmount:0, finalAmount:0, uniqueUsers:0, uniquePromos:0 };
+  return {
+    range:{from:start,to:end},
+    overview:{totalPromos:totals,activePromos:active,inactivePromos:Math.max(0,totals-active),redemptions:r.redemptions,discountAmount:r.discountAmount,grossOrderAmount:r.orderAmount,finalPaidAmount:r.finalAmount,uniqueUsers:r.uniqueUsers,uniquePromos:r.uniquePromos,currentReservations},
+    topCodes,
+    auditActivity:auditCounts.reduce((acc,x)=>{acc[x._id]=x.count;return acc},{}),
+  };
+};
+
+export const listPromoAudit = async ({ promoId = null, page = 1, limit = 50 } = {}) => {
+  if (promoId) assertObjectId(promoId);
+  const safePage=Math.max(Number(page)||1,1), safeLimit=Math.min(Math.max(Number(limit)||50,1),100);
+  const query=promoId?{promoCode:promoId}:{};
+  const [events,total]=await Promise.all([
+    PromoAuditEvent.find(query).sort({createdAt:-1}).skip((safePage-1)*safeLimit).limit(safeLimit).populate("actor","name email").lean(),
+    PromoAuditEvent.countDocuments(query)
+  ]);
+  return { events:events.map(x=>({id:x._id.toString(),promoCode:x.promoCode?.toString()||null,code:x.codeSnapshot,action:x.action,changes:x.changes,createdAt:x.createdAt,actor:x.actor?{id:x.actor._id.toString(),name:x.actor.name,email:x.actor.email}:null})),pagination:{page:safePage,limit:safeLimit,total,totalPages:Math.max(1,Math.ceil(total/safeLimit))}};
 };
