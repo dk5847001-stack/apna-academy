@@ -102,7 +102,7 @@ export const authenticate = async (req, res, next) => {
     }
 
     const user = await User.findById(decoded.userId).select(
-      "+activeSessionId"
+      "+activeSessionId +concurrentLoginDetectionCount"
     );
 
     if (!user) {
@@ -126,6 +126,15 @@ export const authenticate = async (req, res, next) => {
         success: false,
         message: "Your session was ended because this account was signed in elsewhere.",
         code: "SESSION_REPLACED",
+        security: {
+          concurrentLoginDetected: true,
+          detectionCount: user.concurrentLoginDetectionCount || 0,
+          detectionLimit: 5,
+          remainingDetections: Math.max(
+            0,
+            5 - (user.concurrentLoginDetectionCount || 0)
+          ),
+        },
       });
     }
 
