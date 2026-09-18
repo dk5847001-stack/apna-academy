@@ -174,7 +174,7 @@ export const verifyMyReferralPayoutDestination = async (userId) => {
   record.verificationNameMatchScore = provider.nameMatchScore;
   record.verificationFailureReason = provider.failureReason;
   record.verificationStatus =
-    provider.verificationStatus === "completed"
+    provider.verificationStatus === "completed" && provider.accountStatus !== "inactive"
       ? "verified"
       : provider.verificationStatus === "failed"
         ? "failed"
@@ -207,7 +207,7 @@ export const refreshMyReferralPayoutDestinationVerification = async (userId) => 
 
   const provider = await fetchFundAccountValidation(record.verificationId);
   record.verificationStatus =
-    provider.verificationStatus === "completed"
+    provider.verificationStatus === "completed" && provider.accountStatus !== "inactive"
       ? "verified"
       : provider.verificationStatus === "failed"
         ? "failed"
