@@ -270,7 +270,9 @@ export const requestReferralWithdrawal = async ({
     destination.method === "bank" ? destination.ifsc : null;
   destinationRecord.destinationFingerprint = fingerprint;
   destinationRecord.providerContactId = provider.providerContactId;
+  destinationRecord.encryptedProviderContactId = encryptPayoutSecret(provider.providerContactId);
   destinationRecord.providerFundAccountId = provider.providerFundAccountId;
+  destinationRecord.encryptedProviderFundAccountId = encryptPayoutSecret(provider.providerFundAccountId);
   destinationRecord.verifiedAt = null;
 
   await destinationRecord.save();
