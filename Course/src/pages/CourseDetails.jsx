@@ -35,7 +35,7 @@ import {
 import { COURSE_ROUTES, FRONTEND_URL } from "../constants/config";
 import { getCourseBySlug, normalizeCourse } from "../services/course.service";
 import api from "../services/api";
-import { startCoursePayment, validatePromoCode } from "../services/payment";
+import { getCoursePurchaseStatus, startCoursePayment, validatePromoCode } from "../services/payment";
 
 const getId = (value) => value?._id || value?.id || "";
 const getInitial = (name = "") => name.trim().charAt(0).toUpperCase() || "A";
@@ -126,6 +126,7 @@ export default function CourseDetails() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentError, setPaymentError] = useState("");
+  const [purchaseWarning, setPurchaseWarning] = useState("");
   const [expandedModule, setExpandedModule] = useState(null);
   const [promoCode, setPromoCode] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
@@ -285,6 +286,7 @@ export default function CourseDetails() {
   const startPurchase = async (purchaseType) => {
     setPaymentMessage("");
     setPaymentError("");
+    setPurchaseWarning("");
     if (paymentLoading) return;
     const courseId = getId(course);
     if (!courseId) {
@@ -303,6 +305,17 @@ export default function CourseDetails() {
         }
         throw authError;
       }
+      if (purchaseType === "all-access") {
+        const purchaseStatus = await getCoursePurchaseStatus(courseId);
+        if (!purchaseStatus?.success || !purchaseStatus?.data?.hasCoursePurchase) {
+          setPurchaseWarning(
+            "Please purchase this course first. Once your course purchase is active, you can unlock all modules with the All Modules Unlock option."
+          );
+          setPaymentLoading(false);
+          return;
+        }
+      }
+
       await startCoursePayment({
         courseId,
         courseTitle: course.title,
@@ -1237,6 +1250,25 @@ export default function CourseDetails() {
                   </>
                 )}
               </Paper>
+
+              {purchaseWarning && (
+                <Alert
+                  severity="warning"
+                  sx={{
+                    mt: 2,
+                    borderRadius: 2.5,
+                    border: "1px solid rgba(245,158,11,.35)",
+                    bgcolor: "rgba(245,158,11,.08)",
+                  }}
+                >
+                  <Typography component="div" fontWeight={900}>
+                    Course purchase required
+                  </Typography>
+                  <Typography component="div" sx={{ mt: 0.4 }}>
+                    {purchaseWarning}
+                  </Typography>
+                </Alert>
+              )}
 
               {paymentMessage && (
                 <Alert severity="success" sx={{ mt: 2, borderRadius: 2.5 }}>
