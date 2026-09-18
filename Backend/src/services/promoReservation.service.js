@@ -22,23 +22,32 @@ const releaseExpiredReservations = async (now = new Date()) => {
   let releasedCount = 0;
 
   for (const item of expired) {
-    const released = await PromoReservation.findOneAndUpdate(
-      { _id: item._id, status: "reserved" },
-      { $set: { status: "expired", releasedAt: now } },
-      { new: true }
-    ).lean();
+    const session = await mongoose.startSession();
+    try {
+      let released = null;
+      await session.withTransaction(async () => {
+        released = await PromoReservation.findOneAndUpdate(
+          { _id: item._id, status: "reserved", expiresAt: { $lte: now } },
+          { $set: { status: "expired", releasedAt: now } },
+          { new: true, session }
+        ).lean();
 
-    if (!released) continue;
-    releasedCount += 1;
-    const key = released.promoCode.toString();
-    releasedByPromo.set(key, (releasedByPromo.get(key) || 0) + 1);
-  }
+        if (!released) return;
 
-  for (const [promoCodeId, count] of releasedByPromo) {
-    await PromoCode.updateOne(
-      { _id: promoCodeId, reservedCount: { $gte: count } },
-      { $inc: { reservedCount: -count } }
-    );
+        const updatedPromo = await PromoCode.findOneAndUpdate(
+          { _id: released.promoCode, reservedCount: { $gt: 0 } },
+          { $inc: { reservedCount: -1 } },
+          { new: true, session }
+        );
+
+        if (!updatedPromo) {
+          throw new Error("Promo reservation counter could not be released.");
+        }
+      });
+      if (released) releasedCount += 1;
+    } finally {
+      await session.endSession();
+    }
   }
 
   return releasedCount;
@@ -117,16 +126,6 @@ export const reservePromoForOrder = async ({
       );
       if (counterUpdate.modifiedCount !== 1) throw Object.assign(new Error("Promo reservation limit changed. Please retry checkout."), { statusCode: 409 });
 
-      /* counter reserved atomically with the reservation document */
-      /* no second increment */
-      /* */
-      return;
-
-      await PromoCode.updateOne(
-        { _id: promo._id },
-        { $inc: { reservedCount: 1 } },
-        { session }
-      );
     });
 
     return reservation;
