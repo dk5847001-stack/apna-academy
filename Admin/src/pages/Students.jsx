@@ -161,26 +161,46 @@ export default function Students() {
               </div>
 
               <Typography variant="subtitle2" className="mb-3 font-extrabold">Account actions</Typography>
-              <Stack spacing={1.5}>
-                {manageUser.status === "active" && manageUser.role !== "admin" && (
-                  <>
-                    <Button fullWidth color="error" variant="outlined" startIcon={<Block />} onClick={() => executeManageAction(manageUser, "block")}>Block user</Button>
-                    <Button fullWidth color="warning" variant="outlined" startIcon={<PauseCircleOutline />} onClick={() => executeManageAction(manageUser, "suspend")}>Suspend user</Button>
-                  </>
-                )}
-                {manageUser.status === "inactive" && manageUser.blockedAt && (
-                  <Button fullWidth variant="outlined" startIcon={<LockOpen />} onClick={() => executeManageAction(manageUser, "unblock")}>Unblock user</Button>
-                )}
-                {manageUser.status === "suspended" && manageUser.securityFrozenAt && (
-                  <Button fullWidth color="warning" variant="outlined" startIcon={<Security />} onClick={() => executeManageAction(manageUser, "unfreeze")}>Security unfreeze & activate</Button>
-                )}
-                {manageUser.status === "suspended" && !manageUser.securityFrozenAt && (
-                  <Button fullWidth variant="outlined" startIcon={<CheckCircleOutline />} onClick={() => executeManageAction(manageUser, "activate")}>Activate suspended user</Button>
-                )}
-                {manageUser.status === "active" && manageUser.role === "admin" && (
-                  <Typography variant="body2" className="rounded-xl bg-slate-50 p-3 text-slate-500">Admin accounts cannot be blocked or suspended from this quick-management flow.</Typography>
-                )}
-              </Stack>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <Button
+                  fullWidth color="error" variant="outlined" startIcon={<Block />}
+                  disabled={manageUser.role === "admin" || manageUser.status !== "active"}
+                  onClick={() => executeManageAction(manageUser, "block")}
+                >
+                  Block User
+                </Button>
+                <Button
+                  fullWidth color="warning" variant="outlined" startIcon={<PauseCircleOutline />}
+                  disabled={manageUser.role === "admin" || manageUser.status !== "active"}
+                  onClick={() => executeManageAction(manageUser, "suspend")}
+                >
+                  Suspend User
+                </Button>
+                <Button
+                  fullWidth variant="outlined" startIcon={<LockOpen />}
+                  disabled={manageUser.status !== "inactive" || !manageUser.blockedAt}
+                  onClick={() => executeManageAction(manageUser, "unblock")}
+                >
+                  Unblock User
+                </Button>
+                <Button
+                  fullWidth variant="outlined" startIcon={<CheckCircleOutline />}
+                  disabled={manageUser.status !== "suspended" || Boolean(manageUser.securityFrozenAt)}
+                  onClick={() => executeManageAction(manageUser, "activate")}
+                >
+                  Activate User
+                </Button>
+                <Button
+                  fullWidth color="warning" variant="outlined" startIcon={<Security />}
+                  disabled={manageUser.status !== "suspended" || !manageUser.securityFrozenAt}
+                  onClick={() => executeManageAction(manageUser, "unfreeze")}
+                >
+                  Security Unfreeze
+                </Button>
+              </div>
+              <Typography variant="caption" className="mt-3 block text-slate-500">
+                Disabled actions are unavailable for the user's current account status.
+              </Typography>
             </DialogContent>
             <DialogActions className="p-4"><Button onClick={() => setManageUser(null)} disabled={Boolean(busyId)}>Close</Button></DialogActions>
           </>
