@@ -44,6 +44,22 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    /*
+     * Unique referral code owned by this account.
+     * Phase 2 will populate/generate codes for existing users.
+     */
+    referralCode: {
+      type: String,
+      default: null,
+      trim: true,
+      uppercase: true,
+      minlength: 6,
+      maxlength: 32,
+      match: /^[A-Z0-9][A-Z0-9_-]{5,31}$/,
+      sparse: true,
+      index: true,
+    },
+
     isEmailVerified: {
       type: Boolean,
       default: false,
