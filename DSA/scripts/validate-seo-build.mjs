@@ -44,6 +44,7 @@ if (/(localhost|127\\.0\\.0\\.1)/i.test(sitemap)) {
 const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
 if (!locs.length) throw new Error("Sitemap contains no URLs.");
 if (new Set(locs).size !== locs.length) throw new Error("Sitemap contains duplicate URLs.");
+if (locs.length > 50000) throw new Error("Sitemap exceeds the single-file 50,000 URL limit.");
 
 const allowedPrefixes = [
   siteUrl + "/",
@@ -58,6 +59,17 @@ for (const url of locs) {
 }
 
 const privateRoutes = ["/progress", "/submissions", "/bookmarks", "/profile", "/settings", "/practice/code", "/unlock"];
+for (const url of locs) {
+  const pathname = new URL(url).pathname.replace(/\/$/, "") || "/";
+  const file = pathname === "/" ? path.join(dist, "index.html") : path.join(dist, pathname.slice(1), "index.html");
+  if (!fs.existsSync(file)) {
+    throw new Error("Missing static SEO page for sitemap URL: " + url);
+  }
+  const routeHtml = read(file);
+  if (!routeHtml.includes("rel=\"canonical\"")) throw new Error("Missing canonical on: " + url);
+  if (!routeHtml.includes(url)) throw new Error("Canonical/SEO URL mismatch on: " + url);
+}
+
 for (const route of privateRoutes) {
   if (locs.includes(siteUrl + route)) {
     throw new Error("Private route found in sitemap: " + route);
