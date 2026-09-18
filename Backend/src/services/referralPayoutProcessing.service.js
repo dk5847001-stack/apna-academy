@@ -775,6 +775,75 @@ export const processReferralPayout = async ({ payoutId, adminId }) => {
   return applyProviderStatus(payout._id, provider);
 };
 
+export const retryFailedReferralPayout = async ({ payoutId, adminId, reason }) => {
+  const retryReason = String(reason || "").trim();
+  if (retryReason.length < 5) {
+    throw fail("Retry reason is required.", 400, "ADMIN_REASON_REQUIRED");
+  }
+
+  const payout = await ReferralPayout.findById(payoutId)
+    .select("+providerPayoutId +providerFundAccountId")
+    .lean();
+
+  if (!payout) throw fail("Referral payout not found.", 404, "PAYOUT_NOT_FOUND");
+  if (payout.status !== "failed") {
+    throw fail("Only failed payouts can be retried.", 409, "INVALID_PAYOUT_STATE");
+  }
+  if (payout.providerPayoutId) {
+    throw fail(
+      "A provider payout already exists. Reconcile it instead of creating a new payout.",
+      409,
+      "PROVIDER_PAYOUT_ALREADY_EXISTS"
+    );
+  }
+
+  const risk = await evaluateReferralWithdrawalRisk({
+    userId: payout.user,
+    destination: payout.destinationSnapshot,
+    amountPaise: payout.amountPaise,
+  });
+  if (!risk.allowed) {
+    await recordReferralRiskEvent({
+      userId: payout.user,
+      payoutId: payout._id,
+      type: "manual_review",
+      riskScore: risk.riskScore,
+      signals: risk.signals,
+      correlationId: risk.correlationId,
+      status: "open",
+    });
+    throw fail("Payout remains blocked by risk controls.", 403, "PAYOUT_RISK_BLOCKED");
+  }
+
+  const updated = await ReferralPayout.findOneAndUpdate(
+    { _id: payoutId, status: "failed", providerPayoutId: { $in: [null, undefined] } },
+    {
+      $set: {
+        status: "approved",
+        adminActor: adminId,
+        adminReviewReason: retryReason.slice(0, 500),
+        failureReason: null,
+        failureCode: null,
+        failedAt: null,
+      },
+    },
+    { new: true }
+  );
+
+  if (!updated) throw fail("Payout changed while retrying.", 409, "PAYOUT_CONFLICT");
+
+  await ReferralAuditEvent.create({
+    payout: updated._id,
+    user: updated.user,
+    actor: adminId,
+    action: "withdrawal_approved",
+    metadata: { retry: true, reason: retryReason },
+    correlationId: "referral_payout_retry_" + updated._id.toString() + "_" + Date.now(),
+  });
+
+  return updated;
+};
+
 export const reconcileReferralPayout = async ({ payoutId, adminId }) => {
   const payout = await ReferralPayout.findById(payoutId)
     .select("+providerPayoutId +providerFundAccountId")
