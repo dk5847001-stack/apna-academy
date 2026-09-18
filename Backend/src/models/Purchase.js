@@ -34,6 +34,47 @@ const purchaseSchema = new mongoose.Schema(
       min: 0,
     },
 
+    // Original course amount before any promo discount.
+    originalAmount: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+
+    // Promo snapshot fields preserve the exact discount used at checkout.
+    promoCode: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PromoCode",
+      default: null,
+      index: true,
+    },
+
+    promoCodeSnapshot: {
+      type: String,
+      default: "",
+      trim: true,
+      uppercase: true,
+      maxlength: 50,
+    },
+
+    promoDiscountType: {
+      type: String,
+      enum: ["percentage", "fixed", null],
+      default: null,
+    },
+
+    promoDiscountValue: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+
+    promoDiscountAmount: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+
     currency: {
       type: String,
       default: "INR",
