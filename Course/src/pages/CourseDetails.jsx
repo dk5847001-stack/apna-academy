@@ -206,9 +206,8 @@ export default function CourseDetails() {
     try {
       setPromoLoading(true);
 
-      let user;
       try {
-        user = await getAuthenticatedUser();
+        await getAuthenticatedUser();
       } catch (authError) {
         if (authError?.response?.status === 401) {
           redirectToLogin();
@@ -1095,6 +1094,9 @@ export default function CourseDetails() {
                     </Typography>
                     <Typography variant="caption" sx={{ mt: 0.4, display: "block", color: "#7891ad", lineHeight: 1.6 }}>
                       Discount preview: ₹{Number(appliedPromo?.pricing?.discountAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Typography>
+                    <Typography variant="caption" sx={{ mt: 0.5, display: "block", color: "#64748b", lineHeight: 1.5 }}>
+                      Final payable amount will be confirmed securely by the server during checkout.
                     </Typography>
                   </Box>
                 ) : (
