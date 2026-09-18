@@ -564,10 +564,6 @@ export default function MainLayout() {
               <ListItemIcon><School fontSize="small" /></ListItemIcon>
               <ListItemText primary="DSA Practice" />
             </ListItemButton>
-            <ListItemButton onClick={handleAdminApp}>
-              <ListItemIcon><Settings fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Admin Portal" />
-            </ListItemButton>
             <ListItemButton onClick={handleSupport}>
               <ListItemIcon><SupportAgent fontSize="small" /></ListItemIcon>
               <ListItemText primary="Support" />
