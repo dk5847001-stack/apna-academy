@@ -93,53 +93,75 @@ export const reservePromoForOrder = async ({
 }) => {
   await releaseExpiredReservations();
 
-  const promo = await PromoCode.findOneAndUpdate(
-    {
-      _id: promoCodeId,
-      isActive: true,
-      $or: [
-        { usageLimit: null },
-        { usageLimit: { $exists: false } },
-        {
-          $expr: {
-            $lt: [
-              {
-                $add: [
-                  { $ifNull: ["$usedCount", 0] },
-                  { $ifNull: ["$reservedCount", 0] },
-                ],
-              },
-              "$usageLimit",
-            ],
+  const session = await mongoose.startSession();
+  try {
+    let reservation = null;
+    await session.withTransaction(async () => {
+      const promo = await PromoCode.findOne({
+        _id: promoCodeId,
+        isActive: true,
+        $or: [
+          { usageLimit: null },
+          { usageLimit: { $exists: false } },
+          {
+            $expr: {
+              $lt: [
+                { $add: [{ $ifNull: ["$usedCount", 0] }, { $ifNull: ["$reservedCount", 0] }] },
+                "$usageLimit",
+              ],
+            },
           },
-        },
-      ],
-    },
-    { $inc: { reservedCount: 1 } },
-    { new: true }
-  ).lean();
+        ],
+      }).session(session);
 
-  if (!promo) return null;
+      if (!promo) return;
 
-  const reservation = await reserveSlot({
-    promo,
-    userId,
-    courseId,
-    razorpayOrderId,
-    pricing,
-  });
+      const perUserLimit =
+        promo.perUserLimit === null || promo.perUserLimit === undefined
+          ? null
+          : Number(promo.perUserLimit);
 
-  if (!reservation) {
-    await PromoCode.updateOne(
-      { _id: promo._id, reservedCount: { $gt: 0 } },
-      { $inc: { reservedCount: -1 } }
-    );
-    return null;
+      const slots =
+        perUserLimit === null
+          ? [crypto.randomInt(0, 2_147_483_647)]
+          : Array.from({ length: perUserLimit }, (_, index) => index);
+
+      for (const slot of slots) {
+        try {
+          const created = await PromoReservation.create([{
+            promoCode: promo._id,
+            user: normalizeId(userId),
+            course: normalizeId(courseId),
+            razorpayOrderId,
+            slot,
+            status: "reserved",
+            reservedAt: new Date(),
+            expiresAt: new Date(Date.now() + RESERVATION_TTL_MS),
+            discountAmount: pricing.discountAmount,
+            originalAmount: pricing.originalAmount,
+            finalAmount: pricing.finalAmount,
+          }], { session });
+          reservation = created[0];
+          break;
+        } catch (error) {
+          if (error?.code !== 11000) throw error;
+        }
+      }
+
+      if (!reservation) return;
+
+      await PromoCode.updateOne(
+        { _id: promo._id },
+        { $inc: { reservedCount: 1 } },
+        { session }
+      );
+    });
+
+    return reservation;
+  } finally {
+    await session.endSession();
   }
-
-  return reservation;
 };
-
 export const releasePromoReservation = async ({
   razorpayOrderId,
   userId,
