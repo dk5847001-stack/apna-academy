@@ -2,19 +2,22 @@ import fs from "node:fs";
 import path from "node:path";
 
 // Vite loads .env files automatically, but this Node script does not.
-// Read local Vite-style variables so `npm run build` works consistently.
+// Read local Vite-style variables so SEO generation works consistently.
 const readDotEnv = () => {
   const files = [".env", ".env.local"];
   const values = {};
+
   for (const file of files) {
     const filePath = path.join(process.cwd(), file);
     if (!fs.existsSync(filePath)) continue;
+
     for (const line of fs.readFileSync(filePath, "utf8").split(/\r?\n/)) {
-      const match = line.match(/^\\s*([A-Z_][A-Z0-9_]*)\\s*=\\s*(.*)\\s*$/);
+      const match = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)\s*$/);
       if (!match || match[1] in values) continue;
       values[match[1]] = match[2].replace(/^["']|["']$/g, "");
     }
   }
+
   return values;
 };
 
@@ -41,6 +44,7 @@ const response = await fetch(seoIndexUrl, { headers: { Accept: "application/json
 if (!response.ok) {
   throw new Error(`Unable to fetch DSA SEO index (${response.status}) from ${seoIndexUrl}`);
 }
+
 const payload = await response.json();
 const index = payload?.data;
 if (!index || !Array.isArray(index.problems) || !Array.isArray(index.studyPlans) || !Array.isArray(index.companies)) {
@@ -81,16 +85,20 @@ const urls = [
     lastmod: toDate(item.updatedAt),
   })),
   ...index.companies.map((item) => ({
-    path: "/companies/" + encodeURIComponent(clean(item.name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")),
+    path: "/companies/" + encodeURIComponent(
+      clean(item.name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+    ),
     priority: "0.7",
   })),
 ];
 
 const seen = new Set();
 const sitemapEntries = [];
+
 for (const item of urls) {
   if (!item.path || seen.has(item.path)) continue;
   seen.add(item.path);
+
   const lastmod = item.lastmod ? `<lastmod>${item.lastmod}</lastmod>` : "";
   sitemapEntries.push(
     `  <url><loc>${escapeXml(siteUrl + item.path)}</loc>${lastmod}<changefreq>weekly</changefreq><priority>${item.priority}</priority></url>`,
@@ -123,6 +131,7 @@ const robots = [
   `Sitemap: ${siteUrl}/sitemap.xml`,
   "",
 ].join("\n");
+
 fs.writeFileSync(path.join(publicDir, "robots.txt"), robots);
 
 console.log(`Generated DSA SEO assets: ${seen.size} URLs (${index.problems.length} problems, ${index.studyPlans.length} study plans).`);
