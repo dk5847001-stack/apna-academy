@@ -2,6 +2,7 @@ export const validateRegisterInput = ({
   name,
   email,
   password,
+  referralCode,
 }) => {
   const errors = {};
 
