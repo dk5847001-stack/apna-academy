@@ -38,6 +38,9 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] =
     useState(false);
 
+  const [sessionSecurityNotice, setSessionSecurityNotice] =
+    useState(null);
+
   /*
    * =========================================================
    * CHECK AUTHENTICATION
@@ -102,6 +105,27 @@ export function AuthProvider({ children }) {
   }, [checkAuth]);
 
   /*
+   * Phase 4: actively monitor the server-side session.
+   *
+   * A replaced session cannot push a browser event by itself. Polling the
+   * authenticated /auth/me endpoint gives the old browser a bounded detection
+   * window while keeping the server as the source of truth.
+   */
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      getCurrentUser().catch(() => {
+        // The API interceptor handles 401/session-replacement events.
+      });
+    }, 15000);
+
+    return () => window.clearInterval(intervalId);
+  }, [isAuthenticated]);
+
+  /*
    * =========================================================
    * AUTH CHANGE / UNAUTHORIZED EVENT
    * =========================================================
@@ -115,7 +139,33 @@ export function AuthProvider({ children }) {
    * This immediately clears the React auth state.
    */
   useEffect(() => {
-    const handleAuthChange = () => {
+    const handleAuthChange = (event) => {
+      const detail = event?.detail || {};
+
+      if (detail.code === "SESSION_REPLACED") {
+        const notice = {
+          title: "Security alert: your session was ended",
+          message:
+            detail.message ||
+            "This account was signed in from another session, so this session was securely signed out.",
+          detectionCount: detail.security?.detectionCount || 0,
+          detectionLimit: detail.security?.detectionLimit || 5,
+          remainingDetections:
+            detail.security?.remainingDetections ?? null,
+        };
+
+        setSessionSecurityNotice(notice);
+
+        try {
+          window.sessionStorage.setItem(
+            "apnaacademy-session-security-notice",
+            JSON.stringify(notice)
+          );
+        } catch {
+          // Session storage can be unavailable in privacy-restricted browsers.
+        }
+      }
+
       setUser(null);
       setIsAuthenticated(false);
       clearSession();
@@ -215,6 +265,8 @@ export function AuthProvider({ children }) {
         logout,
         refreshUser,
         checkAuth,
+        sessionSecurityNotice,
+        clearSessionSecurityNotice: () => setSessionSecurityNotice(null),
       }}
     >
       {children}
