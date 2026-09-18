@@ -313,8 +313,13 @@ export const requestReferralWithdrawal = async ({
 
       const now = new Date();
 
+      const withdrawalId = "WDR_" + crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+      const payoutTransactionId = "PYO_" + crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+
       payout = new ReferralPayout({
         user: userId,
+        withdrawalId,
+        payoutTransactionId,
         amountPaise: amount,
         currency: "INR",
         status: finalRisk.requiresReview ? "under_review" : "requested",
@@ -385,6 +390,8 @@ export const requestReferralWithdrawal = async ({
         action: "withdrawal_requested",
         metadata: {
           amountPaise: amount,
+          withdrawalId,
+          payoutTransactionId,
           payoutMethod: destination.method,
           status: payout.status,
         },
