@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
+import { requestIdMiddleware, createRateLimiter } from "./middleware/security.middleware.js";
 import { fileURLToPath } from "url";
 
 import { API_PREFIX } from "./constants/index.js";
@@ -28,8 +29,29 @@ const __dirname = path.dirname(__filename);
 */
 
 app.disable("x-powered-by");
+app.set("trust proxy", process.env.TRUST_PROXY === "true" ? 1 : false);
 
-app.use(helmet());
+app.use(requestIdMiddleware);
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+}));
+
+const apiRateLimiter = createRateLimiter({
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
+  max: Number(process.env.RATE_LIMIT_MAX || 120),
+  keyPrefix: "api",
+});
+const authRateLimiter = createRateLimiter({
+  windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 60_000),
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX || 20),
+  keyPrefix: "auth",
+});
+const submissionRateLimiter = createRateLimiter({
+  windowMs: Number(process.env.DSA_SUBMISSION_RATE_LIMIT_WINDOW_MS || 60_000),
+  max: Number(process.env.DSA_SUBMISSION_RATE_LIMIT_MAX || 10),
+  keyPrefix: "dsa-submit",
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -171,6 +193,9 @@ app.get(`${API_PREFIX}/health`, (req, res) => {
 |--------------------------------------------------------------------------
 */
 
+app.use(API_PREFIX, apiRateLimiter);
+app.use(`${API_PREFIX}/auth`, authRateLimiter);
+app.use(`${API_PREFIX}/dsa/submissions`, submissionRateLimiter);
 app.use(API_PREFIX, apiRoutes);
 
 /*
