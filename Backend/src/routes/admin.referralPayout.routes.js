@@ -19,7 +19,6 @@ router.post("/:payoutId/approve", approveAdminReferralPayoutController);
 router.post("/:payoutId/reject", rejectAdminReferralPayoutController);
 router.post("/:payoutId/process", processAdminReferralPayoutController);
 router.post("/:payoutId/reconcile", reconcileAdminReferralPayoutController);
+router.post("/:payoutId/retry", retryAdminReferralPayoutController);
 
 export default router;
-
-router.post("/:payoutId/retry", retryAdminReferralPayoutController);
