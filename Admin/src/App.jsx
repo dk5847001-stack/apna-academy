@@ -496,6 +496,7 @@ function App() {
                 )}
               </>
             )}
+            )}
           </Container>
         </main>
       </div>
