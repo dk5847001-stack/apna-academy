@@ -154,31 +154,40 @@ export const releasePromoReservation = async ({
   userId,
   session = null,
 }) => {
-  const query = PromoReservation.findOne({
-    razorpayOrderId,
-    user: userId,
-    status: "reserved",
-  });
-  if (session) query.session(session);
+  const run = async (dbSession) => {
+    const reservation = await PromoReservation.findOneAndUpdate(
+      { razorpayOrderId, user: userId, status: "reserved" },
+      { $set: { status: "released", releasedAt: new Date() } },
+      { new: true, ...(dbSession ? { session: dbSession } : {}) }
+    );
 
-  const reservation = await query;
-  if (!reservation) return false;
+    if (!reservation) return false;
 
-  const updated = await PromoReservation.findOneAndUpdate(
-    { _id: reservation._id, status: "reserved" },
-    { $set: { status: "released", releasedAt: new Date() } },
-    { new: true, ...(session ? { session } : {}) }
-  );
+    const promo = await PromoCode.findOneAndUpdate(
+      { _id: reservation.promoCode, reservedCount: { $gt: 0 } },
+      { $inc: { reservedCount: -1 } },
+      { new: true, ...(dbSession ? { session: dbSession } : {}) }
+    );
 
-  if (!updated) return false;
+    if (!promo) {
+      throw new Error("Promo reservation counter could not be released.");
+    }
 
-  await PromoCode.updateOne(
-    { _id: updated.promoCode, reservedCount: { $gt: 0 } },
-    { $inc: { reservedCount: -1 } },
-    session ? { session } : undefined
-  );
+    return true;
+  };
 
-  return true;
+  if (session) return run(session);
+
+  const dbSession = await mongoose.startSession();
+  try {
+    let result = false;
+    await dbSession.withTransaction(async () => {
+      result = await run(dbSession);
+    });
+    return result;
+  } finally {
+    await dbSession.endSession();
+  }
 };
 
 export const consumePromoReservation = async ({
