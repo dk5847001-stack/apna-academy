@@ -2,8 +2,6 @@ import crypto from "crypto";
 
 import Course from "../models/Course.js";
 import Purchase from "../models/Purchase.js";
-import PromoCode from "../models/PromoCode.js";
-import PromoRedemption from "../models/PromoRedemption.js";
 import { validatePromoCode } from "../services/promoCode.service.js";
 
 import razorpay from "../config/razorpay.js";
@@ -104,6 +102,7 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
       userId: req.user.userId.toString(),
       courseId: course._id.toString(),
       purchaseType,
+      ...(appliedPromo?.promo?.code ? { promoCode: appliedPromo.promo.code } : {}),
     },
   });
 
