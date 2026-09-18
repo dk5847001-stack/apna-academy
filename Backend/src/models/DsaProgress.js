@@ -15,5 +15,8 @@ const dsaProgressSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+dsaProgressSchema.index({ totalSolved: -1, xp: -1, longestStreak: -1, updatedAt: 1 });
+dsaProgressSchema.index({ userId: 1, totalSolved: -1 });
+
 const DsaProgress = mongoose.model("DsaProgress", dsaProgressSchema);
 export default DsaProgress;
