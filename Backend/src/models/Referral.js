@@ -22,7 +22,6 @@ const referralSchema = new mongoose.Schema(
       ref: "User",
       required: true,
       unique: true,
-      index: true,
     },
 
     /*
@@ -118,7 +117,6 @@ const referralSchema = new mongoose.Schema(
  * One referred account can have only one permanent referrer.
  * This is the primary anti-attribution-switching constraint.
  */
-referralSchema.index({ referredUser: 1 }, { unique: true });
 referralSchema.index({ referrer: 1, status: 1, createdAt: -1 });
 referralSchema.index({ status: 1, createdAt: -1 });
 referralSchema.index({ qualificationPurchase: 1 }, { sparse: true });
