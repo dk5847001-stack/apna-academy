@@ -18,32 +18,96 @@ const createSessionId = () => crypto.randomUUID();
  * Atomically replaces the user's active session. The previous session id is
  * returned so callers can distinguish a first login from a session takeover.
  */
-const establishSession = async (user) => {
-  const sessionId = createSessionId();
-  const issuedAt = new Date();
+const MAX_CONCURRENT_LOGIN_HISTORY = 20;
+const SESSION_UPDATE_RETRIES = 5;
 
-  const previousUser = await User.findOneAndUpdate(
-    { _id: user._id },
-    {
+const establishSession = async (user) => {
+  for (let attempt = 0; attempt < SESSION_UPDATE_RETRIES; attempt += 1) {
+    const sessionId = createSessionId();
+    const issuedAt = new Date();
+
+    const currentUser = await User.findById(user._id).select(
+      "+activeSessionId +activeSessionIssuedAt +concurrentLoginDetectionCount"
+    );
+
+    if (!currentUser) {
+      throw buildVerificationError("User account was not found.", 404);
+    }
+
+    const previousSessionId = currentUser.activeSessionId || null;
+    const previousSessionIssuedAt = currentUser.activeSessionIssuedAt || null;
+    const hadPreviousSession = Boolean(previousSessionId);
+
+    const filter = hadPreviousSession
+      ? { _id: user._id, activeSessionId: previousSessionId }
+      : {
+          _id: user._id,
+          $or: [
+            { activeSessionId: null },
+            { activeSessionId: { $exists: false } },
+          ],
+        };
+
+    const update = {
       $set: {
         activeSessionId: sessionId,
         activeSessionIssuedAt: issuedAt,
         lastLoginAt: issuedAt,
       },
-    },
-    {
-      new: false,
-      projection: { activeSessionId: 1 },
+    };
+
+    if (hadPreviousSession) {
+      const detectionNumber =
+        (currentUser.concurrentLoginDetectionCount || 0) + 1;
+
+      update.$inc = { concurrentLoginDetectionCount: 1 };
+      update.$set.lastConcurrentLoginDetectedAt = issuedAt;
+      update.$push = {
+        concurrentLoginDetectionHistory: {
+          $each: [
+            {
+              detectedAt: issuedAt,
+              previousSessionIssuedAt,
+              newSessionIssuedAt: issuedAt,
+              detectionNumber,
+            },
+          ],
+          $slice: -MAX_CONCURRENT_LOGIN_HISTORY,
+        },
+      };
     }
+
+    const updatedUser = await User.findOneAndUpdate(filter, update, {
+      new: true,
+      projection: {
+        activeSessionId: 1,
+        concurrentLoginDetectionCount: 1,
+      },
+    });
+
+    if (!updatedUser) {
+      continue;
+    }
+
+    const detectionCount =
+      updatedUser.concurrentLoginDetectionCount || 0;
+
+    return {
+      sessionId,
+      token: generateAccessToken(user, sessionId),
+      replacedExistingSession: hadPreviousSession,
+      concurrentLoginDetected: hadPreviousSession,
+      concurrentLoginDetectionCount: detectionCount,
+    };
+  }
+
+  const error = new Error(
+    "Unable to establish a secure login session. Please try signing in again."
   );
-
-  return {
-    sessionId,
-    token: generateAccessToken(user, sessionId),
-    replacedExistingSession: Boolean(previousUser?.activeSessionId),
-  };
+  error.statusCode = 503;
+  error.code = "SESSION_ESTABLISHMENT_FAILED";
+  throw error;
 };
-
 export const invalidateSession = async ({ userId, sessionId }) => {
   if (!userId || !sessionId) {
     return false;
