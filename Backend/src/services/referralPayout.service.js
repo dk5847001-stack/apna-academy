@@ -421,6 +421,6 @@ export const listMyReferralPayouts = async (userId) =>
     .sort({ createdAt: -1 })
     .limit(50)
     .select(
-      "_id amountPaise currency status payoutMethod destinationSnapshot requestedAt approvedAt processingAt processedAt failedAt reconciledAt failureReason failureCode rejectionReason reversedAt reversalReason providerStatus providerReferenceId providerUtr providerFailureReason providerFailureCode createdAt"
+      "_id withdrawalId payoutTransactionId amountPaise currency status payoutMethod destinationSnapshot requestedAt approvedAt processingAt processedAt failedAt reconciledAt failureReason failureCode rejectionReason reversedAt reversalReason providerStatus providerReferenceId providerUtr providerFailureReason providerFailureCode createdAt"
     )
     .lean();
