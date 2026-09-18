@@ -786,6 +786,13 @@ export const retryFailedReferralPayout = async ({ payoutId, adminId, reason }) =
     .lean();
 
   if (!payout) throw fail("Referral payout not found.", 404, "PAYOUT_NOT_FOUND");
+
+  const payoutUser = await User.findById(payout.user)
+    .select("_id status +securityFrozenAt +securityFreezeReason");
+  if (!payoutUser) throw fail("Payout account was not found.", 404, "USER_NOT_FOUND");
+  if (payoutUser.securityFrozenAt || payoutUser.status === "suspended") {
+    throw fail("Payout processing is blocked for a security-frozen account.", 403, "ACCOUNT_SECURITY_FROZEN");
+  }
   if (payout.status !== "failed") {
     throw fail("Only failed payouts can be retried.", 409, "INVALID_PAYOUT_STATE");
   }
@@ -816,7 +823,7 @@ export const retryFailedReferralPayout = async ({ payoutId, adminId, reason }) =
   }
 
   const updated = await ReferralPayout.findOneAndUpdate(
-    { _id: payoutId, status: "failed", providerPayoutId: { $in: [null, undefined] } },
+    { _id: payoutId, status: "failed", providerPayoutId: null },
     {
       $set: {
         status: "approved",
