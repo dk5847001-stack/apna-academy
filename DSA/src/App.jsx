@@ -11,6 +11,7 @@ import StudyPlans from "./pages/StudyPlans.jsx";
 import StudyPlanDetails from "./pages/StudyPlanDetails.jsx";
 import Progress from "./pages/Progress.jsx";
 import Submissions from "./pages/Submissions.jsx";
+import Leaderboard from "./pages/Leaderboard.jsx";
 import Unlock from "./pages/Unlock.jsx";
 import CodingPractice from "./pages/CodingPractice.jsx";
 
@@ -34,14 +35,14 @@ export default function App() {
         <Route path="practice/code" element={<CodingPractice />} />
         <Route path="topics" element={<Topics />} />
         <Route path="companies" element={<Companies />} />
-    <Route path="companies/:slug" element={<CompanyDetails />} />
+        <Route path="companies/:slug" element={<CompanyDetails />} />
         <Route path="daily-challenge" element={<DailyChallenge />} />
         <Route path="study-plans" element={<StudyPlans />} />
         <Route path="study-plans/:slug" element={<StudyPlanDetails />} />
         <Route path="progress" element={<Progress />} />
         <Route path="submissions" element={<Submissions />} />
         <Route path="bookmarks" element={<Placeholder title="Bookmarks" />} />
-        <Route path="leaderboard" element={<Placeholder title="Leaderboard" />} />
+        <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="unlock" element={<Unlock />} />
         <Route path="profile" element={<Placeholder title="Profile" />} />
         <Route path="settings" element={<Placeholder title="Settings" />} />
