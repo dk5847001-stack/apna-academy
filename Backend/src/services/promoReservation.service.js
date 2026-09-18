@@ -158,12 +158,15 @@ export const reservePromoForOrder = async ({
 export const releasePromoReservation = async ({
   razorpayOrderId,
   userId,
+  session = null,
 }) => {
-  const reservation = await PromoReservation.findOne({
+  const reservationQuery = PromoReservation.findOne({
     razorpayOrderId,
     user: userId,
     status: "reserved",
   });
+  if (session) reservationQuery.session(session);
+  const reservation = await reservationQuery;
 
   if (!reservation) return false;
 
@@ -178,14 +181,15 @@ export const releasePromoReservation = async ({
         releasedAt: new Date(),
       },
     },
-    { new: true }
+    { new: true, ...(session ? { session } : {}) }
   );
 
   if (!updated) return false;
 
   await PromoCode.updateOne(
     { _id: updated.promoCode, reservedCount: { $gt: 0 } },
-    { $inc: { reservedCount: -1 } }
+    { $inc: { reservedCount: -1 } },
+    session ? { session } : undefined
   );
 
   return true;
@@ -199,8 +203,9 @@ export const consumePromoReservation = async ({
   razorpayOrderId,
   userId,
   purchaseId,
+  session = null,
 }) => {
-  const reservation = await PromoReservation.findOneAndUpdate(
+  const reservationQuery = PromoReservation.findOneAndUpdate(
     {
       razorpayOrderId,
       user: userId,
@@ -211,10 +216,13 @@ export const consumePromoReservation = async ({
       $set: {
         status: "consumed",
         consumedAt: new Date(),
+        purchase: purchaseId,
       },
     },
-    { new: true }
+    { new: true, ...(session ? { session } : {}) }
   );
+
+  const reservation = await reservationQuery;
 
   if (!reservation) return null;
 
@@ -237,34 +245,12 @@ export const consumePromoReservation = async ({
         reservedCount: -1,
         usedCount: 1,
       },
-  },
-    { new: true }
+    },
+    { new: true, ...(session ? { session } : {}) }
   );
 
-  if (!promo) {
-    /*
-     * The reservation should not be consumed if the promo counter cannot
-     * be converted. Restore the reservation state so the operation can be
-     * retried safely.
-     */
-    await PromoReservation.updateOne(
-      { _id: reservation._id, status: "consumed" },
-      {
-        $set: { status: "reserved", consumedAt: null },
-      }
-    );
-    return null;
-  }
+  if (!promo) return null;
 
-  await PromoReservation.updateOne(
-    { _id: reservation._id },
-    { $set: { purchase: purchaseId } }
-  );
-
-  return {
-    reservation,
-    promo,
-  };
+  return { reservation, promo };
 };
 
-export { releaseExpiredReservations, RESERVATION_TTL_MS };
