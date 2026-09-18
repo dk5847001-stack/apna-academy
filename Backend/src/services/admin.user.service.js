@@ -31,7 +31,7 @@ export const getAdminUser = async (userId) => {
 };
 
 export const getAdminUserDetails = async (userId) => {
-  assertObjectId(userId); const user = await User.findById(userId).select("name email role avatar phone isEmailVerified status lastLoginAt createdAt updatedAt").lean();
+  assertObjectId(userId); const user = await User.findById(userId).select("name email role avatar phone isEmailVerified status lastLoginAt concurrentLoginDetectionCount blockedAt blockReason securityFrozenAt securityFreezeReason createdAt updatedAt").lean();
   if (!user) { const error = new Error("User not found."); error.statusCode = 404; throw error; }
   const [purchases, progress, certificates] = await Promise.all([
     Purchase.find({ user: userId }).populate("course", "title slug").sort({ purchasedAt: -1 }).limit(20).lean(),
