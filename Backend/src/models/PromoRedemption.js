@@ -78,6 +78,23 @@ const promoRedemptionSchema = new mongoose.Schema(
       default: Date.now,
       index: true,
     },
+
+    /*
+     * Immutable payment reference used for idempotent redemption creation.
+     */
+    razorpayOrderId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
+    razorpayPaymentId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -85,6 +102,7 @@ const promoRedemptionSchema = new mongoose.Schema(
 );
 
 promoRedemptionSchema.index({ promoCode: 1, user: 1, redeemedAt: -1 });
+promoRedemptionSchema.index({ promoCode: 1, user: 1, course: 1, redeemedAt: -1 });
 promoRedemptionSchema.index({ promoCode: 1, redeemedAt: -1 });
 promoRedemptionSchema.index({ user: 1, redeemedAt: -1 });
 
