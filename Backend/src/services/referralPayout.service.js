@@ -8,6 +8,7 @@ import ReferralPayoutDestination from "../models/ReferralPayoutDestination.js";
 import User from "../models/User.js";
 import { evaluateReferralWithdrawalRisk, recordReferralRiskEvent } from "./referralRisk.service.js";
 import { ensureFundAccount } from "./razorpayX.service.js";
+import { isRazorpayXEnabled } from "../config/razorpayX.js";
 
 const MIN_WITHDRAWAL_PAISE = Number.isSafeInteger(Number(process.env.REFERRAL_MIN_WITHDRAWAL_PAISE)) ? Number(process.env.REFERRAL_MIN_WITHDRAWAL_PAISE) : 19900;
 const MAX_WITHDRAWAL_PAISE = Number.isSafeInteger(Number(process.env.REFERRAL_MAX_WITHDRAWAL_PAISE)) ? Number(process.env.REFERRAL_MAX_WITHDRAWAL_PAISE) : 10000000;
@@ -206,14 +207,22 @@ export const requestReferralWithdrawal = async ({
           providerFundAccountId: destinationRecord.providerFundAccountId,
           active: true,
         }
-      : await ensureFundAccount({
-          user,
-          destination,
-          providerContactId: sameDestination
-            ? destinationRecord.providerContactId
-            : null,
-          providerFundAccountId: null,
-        });
+      : isRazorpayXEnabled
+        ? await ensureFundAccount({
+            user,
+            destination,
+            providerContactId: sameDestination
+              ? destinationRecord.providerContactId
+              : null,
+            providerFundAccountId: null,
+          })
+        : {
+            providerContactId: sameDestination
+              ? destinationRecord?.providerContactId || null
+              : null,
+            providerFundAccountId: null,
+            active: false,
+          };
 
   if (!destinationRecord) {
     destinationRecord = new ReferralPayoutDestination({ user: userId });
