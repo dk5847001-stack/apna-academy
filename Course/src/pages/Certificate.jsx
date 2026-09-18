@@ -40,7 +40,9 @@ export default function Certificate() {
     } catch (requestError) {
       console.error("Unable to load certificate data:", requestError);
       if (requestError?.response?.status === 401) {
-        setError("Your session has expired. Please login again.");
+        const returnUrl = window.location.origin + window.location.pathname + window.location.search + window.location.hash;
+        window.location.assign(FRONTEND_URL + "/login?redirect=" + encodeURIComponent(returnUrl));
+        return;
       } else {
         setError(requestError?.response?.data?.message || requestError?.message || "Unable to load certificate information.");
       }
