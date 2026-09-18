@@ -28,6 +28,12 @@ export const errorMiddleware = (
   return res.status(statusCode).json({
     success: false,
     message: responseMessage,
+    ...(error.code && {
+      code: error.code,
+    }),
+    ...(error.security && {
+      security: error.security,
+    }),
     ...(error.errors && {
       errors: error.errors,
     }),
