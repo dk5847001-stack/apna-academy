@@ -68,6 +68,7 @@ const allowedPrefixes = [
   siteUrl + "/",
   siteUrl + "/practice/",
   siteUrl + "/study-plans/",
+  siteUrl + "/companies/",
 ];
 for (const url of locs) {
   if (!allowedPrefixes.some((prefix) => url === siteUrl + "/" || url.startsWith(prefix))) {
