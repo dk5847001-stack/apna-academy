@@ -32,6 +32,7 @@ import adminAssessmentRoutes from "./admin.assessment.routes.js";
 import adminMessageRoutes from "./admin.message.routes.js";
 import adminSubscriberRoutes from "./admin.subscriber.routes.js";
 import adminPromoCodeRoutes from "./admin.promoCode.routes.js";
+import referralRoutes from "./referral.routes.js";
 
 const router = Router();
 router.get("/", (req, res) => res.status(200).json({ success: true, message: "ApnaAcademy API v1 is working 🚀" }));
@@ -39,6 +40,7 @@ router.use("/auth", authRoutes);
 router.use("/courses", courseRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/promocodes", promoCodeRoutes);
+router.use("/referrals", referralRoutes);
 router.use("/learning", learningRoutes);
 router.use("/progress", progressRoutes);
 router.use("/assessment", assessmentRoutes);
