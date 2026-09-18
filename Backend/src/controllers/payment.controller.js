@@ -13,7 +13,6 @@ import {
 import razorpay from "../config/razorpay.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { successResponse } from "../utils/apiResponse.js";
-import { getActiveCoursePurchase } from "../services/purchase.service.js";
 
 /**
  * Check whether the authenticated user has an active normal course purchase.
