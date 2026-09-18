@@ -131,6 +131,19 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
+    securityFrozenAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    securityFreezeReason: {
+      type: String,
+      default: null,
+      select: false,
+      maxlength: 500,
+    },
+
     concurrentLoginDetectionHistory: {
       type: [
         {
