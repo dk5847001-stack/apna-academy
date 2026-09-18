@@ -226,7 +226,7 @@ const promoCodeSchema = new mongoose.Schema(
 /*
  * Keep category values predictable for later backend matching.
  */
-promoCodeSchema.pre("validate", function normalizeCategories(next) {
+promoCodeSchema.pre("validate", function normalizeCategories() {
   if (Array.isArray(this.applicableCategories)) {
     this.applicableCategories = [
       ...new Set(
@@ -236,8 +236,6 @@ promoCodeSchema.pre("validate", function normalizeCategories(next) {
       ),
     ];
   }
-
-  next();
 });
 
 /*
@@ -245,7 +243,7 @@ promoCodeSchema.pre("validate", function normalizeCategories(next) {
  * This is checked again here because validators may not run on every update
  * path unless runValidators is explicitly enabled.
  */
-promoCodeSchema.pre("validate", function validateDiscountConfiguration(next) {
+promoCodeSchema.pre("validate", function validateDiscountConfiguration() {
   if (
     this.discountType === "fixed" &&
     this.maxDiscountAmount !== null &&
@@ -279,8 +277,6 @@ promoCodeSchema.pre("validate", function validateDiscountConfiguration(next) {
       "Used count cannot exceed the total usage limit."
     );
   }
-
-  next();
 });
 
 /*
