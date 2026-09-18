@@ -44,46 +44,6 @@ const releaseExpiredReservations = async (now = new Date()) => {
   return releasedCount;
 };
 
-const reserveSlot = async ({
-  promo,
-  userId,
-  courseId,
-  razorpayOrderId,
-  pricing,
-}) => {
-  const perUserLimit =
-    promo.perUserLimit === null || promo.perUserLimit === undefined
-      ? null
-      : Number(promo.perUserLimit);
-
-  const slots =
-    perUserLimit === null
-      ? [crypto.randomInt(0, 2_147_483_647)]
-      : Array.from({ length: perUserLimit }, (_, index) => index);
-
-  for (const slot of slots) {
-    try {
-      return await PromoReservation.create({
-        promoCode: promo._id,
-        user: normalizeId(userId),
-        course: normalizeId(courseId),
-        razorpayOrderId,
-        slot,
-        status: "reserved",
-        reservedAt: new Date(),
-        expiresAt: new Date(Date.now() + RESERVATION_TTL_MS),
-        discountAmount: pricing.discountAmount,
-        originalAmount: pricing.originalAmount,
-        finalAmount: pricing.finalAmount,
-      });
-    } catch (error) {
-      if (error?.code !== 11000) throw error;
-    }
-  }
-
-  return null;
-};
-
 export const reservePromoForOrder = async ({
   promoCodeId,
   userId,
