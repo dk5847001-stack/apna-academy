@@ -19,7 +19,7 @@ export const listAdminUsers = async ({ page = 1, limit = 20, search = "", role =
   if (search?.trim()) { const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); query.$or = [{ name: { $regex: escaped, $options: "i" } }, { email: { $regex: escaped, $options: "i" } }, { phone: { $regex: escaped, $options: "i" } }]; }
   if (role && ALLOWED_ROLES.has(role)) query.role = role; if (status && ALLOWED_STATUSES.has(status)) query.status = status;
   const skip = (safePage - 1) * safeLimit;
-  const [users, total] = await Promise.all([User.find(query).select("name email role avatar phone isEmailVerified status lastLoginAt createdAt updatedAt").sort({ createdAt: -1 }).skip(skip).limit(safeLimit).lean(), User.countDocuments(query)]);
+  const [users, total] = await Promise.all([User.find(query).select("name email role avatar phone isEmailVerified status lastLoginAt blockedAt blockReason securityFrozenAt concurrentLoginDetectionCount createdAt updatedAt").sort({ createdAt: -1 }).skip(skip).limit(safeLimit).lean(), User.countDocuments(query)]);
   return { users: users.map(sanitizeUser), pagination: { page: safePage, limit: safeLimit, total, totalPages: Math.ceil(total / safeLimit) } };
 };
 
