@@ -29,6 +29,7 @@ export const approveAdminReferralPayoutController = asyncHandler(async (req, res
       payout: await approveReferralPayout({
         payoutId: req.params.payoutId,
         adminId: req.user.userId,
+        reason: req.body?.reason,
       }),
     },
   })
