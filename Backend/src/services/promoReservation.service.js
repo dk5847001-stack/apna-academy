@@ -21,25 +21,14 @@ const releaseExpiredReservations = async (now = new Date()) => {
   const releasedByPromo = new Map();
   let releasedCount = 0;
 
-  /*
-   * Update each reservation with a status guard. Only reservations that this
-   * process actually changes are counted toward reservedCount, preventing two
-   * backend instances from decrementing the same promo slots twice.
-   */
   for (const item of expired) {
     const released = await PromoReservation.findOneAndUpdate(
       { _id: item._id, status: "reserved" },
-      {
-        $set: {
-          status: "expired",
-          releasedAt: now,
-        },
-      },
+      { $set: { status: "expired", releasedAt: now } },
       { new: true }
     ).lean();
 
     if (!released) continue;
-
     releasedCount += 1;
     const key = released.promoCode.toString();
     releasedByPromo.set(key, (releasedByPromo.get(key) || 0) + 1);
@@ -55,3 +44,183 @@ const releaseExpiredReservations = async (now = new Date()) => {
   return releasedCount;
 };
 
+const reserveSlot = async ({
+  promo,
+  userId,
+  courseId,
+  razorpayOrderId,
+  pricing,
+}) => {
+  const perUserLimit =
+    promo.perUserLimit === null || promo.perUserLimit === undefined
+      ? null
+      : Number(promo.perUserLimit);
+
+  const slots =
+    perUserLimit === null
+      ? [crypto.randomInt(0, 2_147_483_647)]
+      : Array.from({ length: perUserLimit }, (_, index) => index);
+
+  for (const slot of slots) {
+    try {
+      return await PromoReservation.create({
+        promoCode: promo._id,
+        user: normalizeId(userId),
+        course: normalizeId(courseId),
+        razorpayOrderId,
+        slot,
+        status: "reserved",
+        reservedAt: new Date(),
+        expiresAt: new Date(Date.now() + RESERVATION_TTL_MS),
+        discountAmount: pricing.discountAmount,
+        originalAmount: pricing.originalAmount,
+        finalAmount: pricing.finalAmount,
+      });
+    } catch (error) {
+      if (error?.code !== 11000) throw error;
+    }
+  }
+
+  return null;
+};
+
+export const reservePromoForOrder = async ({
+  promoCodeId,
+  userId,
+  courseId,
+  razorpayOrderId,
+  pricing,
+}) => {
+  await releaseExpiredReservations();
+
+  const promo = await PromoCode.findOneAndUpdate(
+    {
+      _id: promoCodeId,
+      isActive: true,
+      $or: [
+        { usageLimit: null },
+        { usageLimit: { $exists: false } },
+        {
+          $expr: {
+            $lt: [
+              {
+                $add: [
+                  { $ifNull: ["$usedCount", 0] },
+                  { $ifNull: ["$reservedCount", 0] },
+                ],
+              },
+              "$usageLimit",
+            ],
+          },
+        },
+      ],
+    },
+    { $inc: { reservedCount: 1 } },
+    { new: true }
+  ).lean();
+
+  if (!promo) return null;
+
+  const reservation = await reserveSlot({
+    promo,
+    userId,
+    courseId,
+    razorpayOrderId,
+    pricing,
+  });
+
+  if (!reservation) {
+    await PromoCode.updateOne(
+      { _id: promo._id, reservedCount: { $gt: 0 } },
+      { $inc: { reservedCount: -1 } }
+    );
+    return null;
+  }
+
+  return reservation;
+};
+
+export const releasePromoReservation = async ({
+  razorpayOrderId,
+  userId,
+  session = null,
+}) => {
+  const query = PromoReservation.findOne({
+    razorpayOrderId,
+    user: userId,
+    status: "reserved",
+  });
+  if (session) query.session(session);
+
+  const reservation = await query;
+  if (!reservation) return false;
+
+  const updated = await PromoReservation.findOneAndUpdate(
+    { _id: reservation._id, status: "reserved" },
+    { $set: { status: "released", releasedAt: new Date() } },
+    { new: true, ...(session ? { session } : {}) }
+  );
+
+  if (!updated) return false;
+
+  await PromoCode.updateOne(
+    { _id: updated.promoCode, reservedCount: { $gt: 0 } },
+    { $inc: { reservedCount: -1 } },
+    session ? { session } : undefined
+  );
+
+  return true;
+};
+
+export const consumePromoReservation = async ({
+  razorpayOrderId,
+  userId,
+  purchaseId,
+  session = null,
+}) => {
+  const reservation = await PromoReservation.findOneAndUpdate(
+    {
+      razorpayOrderId,
+      user: userId,
+      status: "reserved",
+      expiresAt: { $gt: new Date() },
+    },
+    {
+      $set: {
+        status: "consumed",
+        consumedAt: new Date(),
+        purchase: purchaseId,
+      },
+    },
+    { new: true, ...(session ? { session } : {}) }
+  );
+
+  if (!reservation) return null;
+
+  const promo = await PromoCode.findOneAndUpdate(
+    {
+      _id: reservation.promoCode,
+      reservedCount: { $gt: 0 },
+      $or: [
+        { usageLimit: null },
+        { usageLimit: { $exists: false } },
+        {
+          $expr: {
+            $lt: [
+              { $ifNull: ["$usedCount", 0] },
+              "$usageLimit",
+            ],
+          },
+        },
+      ],
+    },
+    { $inc: { reservedCount: -1, usedCount: 1 } },
+    { new: true, ...(session ? { session } : {}) }
+  );
+
+  if (!promo) return null;
+
+  return { reservation, promo };
+};
+
+export { releaseExpiredReservations, RESERVATION_TTL_MS };
