@@ -213,6 +213,13 @@ const referralPayoutSchema = new mongoose.Schema(
       index: true,
     },
 
+    adminReviewReason: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 500,
+    },
+
     notes: {
       type: String,
       default: "",
