@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -25,25 +25,98 @@ function CertificateVerificationRedirect() {
 }
 
 function AuthRequired() {
-  useEffect(() => {
-    const returnUrl = window.location.href;
-    const loginUrl = `${FRONTEND_URL}/login?redirect=${encodeURIComponent(returnUrl)}`;
+  const [securityNotice, setSecurityNotice] = useState(null);
 
-    window.location.replace(loginUrl);
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(
+        "apnaacademy-session-security-notice"
+      );
+
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.detectionCount > 0) setSecurityNotice(parsed);
+        window.sessionStorage.removeItem(
+          "apnaacademy-session-security-notice"
+        );
+      }
+    } catch {
+      // Continue with the normal authentication-required screen.
+    }
   }, []);
+
+  useEffect(() => {
+    const delay = securityNotice ? 4500 : 0;
+    const timerId = window.setTimeout(() => {
+      const returnUrl = window.location.href;
+      const loginUrl = `${FRONTEND_URL}/login?redirect=${encodeURIComponent(returnUrl)}`;
+      window.location.replace(loginUrl);
+    }, delay);
+    return () => window.clearTimeout(timerId);
+  }, [securityNotice]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-xl font-extrabold text-white">
-          A
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+          {securityNotice ? "!" : "A"}
         </div>
-        <h1 className="mt-5 text-xl font-extrabold text-slate-900">
-          Authentication required
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          Redirecting you to the ApnaAcademy login page...
-        </p>
+
+        {securityNotice ? (
+          <>
+            <p className="mt-5 text-xs font-extrabold uppercase tracking-[0.16em] text-amber-700">
+              Security alert
+            </p>
+            <h1 className="mt-2 text-xl font-extrabold text-slate-900">
+              {securityNotice.title}
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              {securityNotice.message}
+            </p>
+
+            <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-semibold text-slate-700">
+                  Concurrent login detections
+                </span>
+                <span className="text-sm font-extrabold text-amber-800">
+                  {securityNotice.detectionCount}/{securityNotice.detectionLimit}
+                </span>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-amber-100">
+                <div
+                  className="h-full rounded-full bg-amber-500 transition-all"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      (securityNotice.detectionCount /
+                        securityNotice.detectionLimit) *
+                        100
+                    )}%`,
+                  }}
+                />
+              </div>
+              <p className="mt-3 text-xs leading-5 text-amber-800">
+                {securityNotice.remainingDetections !== null
+                  ? `${securityNotice.remainingDetections} detection${securityNotice.remainingDetections === 1 ? "" : "s"} remaining before the automatic account security action.`
+                  : "Your account security monitoring remains active."}
+              </p>
+            </div>
+            <p className="mt-5 text-xs font-medium text-slate-400">
+              Redirecting to secure sign-in...
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="mt-5 text-xl font-extrabold text-slate-900">
+              Authentication required
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Redirecting you to the ApnaAcademy login page...
+            </p>
+          </>
+        )}
+
         <a
           href={`${FRONTEND_URL}/login?redirect=${encodeURIComponent(window.location.href)}`}
           className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-bold text-white transition hover:bg-blue-700"
@@ -54,7 +127,6 @@ function AuthRequired() {
     </main>
   );
 }
-
 export default function AppRoutes() {
   return (
     <Routes>
