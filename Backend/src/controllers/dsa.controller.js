@@ -1,4 +1,4 @@
-import { getDsaSeoIndex, getProblemBySlug, getProgress, listCompanies, listProblems, listTopics } from "../services/dsa.service.js";
+import { getCompanyBySlug, getDsaSeoIndex, getProblemBySlug, getProgress, listCompanies, listProblems, listTopics } from "../services/dsa.service.js";
 
 const asyncHandler = (handler) => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 
@@ -48,3 +48,15 @@ export const getDsaCompanies = asyncHandler(async (req, res) => {
   const companies = await listCompanies();
   return res.status(200).json({ success: true, data: companies });
 });
+
+export const getDsaCompany = async (req, res, next) => {
+  try {
+    const slug = String(req.params.slug || "").trim().toLowerCase();
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      return res.status(400).json({ success: false, message: "Invalid company slug." });
+    }
+    const result = await getCompanyBySlug(req.user?.userId, slug);
+    if (!result) return res.status(404).json({ success: false, message: "Company not found." });
+    return res.status(200).json({ success: true, data: result });
+  } catch (error) { return next(error); }
+};
