@@ -23,6 +23,13 @@ const promoReservationSchema = new mongoose.Schema(
       index: true,
     },
 
+    purchase: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Purchase",
+      default: null,
+      index: true,
+    },
+
     razorpayOrderId: {
       type: String,
       required: true,
