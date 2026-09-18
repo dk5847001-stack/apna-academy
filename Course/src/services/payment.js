@@ -10,6 +10,13 @@ export const validatePromoCode = async ({ code, courseId, amount }) => {
   return response.data;
 };
 
+export const getCoursePurchaseStatus = async (courseId) => {
+  const response = await api.get(
+    `/payments/course-purchase-status/${encodeURIComponent(courseId)}`
+  );
+  return response.data;
+};
+
 const RAZORPAY_CHECKOUT_URL =
   "https://checkout.razorpay.com/v1/checkout.js";
 
