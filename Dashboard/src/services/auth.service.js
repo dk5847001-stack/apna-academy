@@ -13,6 +13,7 @@ export const register = async ({
   name,
   email,
   password,
+  referralCode,
 }) => {
   const response = await api.post(
     "/auth/register",
@@ -20,6 +21,7 @@ export const register = async ({
       name,
       email,
       password,
+      ...(referralCode ? { referralCode } : {}),
     }
   );
 
