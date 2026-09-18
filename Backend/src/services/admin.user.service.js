@@ -198,6 +198,44 @@ export const unblockAdminUser = async ({ userId, actorId }) => {
   return sanitizeUser(user.toObject());
 };
 
+export const suspendAdminUser = async ({ userId, actorId, reason = "" }) => {
+  assertObjectId(userId);
+  assertObjectId(actorId);
+
+  if (userId.toString() === actorId.toString()) {
+    const error = new Error("You cannot suspend your own admin account.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await User.findById(userId).select("+activeSessionId +securityFrozenAt +blockReason");
+  if (!user) {
+    const error = new Error("User not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (user.role === "admin") {
+    const activeAdminCount = await User.countDocuments({ role: "admin", status: "active" });
+    if (user.status === "active" && activeAdminCount <= 1) {
+      const error = new Error("At least one active admin account must remain.");
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+
+  user.status = "suspended";
+  user.activeSessionId = null;
+  user.activeSessionIssuedAt = null;
+  user.securityFrozenAt = null;
+  user.securityFreezeReason = null;
+  user.blockedAt = null;
+  user.blockReason = String(reason || "").trim().slice(0, 500) || "Suspended by administrator.";
+  await user.save();
+
+  return sanitizeUser(user.toObject());
+};
+
 export const activateAdminUser = async ({ userId, actorId }) => {
   assertObjectId(userId);
   assertObjectId(actorId);
