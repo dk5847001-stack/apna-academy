@@ -21,7 +21,10 @@ const getVideoId = (video) => {
 };
 
 const getLastWatchedVideoId = (value) => getVideoId(value);
-const redirectToLogin = () => window.location.assign(`${FRONTEND_URL}/login`);
+const redirectToLogin = () => {
+  const returnUrl = window.location.origin + window.location.pathname + window.location.search + window.location.hash;
+  window.location.assign(FRONTEND_URL + "/login?redirect=" + encodeURIComponent(returnUrl));
+};
 
 function CourseLearningPage() {
   const { slug, videoId } = useParams();
