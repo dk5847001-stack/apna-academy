@@ -7,6 +7,7 @@ import {
   Book,
   ExpandMore,
   Lock,
+  LocalOffer,
   People,
   PlayCircle,
   School,
@@ -34,7 +35,7 @@ import {
 import { COURSE_ROUTES, FRONTEND_URL } from "../constants/config";
 import { getCourseBySlug, normalizeCourse } from "../services/course.service";
 import api from "../services/api";
-import { startCoursePayment } from "../services/payment";
+import { startCoursePayment, validatePromoCode } from "../services/payment";
 
 const getId = (value) => value?._id || value?.id || "";
 const getInitial = (name = "") => name.trim().charAt(0).toUpperCase() || "A";
@@ -126,6 +127,10 @@ export default function CourseDetails() {
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentError, setPaymentError] = useState("");
   const [expandedModule, setExpandedModule] = useState(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -180,7 +185,72 @@ export default function CourseDetails() {
     window.location.href = `${FRONTEND_URL}/login`;
   };
 
-  const startPurchase = async (purchaseType) => {
+  const applyPromo = async () => {
+    setPromoError("");
+    if (promoLoading || paymentLoading) return;
+
+    const code = promoCode.trim();
+    const courseId = getId(course);
+
+    if (!code) {
+      setAppliedPromo(null);
+      setPromoError("Enter a promo code.");
+      return;
+    }
+
+    if (!courseId) {
+      setPromoError("Course information is unavailable.");
+      return;
+    }
+
+    try {
+      setPromoLoading(true);
+
+      let user;
+      try {
+        user = await getAuthenticatedUser();
+      } catch (authError) {
+        if (authError?.response?.status === 401) {
+          redirectToLogin();
+          return;
+        }
+        throw authError;
+      }
+
+      const result = await validatePromoCode({
+        code,
+        courseId,
+        amount: Number(course.price || 0),
+      });
+
+      if (!result?.success || !result?.data?.valid) {
+        throw new Error(
+          result?.message || "This promo code could not be applied."
+        );
+      }
+
+      setAppliedPromo(result.data);
+      setPromoCode(result.data?.promo?.code || code.toUpperCase());
+    } catch (err) {
+      setAppliedPromo(null);
+      setPromoError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Unable to validate promo code."
+      );
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const removePromo = () => {
+    if (paymentLoading || promoLoading) return;
+    setAppliedPromo(null);
+    setPromoError("");
+    setPromoCode("");
+  };
+
+  const startPurchase = async (purchaseType) =>
     setPaymentMessage("");
     setPaymentError("");
     if (paymentLoading) return;
@@ -973,6 +1043,126 @@ export default function CourseDetails() {
                   fontWeight: 800,
                 }}
               />
+
+              <Paper
+                component="section"
+                aria-label="Promo code"
+                elevation={0}
+                sx={{
+                  mt: 2,
+                  p: { xs: 1.75, sm: 2 },
+                  borderRadius: 2.5,
+                  bgcolor: "rgba(2,12,28,.38)",
+                  border: "1px solid rgba(96,165,250,.18)",
+                }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <LocalOffer sx={{ color: "#93c5fd", fontSize: 20 }} />
+                  <Typography component="h3" fontWeight={900} sx={{ color: "#fff" }}>
+                    Have a promo code?
+                  </Typography>
+                </Stack>
+
+                {appliedPromo ? (
+                  <Box sx={{ mt: 1.5 }}>
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      spacing={1}
+                      alignItems={{ xs: "stretch", sm: "center" }}
+                    >
+                      <Chip
+                        icon={<LocalOffer />}
+                        label={appliedPromo?.promo?.code || "Promo applied"}
+                        sx={{
+                          alignSelf: { xs: "flex-start", sm: "center" },
+                          bgcolor: "rgba(34,197,94,.14)",
+                          color: "#86efac",
+                          fontWeight: 900,
+                        }}
+                      />
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={removePromo}
+                        disabled={paymentLoading || promoLoading}
+                        sx={{ textTransform: "none", fontWeight: 800, alignSelf: { xs: "flex-start", sm: "center" } }}
+                      >
+                        Remove
+                      </Button>
+                    </Stack>
+                    <Typography sx={{ mt: 1.2, color: "#86efac", fontWeight: 800 }}>
+                      Promo code validated successfully.
+                    </Typography>
+                    <Typography variant="caption" sx={{ mt: 0.4, display: "block", color: "#7891ad", lineHeight: 1.6 }}>
+                      Discount preview: ₹{Number(appliedPromo?.pricing?.discountAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <>
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      spacing={1}
+                      sx={{ mt: 1.5 }}
+                    >
+                      <Box
+                        component="input"
+                        value={promoCode}
+                        onChange={(event) => {
+                          setPromoCode(event.target.value.toUpperCase());
+                          if (promoError) setPromoError("");
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") applyPromo();
+                        }}
+                        placeholder="Enter promo code"
+                        maxLength={50}
+                        autoComplete="off"
+                        spellCheck={false}
+                        aria-label="Promo code"
+                        disabled={promoLoading || paymentLoading}
+                        sx={{
+                          minWidth: 0,
+                          flex: 1,
+                          width: "100%",
+                          px: 1.5,
+                          py: 1.35,
+                          borderRadius: 2,
+                          border: "1px solid rgba(148,163,184,.35)",
+                          bgcolor: "rgba(2,12,28,.7)",
+                          color: "#fff",
+                          outline: "none",
+                          font: "inherit",
+                          "&::placeholder": { color: "#7891ad", opacity: 1 },
+                          "&:focus": { borderColor: "#60a5fa" },
+                        }}
+                      />
+                      <Button
+                        variant="outlined"
+                        onClick={applyPromo}
+                        disabled={promoLoading || paymentLoading || !promoCode.trim()}
+                        sx={{
+                          minWidth: { xs: "100%", sm: 110 },
+                          borderRadius: 2,
+                          textTransform: "none",
+                          fontWeight: 900,
+                          borderColor: "rgba(96,165,250,.45)",
+                        }}
+                      >
+                        {promoLoading ? <CircularProgress size={18} color="inherit" /> : "Apply"}
+                      </Button>
+                    </Stack>
+                    {promoError && (
+                      <Typography
+                        component="p"
+                        variant="caption"
+                        sx={{ mt: 1, color: "#fca5a5", fontWeight: 700, lineHeight: 1.5 }}
+                      >
+                        {promoError}
+                      </Typography>
+                    )}
+                  </>
+                )}
+              </Paper>
 
               {paymentMessage && (
                 <Alert severity="success" sx={{ mt: 2, borderRadius: 2.5 }}>
