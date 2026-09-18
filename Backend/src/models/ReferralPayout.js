@@ -220,6 +220,20 @@ const referralPayoutSchema = new mongoose.Schema(
       maxlength: 500,
     },
 
+    reconciliationStatus: {
+      type: String,
+      enum: ["not_checked", "matched", "mismatch", "provider_missing"],
+      default: "not_checked",
+      index: true,
+    },
+
+    reconciliationAlert: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 500,
+    },
+
     notes: {
       type: String,
       default: "",
