@@ -117,6 +117,33 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
+    concurrentLoginDetectionCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+      select: false,
+      index: true,
+    },
+
+    lastConcurrentLoginDetectedAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    concurrentLoginDetectionHistory: {
+      type: [
+        {
+          detectedAt: { type: Date, required: true },
+          previousSessionIssuedAt: { type: Date, default: null },
+          newSessionIssuedAt: { type: Date, required: true },
+          detectionNumber: { type: Number, required: true, min: 1 },
+        },
+      ],
+      default: [],
+      select: false,
+    },
+
     passwordResetToken: {
       type: String,
       default: null,
