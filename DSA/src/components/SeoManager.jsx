@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { getDsaProblem, getDsaStudyPlan } from "../services/dsa.service.js";
+import { getDsaCompany, getDsaProblem, getDsaStudyPlan } from "../services/dsa.service.js";
 
 const SITE_NAME = "ApnaAcademy DSA";
 
@@ -100,6 +100,13 @@ function getPublicSeo(pathname) {
       title: "DSA Problem Practice | ApnaAcademy",
       description:
         "Practice a data structures and algorithms problem with focused problem-solving and coding preparation on ApnaAcademy.",
+    };
+  }
+
+  if (pathname.startsWith("/companies/")) {
+    return {
+      title: "Company DSA Interview Questions | ApnaAcademy",
+      description: "Practice company-focused data structures and algorithms interview questions on ApnaAcademy.",
     };
   }
 
@@ -206,6 +213,19 @@ function problemGraph({ origin, pathname, title, description, problem }) {
     description,
     learningResourceType: "DSA Problem",
     isPartOf: { "@id": `${origin}/#website` },
+  });
+  return graph;
+}
+
+function companyGraph({ origin, pathname, title, description, company }) {
+  const url = `${origin}${pathname}`;
+  const graph = baseGraph({ origin, pathname, title, description, pageType: "CollectionPage" });
+  graph.push({
+    "@type": "ItemList",
+    "@id": `${url}#itemlist`,
+    url,
+    name: company.name || title,
+    numberOfItems: company.total || 0,
   });
   return graph;
 }
@@ -356,6 +376,7 @@ export default function SeoManager() {
 
     const problemMatch = normalizedPath.match(/^\/practice\/([^/]+)$/);
     const planMatch = normalizedPath.match(/^\/study-plans\/([^/]+)$/);
+    const companyMatch = normalizedPath.match(/^\/companies\/([^/]+)$/);
 
     if (problemMatch && problemMatch[1] !== "code") {
       getDsaProblem(decodeURIComponent(problemMatch[1]))
@@ -381,7 +402,17 @@ export default function SeoManager() {
         .catch(() => {
           // Keep the stable route-level SEO on transient API failures.
         });
-    } else if (planMatch) {
+    } else if (companyMatch) {
+      getDsaCompany(decodeURIComponent(companyMatch[1]))
+        .then((result) => {
+          if (!result?.company) return applySeo(null);
+          const company = result.company;
+          const title = clampText(company.name + " DSA Interview Questions | ApnaAcademy", 65);
+          const description = clampText("Practice " + company.name + " DSA interview questions with difficulty-based preparation on ApnaAcademy.", 160);
+          applySeo({ title, description });
+          setJsonLd(companyGraph({ origin, pathname: normalizedPath, title, description, company }));
+        })
+        .catch(() => {});    } else if (planMatch) {
       getDsaStudyPlan(decodeURIComponent(planMatch[1]))
         .then((plan) => {
           if (!plan) return applySeo(null);
