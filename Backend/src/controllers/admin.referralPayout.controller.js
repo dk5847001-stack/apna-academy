@@ -6,6 +6,7 @@ import {
   rejectReferralPayout,
   processReferralPayout,
   reconcileReferralPayout,
+  retryFailedReferralPayout,
 } from "../services/referralPayoutProcessing.service.js";
 
 export const listAdminReferralPayoutsController = asyncHandler(async (req, res) =>
@@ -70,6 +71,21 @@ export const reconcileAdminReferralPayoutController = asyncHandler(async (req, r
       payout: await reconcileReferralPayout({
         payoutId: req.params.payoutId,
         adminId: req.user.userId,
+      }),
+    },
+  })
+);
+
+
+export const retryAdminReferralPayoutController = asyncHandler(async (req, res) =>
+  successResponse({
+    res,
+    message: "Failed referral payout moved back to approved for safe retry.",
+    data: {
+      payout: await retryFailedReferralPayout({
+        payoutId: req.params.payoutId,
+        adminId: req.user.userId,
+        reason: req.body?.reason,
       }),
     },
   })
