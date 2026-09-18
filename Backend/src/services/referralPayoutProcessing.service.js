@@ -738,7 +738,7 @@ export const processReferralPayout = async ({ payoutId, adminId }) => {
         currency: payout.currency,
         providerFundAccountId: payout.providerFundAccountId,
         payoutMethod: payout.payoutMethod,
-        referenceId: payout._id.toString(),
+        referenceId: payout.payoutTransactionId,
         idempotencyKey: payout.idempotencyKey,
       });
     } catch (error) {
@@ -775,7 +775,7 @@ export const reconcileReferralPayout = async ({ payoutId, adminId }) => {
   if (payout.providerPayoutId) {
     providerList = [await fetchPayout(payout.providerPayoutId)];
   } else {
-    providerList = await fetchPayoutByReference(payout._id.toString());
+    providerList = await fetchPayoutByReference(payout.payoutTransactionId);
   }
 
   if (!providerList.length) {
