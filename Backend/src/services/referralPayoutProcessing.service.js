@@ -11,6 +11,7 @@ import {
   sanitizeProviderError,
 } from "./razorpayX.service.js";
 import { isRazorpayXEnabled } from "../config/razorpayX.js";
+import { evaluateReferralWithdrawalRisk, recordReferralRiskEvent } from "./referralRisk.service.js";
 
 const fail = (message, statusCode = 400, code = "REFERRAL_PAYOUT_ERROR") =>
   Object.assign(new Error(message), { statusCode, code });
@@ -79,6 +80,32 @@ export const listAdminReferralPayouts = async ({ status, limit = 100 }) => {
 };
 
 export const approveReferralPayout = async ({ payoutId, adminId }) => {
+  const candidate = await ReferralPayout.findById(payoutId).lean();
+  if (!candidate) throw fail("Referral payout not found.", 404, "PAYOUT_NOT_FOUND");
+
+  const risk = await evaluateReferralWithdrawalRisk({
+    userId: candidate.user,
+    destination: candidate.destinationSnapshot,
+    amountPaise: candidate.amountPaise,
+  });
+
+  if (!risk.allowed) {
+    await recordReferralRiskEvent({
+      userId: candidate.user,
+      payoutId: candidate._id,
+      type: "payout_rejected",
+      riskScore: risk.riskScore,
+      signals: risk.signals,
+      correlationId: risk.correlationId,
+      status: "open",
+    });
+    throw fail(
+      "Payout remains blocked by the referral risk controls.",
+      403,
+      "PAYOUT_RISK_BLOCKED"
+    );
+  }
+
   const session = await ReferralPayout.startSession();
 
   try {
@@ -666,6 +693,29 @@ export const processReferralPayout = async ({ payoutId, adminId }) => {
     .select("+providerFundAccountId +providerPayoutId");
 
   validatePayoutForProvider(preflight);
+
+  const risk = await evaluateReferralWithdrawalRisk({
+    userId: preflight.user,
+    destination: preflight.destinationSnapshot,
+    amountPaise: preflight.amountPaise,
+  });
+
+  if (!risk.allowed) {
+    await recordReferralRiskEvent({
+      userId: preflight.user,
+      payoutId: preflight._id,
+      type: "payout_rejected",
+      riskScore: risk.riskScore,
+      signals: risk.signals,
+      correlationId: risk.correlationId,
+      status: "open",
+    });
+    throw fail(
+      "Payout remains blocked by the referral risk controls.",
+      403,
+      "PAYOUT_RISK_BLOCKED"
+    );
+  }
 
   const payout = await markProcessing({ payoutId, adminId });
 
