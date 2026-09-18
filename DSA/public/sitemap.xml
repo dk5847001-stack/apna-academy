@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>%VITE_DSA_URL%/</loc></url>
+  <url><loc>%VITE_DSA_URL%/practice</loc></url>
+  <url><loc>%VITE_DSA_URL%/topics</loc></url>
+  <url><loc>%VITE_DSA_URL%/companies</loc></url>
+  <url><loc>%VITE_DSA_URL%/daily-challenge</loc></url>
+  <url><loc>%VITE_DSA_URL%/study-plans</loc></url>
+</urlset>
