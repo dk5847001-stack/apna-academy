@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { requireAdmin } from "../middleware/admin.middleware.js";
-import { listPromos, getPromo, createPromo, updatePromo, togglePromo, deletePromo } from "../controllers/admin.promoCode.controller.js";
+import { listPromos, getPromo, createPromo, updatePromo, togglePromo, deletePromo, promoAnalytics, promoAudit } from "../controllers/admin.promoCode.controller.js";
 const router = Router();
 router.use(authenticate, requireAdmin);
 router.get("/", listPromos);
+router.get("/analytics/summary", promoAnalytics);
+router.get("/audit/events", promoAudit);
 router.get("/:promoId", getPromo);
 router.post("/", createPromo);
 router.patch("/:promoId", updatePromo);
