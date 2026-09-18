@@ -33,7 +33,7 @@ const response = await fetch(apiBaseUrl + "/dsa/seo-index", { headers: { Accept:
 if (!response.ok) throw new Error(`Unable to fetch DSA SEO index (${response.status}).`);
 const payload = await response.json();
 const index = payload?.data;
-if (!index || !Array.isArray(index.problems) || !Array.isArray(index.studyPlans)) {
+if (!index || !Array.isArray(index.problems) || !Array.isArray(index.studyPlans) || !Array.isArray(index.companies)) {
   throw new Error("Invalid DSA SEO index response.");
 }
 
@@ -133,6 +133,22 @@ for (const problem of index.problems) {
   writeRoute(route, render({ route, title, description, type: "WebPage", extra }));
 }
 
+for (const company of index.companies) {
+  const slug = clean(company.name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  if (!slug) continue;
+  const route = "/companies/" + slug;
+  const title = clamp(clean(company.name) + " DSA Interview Questions | ApnaAcademy", 65, "Company DSA Practice | ApnaAcademy");
+  const description = clamp("Practice published DSA interview questions mapped to " + clean(company.name) + " with difficulty-based preparation on ApnaAcademy.", 160, "Practice company-focused DSA questions on ApnaAcademy.");
+  const extra = [{
+    "@type": "CollectionPage",
+    name: title,
+    description,
+    url: canonical(route),
+    isPartOf: { "@type": "WebSite", name: "ApnaAcademy", url: canonical("/") },
+  }];
+  writeRoute(route, render({ route, title, description, type: "CollectionPage", extra }));
+}
+
 for (const plan of index.studyPlans) {
   const route = slugRoute("/study-plans/", plan.slug);
   const title = clamp(clean(plan.title) + (plan.durationDays ? " – " + plan.durationDays + " Day Plan" : ""), 65, "DSA Study Plan | ApnaAcademy");
@@ -149,4 +165,4 @@ for (const plan of index.studyPlans) {
   writeRoute(route, render({ route, title, description, type: "WebPage", extra }));
 }
 
-console.log(`Generated static DSA SEO pages: ${routes.length + index.problems.length + index.studyPlans.length}.`);
+console.log(`Generated static DSA SEO pages: ${routes.length + index.problems.length + index.studyPlans.length + index.companies.length}.`);
