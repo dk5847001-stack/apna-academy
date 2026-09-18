@@ -2,6 +2,7 @@ import crypto from "crypto";
 
 import Course from "../models/Course.js";
 import Purchase from "../models/Purchase.js";
+import PromoRedemption from "../models/PromoRedemption.js";
 import { validatePromoCode } from "../services/promoCode.service.js";
 import {
   consumePromoReservation,
@@ -297,6 +298,35 @@ export const verifyPayment = asyncHandler(async (req, res) => {
               "Promo reservation could not be finalized. Please contact support before retrying."
             ),
             { statusCode: 409 }
+          );
+        }
+
+        const promoRedemption = await PromoRedemption.create(
+          [
+            {
+              promoCode: lockedPurchase.promoCode,
+              user: lockedPurchase.user,
+              course: lockedPurchase.course,
+              purchase: lockedPurchase._id,
+              codeSnapshot: lockedPurchase.promoCodeSnapshot,
+              discountType: lockedPurchase.promoDiscountType,
+              discountValue: lockedPurchase.promoDiscountValue,
+              discountAmount: lockedPurchase.promoDiscountAmount,
+              orderAmount:
+                lockedPurchase.originalAmount ?? lockedPurchase.amount,
+              finalAmount: lockedPurchase.amount,
+              razorpayOrderId: razorpay_order_id,
+              razorpayPaymentId: razorpay_payment_id,
+              redeemedAt: new Date(),
+            },
+          ],
+          { session }
+        );
+
+        if (!promoRedemption[0]) {
+          throw Object.assign(
+            new Error("Promo redemption could not be recorded."),
+            { statusCode: 500 }
           );
         }
       }
