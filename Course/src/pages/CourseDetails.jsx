@@ -171,6 +171,36 @@ export default function CourseDetails() {
     () => resolvePreviewUrl(previewVideo, true),
     [previewVideo]
   );
+
+  const coursePrice = useMemo(
+    () => Math.max(Number(course?.price || 0), 0),
+    [course?.price]
+  );
+
+  const promoPricing = useMemo(() => {
+    if (!appliedPromo?.pricing) return null;
+
+    const originalAmount = Math.max(
+      Number(appliedPromo.pricing.originalAmount ?? coursePrice),
+      0
+    );
+    const discountAmount = Math.min(
+      Math.max(Number(appliedPromo.pricing.discountAmount || 0), 0),
+      originalAmount
+    );
+    const finalAmount = Math.max(
+      Number(appliedPromo.pricing.finalAmount ?? originalAmount - discountAmount),
+      0
+    );
+
+    return {
+      originalAmount,
+      discountAmount,
+      finalAmount,
+    };
+  }, [appliedPromo, coursePrice]);
+
+  const displayPrice = promoPricing?.finalAmount ?? coursePrice;
   const getAuthenticatedUser = async () => {
     const response = await api.get("/auth/me");
     if (!response?.data?.success) {
@@ -1003,12 +1033,47 @@ export default function CourseDetails() {
               >
                 COURSE PRICE
               </Typography>
-              <Typography
-                component="p"
-                sx={{ mt: 0.4, fontSize: "2.6rem", fontWeight: 950, color: "#fff" }}
-              >
-                ₹{Number(course.price || 0).toLocaleString("en-IN")}
-              </Typography>
+              {promoPricing ? (
+                <Box sx={{ mt: 0.6 }}>
+                  <Stack direction="row" spacing={1.2} alignItems="baseline" flexWrap="wrap" useFlexGap>
+                    <Typography
+                      component="p"
+                      sx={{ fontSize: "2.6rem", fontWeight: 950, color: "#fff", lineHeight: 1.05 }}
+                    >
+                      ₹{displayPrice.toLocaleString("en-IN", {
+                        minimumFractionDigits: displayPrice % 1 ? 2 : 0,
+                        maximumFractionDigits: 2,
+                      })}
+                    </Typography>
+                    <Typography
+                      component="p"
+                      sx={{ color: "#7891ad", textDecoration: "line-through", fontWeight: 800 }}
+                    >
+                      ₹{promoPricing.originalAmount.toLocaleString("en-IN", {
+                        minimumFractionDigits: promoPricing.originalAmount % 1 ? 2 : 0,
+                        maximumFractionDigits: 2,
+                      })}
+                    </Typography>
+                  </Stack>
+                  <Typography
+                    component="p"
+                    variant="caption"
+                    sx={{ mt: 0.5, color: "#86efac", fontWeight: 900 }}
+                  >
+                    You save ₹{promoPricing.discountAmount.toLocaleString("en-IN", {
+                      minimumFractionDigits: promoPricing.discountAmount % 1 ? 2 : 0,
+                      maximumFractionDigits: 2,
+                    })}
+                  </Typography>
+                </Box>
+              ) : (
+                <Typography
+                  component="p"
+                  sx={{ mt: 0.4, fontSize: "2.6rem", fontWeight: 950, color: "#fff" }}
+                >
+                  ₹{coursePrice.toLocaleString("en-IN")}
+                </Typography>
+              )}
 
               {course.originalPrice &&
                 Number(course.originalPrice) > Number(course.price || 0) && (
@@ -1093,7 +1158,7 @@ export default function CourseDetails() {
                       Promo code validated successfully.
                     </Typography>
                     <Typography variant="caption" sx={{ mt: 0.4, display: "block", color: "#7891ad", lineHeight: 1.6 }}>
-                      Discount preview: ₹{Number(appliedPromo?.pricing?.discountAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      Discount: ₹{Number(promoPricing?.discountAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} · Final: ₹{Number(promoPricing?.finalAmount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </Typography>
                     <Typography variant="caption" sx={{ mt: 0.5, display: "block", color: "#64748b", lineHeight: 1.5 }}>
                       Final payable amount will be confirmed securely by the server during checkout.
@@ -1201,7 +1266,14 @@ export default function CourseDetails() {
                   background: "linear-gradient(135deg,#0875ff,#1d8cff)",
                 }}
               >
-                {paymentLoading ? "Processing..." : "Enroll Now"}
+                {paymentLoading
+                  ? "Processing..."
+                  : promoPricing
+                    ? `Enroll Now — ₹${displayPrice.toLocaleString("en-IN", {
+                        minimumFractionDigits: displayPrice % 1 ? 2 : 0,
+                        maximumFractionDigits: 2,
+                      })}`
+                    : "Enroll Now"}
               </Button>
 
               <Divider sx={{ my: 2.2, borderColor: "rgba(148,163,184,.2)" }}>
