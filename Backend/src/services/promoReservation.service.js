@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import mongoose from "mongoose";
 import PromoCode from "../models/PromoCode.js";
 import PromoReservation from "../models/PromoReservation.js";
@@ -57,7 +58,7 @@ const reserveSlot = async ({
 }) => {
   const perUserLimit =
     promo.perUserLimit === null || promo.perUserLimit === undefined
-      ? 1
+      ? null
       : Number(promo.perUserLimit);
 
   /*
@@ -65,7 +66,12 @@ const reserveSlot = async ({
    * itself the atomic guard against two simultaneous requests taking
    * the same user slot.
    */
-  for (let slot = 0; slot < perUserLimit; slot += 1) {
+  const slots =
+    perUserLimit === null
+      ? [crypto.randomInt(0, 2_147_483_647)]
+      : Array.from({ length: perUserLimit }, (_, index) => index);
+
+  for (const slot of slots) {
     const reservation = {
       promoCode: promo._id,
       user: normalizeId(userId),
