@@ -413,7 +413,7 @@ function App() {
         <main className="flex-1 min-w-0">
           <Container maxWidth="xl" className="py-6 sm:py-8">
             {activeSection === "users" ? <Students /> : (
-            {!selectedCourse ? (
+            !selectedCourse ? (
               <>
                 <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between mb-7">
                   <div>
@@ -495,7 +495,6 @@ function App() {
                   </>
                 )}
               </>
-            )}
             )}
           </Container>
         </main>
