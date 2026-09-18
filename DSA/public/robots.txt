@@ -1,0 +1,13 @@
+# ApnaAcademy DSA crawler rules
+User-agent: *
+Allow: /
+
+Disallow: /progress
+Disallow: /submissions
+Disallow: /bookmarks
+Disallow: /profile
+Disallow: /settings
+Disallow: /practice/code
+Disallow: /unlock
+
+Sitemap: %VITE_DSA_URL%/sitemap.xml
