@@ -27,6 +27,11 @@ export const activateAdminUser = async (userId) => {
   return response.data.data;
 };
 
+export const suspendAdminUser = async (userId, reason) => {
+  const response = await api.post(`${ADMIN_USERS}/${userId}/suspend`, { reason });
+  return response.data.data;
+};
+
 export const getAdminSecurityDetails = async (userId) => {
   const response = await api.get(`${ADMIN_USERS}/${userId}/security`);
   return response.data.data;
