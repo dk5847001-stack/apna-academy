@@ -4,6 +4,7 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import { generateAccessToken } from "../utils/token.js";
 import { sendEmailVerificationOtp, sendPasswordResetEmail } from "./email.service.js";
+import { recordConcurrentLoginEvent } from "./security.service.js";
 
 const OTP_EXPIRES_MS = 10 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
@@ -21,7 +22,7 @@ const createSessionId = () => crypto.randomUUID();
 const MAX_CONCURRENT_LOGIN_HISTORY = 20;
 const SESSION_UPDATE_RETRIES = 5;
 
-const establishSession = async (user) => {
+const establishSession = async (user, { ipAddress = null, userAgent = null, source = "login" } = {}) => {
   for (let attempt = 0; attempt < SESSION_UPDATE_RETRIES; attempt += 1) {
     const sessionId = createSessionId();
     const issuedAt = new Date();
@@ -91,6 +92,21 @@ const establishSession = async (user) => {
 
     const detectionCount =
       updatedUser.concurrentLoginDetectionCount || 0;
+
+    if (hadPreviousSession) {
+      await recordConcurrentLoginEvent({
+        userId: user._id,
+        detectionNumber: detectionCount,
+        previousSessionIssuedAt,
+        newSessionIssuedAt: issuedAt,
+        ipAddress,
+        userAgent,
+        source,
+        correlationId: sessionId,
+      }).catch((error) => {
+        console.error("Concurrent login audit event failed:", error);
+      });
+    }
 
     return {
       sessionId,
@@ -353,7 +369,7 @@ export const verifyEmailOtp = async ({ email, otp }) => {
   user.emailVerificationResendWindowStartedAt = null;
   await user.save();
 
-  const session = await establishSession(user);
+  const session = await establishSession(user, { source: "email-verification" });
 
   return {
     token: session.token,
@@ -361,7 +377,7 @@ export const verifyEmailOtp = async ({ email, otp }) => {
   };
 };
 
-export const loginUser = async ({ email, password }) => {
+export const loginUser = async ({ email, password, ipAddress, userAgent }) => {
   const normalizedEmail = email.trim().toLowerCase();
 
   const user = await User.findOne({ email: normalizedEmail }).select(
@@ -389,7 +405,11 @@ export const loginUser = async ({ email, password }) => {
     throw buildVerificationError("Invalid email or password.", 401);
   }
 
-  const session = await establishSession(user);
+  const session = await establishSession(user, {
+    ipAddress,
+    userAgent,
+    source: "login",
+  });
 
   return {
     token: session.token,
