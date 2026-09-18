@@ -6,6 +6,7 @@ import {
   verifyEmailOtp,
   createPasswordResetToken,
   resetPassword,
+  invalidateSession,
 } from "../services/auth.service.js";
 
 import {
@@ -179,6 +180,11 @@ export const me = asyncHandler(async (req, res) => {
 });
 
 export const logout = async (req, res) => {
+  await invalidateSession({
+    userId: req.user.userId,
+    sessionId: req.user.sessionId,
+  });
+
   const isProduction = process.env.NODE_ENV === "production";
 
   res.clearCookie(AUTH_COOKIE_NAME, {

@@ -29,6 +29,6 @@ router.post("/reset-password", resetPasswordController);
 
 router.get("/me", authenticate, me);
 
-router.post("/logout", logout);
+router.post("/logout", authenticate, logout);
 
 export default router;

@@ -12,6 +12,56 @@ const OTP_MAX_RESENDS_PER_HOUR = 5;
 const OTP_RESEND_WINDOW_MS = 60 * 60 * 1000;
 const PASSWORD_RESET_EXPIRES_MS = 15 * 60 * 1000;
 
+const createSessionId = () => crypto.randomUUID();
+
+/*
+ * Atomically replaces the user's active session. The previous session id is
+ * returned so callers can distinguish a first login from a session takeover.
+ */
+const establishSession = async (user) => {
+  const sessionId = createSessionId();
+  const issuedAt = new Date();
+
+  const previousUser = await User.findOneAndUpdate(
+    { _id: user._id },
+    {
+      $set: {
+        activeSessionId: sessionId,
+        activeSessionIssuedAt: issuedAt,
+        lastLoginAt: issuedAt,
+      },
+    },
+    {
+      new: false,
+      projection: { activeSessionId: 1 },
+    }
+  );
+
+  return {
+    sessionId,
+    token: generateAccessToken(user, sessionId),
+    replacedExistingSession: Boolean(previousUser?.activeSessionId),
+  };
+};
+
+export const invalidateSession = async ({ userId, sessionId }) => {
+  if (!userId || !sessionId) {
+    return false;
+  }
+
+  const result = await User.updateOne(
+    { _id: userId, activeSessionId: sessionId },
+    {
+      $set: {
+        activeSessionId: null,
+        activeSessionIssuedAt: null,
+      },
+    }
+  );
+
+  return result.modifiedCount === 1;
+};
+
 const createOtp = () =>
   crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
 
@@ -239,10 +289,10 @@ export const verifyEmailOtp = async ({ email, otp }) => {
   user.emailVerificationResendWindowStartedAt = null;
   await user.save();
 
-  const token = generateAccessToken(user);
+  const session = await establishSession(user);
 
   return {
-    token,
+    token: session.token,
     user: createVerificationPayload(user),
   };
 };
@@ -275,13 +325,10 @@ export const loginUser = async ({ email, password }) => {
     throw buildVerificationError("Invalid email or password.", 401);
   }
 
-  user.lastLoginAt = new Date();
-  await user.save();
-
-  const token = generateAccessToken(user);
+  const session = await establishSession(user);
 
   return {
-    token,
+    token: session.token,
     user: createVerificationPayload(user),
   };
 };
@@ -371,6 +418,8 @@ export const resetPassword = async ({ token, password }) => {
   }
 
   user.password = await bcrypt.hash(password, 12);
+  user.activeSessionId = null;
+  user.activeSessionIssuedAt = null;
   user.passwordResetToken = null;
   user.passwordResetExpiresAt = null;
   await user.save();
