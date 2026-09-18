@@ -149,6 +149,9 @@ export default function CourseDetails() {
         );
         setModules(Array.isArray(result?.modules) ? result.modules : []);
         setExpandedModule(null);
+        setAppliedPromo(null);
+        setPromoCode("");
+        setPromoError("");
       } catch (err) {
         if (!mounted) return;
         setError(
@@ -279,7 +282,7 @@ export default function CourseDetails() {
     setPromoCode("");
   };
 
-  const startPurchase = async (purchaseType) =>
+  const startPurchase = async (purchaseType) => {
     setPaymentMessage("");
     setPaymentError("");
     if (paymentLoading) return;
