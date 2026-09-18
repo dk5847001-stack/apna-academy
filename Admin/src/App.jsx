@@ -44,6 +44,7 @@ import {
   Search,
   SchoolOutlined,
   VideoLibraryOutlined,
+  PeopleOutline,
 } from "@mui/icons-material";
 import {
   createAdminCourse,
@@ -60,6 +61,7 @@ import {
   updateAdminVideo,
 } from "./services/adminCourse.service";
 import { getApiErrorMessage } from "./services/api";
+import Students from "./pages/Students";
 
 const emptyCourse = {
   title: "",
@@ -160,6 +162,7 @@ function App() {
   const [admin, setAdmin] = useState(null);
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [activeSection, setActiveSection] = useState("courses");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [courseLoading, setCourseLoading] = useState(false);
@@ -401,14 +404,14 @@ function App() {
 
       <div className="flex">
         <Drawer variant="temporary" open={mobileOpen} onClose={() => setMobileOpen(false)} className="lg:hidden">
-          <Sidebar onCourses={() => { setSelectedCourse(null); setMobileOpen(false); }} />
+          <Sidebar activeSection={activeSection} onSection={(section) => { setActiveSection(section); setSelectedCourse(null); setMobileOpen(false); }} />
         </Drawer>
         <aside className="hidden lg:block w-64 shrink-0 border-r border-slate-200 bg-white min-h-[calc(100vh-64px)]">
-          <Sidebar onCourses={() => setSelectedCourse(null)} />
+          <Sidebar activeSection={activeSection} onSection={(section) => { setActiveSection(section); setSelectedCourse(null); }} />
         </aside>
 
         <main className="flex-1 min-w-0">
-          <Container maxWidth="xl" className="py-6 sm:py-8">
+          <Container maxWidth="xl" className="py-6 sm:py-8">\n            {activeSection === "users" ? <Students /> : (
             {!selectedCourse ? (
               <>
                 <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between mb-7">
@@ -492,7 +495,7 @@ function App() {
                 )}
               </>
             )}
-          </Container>
+          )}\n          </Container>
         </main>
       </div>
 
@@ -506,8 +509,17 @@ function App() {
   );
 }
 
-function Sidebar({ onCourses }) {
-  return <div className="p-4"><div className="rounded-2xl bg-blue-50 border border-blue-100 p-4 mb-5"><Typography className="font-bold text-blue-950">Management</Typography><Typography variant="caption" className="text-blue-700">Platform administration</Typography></div><Button fullWidth variant="contained" startIcon={<SchoolOutlined />} onClick={onCourses} className="justify-start rounded-xl normal-case font-bold">Courses</Button></div>;
+function Sidebar({ activeSection, onSection }) {
+  return <div className="p-4">
+    <div className="rounded-2xl bg-blue-50 border border-blue-100 p-4 mb-5">
+      <Typography className="font-bold text-blue-950">Management</Typography>
+      <Typography variant="caption" className="text-blue-700">Platform administration</Typography>
+    </div>
+    <Stack spacing={1}>
+      <Button fullWidth variant={activeSection === "courses" ? "contained" : "text"} startIcon={<SchoolOutlined />} onClick={() => onSection("courses")} className="justify-start rounded-xl normal-case font-bold">Courses</Button>
+      <Button fullWidth variant={activeSection === "users" ? "contained" : "text"} startIcon={<PeopleOutline />} onClick={() => onSection("users")} className="justify-start rounded-xl normal-case font-bold">Users</Button>
+    </Stack>
+  </div>;
 }
 
 function StatCard({ label, value, icon }) { return <Paper elevation={0} className="rounded-2xl border border-slate-200 p-5"><div className="flex items-center justify-between"><div><Typography variant="body2" className="text-slate-500">{label}</Typography><Typography variant="h4" className="font-extrabold mt-1">{value}</Typography></div><div className="h-11 w-11 rounded-xl bg-blue-50 text-blue-600 grid place-items-center">{icon}</div></div></Paper>; }
