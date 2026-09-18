@@ -38,6 +38,8 @@ export const validateEnv = () => {
       "RAZORPAYX_KEY_SECRET",
       "RAZORPAYX_ACCOUNT_NUMBER",
       "RAZORPAYX_WEBHOOK_SECRET",
+      "REFERRAL_PAYOUT_DESTINATION_HMAC_SECRET",
+      "REFERRAL_PAYOUT_DESTINATION_ENCRYPTION_KEY",
     ];
 
     const missingRazorpayXVariables = razorpayXVariables.filter(
