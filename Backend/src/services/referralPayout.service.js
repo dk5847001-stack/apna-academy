@@ -92,19 +92,39 @@ const destinationFingerprint = (destination) => {
   return crypto.createHmac("sha256", secret).update(canonical).digest("hex");
 };
 
-const snapshotOf = (destination) =>
-  destination.method === "upi"
+const snapshotOf = (destination) => {
+  const secret = String(
+    process.env.REFERRAL_PAYOUT_DESTINATION_HMAC_SECRET || process.env.JWT_SECRET || ""
+  ).trim();
+  const canonical =
+    destination.method === "upi"
+      ? "upi|" + destination.accountHolderName.toLowerCase() + "|" + destination.upiId
+      : "bank|" +
+        destination.accountHolderName.toLowerCase() +
+        "|" +
+        destination.accountNumber +
+        "|" +
+        destination.ifsc;
+  const fingerprint = crypto.createHmac("sha256", secret).update(canonical).digest("hex");
+
+  return destination.method === "upi"
     ? {
         method: destination.method,
         accountHolderName: destination.accountHolderName,
-        upiId: destination.upiId,
+        maskedUPI:
+          destination.upiId.length <= 2
+            ? "**@" + destination.upiId.split("@")[1]
+            : destination.upiId[0] + "****" + destination.upiId[destination.upiId.indexOf("@") - 1] + destination.upiId.slice(destination.upiId.indexOf("@")),
+        destinationFingerprint: fingerprint,
       }
     : {
         method: destination.method,
         accountHolderName: destination.accountHolderName,
         accountNumberLast4: destination.accountNumberLast4,
         ifsc: destination.ifsc,
+        destinationFingerprint: fingerprint,
       };
+};
 
 const balanceAfter = (wallet) => ({
   totalEarnedPaise: wallet.totalEarnedPaise,
