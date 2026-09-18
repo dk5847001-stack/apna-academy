@@ -7,6 +7,7 @@ import {
   rejectAdminReferralPayoutController,
   processAdminReferralPayoutController,
   reconcileAdminReferralPayoutController,
+  retryAdminReferralPayoutController,
 } from "../controllers/admin.referralPayout.controller.js";
 
 const router = Router();
@@ -20,3 +21,5 @@ router.post("/:payoutId/process", processAdminReferralPayoutController);
 router.post("/:payoutId/reconcile", reconcileAdminReferralPayoutController);
 
 export default router;
+
+router.post("/:payoutId/retry", retryAdminReferralPayoutController);
