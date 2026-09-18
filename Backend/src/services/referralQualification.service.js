@@ -2,6 +2,7 @@ import crypto from "crypto";
 import Referral from "../models/Referral.js";
 import ReferralReward from "../models/ReferralReward.js";
 import ReferralWallet from "../models/ReferralWallet.js";
+import ReferralLedger from "../models/ReferralLedger.js";
 import ReferralAuditEvent from "../models/ReferralAuditEvent.js";
 import Purchase from "../models/Purchase.js";
 
@@ -125,30 +126,27 @@ export const qualifyReferralForPurchase = async ({ purchase, session }) => {
 
   if (!qualifiedReferral) return null;
 
-  let reward;
-  try {
-    const created = await ReferralReward.create(
-      [{
-        referral: qualifiedReferral._id,
-        referrer: qualifiedReferral.referrer,
-        referredUser: qualifiedReferral.referredUser,
-        amountPaise: REFERRAL_REWARD_PAISE,
-        currency: "INR",
-        status: "pending",
-        qualificationPurchase: purchase._id,
-        qualifyingPurchaseAmountPaise: amountPaise,
-      }],
-      { session }
-    );
-    reward = created[0];
-  } catch (error) {
-    if (error?.code !== 11000) throw error;
-    reward = await ReferralReward.findOne({ referral: qualifiedReferral._id }).session(session);
-  }
+  // The referral document is transaction-locked above, so a concurrent
+  // qualification cannot create a second reward. The unique indexes provide
+  // an additional database-level invariant.
+  const created = await ReferralReward.create(
+    [{
+      referral: qualifiedReferral._id,
+      referrer: qualifiedReferral.referrer,
+      referredUser: qualifiedReferral.referredUser,
+      amountPaise: REFERRAL_REWARD_PAISE,
+      currency: "INR",
+      status: "pending",
+      qualificationPurchase: purchase._id,
+      qualifyingPurchaseAmountPaise: amountPaise,
+    }],
+    { session }
+  );
+  const reward = created[0];
 
   if (!reward) throw new Error("Referral reward could not be created.");
 
-  await ReferralWallet.findOneAndUpdate(
+  const wallet = await ReferralWallet.findOneAndUpdate(
     { user: qualifiedReferral.referrer },
     {
       $setOnInsert: { user: qualifiedReferral.referrer, currency: "INR" },
@@ -162,6 +160,8 @@ export const qualifyReferralForPurchase = async ({ purchase, session }) => {
     { upsert: true, new: true, session }
   );
 
+  if (!wallet) throw new Error("Referral wallet could not be created.");
+
   const rewardedReferral = await Referral.findOneAndUpdate(
     { _id: qualifiedReferral._id, status: "qualified" },
     { $set: { status: "rewarded", reward: reward._id, rewardedAt: qualifiedAt } },
@@ -169,6 +169,36 @@ export const qualifyReferralForPurchase = async ({ purchase, session }) => {
   );
 
   if (!rewardedReferral) throw new Error("Referral reward state could not be finalized.");
+
+  // Every monetary wallet mutation gets an immutable ledger entry in the
+  // same transaction. The balance snapshot makes reconciliation possible
+  // without trusting mutable wallet counters alone.
+  await ReferralLedger.create(
+    [{
+      wallet: wallet._id,
+      user: rewardedReferral.referrer,
+      reward: reward._id,
+      type: "reward_pending",
+      direction: "credit",
+      amountPaise: REFERRAL_REWARD_PAISE,
+      currency: "INR",
+      balanceAfter: {
+        totalEarnedPaise: wallet.totalEarnedPaise,
+        availableBalancePaise: wallet.availableBalancePaise,
+        pendingBalancePaise: wallet.pendingBalancePaise,
+        lockedBalancePaise: wallet.lockedBalancePaise,
+        paidOutPaise: wallet.paidOutPaise,
+        reversedPaise: wallet.reversedPaise,
+      },
+      idempotencyKey: `reward_pending:${reward._id.toString()}`,
+      description: "Referral reward credited to pending balance.",
+      metadata: {
+        referralId: rewardedReferral._id.toString(),
+        qualificationPurchaseId: purchase._id.toString(),
+      },
+    }],
+    { session }
+  );
 
   await createAudit({
     referral: rewardedReferral._id,
