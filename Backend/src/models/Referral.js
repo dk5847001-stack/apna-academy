@@ -24,10 +24,6 @@ const referralSchema = new mongoose.Schema(
       unique: true,
     },
 
-    /*
-     * Snapshot of the code used for attribution.
-     * The relationship must remain auditable even if the user's code changes later.
-     */
     referralCodeSnapshot: {
       type: String,
       required: true,
@@ -108,18 +104,15 @@ const referralSchema = new mongoose.Schema(
       maxlength: 500,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-/*
- * One referred account can have only one permanent referrer.
- * This is the primary anti-attribution-switching constraint.
- */
 referralSchema.index({ referrer: 1, status: 1, createdAt: -1 });
 referralSchema.index({ status: 1, createdAt: -1 });
-referralSchema.index({ qualificationPurchase: 1 }, { sparse: true });
+referralSchema.index(
+  { qualificationPurchase: 1 },
+  { unique: true, partialFilterExpression: { qualificationPurchase: { $type: "objectId" } } }
+);
 
 referralSchema.pre("validate", function validateRelationship() {
   if (
