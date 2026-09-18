@@ -97,9 +97,11 @@ function AuthRequired() {
                 />
               </div>
               <p className="mt-3 text-xs leading-5 text-amber-800">
-                {securityNotice.remainingDetections !== null
-                  ? `${securityNotice.remainingDetections} detection${securityNotice.remainingDetections === 1 ? "" : "s"} remaining before the automatic account security action.`
-                  : "Your account security monitoring remains active."}
+                {securityNotice.title === "Account security freeze activated"
+                  ? "Your account is currently frozen. Please contact ApnaAcademy support for account review."
+                  : securityNotice.remainingDetections !== null
+                    ? `${securityNotice.remainingDetections} detection${securityNotice.remainingDetections === 1 ? "" : "s"} remaining before the automatic account security action.`
+                    : "Your account security monitoring remains active."}
               </p>
             </div>
             <p className="mt-5 text-xs font-medium text-slate-400">
