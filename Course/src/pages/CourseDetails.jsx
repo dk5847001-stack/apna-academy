@@ -216,7 +216,8 @@ export default function CourseDetails() {
   };
 
   const redirectToLogin = () => {
-    window.location.href = `${FRONTEND_URL}/login`;
+    const returnUrl = window.location.origin + window.location.pathname + window.location.search + window.location.hash;
+    window.location.href = FRONTEND_URL + "/login?redirect=" + encodeURIComponent(returnUrl);
   };
 
   const applyPromo = async () => {
