@@ -153,7 +153,7 @@ export const getProblemBySlug = async (userId, slug) => {
 };
 
 export const getDsaSeoIndex = async () => {
-  const [problems, studyPlans] = await Promise.all([
+  const [problems, studyPlans, companies] = await Promise.all([
     DsaProblem.find({ status: "PUBLISHED" })
       .select("slug title description difficulty topics isPremium order updatedAt")
       .sort({ order: 1, createdAt: 1 })
@@ -162,6 +162,7 @@ export const getDsaSeoIndex = async () => {
       .select("slug title description durationDays level focus order updatedAt")
       .sort({ order: 1, durationDays: 1 })
       .lean(),
+    listCompanies(),
   ]);
 
   return {
@@ -171,6 +172,7 @@ export const getDsaSeoIndex = async () => {
     studyPlans: studyPlans.map(({ slug, title, description, durationDays, level, focus, order, updatedAt }) => ({
       slug, title, description, durationDays, level, focus, order, updatedAt,
     })),
+    companies: companies.map(({ name, total, free, premium, easy, medium, hard }) => ({ name, total, free, premium, easy, medium, hard })),
   };
 };
 
