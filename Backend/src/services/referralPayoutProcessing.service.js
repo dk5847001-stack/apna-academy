@@ -82,7 +82,11 @@ export const listAdminReferralPayouts = async ({ status, limit = 100 }) => {
     .lean();
 };
 
-export const approveReferralPayout = async ({ payoutId, adminId }) => {
+export const approveReferralPayout = async ({ payoutId, adminId, reason }) => {
+  const reviewReason = String(reason || "").trim();
+  if (reviewReason.length < 5) {
+    throw fail("Admin approval reason is required.", 400, "ADMIN_REASON_REQUIRED");
+  }
   const candidate = await ReferralPayout.findById(payoutId).lean();
   if (!candidate) throw fail("Referral payout not found.", 404, "PAYOUT_NOT_FOUND");
 
@@ -138,6 +142,7 @@ export const approveReferralPayout = async ({ payoutId, adminId }) => {
       locked.status = "approved";
       locked.approvedAt = new Date();
       locked.adminActor = adminId;
+      locked.adminReviewReason = reviewReason.slice(0, 500);
       await locked.save({ session });
 
       await audit({
@@ -145,7 +150,7 @@ export const approveReferralPayout = async ({ payoutId, adminId }) => {
         user: locked.user,
         actor: adminId,
         action: "withdrawal_approved",
-        metadata: { amountPaise: locked.amountPaise },
+        metadata: { amountPaise: locked.amountPaise, reason: locked.adminReviewReason },
         session,
       });
 
@@ -163,6 +168,10 @@ export const rejectReferralPayout = async ({
   adminId,
   reason = "Payout rejected during admin review.",
 }) => {
+  const rejectionReason = String(reason || "").trim();
+  if (rejectionReason.length < 5) {
+    throw fail("Admin rejection reason is required.", 400, "ADMIN_REASON_REQUIRED");
+  }
   const session = await ReferralPayout.startSession();
 
   try {
@@ -230,7 +239,7 @@ export const rejectReferralPayout = async ({
       );
 
       locked.status = "rejected";
-      locked.rejectionReason = String(reason).trim().slice(0, 500);
+      locked.rejectionReason = rejectionReason.slice(0, 500);
       locked.failedAt = new Date();
       locked.adminActor = adminId;
       await locked.save({ session });
