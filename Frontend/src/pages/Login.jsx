@@ -24,7 +24,32 @@ import {
 import api from "../services/api";
 
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL || "http://localhost:5175";
+const COURSE_URL = import.meta.env.VITE_COURSE_URL || "http://localhost:5174";
+const DSA_URL = import.meta.env.VITE_DSA_URL || "";
 const getDashboardUrl = () => DASHBOARD_URL.replace(/\/+$/, "");
+
+const normalizeOrigin = (value) => {
+  try { return new URL(value).origin; } catch { return ""; }
+};
+
+const getAllowedRedirectOrigins = () => new Set(
+  [DASHBOARD_URL, COURSE_URL, DSA_URL, window.location.origin]
+    .map(normalizeOrigin)
+    .filter(Boolean)
+);
+
+const getRedirectTarget = (value) => {
+  const fallback = "/dashboard";
+  if (!value) return fallback;
+  try {
+    const decoded = decodeURIComponent(value);
+    if (decoded.startsWith("/") && !decoded.startsWith("//")) return decoded;
+    const target = new URL(decoded);
+    if (!["http:", "https:"].includes(target.protocol)) return fallback;
+    if (!getAllowedRedirectOrigins().has(target.origin)) return fallback;
+    return target.href;
+  } catch { return fallback; }
+};
 
 const getErrorMessage = (error) => {
   const status = error?.response?.status;
@@ -47,10 +72,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const getRedirectPath = () => {
-    const redirect = new URLSearchParams(location.search).get("redirect");
-    return redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/dashboard";
-  };
+  const getRedirectTargetFromQuery = () => getRedirectTarget(new URLSearchParams(location.search).get("redirect"));
 
   useEffect(() => {
     if (authCheckStarted.current) return;
@@ -60,7 +82,8 @@ export default function Login() {
       try {
         const response = await api.get("/auth/me");
         if (!response?.data?.data) throw new Error("Invalid authentication response.");
-        window.location.replace(`${getDashboardUrl()}${getRedirectPath()}`);
+        const target = getRedirectTargetFromQuery();
+        window.location.replace(target.startsWith("http") ? target : getDashboardUrl() + target);
       } catch {
         setCheckingAuth(false);
       }
@@ -95,7 +118,10 @@ export default function Login() {
       if (!user) throw new Error("Login succeeded, but the server returned an invalid user response.");
 
       setSuccess("Login successful. Opening your dashboard...");
-      window.setTimeout(() => window.location.replace(`${getDashboardUrl()}${getRedirectPath()}`), 500);
+      window.setTimeout(() => {
+        const target = getRedirectTargetFromQuery();
+        window.location.replace(target.startsWith("http") ? target : getDashboardUrl() + target);
+      }, 500);
     } catch (requestError) {
       setError(getErrorMessage(requestError));
     } finally {
