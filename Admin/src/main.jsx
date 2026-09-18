@@ -16,10 +16,11 @@ import Messages from "./pages/Messages.jsx";
 import Subscribers from "./pages/Subscribers.jsx";
 import DsaProblems from "./pages/DsaProblems.jsx";
 import PromoCodes from "./pages/PromoCodes.jsx";
+import PromoAnalytics from "./pages/PromoAnalytics.jsx";
 import { getCurrentAdmin } from "./services/adminCourse.service";
 import { DASHBOARD_URL, FRONTEND_URL } from "./constants/config";
 
-const routes={"#analytics":Analytics,"#users":Users,"#notifications":Notifications,"#purchases":Purchases,"#progress":Progress,"#certificates":Certificates,"#support":Support,"#assessments":Assessments,"#messages":Messages,"#subscribers":Subscribers,"#promocodes":PromoCodes,"#dsa":DsaProblems};
+const routes={"#analytics":Analytics,"#users":Users,"#notifications":Notifications,"#purchases":Purchases,"#progress":Progress,"#certificates":Certificates,"#support":Support,"#assessments":Assessments,"#messages":Messages,"#subscribers":Subscribers,"#promocodes":PromoCodes,"#promo-analytics":PromoAnalytics,"#dsa":DsaProblems};
 const navItems=[
  {href:"",label:"Courses",icon:SchoolOutlined},
  {href:"#dsa",label:"DSA Problems",icon:CodeOutlined},
@@ -33,6 +34,7 @@ const navItems=[
  {href:"#messages",label:"Messages",icon:EmailOutlined},
  {href:"#subscribers",label:"Subscribers",icon:PeopleAltOutlined},
  {href:"#promocodes",label:"Promo Codes",icon:ShoppingBagOutlined},
+ {href:"#promo-analytics",label:"Promo Analytics",icon:AutoGraphOutlined},
  {href:"#support",label:"Support",icon:SupportAgentOutlined},
 ];
 const externalNavItems=[{href:DASHBOARD_URL,label:"Dashboard",icon:DashboardOutlined},{href:FRONTEND_URL,label:"Home",icon:HomeOutlined}];
