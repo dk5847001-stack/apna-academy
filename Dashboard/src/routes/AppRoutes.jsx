@@ -48,7 +48,7 @@ function AuthRequired() {
   useEffect(() => {
     const delay = securityNotice ? 4500 : 0;
     const timerId = window.setTimeout(() => {
-      const returnUrl = window.location.href;
+      const returnUrl = window.location.origin + window.location.pathname + window.location.search + window.location.hash;
       const loginUrl = `${FRONTEND_URL}/login?redirect=${encodeURIComponent(returnUrl)}`;
       window.location.replace(loginUrl);
     }, delay);
