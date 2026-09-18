@@ -110,7 +110,7 @@ export const unfreezeUserSecurity = async ({ userId, actorId }) => {
     throw error;
   }
 
-  const user = await User.findById(userId).select("+activeSessionId");
+  const user = await User.findById(userId).select("+activeSessionId +concurrentLoginDetectionCount");
   if (!user) {
     const error = new Error("User not found.");
     error.statusCode = 404;
@@ -126,6 +126,8 @@ export const unfreezeUserSecurity = async ({ userId, actorId }) => {
   user.status = "active";
   user.securityFrozenAt = null;
   user.securityFreezeReason = null;
+  user.concurrentLoginDetectionCount = 0;
+  user.lastConcurrentLoginDetectedAt = null;
   user.activeSessionId = null;
   user.activeSessionIssuedAt = null;
   await user.save();
@@ -134,9 +136,10 @@ export const unfreezeUserSecurity = async ({ userId, actorId }) => {
 };
 
 export const updateAdminUser = async ({ userId, actorId, role, status }) => {
-  assertObjectId(userId); assertObjectId(actorId); const user = await User.findById(userId); if (!user) { const error = new Error("User not found."); error.statusCode = 404; throw error; }
+  assertObjectId(userId); assertObjectId(actorId); const user = await User.findById(userId).select("+securityFrozenAt"); if (!user) { const error = new Error("User not found."); error.statusCode = 404; throw error; }
   if (role !== undefined && !ALLOWED_ROLES.has(role)) { const error = new Error("Invalid role."); error.statusCode = 400; throw error; }
   if (status !== undefined && !ALLOWED_STATUSES.has(status)) { const error = new Error("Invalid account status."); error.statusCode = 400; throw error; }
+  if (status === "active" && user.securityFrozenAt) { const error = new Error("This account is security-frozen. Use the dedicated security unfreeze action after review."); error.statusCode = 400; error.code = "SECURITY_UNFREEZE_REQUIRED"; throw error; }
   const isSelf = user._id.toString() === actorId.toString();
   if (isSelf && role !== undefined && role !== "admin") { const error = new Error("You cannot remove your own admin role."); error.statusCode = 400; throw error; }
   if (isSelf && status !== undefined && status !== "active") { const error = new Error("You cannot deactivate your own admin account."); error.statusCode = 400; throw error; }
