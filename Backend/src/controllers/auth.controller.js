@@ -36,8 +36,8 @@ const setAuthenticationCookie = (res, token) => {
 };
 
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
-  const errors = validateRegisterInput({ name, email, password });
+  const { name, email, password, referralCode } = req.body;
+  const errors = validateRegisterInput({ name, email, password, referralCode });
 
   if (Object.keys(errors).length > 0) {
     const error = new Error("Please correct the validation errors.");
@@ -46,7 +46,7 @@ export const register = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  const result = await registerUser({ name, email, password });
+  const result = await registerUser({ name, email, password, referralCode });
 
   return successResponse({
     res,
