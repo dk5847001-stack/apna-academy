@@ -45,6 +45,11 @@ if (!siteUrl || !/^https?:\/\//i.test(siteUrl)) fail("VITE_DSA_URL must be an ab
 if (!fs.existsSync(path.join(dist, "index.html"))) fail("dist/index.html is missing. Run the Vite build first.");
 
 const rootHtml = read(path.join(dist, "index.html"));
+const notFoundPath = path.join(dist, "404.html");
+if (!fs.existsSync(notFoundPath)) fail("dist/404.html is missing.");
+const notFoundHtml = read(notFoundPath);
+if (!/noindex/i.test(metaValue(notFoundHtml, "name", "robots"))) fail("404.html must be noindex.");
+if (/<link\\s+[^>]*rel=["']canonical["']/i.test(notFoundHtml)) fail("404.html must not contain a canonical URL.");
 const sitemapPath = path.join(dist, "sitemap.xml");
 const robotsPath = path.join(dist, "robots.txt");
 
