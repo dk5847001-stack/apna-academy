@@ -141,9 +141,8 @@ export const saveReferralPayoutDestination = async ({ userId, ...input }) => {
 
   await audit({
     user: userId,
-    action: "admin_update",
+    action: "payout_destination_updated",
     metadata: {
-      type: "payout_destination_changed",
       method: destination.method,
       verificationStatus: record.verificationStatus,
     },
@@ -185,9 +184,8 @@ export const verifyMyReferralPayoutDestination = async (userId) => {
 
   await audit({
     user: userId,
-    action: "admin_update",
+    action: "payout_destination_verification_started",
     metadata: {
-      type: "payout_destination_verification_started",
       method: record.method,
       verificationStatus: record.verificationStatus,
     },
