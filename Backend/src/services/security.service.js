@@ -1,6 +1,7 @@
 import crypto from "crypto";
 
 import SecurityEvent from "../models/SecurityEvent.js";
+import Notification from "../models/Notification.js";
 
 const SECURITY_HASH_SALT =
   process.env.SECURITY_EVENT_HASH_SALT || process.env.JWT_SECRET || "";
@@ -48,5 +49,29 @@ export const recordConcurrentLoginEvent = async ({
      */
     if (error?.code === 11000) return null;
     throw error;
+  }
+};
+
+
+export const createConcurrentLoginNotification = async ({
+  userId,
+  detectionNumber,
+  detectionLimit = 5,
+}) => {
+  if (!userId || !detectionNumber) return null;
+
+  try {
+    return await Notification.create({
+      user: userId,
+      title: "Security alert: new login detected",
+      message:
+        `Your account was signed in while another session was already active. This session was securely replaced. Detection ${detectionNumber}/${detectionLimit}.`,
+      type: "system",
+      link: "/profile",
+      isRead: false,
+    });
+  } catch (error) {
+    console.error("Concurrent login security notification failed:", error);
+    return null;
   }
 };
