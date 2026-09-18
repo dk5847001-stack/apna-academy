@@ -61,11 +61,16 @@ export const createConcurrentLoginNotification = async ({
   if (!userId || !detectionNumber) return null;
 
   try {
+    const accountFrozen = detectionNumber >= detectionLimit;
+
     return await Notification.create({
       user: userId,
-      title: "Security alert: new login detected",
-      message:
-        `Your account was signed in while another session was already active. This session was securely replaced. Detection ${detectionNumber}/${detectionLimit}.`,
+      title: accountFrozen
+        ? "Account security freeze activated"
+        : "Security alert: new login detected",
+      message: accountFrozen
+        ? `Your account has been automatically frozen after reaching ${detectionLimit} concurrent login detections. Please contact support for account review.`
+        : `Your account was signed in while another session was already active. This session was securely replaced. Detection ${detectionNumber}/${detectionLimit}.`,
       type: "system",
       link: "/profile",
       isRead: false,
