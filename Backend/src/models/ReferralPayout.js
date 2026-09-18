@@ -137,7 +137,6 @@ const referralPayoutSchema = new mongoose.Schema(
       maxlength: 200,
       unique: true,
       sparse: true,
-      index: true,
     },
 
     adminActor: {
