@@ -40,11 +40,15 @@ const loadRazorpayScript = () =>
 
 export const createPaymentOrder = async (
   courseId,
-  purchaseType = "course"
+  purchaseType = "course",
+  promoCode = ""
 ) => {
   const response = await api.post("/payments/create-order", {
     courseId,
     purchaseType,
+    ...(String(promoCode || "").trim()
+      ? { promoCode: String(promoCode).trim().toUpperCase() }
+      : {}),
   });
 
   return response.data;
@@ -68,6 +72,7 @@ export const startCoursePayment = async ({
   courseId,
   courseTitle,
   purchaseType = "course",
+  promoCode = "",
   user,
   onSuccess,
   onFailure,
@@ -91,7 +96,8 @@ export const startCoursePayment = async ({
 
     const response = await createPaymentOrder(
       courseId,
-      purchaseType
+      purchaseType,
+      promoCode
     );
 
     if (!response?.success) {
