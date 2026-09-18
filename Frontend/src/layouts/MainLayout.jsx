@@ -572,6 +572,68 @@ export default function MainLayout() {
               <ListItemIcon><SupportAgent fontSize="small" /></ListItemIcon>
               <ListItemText primary="Support" />
             </ListItemButton>
+
+            <Divider sx={{ my: 1 }} />
+
+            {!isLoggedIn ? (
+              <>
+                <ListItemButton
+                  onClick={handleLogin}
+                  sx={{
+                    borderRadius: 2,
+                    mb: 0.75,
+                    color: "#334155",
+                    "&:hover": { backgroundColor: "#eff6ff", color: "#1d4ed8" },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
+                    <Login fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Login"
+                    primaryTypographyProps={{ fontWeight: 700 }}
+                  />
+                </ListItemButton>
+
+                <ListItemButton
+                  onClick={handleRegister}
+                  sx={{
+                    borderRadius: 2,
+                    backgroundColor: "#2563eb",
+                    color: "#ffffff",
+                    "&:hover": { backgroundColor: "#1d4ed8" },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
+                    <Person fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Sign Up"
+                    primaryTypographyProps={{ fontWeight: 800 }}
+                  />
+                </ListItemButton>
+              </>
+            ) : (
+              <ListItemButton
+                onClick={handleLogout}
+                sx={{
+                  borderRadius: 2,
+                  color: "#dc2626",
+                  "&:hover": {
+                    backgroundColor: "#fef2f2",
+                    color: "#b91c1c",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
+                  <Logout fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Logout"
+                  primaryTypographyProps={{ fontWeight: 800 }}
+                />
+              </ListItemButton>
+            )}
           </List>
         </Box>
       </Drawer>
