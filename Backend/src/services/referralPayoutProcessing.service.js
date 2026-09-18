@@ -860,6 +860,17 @@ export const reconcileReferralPayout = async ({ payoutId, adminId }) => {
   }
 
   if (!providerList.length) {
+    await ReferralPayout.updateOne(
+      { _id: payoutId },
+      {
+        $set: {
+          reconciliationStatus: "provider_missing",
+          reconciliationAlert: "RECONCILIATION_ALERT: provider payout not found.",
+          adminActor: adminId,
+          reconciledAt: new Date(),
+        },
+      }
+    );
     const error = fail(
       "RazorpayX has not returned a payout record yet. The payout remains recoverable.",
       409,
@@ -876,6 +887,17 @@ export const reconcileReferralPayout = async ({ payoutId, adminId }) => {
   );
 
   if (!provider) {
+    await ReferralPayout.updateOne(
+      { _id: payoutId },
+      {
+        $set: {
+          reconciliationStatus: "mismatch",
+          reconciliationAlert: "RECONCILIATION_ALERT: provider payout amount/currency mismatch.",
+          adminActor: adminId,
+          reconciledAt: new Date(),
+        },
+      }
+    );
     throw fail(
       "No matching RazorpayX payout was found for the locked amount.",
       409,
@@ -884,6 +906,16 @@ export const reconcileReferralPayout = async ({ payoutId, adminId }) => {
   }
 
   const result = await applyProviderStatus(payoutId, provider);
+
+  await ReferralPayout.updateOne(
+    { _id: payoutId },
+    {
+      $set: {
+        reconciliationStatus: "matched",
+        reconciliationAlert: null,
+      },
+    }
+  );
 
   await ReferralPayout.updateOne(
     { _id: payoutId },
