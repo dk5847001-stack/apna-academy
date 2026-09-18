@@ -142,12 +142,17 @@ export function AuthProvider({ children }) {
     const handleAuthChange = (event) => {
       const detail = event?.detail || {};
 
-      if (detail.code === "SESSION_REPLACED") {
+      if (detail.code === "SESSION_REPLACED" || detail.code === "ACCOUNT_SECURITY_FROZEN") {
         const notice = {
-          title: "Security alert: your session was ended",
+          title:
+            detail.code === "ACCOUNT_SECURITY_FROZEN"
+              ? "Account security freeze activated"
+              : "Security alert: your session was ended",
           message:
             detail.message ||
-            "This account was signed in from another session, so this session was securely signed out.",
+            (detail.code === "ACCOUNT_SECURITY_FROZEN"
+              ? "Your account was automatically frozen after reaching the concurrent login security limit."
+              : "This account was signed in from another session, so this session was securely signed out."),
           detectionCount: detail.security?.detectionCount || 0,
           detectionLimit: detail.security?.detectionLimit || 5,
           remainingDetections:
