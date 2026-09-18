@@ -32,6 +32,7 @@ export const getDsaProblem = (slug) => request(`/dsa/problems/${encodeURICompone
 export const getDsaProgress = () => request("/dsa/progress");
 export const getDsaTopics = () => request("/dsa/topics");
 export const getDsaCompanies = () => request("/dsa/companies");
+export const getDsaCompany = (slug) => request(`/dsa/companies/${encodeURIComponent(slug)}`);
 export const getDsaDailyChallenge = () => request("/dsa/daily-challenge");
 export const getDsaStudyPlans = () => request("/dsa/study-plans");
 export const getDsaStudyPlan = (slug) => request(`/dsa/study-plans/${encodeURIComponent(slug)}`);
