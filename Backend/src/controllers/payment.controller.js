@@ -2,6 +2,9 @@ import crypto from "crypto";
 
 import Course from "../models/Course.js";
 import Purchase from "../models/Purchase.js";
+import PromoCode from "../models/PromoCode.js";
+import PromoRedemption from "../models/PromoRedemption.js";
+import { validatePromoCode } from "../services/promoCode.service.js";
 
 import razorpay from "../config/razorpay.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -17,7 +20,7 @@ import { successResponse } from "../utils/apiResponse.js";
  * Frontend cannot decide the payment amount.
  */
 export const createPaymentOrder = asyncHandler(async (req, res) => {
-  const { courseId, purchaseType = "course" } = req.body;
+  const { courseId, purchaseType = "course", promoCode: promoCodeInput } = req.body;
 
   if (!courseId) {
     return res.status(400).json({ success: false, message: "Course ID is required." });
@@ -33,9 +36,10 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: "Course not found." });
   }
 
-  const amount = purchaseType === "all-access" ? course.allAccessPrice : course.price;
+  const baseAmount =
+    purchaseType === "all-access" ? course.allAccessPrice : course.price;
 
-  if (!Number.isFinite(amount) || amount <= 0) {
+  if (!Number.isFinite(baseAmount) || baseAmount <= 0) {
     return res.status(400).json({
       success: false,
       message:
@@ -44,6 +48,35 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
           : "Course price is not configured.",
     });
   }
+
+  let amount = Number(baseAmount);
+  let appliedPromo = null;
+
+  /*
+   * Promo codes are intentionally supported only for normal course purchases.
+   * The all-access ₹99 unlock remains a separate entitlement/payment flow.
+   */
+  if (purchaseType === "course" && String(promoCodeInput || "").trim()) {
+    const promoResult = await validatePromoCode({
+      userId: req.user.userId,
+      code: promoCodeInput,
+      courseId: course._id,
+      amount: baseAmount,
+    });
+
+    if (!promoResult.valid) {
+      return res.status(400).json({
+        success: false,
+        message: promoResult.message,
+        code: promoResult.code,
+      });
+    }
+
+    amount = Number(promoResult.pricing.finalAmount);
+    appliedPromo = promoResult;
+  }
+
+  const amountInPaise = Math.round(amount * 100);
 
   const existingPurchase = await Purchase.findOne({
     user: req.user.userId,
@@ -61,7 +94,6 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
     }
   }
 
-  const amountInPaise = Math.round(amount * 100);
   const receipt = `course_${course._id.toString().slice(-10)}_${Date.now()}`;
 
   const order = await razorpay.orders.create({
@@ -84,6 +116,16 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
     purchaseType,
     unlockMode: purchaseType === "all-access" ? "all_access" : "daily",
     paymentStatus: "pending",
+    ...(appliedPromo?.promo?.id
+      ? {
+          promoCode: appliedPromo.promo.id,
+          promoCodeSnapshot: appliedPromo.promo.code,
+          promoDiscountType: appliedPromo.promo.discountType,
+          promoDiscountValue: appliedPromo.promo.discountValue,
+          promoDiscountAmount: Number(appliedPromo.pricing.discountAmount),
+          originalAmount: Number(appliedPromo.pricing.originalAmount),
+        }
+      : {}),
   });
 
   return successResponse({
