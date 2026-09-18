@@ -207,10 +207,18 @@ export const requestReferralWithdrawal = async ({
   }
 
   const user = await User.findById(userId).select(
-    "_id name email phone status isEmailVerified"
+    "_id name email phone status isEmailVerified +securityFrozenAt +securityFreezeReason +concurrentLoginDetectionCount"
   );
 
   if (!user) throw fail("User not found.", 404, "USER_NOT_FOUND");
+
+  if (user.securityFrozenAt || user.status === "suspended") {
+    throw fail(
+      "Referral withdrawals are disabled while this account is under security freeze.",
+      403,
+      "ACCOUNT_SECURITY_FROZEN"
+    );
+  }
 
   const fingerprint = destinationFingerprint(destination);
 
