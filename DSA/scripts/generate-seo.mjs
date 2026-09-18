@@ -2,30 +2,101 @@ import fs from "node:fs";
 import path from "node:path";
 
 const siteUrl = (process.env.VITE_DSA_URL || "").replace(/\/$/, "");
+const apiBaseUrl = (process.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
 if (!siteUrl || !/^https?:\/\//i.test(siteUrl)) {
   throw new Error("VITE_DSA_URL must be set to an absolute production URL.");
+}
+if (!apiBaseUrl || !/^https?:\/\//i.test(apiBaseUrl)) {
+  throw new Error("VITE_API_BASE_URL must be set to an absolute API URL for dynamic DSA SEO generation.");
 }
 
 const publicDir = path.join(process.cwd(), "public");
 fs.mkdirSync(publicDir, { recursive: true });
 
-const robots = fs.readFileSync(path.join(publicDir, "robots.txt"), "utf8")
-  .replace(/Sitemap:\s*.*$/m, "Sitemap: " + siteUrl + "/sitemap.xml");
-fs.writeFileSync(path.join(publicDir, "robots.txt"), robots);
+const seoIndexUrl = apiBaseUrl + "/dsa/seo-index";
+const response = await fetch(seoIndexUrl, { headers: { Accept: "application/json" } });
+if (!response.ok) {
+  throw new Error(`Unable to fetch DSA SEO index (${response.status}) from ${seoIndexUrl}`);
+}
+const payload = await response.json();
+const index = payload?.data;
+if (!index || !Array.isArray(index.problems) || !Array.isArray(index.studyPlans)) {
+  throw new Error("DSA SEO index response is invalid.");
+}
 
-const staticRoutes = ["/", "/practice", "/topics", "/companies", "/daily-challenge", "/study-plans"];
+const clean = (value, fallback = "") =>
+  String(value ?? fallback).replace(/\s+/g, " ").trim();
+
+const escapeXml = (value) =>
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+
+const toDate = (value) => {
+  const date = value ? new Date(value) : null;
+  return date && !Number.isNaN(date.getTime()) ? date.toISOString() : null;
+};
+
+const urls = [
+  { path: "/", priority: "1.0" },
+  { path: "/practice", priority: "0.9" },
+  { path: "/topics", priority: "0.7" },
+  { path: "/companies", priority: "0.7" },
+  { path: "/daily-challenge", priority: "0.8" },
+  { path: "/study-plans", priority: "0.9" },
+  ...index.problems.map((item) => ({
+    path: "/practice/" + encodeURIComponent(clean(item.slug)),
+    priority: item.isPremium ? "0.6" : "0.8",
+    lastmod: toDate(item.updatedAt),
+  })),
+  ...index.studyPlans.map((item) => ({
+    path: "/study-plans/" + encodeURIComponent(clean(item.slug)),
+    priority: "0.8",
+    lastmod: toDate(item.updatedAt),
+  })),
+];
+
+const seen = new Set();
+const sitemapEntries = [];
+for (const item of urls) {
+  if (!item.path || seen.has(item.path)) continue;
+  seen.add(item.path);
+  const lastmod = item.lastmod ? `<lastmod>${item.lastmod}</lastmod>` : "";
+  sitemapEntries.push(
+    `  <url><loc>${escapeXml(siteUrl + item.path)}</loc>${lastmod}<changefreq>weekly</changefreq><priority>${item.priority}</priority></url>`,
+  );
+}
+
 const sitemap = [
   '<?xml version="1.0" encoding="UTF-8"?>',
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-  ...staticRoutes.map((route) => "  <url><loc>" + siteUrl + route + "</loc></url>"),
+  ...sitemapEntries,
   "</urlset>",
   "",
 ].join("\n");
+
 fs.writeFileSync(path.join(publicDir, "sitemap.xml"), sitemap);
 
-const indexPath = path.join(process.cwd(), "index.html");
-let html = fs.readFileSync(indexPath, "utf8");
-html = html.replace(/%VITE_DSA_URL%/g, siteUrl);
-fs.writeFileSync(indexPath, html);
+const robots = [
+  "# ApnaAcademy DSA crawler rules",
+  "User-agent: *",
+  "Allow: /",
+  "",
+  "Disallow: /progress",
+  "Disallow: /submissions",
+  "Disallow: /bookmarks",
+  "Disallow: /profile",
+  "Disallow: /settings",
+  "Disallow: /practice/code",
+  "Disallow: /unlock",
+  "",
+  `Sitemap: ${siteUrl}/sitemap.xml`,
+  "",
+].join("\n");
+fs.writeFileSync(path.join(publicDir, "robots.txt"), robots);
 
-console.log("Generated DSA robots.txt, sitemap.xml and production SEO URLs.");
+console.log(`Generated DSA SEO assets: ${seen.size} URLs (${index.problems.length} problems, ${index.studyPlans.length} study plans).`);
