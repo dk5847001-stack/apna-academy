@@ -110,7 +110,7 @@ export const unfreezeUserSecurity = async ({ userId, actorId }) => {
     throw error;
   }
 
-  const user = await User.findById(userId).select("+activeSessionId +concurrentLoginDetectionCount");
+  const user = await User.findById(userId).select("+activeSessionId +concurrentLoginDetectionCount +securityFrozenAt +securityFreezeReason");
   if (!user) {
     const error = new Error("User not found.");
     error.statusCode = 404;
