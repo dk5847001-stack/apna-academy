@@ -200,6 +200,16 @@ export const requestReferralWithdrawal = async ({
   const sameDestination =
     destinationRecord?.destinationFingerprint === fingerprint;
 
+  if (isRazorpayXEnabled) {
+    if (!sameDestination || destinationRecord?.verificationStatus !== "verified") {
+      throw fail(
+        "A verified payout destination is required before withdrawal.",
+        409,
+        "PAYOUT_DESTINATION_NOT_VERIFIED"
+      );
+    }
+  }
+
   const provider =
     sameDestination && destinationRecord?.providerFundAccountId
       ? {
