@@ -412,9 +412,8 @@ function App() {
 
         <main className="flex-1 min-w-0">
           <Container maxWidth="xl" className="py-6 sm:py-8">
-            {activeSection === "users" ? <Students /> : null}
-            {activeSection !== "users" && (
-            !selectedCourse ? (
+            {activeSection === "users" && <Students />}
+            {activeSection !== "users" && !selectedCourse && (
               <>
                 <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between mb-7">
                   <div>
@@ -444,7 +443,8 @@ function App() {
                   )}
                 </Paper>
               </>
-            ) : (
+            )}
+            {activeSection !== "users" && selectedCourse && (
               <>
                 <Button startIcon={<ArrowBack />} onClick={() => setSelectedCourse(null)} className="mb-4 normal-case text-slate-600">Back to courses</Button>
                 {courseLoading ? <Box className="py-20 grid place-items-center"><CircularProgress /></Box> : (
