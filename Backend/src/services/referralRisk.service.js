@@ -65,17 +65,40 @@ export const evaluateReferralWithdrawalRisk = async ({
 
   const method = String(destination?.method || "").toLowerCase();
   let destinationQuery = null;
+  const destinationSecret = String(
+    process.env.REFERRAL_PAYOUT_DESTINATION_HMAC_SECRET || process.env.JWT_SECRET || ""
+  ).trim();
 
-  if (method === "upi" && destination.upiId) {
-    destinationQuery = { "destinationSnapshot.method": "upi", "destinationSnapshot.upiId": destination.upiId };
+  if (destinationSecret && method === "upi" && destination.upiId) {
+    const fingerprint = crypto
+      .createHmac("sha256", destinationSecret)
+      .update(
+        "upi|" +
+          String(destination.accountHolderName || "").toLowerCase() +
+          "|" +
+          destination.upiId
+      )
+      .digest("hex");
+    destinationQuery = { "destinationSnapshot.destinationFingerprint": fingerprint };
   }
 
-  if (method === "bank" && destination.ifsc && destination.accountNumberLast4) {
-    destinationQuery = {
-      "destinationSnapshot.method": "bank",
-      "destinationSnapshot.ifsc": destination.ifsc,
-      "destinationSnapshot.accountNumberLast4": destination.accountNumberLast4,
-    };
+  if (method === "bank" && destination.ifsc && destination.accountNumberLast4 && destination.accountNumber) {
+    const fingerprint = destinationSecret
+      ? crypto
+          .createHmac("sha256", destinationSecret)
+          .update(
+            "bank|" +
+              String(destination.accountHolderName || "").toLowerCase() +
+              "|" +
+              destination.accountNumber +
+              "|" +
+              destination.ifsc
+          )
+          .digest("hex")
+      : null;
+    if (fingerprint) {
+      destinationQuery = { "destinationSnapshot.destinationFingerprint": fingerprint };
+    }
   }
 
   if (destinationQuery) {
