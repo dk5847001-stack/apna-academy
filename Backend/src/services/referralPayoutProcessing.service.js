@@ -93,7 +93,7 @@ export const approveReferralPayout = async ({ payoutId, adminId }) => {
     await recordReferralRiskEvent({
       userId: candidate.user,
       payoutId: candidate._id,
-      type: "payout_rejected",
+      type: "manual_review",
       riskScore: risk.riskScore,
       signals: risk.signals,
       correlationId: risk.correlationId,
