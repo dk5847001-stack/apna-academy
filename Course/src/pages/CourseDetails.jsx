@@ -326,12 +326,13 @@ export default function CourseDetails() {
           sx={{
             maxWidth: 1440,
             mx: "auto",
-            px: { xs: 2, md: 5 },
-            minHeight: 72,
+            px: { xs: 1.5, sm: 2.5, md: 5 },
+            minHeight: { xs: 64, md: 72 },
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 2,
+            gap: { xs: 1, sm: 2 },
+            minWidth: 0,
           }}
         >
           <Box
@@ -359,10 +360,10 @@ export default function CourseDetails() {
               <School />
             </Box>
             <Box>
-              <Typography fontWeight={900} lineHeight={1}>
+              <Typography fontWeight={900} lineHeight={1} sx={{ fontSize: { xs: "0.92rem", sm: "1rem" } }}>
                 ApnaAcademy
               </Typography>
-              <Typography variant="caption" sx={{ color: "#94a3b8" }}>
+              <Typography variant="caption" sx={{ color: "#94a3b8", display: { xs: "none", sm: "block" } }}>
                 Learn. Build. Grow.
               </Typography>
             </Box>
@@ -379,6 +380,8 @@ export default function CourseDetails() {
               borderRadius: 2.5,
               textTransform: "none",
               fontWeight: 800,
+              minWidth: { xs: "auto", sm: 96 },
+              px: { xs: 1.25, sm: 2 },
             }}
           >
             Courses
@@ -566,7 +569,7 @@ export default function CourseDetails() {
             </Stack>
 
             <Box component="article" sx={{ mt: { xs: 4, md: 5 } }}>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ minWidth: 0 }}>
                 <Chip
                   label={course.category || "Development"}
                   sx={{ bgcolor: "#0875ff", color: "#fff", fontWeight: 800 }}
@@ -589,7 +592,7 @@ export default function CourseDetails() {
                 component="h1"
                 sx={{
                   mt: 2.5,
-                  fontSize: { xs: "2.2rem", sm: "3rem", md: "4rem" },
+                  fontSize: { xs: "1.85rem", sm: "3rem", md: "4rem" },
                   lineHeight: 1.05,
                   fontWeight: 950,
                   letterSpacing: "-.045em",
@@ -723,10 +726,10 @@ export default function CourseDetails() {
             </Box>
 
             <Box component="section" aria-labelledby="course-curriculum-heading" sx={{ mt: 5 }}>
-              <Typography id="course-curriculum-heading" component="h2" variant="h5" fontWeight={900}>
+              <Typography id="course-curriculum-heading" component="h2" variant="h5" fontWeight={900} sx={{ fontSize: { xs: "1.35rem", sm: "1.5rem" } }}>
                 Course Curriculum
               </Typography>
-              <Typography component="p" sx={{ mt: 0.8, color: "#8ea5c0" }}>
+              <Typography component="p" sx={{ mt: 0.8, color: "#8ea5c0", fontSize: { xs: "0.9rem", sm: "1rem" } }}>
                 Explore the modules and preview lessons before enrolling.
               </Typography>
 
@@ -759,6 +762,13 @@ export default function CourseDetails() {
                     >
                       <AccordionSummary
                         expandIcon={<ExpandMore sx={{ color: "#93c5fd" }} />}
+                        sx={{
+                          px: { xs: 1.5, sm: 2 },
+                          "& .MuiAccordionSummary-content": {
+                            minWidth: 0,
+                            my: { xs: 1.25, sm: 2 },
+                          },
+                        }}
                         aria-controls={`${moduleId}-content`}
                         id={moduleHeadingId}
                       >
@@ -772,7 +782,10 @@ export default function CourseDetails() {
                         </Box>
                       </AccordionSummary>
 
-                      <AccordionDetails id={`${moduleId}-content`}>
+                      <AccordionDetails
+                        id={`${moduleId}-content`}
+                        sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1.5, sm: 2 } }}
+                      >
                         <Stack spacing={0.8}>
                           {videos.map((video, videoIndex) => {
                             const isPreview =
@@ -807,7 +820,16 @@ export default function CourseDetails() {
                                   ) : (
                                     <Lock sx={{ color: "#64748b" }} aria-hidden="true" />
                                   )}
-                                  <Typography component="p" noWrap fontWeight={700}>
+                                  <Typography
+                                    component="p"
+                                    fontWeight={700}
+                                    sx={{
+                                      minWidth: 0,
+                                      overflowWrap: "anywhere",
+                                      wordBreak: "break-word",
+                                      whiteSpace: { xs: "normal", sm: "nowrap" },
+                                    }}
+                                  >
                                     {video.title || `Lesson ${videoIndex + 1}`}
                                   </Typography>
                                 </Stack>
