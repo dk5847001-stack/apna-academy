@@ -19,13 +19,11 @@ const purchaseSchema = new mongoose.Schema(
     razorpayOrderId: {
       type: String,
       default: "",
-      index: true,
     },
 
     razorpayPaymentId: {
       type: String,
       default: "",
-      index: true,
     },
 
     amount: {
