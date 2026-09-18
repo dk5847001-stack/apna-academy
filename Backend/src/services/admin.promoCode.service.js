@@ -109,13 +109,14 @@ export const toggleAdminPromoCode = async ({ promoId, actorId, isActive }) => {
   return sanitize(promo.toObject());
 };
 
-export const deleteAdminPromoCode = async ({ promoId }) => {
+export const deleteAdminPromoCode = async ({ promoId, actorId }) => {
   assertObjectId(promoId);
+  assertObjectId(actorId, "Invalid administrator id.");
   const promo = await PromoCode.findById(promoId);
   if (!promo) { const e = new Error("Promo code not found."); e.statusCode = 404; throw e; }
   if (promo.usedCount > 0 || promo.reservedCount > 0) { const e = new Error("Used or reserved promo codes cannot be deleted. Deactivate them instead."); e.statusCode = 409; throw e; }
   await PromoCode.deleteOne({ _id: promoId });
-  await audit({ promoCode: null, actor: null, action: "deleted", codeSnapshot: promo.code, changes: { deletedPromoId: promoId } });
+  await audit({ promoCode: null, actor: actorId, action: "deleted", codeSnapshot: promo.code, changes: { deletedPromoId: promoId } });
   return { id: promoId, deleted: true };
 };
 
