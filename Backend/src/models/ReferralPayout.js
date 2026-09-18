@@ -216,7 +216,7 @@ referralPayoutSchema.index(
   {
     unique: true,
     partialFilterExpression: {
-      providerPayoutId: { $type: "string", $ne: "" },
+      providerPayoutId: { $type: "string" },
     },
   }
 );
@@ -225,7 +225,7 @@ referralPayoutSchema.index(
   {
     unique: true,
     partialFilterExpression: {
-      providerReferenceId: { $type: "string", $ne: "" },
+      providerReferenceId: { $type: "string" },
     },
   }
 );
