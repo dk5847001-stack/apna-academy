@@ -26,10 +26,7 @@ import {
   CardContent,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogContent,
   Divider,
-  IconButton,
   Paper,
   Stack,
   Typography,
@@ -128,8 +125,6 @@ export default function CourseDetails() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentError, setPaymentError] = useState("");
-  const [demoOpen, setDemoOpen] = useState(false);
-  const [demoAutoShown, setDemoAutoShown] = useState(false);
   const [expandedModule, setExpandedModule] = useState(null);
 
   useEffect(() => {
@@ -171,20 +166,6 @@ export default function CourseDetails() {
     () => resolvePreviewUrl(previewVideo, false),
     [previewVideo]
   );
-  const demoPreviewUrl = useMemo(
-    () => resolvePreviewUrl(previewVideo, true),
-    [previewVideo]
-  );
-
-  useEffect(() => {
-    if (!previewVideo || demoAutoShown) return undefined;
-    const timer = window.setTimeout(() => {
-      setDemoOpen(true);
-      setDemoAutoShown(true);
-    }, 10000);
-    return () => window.clearTimeout(timer);
-  }, [previewVideo, demoAutoShown]);
-
   const getAuthenticatedUser = async () => {
     const response = await api.get("/auth/me");
     if (!response?.data?.success) {
@@ -314,7 +295,7 @@ export default function CourseDetails() {
   );
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#061a35", color: "#fff" }}>
+    <Box sx={{ minHeight: "100vh", width: "100%", maxWidth: "100%", overflowX: "hidden", bgcolor: "#061a35", color: "#fff" }}>
       <Box
         component="header"
         sx={{
@@ -396,9 +377,10 @@ export default function CourseDetails() {
       <Box
         component="main"
         sx={{
+          width: "100%",
           maxWidth: 1440,
           mx: "auto",
-          px: { xs: 2, md: 5 },
+          px: { xs: 1.5, sm: 2.5, md: 5 },
           py: { xs: 3, md: 5 },
         }}
       >
@@ -409,11 +391,13 @@ export default function CourseDetails() {
               xs: "1fr",
               lg: "minmax(0,1.62fr) minmax(350px,.72fr)",
             },
-            gap: { xs: 4, lg: 5 },
+            gap: { xs: 2.5, sm: 3, lg: 5 },
             alignItems: "start",
+            minWidth: 0,
+            width: "100%",
           }}
         >
-          <Box>
+          <Box sx={{ minWidth: 0, width: "100%" }}>
             <Box
               sx={{
                 borderRadius: { xs: 3, md: 4 },
@@ -505,7 +489,7 @@ export default function CourseDetails() {
               variant="contained"
               size="large"
               startIcon={<PlayCircle />}
-              onClick={() => setDemoOpen(true)}
+              onClick={() => navigate(`/courses/${encodeURIComponent(slug)}/demo`)}
               disabled={!previewVideo}
               sx={{
                 mt: 2,
@@ -883,6 +867,8 @@ export default function CourseDetails() {
               bgcolor: "#0a2342",
               border: "1px solid rgba(96,165,250,.28)",
               boxShadow: "0 28px 70px rgba(0,0,0,.32)",
+              minWidth: 0,
+              width: "100%",
             }}
           >
             <Box
@@ -1101,94 +1087,6 @@ export default function CourseDetails() {
         </Box>
       </Box>
 
-      <Dialog
-        open={demoOpen}
-        onClose={() => setDemoOpen(false)}
-        disableScrollLock
-        fullWidth
-        maxWidth="lg"
-        PaperProps={{
-          sx: {
-            bgcolor: "#061a35",
-            color: "#fff",
-            borderRadius: 4,
-            overflow: "hidden",
-            border: "1px solid rgba(96,165,250,.35)",
-          },
-        }}
-      >
-        <DialogContent sx={{ p: { xs: 1.5, md: 2.5 } }}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{ mb: 1.5, px: 0.5 }}
-          >
-            <Box>
-              <Typography component="h2" variant="h6" fontWeight={950}>
-                Demo Class
-              </Typography>
-              <Typography component="p" variant="body2" sx={{ color: "#7891ad" }}>
-                {previewVideo?.title || course.title}
-              </Typography>
-            </Box>
-            <IconButton
-              onClick={() => setDemoOpen(false)}
-              sx={{ color: "#fff" }}
-              aria-label="Close demo"
-            >
-              <Box component="span" sx={{ fontSize: 28, lineHeight: 1 }}>
-                ×
-              </Box>
-            </IconButton>
-          </Stack>
-
-          <Box
-            sx={{
-              aspectRatio: "16 / 9",
-              bgcolor: "#000",
-              borderRadius: 3,
-              overflow: "hidden",
-            }}
-          >
-            {previewUrl ? (
-              isDirectMedia(previewUrl) ? (
-                <Box
-                  component="video"
-                  src={demoPreviewUrl}
-                  autoPlay
-                  muted
-                  controls
-                  playsInline
-                  preload="auto"
-                  aria-label={`${course.title} demo class video`}
-                  sx={{ width: "100%", height: "100%", display: "block" }}
-                />
-              ) : (
-                <Box
-                  component="iframe"
-                  src={demoPreviewUrl}
-                  title="Demo Class"
-                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                  allowFullScreen
-                  sx={{ width: "100%", height: "100%", border: 0 }}
-                />
-              )
-            ) : (
-              <Box
-                sx={{
-                  height: "100%",
-                  display: "grid",
-                  placeItems: "center",
-                  color: "#94a3b8",
-                }}
-              >
-                Preview video is unavailable.
-              </Box>
-            )}
-          </Box>
-        </DialogContent>
-      </Dialog>
     </Box>
   );
 }
