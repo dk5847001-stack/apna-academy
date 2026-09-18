@@ -307,6 +307,10 @@ export default function CourseDetails() {
         courseId,
         courseTitle: course.title,
         purchaseType,
+        promoCode:
+          purchaseType === "course"
+            ? appliedPromo?.promo?.code || ""
+            : "",
         user,
         onSuccess: () => {
           setPaymentLoading(false);
