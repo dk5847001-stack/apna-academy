@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import {
   Alert,
@@ -91,6 +91,7 @@ const validateRegistration = (formData) => {
 };
 
 export default function Register() {
+  const location = useLocation();
   const authCheckStarted = useRef(false);
   const [step, setStep] = useState("details");
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -101,6 +102,15 @@ export default function Register() {
   const [resendCountdown, setResendCountdown] = useState(0);
   const [otp, setOtp] = useState("");
 
+  const getReferralCode = () => {
+    try {
+      const value = new URLSearchParams(location.search).get("ref");
+      return String(value || "").trim().toUpperCase().slice(0, 32);
+    } catch {
+      return "";
+    }
+  };
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -110,6 +120,19 @@ export default function Register() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+
+  useEffect(() => {
+    const fromUrl = getReferralCode();
+    if (fromUrl) {
+      sessionStorage.setItem("apnaacademy_referral_code", fromUrl);
+      setReferralCode(fromUrl);
+      return;
+    }
+
+    const stored = sessionStorage.getItem("apnaacademy_referral_code");
+    if (stored) setReferralCode(stored);
+  }, [location.search]);
 
   useEffect(() => {
     if (authCheckStarted.current) return;
@@ -178,6 +201,7 @@ export default function Register() {
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
+        ...(referralCode ? { referralCode } : {}),
       });
 
       const result = response?.data?.data;
