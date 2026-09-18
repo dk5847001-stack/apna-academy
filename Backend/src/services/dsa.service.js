@@ -178,3 +178,40 @@ export const getProgress = async (userId) => {
   const progress = await DsaProgress.findOne({ userId }).lean();
   return progress || { userId, solvedProblemIds: [], attemptedProblemIds: [], totalSolved: 0, totalAttempted: 0, currentStreak: 0, longestStreak: 0, xp: 0 };
 };
+
+export const getCompanyBySlug = async (userId, slug) => {
+  const name = String(slug || "").trim().replace(/-/g, " ");
+  const companies = await listCompanies();
+  const company = companies.find((item) => item.name.toLowerCase() === name.toLowerCase());
+  if (!company) return null;
+
+  const premium = await hasPremiumAccess(userId);
+  const items = await DsaProblem.find({
+    status: "PUBLISHED",
+    companies: company.name,
+  })
+    .select(publicProjection)
+    .sort({ order: 1, createdAt: 1 })
+    .lean();
+
+  return {
+    company,
+    items: items.map((item) => {
+      if (!item.isPremium || premium) return { ...item, locked: false };
+      return {
+        slug: item.slug,
+        title: item.title,
+        description: item.description,
+        difficulty: item.difficulty,
+        topics: item.topics,
+        companies: item.companies,
+        patterns: item.patterns,
+        supportedLanguages: item.supportedLanguages,
+        isPremium: true,
+        order: item.order,
+        locked: true,
+      };
+    }),
+    access: { premium, freePercent: FREE_PERCENT, lockedPercent: 100 - FREE_PERCENT },
+  };
+};
