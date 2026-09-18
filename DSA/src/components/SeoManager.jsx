@@ -88,7 +88,7 @@ function isPrivatePath(pathname) {
 }
 
 function clampText(value, maxLength) {
-  const text = String(value || "").replace(/\\s+/g, " ").trim();
+  const text = String(value || "").replace(/\s+/g, " ").trim();
   return text.length > maxLength ? `${text.slice(0, maxLength - 1).trim()}…` : text;
 }
 
@@ -141,7 +141,7 @@ function breadcrumbGraph(origin, pathname, title) {
     items.push({
       name: part
         .replace(/-/g, " ")
-        .replace(/\\b\\w/g, (letter) => letter.toUpperCase()),
+        .replace(/\b\w/g, (letter) => letter.toUpperCase()),
       url: `${origin}${path}`,
     });
   });
@@ -322,7 +322,8 @@ export default function SeoManager() {
         document.title = "Page Not Found | ApnaAcademy DSA";
         setRobots("noindex, nofollow, noarchive, nosnippet, noimageindex");
         removeCanonical();
-        setSocial({ title: "", description: "", url: "", indexable: false });\n        removeJsonLd();
+        setSocial({ title: "", description: "", url: "", indexable: false });
+        removeJsonLd();
         return;
       }
 
