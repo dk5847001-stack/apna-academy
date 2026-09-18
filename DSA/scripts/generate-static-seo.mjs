@@ -52,14 +52,14 @@ const slugRoute = (base, slug) => base + encodeURIComponent(clean(slug));
 const replaceOrAdd = (html, regex, tag) => regex.test(html) ? html.replace(regex, tag) : html.replace("</head>", tag + "\n</head>");
 const setMeta = (html, attr, key, content) => {
   const safe = escapeHtml(content);
-  const regex = new RegExp(`<meta\\s+[^>]*${attr}=["']${key.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")}["'][^>]*>`, "i");
+  const regex = new RegExp(`<meta\\s+[^>]*${attr}=["']${key.replace(/[.*+?^\${}()|[\\]\\]/g, "\\\\$&")}["'][^>]*>`, "i");
   const tag = `<meta ${attr}="${key}" content="${safe}">`;
   return replaceOrAdd(html, regex, tag);
 };
 const setCanonical = (html, url) => replaceOrAdd(html, /<link\s+[^>]*rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${escapeHtml(url)}">`);
 const setJsonLd = (html, graph) => replaceOrAdd(
   html,
-  /<script\s+type=["']application\\/ld\\+json["'][^>]*>[\s\S]*?<\/script>/i,
+  /<script\s+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/i,
   `<script type="application/ld+json">${escapeJson({ "@context": "https://schema.org", "@graph": graph })}</script>`,
 );
 
