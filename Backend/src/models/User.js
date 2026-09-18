@@ -98,6 +98,25 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    /*
+     * Single active-session control.
+     *
+     * Only the session represented by activeSessionId is allowed
+     * to use authenticated API endpoints.
+     */
+    activeSessionId: {
+      type: String,
+      default: null,
+      select: false,
+      index: true,
+    },
+
+    activeSessionIssuedAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
     passwordResetToken: {
       type: String,
       default: null,
