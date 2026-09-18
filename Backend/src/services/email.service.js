@@ -5,7 +5,7 @@ const getEmailConfig = () => {
 
   if (!apiKey || !senderEmail) {
     const error = new Error(
-      "Email service is not configured. Set BREVO_API_KEY and BREVO_SENDER_EMAIL in the backend environment."
+      "Email service is not configured. Set BREVO_API_KEY and either BREVO_SENDER_EMAIL or APP_EMAIL in the backend environment."
     );
     error.statusCode = 503;
     throw error;
@@ -94,7 +94,6 @@ export const sendEmailVerificationOtp = async ({
   otp,
   expiresInMinutes = 10,
 }) => {
-  const { senderEmail } = getEmailConfig();
   const safeName = escapeHtml(String(name || "Student").trim() || "Student");
 
   await sendTransactionalEmail({
@@ -131,7 +130,6 @@ export const sendPasswordResetEmail = async ({
   token,
   expiresInMinutes = 15,
 }) => {
-  const { senderEmail } = getEmailConfig();
   const safeName = escapeHtml(String(name || "Student").trim() || "Student");
   const frontendUrl = getFrontendPublicUrl();
   const resetUrl = new URL("/reset-password", `${frontendUrl}/`);
