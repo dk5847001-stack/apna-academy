@@ -1,9 +1,12 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.middleware.js";
-import { getDsaCompanies, getDsaProblem, getDsaProgress, getDsaTopics, listDsaProblems } from "../controllers/dsa.controller.js";
+import { getDsaCompanies, getDsaProblem, getDsaProgress, getDsaSeoIndexController, getDsaTopics, listDsaProblems } from "../controllers/dsa.controller.js";
 import { getDsaDailyChallenge, getDsaStudyPlan, getDsaStudyPlans } from "../controllers/dsa.challenge.controller.js";
 
 const router = Router();
+
+// Public, metadata-only endpoint used by the DSA sitemap/static SEO build.
+router.get("/seo-index", getDsaSeoIndexController);
 
 router.use(authenticate);
 router.get("/problems", listDsaProblems);
