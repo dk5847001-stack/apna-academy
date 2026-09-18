@@ -38,6 +38,14 @@ const loadRazorpayScript = () =>
     document.body.appendChild(script);
   });
 
+export const releasePromoReservation = async (razorpayOrderId) => {
+  const response = await api.post("/promocodes/release-reservation", {
+    razorpayOrderId,
+  });
+
+  return response.data;
+};
+
 export const createPaymentOrder = async (
   courseId,
   purchaseType = "course",
@@ -141,6 +149,9 @@ export const startCoursePayment = async ({
       },
       modal: {
         ondismiss: () => {
+          if (purchaseType === "course" && promoCode) {
+            releasePromoReservation(orderData.orderId).catch(() => {});
+          }
           fail({
             type: "dismissed",
             message: "Payment window was closed.",
@@ -184,6 +195,9 @@ export const startCoursePayment = async ({
     });
 
     razorpay.on("payment.failed", (responseData) => {
+      if (purchaseType === "course" && promoCode) {
+        releasePromoReservation(orderData.orderId).catch(() => {});
+      }
       fail({
         type: "payment",
         message:
