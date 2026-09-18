@@ -12,6 +12,7 @@ const providerError = ({ status, code, reason, description, source = "provider",
   error.providerDescription = description || null;
   error.providerSource = source;
   error.retryable = retryable;
+  error.isRazorpayXError = true;
   return error;
 };
 
@@ -37,7 +38,7 @@ const requestJson = async (path, { method = "GET", body, headers = {}, timeoutMs
     return data || {};
   } catch (error) {
     if (error?.name === "AbortError") throw providerError({ status: 504, code: "RAZORPAYX_TIMEOUT", retryable: true });
-    if (error?.code?.startsWith?.("RAZORPAYX_")) throw error;
+    if (error?.isRazorpayXError || error?.code?.startsWith?.("RAZORPAYX_")) throw error;
     throw providerError({ status: 503, code: "RAZORPAYX_NETWORK_ERROR", retryable: true });
   } finally { clearTimeout(timeout); }
 };
@@ -59,7 +60,10 @@ const normalizeProviderPayout = (data = {}) => {
 };
 
 export const createContact = async ({ name, email, phone, referenceId }) => {
-  const data = await requestJson("/contacts", { method: "POST", body: { name, email, contact: phone, type: "customer", reference_id: referenceId } });
+  const body = { name, type: "customer", reference_id: referenceId };
+  if (email) body.email = email;
+  if (phone) body.contact = phone;
+  const data = await requestJson("/contacts", { method: "POST", body });
   return { providerContactId: data.id || null, active: data.active !== false };
 };
 
