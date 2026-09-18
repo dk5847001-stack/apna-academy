@@ -1,0 +1,13 @@
+import { Router } from "express";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { requireAdmin } from "../middleware/admin.middleware.js";
+import { listPromos, getPromo, createPromo, updatePromo, togglePromo, deletePromo } from "../controllers/admin.promoCode.controller.js";
+const router = Router();
+router.use(authenticate, requireAdmin);
+router.get("/", listPromos);
+router.get("/:promoId", getPromo);
+router.post("/", createPromo);
+router.patch("/:promoId", updatePromo);
+router.post("/:promoId/toggle", togglePromo);
+router.delete("/:promoId", deletePromo);
+export default router;
