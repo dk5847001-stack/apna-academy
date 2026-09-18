@@ -16,7 +16,6 @@ const referralRewardSchema = new mongoose.Schema(
       ref: "Referral",
       required: true,
       unique: true,
-      index: true,
     },
 
     referrer: {
@@ -119,10 +118,6 @@ referralRewardSchema.index({ referrer: 1, status: 1, createdAt: -1 });
  * A qualifying purchase can produce at most one referral reward.
  * This remains true even if payment webhooks/verification are retried.
  */
-referralRewardSchema.index(
-  { qualificationPurchase: 1 },
-  { unique: true }
-);
 
 const ReferralReward = mongoose.model(
   "ReferralReward",
