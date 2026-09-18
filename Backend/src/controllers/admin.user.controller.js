@@ -1,6 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { successResponse } from "../utils/apiResponse.js";
-import { getAdminUser, getAdminUserDetails, listAdminUsers, updateAdminUser, getAdminSecurityDetails, unfreezeUserSecurity, blockAdminUser, unblockAdminUser, activateAdminUser } from "../services/admin.user.service.js";
+import { getAdminUser, getAdminUserDetails, listAdminUsers, updateAdminUser, getAdminSecurityDetails, unfreezeUserSecurity, blockAdminUser, unblockAdminUser, activateAdminUser, suspendAdminUser } from "../services/admin.user.service.js";
 
 export const listUsers = asyncHandler(async (req, res) => {
   const data = await listAdminUsers({ page: req.query?.page, limit: req.query?.limit, search: req.query?.search, role: req.query?.role, status: req.query?.status });
@@ -69,4 +69,14 @@ export const activateUser = asyncHandler(async (req, res) => {
     actorId: req.user.userId,
   });
   return successResponse({ res, message: "Suspended user activated successfully.", data: user });
+});
+
+
+export const suspendUser = asyncHandler(async (req, res) => {
+  const user = await suspendAdminUser({
+    userId: req.params.userId,
+    actorId: req.user.userId,
+    reason: req.body?.reason,
+  });
+  return successResponse({ res, message: "User suspended successfully.", data: user });
 });
