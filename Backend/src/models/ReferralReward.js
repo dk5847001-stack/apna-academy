@@ -32,10 +32,6 @@ const referralRewardSchema = new mongoose.Schema(
       index: true,
     },
 
-    /*
-     * All financial amounts are stored as integer paise.
-     * ₹199 = 19900 paise.
-     */
     amountPaise: {
       type: Number,
       required: true,
@@ -66,9 +62,6 @@ const referralRewardSchema = new mongoose.Schema(
       index: true,
     },
 
-    /*
-     * Immutable snapshot of the qualifying transaction amount.
-     */
     qualifyingPurchaseAmountPaise: {
       type: Number,
       required: true,
@@ -107,17 +100,16 @@ const referralRewardSchema = new mongoose.Schema(
       maxlength: 500,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 referralRewardSchema.index({ referrer: 1, status: 1, createdAt: -1 });
 
-/*
- * A qualifying purchase can produce at most one referral reward.
- * This remains true even if payment webhooks/verification are retried.
- */
+// A successful qualifying purchase can back at most one referral reward.
+referralRewardSchema.index(
+  { qualificationPurchase: 1 },
+  { unique: true }
+);
 
 const ReferralReward = mongoose.model(
   "ReferralReward",
