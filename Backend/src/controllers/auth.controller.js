@@ -117,11 +117,12 @@ export const login = asyncHandler(async (req, res) => {
     userAgent: req.get("user-agent") || null,
   });
   setAuthenticationCookie(res, result.token);
+  const { token: _loginToken, ...loginData } = result;
 
   return successResponse({
     res,
     message: "Login successful.",
-    data: { ...result, token: undefined },
+    data: loginData,
   });
 });
 
