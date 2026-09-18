@@ -188,13 +188,19 @@ export const getCompanyBySlug = async (userId, slug) => {
   if (!company) return null;
 
   const premium = await hasPremiumAccess(userId);
-  const items = await DsaProblem.find({
-    status: "PUBLISHED",
-    companies: company.name,
-  })
+  const [items, progress] = await Promise.all([
+    DsaProblem.find({
+      status: "PUBLISHED",
+      companies: company.name,
+    })
     .select(publicProjection)
     .sort({ order: 1, createdAt: 1 })
-    .lean();
+      .lean(),
+    userId ? DsaProgress.findOne({ userId }).select("solvedProblemIds attemptedProblemIds").lean() : null,
+  ]);
+
+  const solvedIds = new Set((progress?.solvedProblemIds || []).map((id) => String(id)));
+  const attemptedIds = new Set((progress?.attemptedProblemIds || []).map((id) => String(id)));
 
   return {
     company,
@@ -215,5 +221,9 @@ export const getCompanyBySlug = async (userId, slug) => {
       };
     }),
     access: { premium, freePercent: FREE_PERCENT, lockedPercent: 100 - FREE_PERCENT },
+    progress: {
+      solved: items.filter((item) => solvedIds.has(String(item._id))).length,
+      attempted: items.filter((item) => attemptedIds.has(String(item._id))).length,
+    },
   };
 };
