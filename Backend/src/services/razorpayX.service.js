@@ -83,6 +83,69 @@ export const ensureFundAccount = async ({ user, destination, providerContactId =
   return { providerContactId: contact.providerContactId, providerFundAccountId: fundAccount.providerFundAccountId, active: fundAccount.active };
 };
 
+export const validateFundAccount = async ({
+  providerFundAccountId,
+  referenceId,
+  validationType = "pennydrop",
+}) => {
+  if (!providerFundAccountId) {
+    const error = new Error("Provider fund account is required for verification.");
+    error.statusCode = 400;
+    error.code = "RAZORPAYX_FUND_ACCOUNT_REQUIRED";
+    throw error;
+  }
+
+  const data = await requestJson("/fund_accounts/validations", {
+    method: "POST",
+    body: {
+      source_account_number: getRazorpayXConfig().accountNumber,
+      validation_type: validationType,
+      reference_id: String(referenceId).slice(0, 40),
+      fund_account: { id: providerFundAccountId },
+    },
+  });
+
+  return normalizeProviderValidation(data);
+};
+
+const normalizeProviderValidation = (data = {}) => {
+  const results = data.validation_results || data.results || {};
+  const statusDetails = data.status_details || {};
+  return {
+    verificationId: data.id || null,
+    verificationStatus: data.status || null,
+    verificationReferenceId: data.reference_id || null,
+    registeredName: results.registered_name || null,
+    accountStatus: results.account_status || null,
+    nameMatchScore:
+      Number.isFinite(Number(results.name_match_score))
+        ? Number(results.name_match_score)
+        : null,
+    failureReason:
+      statusDetails.description ||
+      results.details ||
+      data.error?.description ||
+      null,
+    providerFundAccountId: data.fund_account?.id || null,
+    utr: data.utr || null,
+  };
+};
+
+export const fetchFundAccountValidation = async (verificationId) => {
+  if (!verificationId) {
+    const error = new Error("Verification id is required.");
+    error.statusCode = 400;
+    error.code = "RAZORPAYX_VERIFICATION_ID_REQUIRED";
+    throw error;
+  }
+
+  return normalizeProviderValidation(
+    await requestJson(
+      "/fund_accounts/validations/" + encodeURIComponent(verificationId)
+    )
+  );
+};
+
 export const createPayout = async ({ amountPaise, currency, providerFundAccountId, payoutMethod, referenceId, idempotencyKey }) => {
   if (!Number.isSafeInteger(amountPaise) || amountPaise < 100) { const error = new Error("Invalid RazorpayX payout amount."); error.statusCode = 400; error.code = "RAZORPAYX_INVALID_AMOUNT"; throw error; }
   if (currency !== "INR") { const error = new Error("Only INR payouts are supported."); error.statusCode = 400; error.code = "RAZORPAYX_INVALID_CURRENCY"; throw error; }
