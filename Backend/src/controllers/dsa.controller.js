@@ -1,4 +1,4 @@
-import { getProblemBySlug, getProgress, listCompanies, listProblems, listTopics } from "../services/dsa.service.js";
+import { getDsaSeoIndex, getProblemBySlug, getProgress, listCompanies, listProblems, listTopics } from "../services/dsa.service.js";
 
 const asyncHandler = (handler) => (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 
@@ -7,6 +7,11 @@ const positiveInt = (value, fallback, max) => {
   if (!Number.isFinite(parsed) || parsed < 1) return fallback;
   return Math.min(parsed, max);
 };
+
+export const getDsaSeoIndexController = asyncHandler(async (req, res) => {
+  const index = await getDsaSeoIndex();
+  return res.status(200).json({ success: true, data: index });
+});
 
 export const listDsaProblems = async (req, res, next) => {
   try {
