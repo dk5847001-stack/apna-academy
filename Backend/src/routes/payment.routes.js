@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   createPaymentOrder,
   verifyPayment,
+  getCoursePurchaseStatus,
 } from "../controllers/payment.controller.js";
 
 import { authenticate } from "../middleware/auth.middleware.js";
@@ -16,6 +17,12 @@ const router = Router();
  *
  * Authentication required.
  */
+router.get(
+  "/course-purchase-status/:courseId",
+  authenticate,
+  getCoursePurchaseStatus
+);
+
 router.post(
   "/create-order",
   authenticate,
