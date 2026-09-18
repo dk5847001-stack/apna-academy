@@ -5,7 +5,7 @@ import { getDsaDailyChallenge, getDsaStudyPlan, getDsaStudyPlans } from "../cont
 
 const router = Router();
 
-// Public, metadata-only endpoint used by the DSA sitemap/static SEO build.
+// Public metadata and discovery endpoints.
 router.get("/seo-index", getDsaSeoIndexController);
 
 router.use(authenticate);
