@@ -29,7 +29,14 @@ export const getDsaLeaderboard = async (userId, { page = 1, limit = 50 } = {}) =
     DsaProgress.findOne({ userId }).select("totalSolved totalAttempted xp currentStreak longestStreak").lean(),
   ]);
 
-  const participantCount = await DsaProgress.countDocuments({ totalSolved: { $gt: 0 } });
+  const participantRows = await DsaProgress.aggregate([
+    { $match: { totalSolved: { $gt: 0 } } },
+    { $lookup: { from: User.collection.name, localField: "userId", foreignField: "_id", as: "user" } },
+    { $unwind: "$user" },
+    { $match: { "user.status": "active", "user.role": "user" } },
+    { $count: "total" },
+  ]);
+  const participantCount = participantRows[0]?.total || 0;
 
   const items = rows.map((item, index) => ({
     rank: skip + index + 1,
