@@ -59,7 +59,7 @@ const getPreviewVideo = (modules = []) => {
   );
 };
 
-const resolvePreviewUrl = (video) => {
+const resolvePreviewUrl = (video, autoplay = true) => {
   const raw = typeof video?.videoUrl === "string" ? video.videoUrl.trim() : "";
   if (!raw) return "";
   try {
@@ -76,8 +76,8 @@ const resolvePreviewUrl = (video) => {
         parts[playerIndex] = "embed";
         url.hostname = "player.mediadelivery.net";
         url.pathname = `/${parts.join("/")}`;
-        url.searchParams.set("autoplay", "true");
-        url.searchParams.set("muted", "false");
+        url.searchParams.set("autoplay", autoplay ? "true" : "false");
+        url.searchParams.set("muted", autoplay ? "false" : "true");
         return url.toString();
       }
     }
@@ -168,7 +168,11 @@ export default function CourseDetails() {
 
   const previewVideo = useMemo(() => getPreviewVideo(modules), [modules]);
   const previewUrl = useMemo(
-    () => resolvePreviewUrl(previewVideo),
+    () => resolvePreviewUrl(previewVideo, false),
+    [previewVideo]
+  );
+  const demoPreviewUrl = useMemo(
+    () => resolvePreviewUrl(previewVideo, true),
     [previewVideo]
   );
 
@@ -434,7 +438,6 @@ export default function CourseDetails() {
                       poster={
                         previewVideo?.thumbnailUrl || course.thumbnail || undefined
                       }
-                      autoPlay
                       muted
                       loop
                       playsInline
@@ -1101,6 +1104,7 @@ export default function CourseDetails() {
       <Dialog
         open={demoOpen}
         onClose={() => setDemoOpen(false)}
+        disableScrollLock
         fullWidth
         maxWidth="lg"
         PaperProps={{
@@ -1151,7 +1155,7 @@ export default function CourseDetails() {
               isDirectMedia(previewUrl) ? (
                 <Box
                   component="video"
-                  src={previewUrl}
+                  src={demoPreviewUrl}
                   autoPlay
                   muted
                   controls
@@ -1163,7 +1167,7 @@ export default function CourseDetails() {
               ) : (
                 <Box
                   component="iframe"
-                  src={previewUrl}
+                  src={demoPreviewUrl}
                   title="Demo Class"
                   allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                   allowFullScreen
