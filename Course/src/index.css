@@ -1,14 +1,32 @@
 @import "tailwindcss";
 
-/* Course details resource actions: keep the three action buttons on one row. */
-.MuiStack-root:has(> a.MuiButton-root + a.MuiButton-root) {
-  flex-direction: row !important;
-  width: 100% !important;
+/* Course details resource actions: keep the compact row on larger screens. */
+@media (min-width: 601px) {
+  .MuiStack-root:has(> a.MuiButton-root + a.MuiButton-root) {
+    flex-direction: row !important;
+    width: 100% !important;
+  }
+
+  .MuiStack-root:has(> a.MuiButton-root + a.MuiButton-root) > a.MuiButton-root {
+    flex: 1 1 0 !important;
+    min-width: 0;
+  }
 }
 
-.MuiStack-root:has(> a.MuiButton-root + a.MuiButton-root) > a.MuiButton-root {
-  flex: 1 1 0 !important;
-  min-width: 0;
+/* Mobile course-details actions must stack instead of being forced into
+   a horizontal row that can create page-width overflow. */
+@media (max-width: 600px) {
+  .MuiStack-root:has(> a.MuiButton-root + a.MuiButton-root) {
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .MuiStack-root:has(> a.MuiButton-root + a.MuiButton-root) > a.MuiButton-root {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
 }
 
 /* =========================================================
@@ -201,10 +219,9 @@ body.apna-course-learning-page #root > * {
 
 /* =========================================================
    COURSE DETAILS — DEMO REDIRECT PROMPT
-   The existing CourseDetails component contains a full-screen
-   demo Dialog that auto-opens after 10 seconds. On the course
-   details route we intentionally suppress that Dialog and use a
-   compact notification card rendered by main.jsx instead.
+   The course-details page uses the compact notification card
+   rendered by main.jsx. The card is independent of the video
+   player, so it never mounts or starts a background video.
 ========================================================= */
 body.apna-course-details-page .MuiDialog-root {
   display: none !important;
