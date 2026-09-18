@@ -6,6 +6,8 @@ const REFERRAL_AUDIT_ACTIONS = [
   "reward_created",
   "reward_available",
   "withdrawal_requested",
+  "payout_destination_updated",
+  "payout_destination_verification_started",
   "withdrawal_approved",
   "withdrawal_rejected",
   "payout_processing",
