@@ -120,11 +120,27 @@ export const reservePromoForOrder = async ({
       if (!reservation) return;
 
       const counterUpdate = await PromoCode.updateOne(
-        { _id: promo._id, $expr: { $lt: [ { $add: [{ $ifNull: ["$usedCount", 0] }, { $ifNull: ["$reservedCount", 0] }] }, { $ifNull: ["$usageLimit", 9007199254740991] } ] } },
+        {
+          _id: promo._id,
+          $or: [
+            { usageLimit: null },
+            { usageLimit: { $exists: false } },
+            {
+              $expr: {
+                $lt: [
+                  { $add: [{ $ifNull: ["$usedCount", 0] }, { $ifNull: ["$reservedCount", 0] }] },
+                  "$usageLimit",
+                ],
+              },
+            },
+          ],
+        },
         { $inc: { reservedCount: 1 } },
         { session }
       );
-      if (counterUpdate.modifiedCount !== 1) throw Object.assign(new Error("Promo reservation limit changed. Please retry checkout."), { statusCode: 409 });
+      if (counterUpdate.modifiedCount !== 1) {
+        throw Object.assign(new Error("Promo reservation limit changed. Please retry checkout."), { statusCode: 409 });
+      }
 
     });
 
