@@ -10,6 +10,7 @@ import { API_PREFIX } from "./constants/index.js";
 import apiRoutes from "./routes/index.js";
 import { notFoundMiddleware } from "./middleware/notFound.middleware.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
+import referralWebhookRoutes from "./routes/referralWebhook.routes.js";
 
 const app = express();
 
