@@ -13,6 +13,7 @@ import {
 import razorpay from "../config/razorpay.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { successResponse } from "../utils/apiResponse.js";
+import { qualifyReferralForPurchase } from "../services/referralQualification.service.js";
 
 /**
  * Check whether the authenticated user has an active normal course purchase.
@@ -389,21 +390,32 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       lockedPurchase.purchasedAt = new Date();
 
       await lockedPurchase.save({ session });
+
+      // Referral qualification is part of the same transaction as the
+      // verified payment. The frontend cannot create or force a reward.
+      await qualifyReferralForPurchase({
+        purchase: lockedPurchase,
+        session,
+      });
     });
   } finally {
     await session.endSession();
   }
 
+  const verifiedPurchase = await Purchase.findById(purchase._id).select(
+    "_id course purchaseType unlockMode paymentStatus purchasedAt"
+  );
+
   return successResponse({
     res,
     message: "Payment verified successfully.",
     data: {
-      purchaseId: purchase._id,
-      courseId: purchase.course,
-      purchaseType: purchase.purchaseType,
-      unlockMode: purchase.unlockMode,
-      paymentStatus: purchase.paymentStatus,
-      purchasedAt: purchase.purchasedAt,
+      purchaseId: verifiedPurchase?._id || purchase._id,
+      courseId: verifiedPurchase?.course || purchase.course,
+      purchaseType: verifiedPurchase?.purchaseType || purchase.purchaseType,
+      unlockMode: verifiedPurchase?.unlockMode || purchase.unlockMode,
+      paymentStatus: verifiedPurchase?.paymentStatus || "paid",
+      purchasedAt: verifiedPurchase?.purchasedAt || new Date(),
     },
   });
 });
