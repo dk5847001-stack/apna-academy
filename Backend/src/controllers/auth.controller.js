@@ -110,7 +110,12 @@ export const login = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  const result = await loginUser({ email, password });
+  const result = await loginUser({
+    email,
+    password,
+    ipAddress: req.ip || req.socket?.remoteAddress || null,
+    userAgent: req.get("user-agent") || null,
+  });
   setAuthenticationCookie(res, result.token);
 
   return successResponse({
