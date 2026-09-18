@@ -251,7 +251,7 @@ const markProcessing = async ({ payoutId, adminId }) => {
           payout: locked._id,
           user: locked.user,
           actor: adminId,
-          action: "payout_processing",
+          action: "payout_processing_started",
           metadata: { amountPaise: locked.amountPaise },
           session,
         });
@@ -758,6 +758,22 @@ export const reconcileReferralPayout = async ({ payoutId, adminId }) => {
     { _id: payoutId },
     { $set: { adminActor: adminId, reconciledAt: new Date() } }
   );
+
+  try {
+    await ReferralAuditEvent.create({
+      payout: payoutId,
+      user: payout.user,
+      actor: adminId,
+      action: "payout_reconciled",
+      metadata: {
+        providerPayoutId: provider.providerPayoutId || null,
+        providerStatus: provider.providerStatus || null,
+      },
+      correlationId: "referral_payout_payout_reconciled_" + payoutId.toString(),
+    });
+  } catch (error) {
+    if (error?.code !== 11000) throw error;
+  }
 
   return result;
 };
