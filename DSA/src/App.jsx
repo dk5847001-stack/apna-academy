@@ -12,6 +12,7 @@ import StudyPlanDetails from "./pages/StudyPlanDetails.jsx";
 import Progress from "./pages/Progress.jsx";
 import Submissions from "./pages/Submissions.jsx";
 import Unlock from "./pages/Unlock.jsx";
+import CodingPractice from "./pages/CodingPractice.jsx";
 
 function Placeholder({ title }) {
   return (
@@ -30,7 +31,7 @@ export default function App() {
         <Route index element={<Overview />} />
         <Route path="practice" element={<Problems />} />
         <Route path="practice/:slug" element={<ProblemDetails />} />
-        <Route path="practice/code" element={<div />} />
+        <Route path="practice/code" element={<CodingPractice />} />
         <Route path="topics" element={<Topics />} />
         <Route path="companies" element={<Companies />} />
     <Route path="companies/:slug" element={<CompanyDetails />} />
