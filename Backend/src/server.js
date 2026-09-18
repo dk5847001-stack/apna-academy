@@ -5,6 +5,7 @@ dotenv.config();
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
 import { validateEnv } from "./config/env.js";
+import { releaseExpiredReservations } from "./services/promoReservation.service.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -32,6 +33,15 @@ const startServer = async () => {
     |--------------------------------------------------------------------------
     */
 
+    // Reclaim abandoned promo checkout reservations so limited codes do not
+    // remain locked forever after a browser close/network interruption.
+    const promoReservationCleanup = setInterval(() => {
+      releaseExpiredReservations().catch((error) => {
+        console.error("❌ Promo reservation cleanup failed:", error.message);
+      });
+    }, 60_000);
+    promoReservationCleanup.unref?.();
+
     const server = app.listen(PORT, () => {
       console.log(
         `🚀 ApnaAcademy Backend running on port ${PORT}`
@@ -53,6 +63,8 @@ const startServer = async () => {
       console.log(
         `\n${signal} received. Shutting down...`
       );
+
+      clearInterval(promoReservationCleanup);
 
       server.close(() => {
         console.log("✅ HTTP server closed.");
