@@ -310,28 +310,6 @@ function NotFound() {
 }
 
 export default function App() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleDemoButtonClick = (event) => {
-      const button = event.target?.closest?.("button");
-      if (!button) return;
-
-      const label = button.textContent?.replace(/\s+/g, " ").trim();
-      if (label !== "Watch Demo Class") return;
-
-      const match = window.location.pathname.match(/^\/courses\/([^/]+)$/);
-      if (!match) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      navigate(`/courses/${encodeURIComponent(match[1])}/demo`);
-    };
-
-    document.addEventListener("click", handleDemoButtonClick, true);
-    return () => document.removeEventListener("click", handleDemoButtonClick, true);
-  }, [navigate]);
-
   return (
     <Routes>
       <Route path="/" element={<Courses />} />
