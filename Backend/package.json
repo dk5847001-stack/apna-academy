@@ -10,7 +10,8 @@
     "start": "node src/server.js",
     "seed:dsa": "node src/scripts/seedDsaProblems.js",
     "seed:dsa:phase13": "node src/scripts/seedDsaPhase13.js",
-    "seed:dsa:tests": "node src/scripts/seedDsaTestCases.js"
+    "seed:dsa:tests": "node src/scripts/seedDsaTestCases.js",
+    "backfill:referral-codes": "node src/scripts/backfillReferralCodes.js"
   },
   "keywords": [
     "apnaacademy",
