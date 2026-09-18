@@ -32,6 +32,25 @@ export const validateEnv = () => {
     );
   }
 
+  if (process.env.RAZORPAYX_ENABLED?.trim().toLowerCase() === "true") {
+    const razorpayXVariables = [
+      "RAZORPAYX_KEY_ID",
+      "RAZORPAYX_KEY_SECRET",
+      "RAZORPAYX_ACCOUNT_NUMBER",
+      "RAZORPAYX_WEBHOOK_SECRET",
+    ];
+
+    const missingRazorpayXVariables = razorpayXVariables.filter(
+      (variable) => !process.env[variable]?.trim()
+    );
+
+    if (missingRazorpayXVariables.length > 0) {
+      throw new Error(
+        `RazorpayX is enabled but these variables are missing: ${missingRazorpayXVariables.join(", ")}`
+      );
+    }
+  }
+
   if (process.env.NODE_ENV === "production") {
     const corsOrigins = process.env.CORS_ALLOWED_ORIGINS
       .split(",")
