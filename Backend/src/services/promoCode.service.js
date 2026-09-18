@@ -40,7 +40,7 @@ const isPromoCurrentlyValid = (promo, now = new Date()) => {
   if (
     promo.usageLimit !== null &&
     promo.usageLimit !== undefined &&
-    promo.usedCount >= promo.usageLimit
+    Number(promo.usedCount || 0) + Number(promo.reservedCount || 0) >= promo.usageLimit
   ) {
     return {
       valid: false,
