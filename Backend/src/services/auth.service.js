@@ -5,6 +5,12 @@ import User from "../models/User.js";
 import { generateAccessToken } from "../utils/token.js";
 import { sendEmailVerificationOtp, sendPasswordResetEmail } from "./email.service.js";
 import { createConcurrentLoginNotification, recordConcurrentLoginEvent } from "./security.service.js";
+import {
+  createReferralAttribution,
+  generateUniqueReferralCode,
+  normalizeReferralCode,
+  validateReferralCodeForRegistration,
+} from "./referral.service.js";
 
 const OTP_EXPIRES_MS = 10 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
@@ -263,12 +269,18 @@ const issueEmailVerificationOtp = async (user, { enforceCooldown = true } = {}) 
   };
 };
 
-export const registerUser = async ({ name, email, password }) => {
+export const registerUser = async ({
+  name,
+  email,
+  password,
+  referralCode = "",
+}) => {
   const normalizedEmail = email.trim().toLowerCase();
   const trimmedName = name.trim();
+  const submittedReferralCode = normalizeReferralCode(referralCode);
 
   let user = await User.findOne({ email: normalizedEmail }).select(
-    "+password +emailVerificationOtpHash +emailVerificationOtpExpiresAt +emailVerificationOtpAttempts +emailVerificationLastSentAt +emailVerificationResendCount +emailVerificationResendWindowStartedAt"
+    "+password +emailVerificationOtpHash +emailVerificationOtpExpiresAt +emailVerificationOtpAttempts +emailVerificationLastSentAt +emailVerificationResendCount +emailVerificationResendWindowStartedAt +pendingReferralCode"
   );
 
   const existingUnverifiedUser = Boolean(user);
@@ -280,6 +292,21 @@ export const registerUser = async ({ name, email, password }) => {
     );
   }
 
+  /*
+   * Referral attribution is captured before account activation. For an
+   * unverified retry, the first pending code wins so the referrer cannot
+   * be switched by submitting another code later.
+   */
+  const pendingReferralCode =
+    normalizeReferralCode(user?.pendingReferralCode) || submittedReferralCode;
+
+  if (pendingReferralCode) {
+    await validateReferralCodeForRegistration({
+      referralCode: pendingReferralCode,
+      referredUserId: user?._id || null,
+    });
+  }
+
   const hashedPassword = await bcrypt.hash(password, 12);
 
   if (!user) {
@@ -289,14 +316,34 @@ export const registerUser = async ({ name, email, password }) => {
       password: hashedPassword,
       status: "inactive",
       isEmailVerified: false,
+      referralCode: await generateUniqueReferralCode(),
+      pendingReferralCode: pendingReferralCode || null,
     });
   } else {
     user.name = trimmedName;
     user.password = hashedPassword;
     user.status = "inactive";
+
+    if (!user.referralCode) {
+      user.referralCode = await generateUniqueReferralCode();
+    }
+
+    if (pendingReferralCode && !user.pendingReferralCode) {
+      user.pendingReferralCode = pendingReferralCode;
+    }
   }
 
   await user.save();
+
+  if (pendingReferralCode) {
+    await createReferralAttribution({
+      referredUserId: user._id,
+      referralCode: pendingReferralCode,
+    });
+
+    user.pendingReferralCode = null;
+    await user.save();
+  }
 
   const verification = await issueEmailVerificationOtp(user, {
     enforceCooldown: existingUnverifiedUser,
