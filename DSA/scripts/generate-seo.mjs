@@ -43,7 +43,7 @@ if (!response.ok) {
 }
 const payload = await response.json();
 const index = payload?.data;
-if (!index || !Array.isArray(index.problems) || !Array.isArray(index.studyPlans)) {
+if (!index || !Array.isArray(index.problems) || !Array.isArray(index.studyPlans) || !Array.isArray(index.companies)) {
   throw new Error("DSA SEO index response is invalid.");
 }
 
@@ -79,6 +79,10 @@ const urls = [
     path: "/study-plans/" + encodeURIComponent(clean(item.slug)),
     priority: "0.8",
     lastmod: toDate(item.updatedAt),
+  })),
+  ...index.companies.map((item) => ({
+    path: "/companies/" + encodeURIComponent(clean(item.name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")),
+    priority: "0.7",
   })),
 ];
 
