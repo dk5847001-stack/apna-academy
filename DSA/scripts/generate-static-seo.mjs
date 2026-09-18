@@ -1,11 +1,29 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const siteUrl = (process.env.VITE_DSA_URL || "").replace(/\/$/, "");
-const apiBaseUrl = (process.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const readDotEnv = (file) => {
+  try {
+    const text = fs.readFileSync(path.join(process.cwd(), file), "utf8");
+    return Object.fromEntries(
+      text.split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#") && line.includes("="))
+        .map((line) => {
+          const index = line.indexOf("=");
+          return [line.slice(0, index).trim(), line.slice(index + 1).trim().replace(/^["']|["']$/g, "")];
+        })
+    );
+  } catch {
+    return {};
+  }
+};
 
-if (!siteUrl || !/^https?:\/\//i.test(siteUrl)) throw new Error("VITE_DSA_URL must be set.");
-if (!apiBaseUrl || !/^https?:\/\//i.test(apiBaseUrl)) throw new Error("VITE_API_BASE_URL must be set.");
+const env = { ...readDotEnv(".env"), ...readDotEnv(".env.local"), ...process.env };
+const siteUrl = (env.VITE_DSA_URL || "http://localhost:5173").replace(/\/$/, "");
+const apiBaseUrl = (env.VITE_API_BASE_URL || "http://localhost:5000/api/v1").replace(/\/$/, "");
+
+if (!/^https?:\/\//i.test(siteUrl)) throw new Error("VITE_DSA_URL must be an absolute URL.");
+if (!/^https?:\/\//i.test(apiBaseUrl)) throw new Error("VITE_API_BASE_URL must be an absolute URL.");
 
 const dist = path.join(process.cwd(), "dist");
 const templatePath = path.join(dist, "index.html");
