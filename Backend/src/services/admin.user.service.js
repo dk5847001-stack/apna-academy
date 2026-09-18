@@ -3,13 +3,15 @@ import User from "../models/User.js";
 import Purchase from "../models/Purchase.js";
 import Progress from "../models/Progress.js";
 import Certificate from "../models/Certificate.js";
+import SecurityEvent from "../models/SecurityEvent.js";
 
 const ALLOWED_ROLES = new Set(["user", "admin"]);
 const ALLOWED_STATUSES = new Set(["active", "inactive", "suspended"]);
+const SECURITY_FREEZE_REASON = "Automatic security freeze after repeated concurrent login detections.";
 
 const sanitizeUser = (user) => ({
   id: user._id?.toString(), name: user.name, email: user.email, role: user.role, avatar: user.avatar || "", phone: user.phone || "",
-  isEmailVerified: Boolean(user.isEmailVerified), status: user.status, lastLoginAt: user.lastLoginAt || null, createdAt: user.createdAt, updatedAt: user.updatedAt,
+  isEmailVerified: Boolean(user.isEmailVerified), status: user.status, lastLoginAt: user.lastLoginAt || null, concurrentLoginDetectionCount: user.concurrentLoginDetectionCount || 0, securityFrozenAt: user.securityFrozenAt || null, securityFreezeReason: user.securityFreezeReason || null, createdAt: user.createdAt, updatedAt: user.updatedAt,
 });
 const assertObjectId = (id, message = "Invalid user id.") => { if (!mongoose.Types.ObjectId.isValid(id)) { const error = new Error(message); error.statusCode = 400; throw error; } };
 
@@ -24,7 +26,7 @@ export const listAdminUsers = async ({ page = 1, limit = 20, search = "", role =
 
 export const getAdminUser = async (userId) => {
   assertObjectId(userId);
-  const user = await User.findById(userId).select("name email role avatar phone isEmailVerified status lastLoginAt createdAt updatedAt").lean();
+  const user = await User.findById(userId).select("name email role avatar phone isEmailVerified status lastLoginAt concurrentLoginDetectionCount securityFrozenAt securityFreezeReason createdAt updatedAt").lean();
   if (!user) { const error = new Error("User not found."); error.statusCode = 404; throw error; }
   return sanitizeUser(user);
 };
@@ -58,6 +60,78 @@ export const getAdminUserDetails = async (userId) => {
     progress: progress.map((x) => ({ id: x._id.toString(), overallProgress: x.overallProgress || 0, isCompleted: Boolean(x.isCompleted), completedAt: x.completedAt || null, lastWatchedPosition: x.lastWatchedPosition || 0, completedVideoCount: x.completedVideos?.length || 0, updatedAt: x.updatedAt, course: x.course ? { id: x.course._id.toString(), title: x.course.title, slug: x.course.slug, thumbnail: x.course.thumbnail || "" } : null })),
     certificates: certificates.map((x) => ({ id: x._id.toString(), certificateId: x.certificateId, recipientName: x.recipientName, issueDate: x.issueDate, isValid: Boolean(x.isValid), certificateUrl: x.certificateUrl || "", verificationUrl: x.verificationUrl || "", course: x.course ? { id: x.course._id.toString(), title: x.course.title, slug: x.course.slug } : null })),
   };
+};
+
+export const getAdminSecurityDetails = async (userId) => {
+  assertObjectId(userId);
+
+  const user = await User.findById(userId)
+    .select("name email role status concurrentLoginDetectionCount lastConcurrentLoginDetectedAt securityFrozenAt securityFreezeReason")
+    .lean();
+
+  if (!user) {
+    const error = new Error("User not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const events = await SecurityEvent.find({ user: userId })
+    .sort({ detectedAt: -1 })
+    .limit(50)
+    .select("type detectionNumber detectedAt previousSessionIssuedAt newSessionIssuedAt source correlationId")
+    .lean();
+
+  return {
+    user: {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    },
+    security: {
+      detectionCount: user.concurrentLoginDetectionCount || 0,
+      detectionLimit: 5,
+      remainingDetections: Math.max(0, 5 - (user.concurrentLoginDetectionCount || 0)),
+      lastDetectedAt: user.lastConcurrentLoginDetectedAt || null,
+      frozenAt: user.securityFrozenAt || null,
+      freezeReason: user.securityFreezeReason || null,
+      events,
+    },
+  };
+};
+
+export const unfreezeUserSecurity = async ({ userId, actorId }) => {
+  assertObjectId(userId);
+  assertObjectId(actorId);
+
+  if (userId.toString() === actorId.toString()) {
+    const error = new Error("You cannot change your own account security state.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await User.findById(userId).select("+activeSessionId");
+  if (!user) {
+    const error = new Error("User not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (user.status !== "suspended" || !user.securityFrozenAt) {
+    const error = new Error("This account is not security-frozen.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  user.status = "active";
+  user.securityFrozenAt = null;
+  user.securityFreezeReason = null;
+  user.activeSessionId = null;
+  user.activeSessionIssuedAt = null;
+  await user.save();
+
+  return sanitizeUser(user.toObject());
 };
 
 export const updateAdminUser = async ({ userId, actorId, role, status }) => {
