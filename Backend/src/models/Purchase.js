@@ -75,6 +75,13 @@ const purchaseSchema = new mongoose.Schema(
       min: 0,
     },
 
+    promoReservation: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PromoReservation",
+      default: null,
+      index: true,
+    },
+
     currency: {
       type: String,
       default: "INR",
