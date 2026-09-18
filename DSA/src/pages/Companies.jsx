@@ -5,7 +5,7 @@ import { getDsaCompanies } from "../services/dsa.service.js";
 
 const companySlug = (name) => String(name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-const errorMessage = (error) => error?.status === 401 ? "Please log in to access company questions." : error?.message || "Unable to load companies.";
+const errorMessage = (error) => error?.status === 401 ? "Company catalog is unavailable for this session." : error?.message || "Unable to load companies.";
 
 export default function Companies() {
   const [companies, setCompanies] = useState([]);
