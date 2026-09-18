@@ -163,7 +163,7 @@ export default function CourseDetails() {
 
   const previewVideo = useMemo(() => getPreviewVideo(modules), [modules]);
   const previewUrl = useMemo(
-    () => resolvePreviewUrl(previewVideo, false),
+    () => resolvePreviewUrl(previewVideo, true),
     [previewVideo]
   );
   const getAuthenticatedUser = async () => {
@@ -422,7 +422,8 @@ export default function CourseDetails() {
                       poster={
                         previewVideo?.thumbnailUrl || course.thumbnail || undefined
                       }
-                      muted
+                      autoPlay
+                      muted={false}
                       loop
                       playsInline
                       controls
