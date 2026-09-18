@@ -397,7 +397,7 @@ export default function CourseDetails() {
             width: "100%",
           }}
         >
-          <Box sx={{ minWidth: 0, width: "100%" }}>
+          <Box sx={{ minWidth: 0, width: "100%", order: { xs: 2, lg: 1 } }}>
             <Box
               sx={{
                 borderRadius: { xs: 3, md: 4 },
@@ -869,6 +869,7 @@ export default function CourseDetails() {
               boxShadow: "0 28px 70px rgba(0,0,0,.32)",
               minWidth: 0,
               width: "100%",
+              order: { xs: 1, lg: 2 },
             }}
           >
             <Box
