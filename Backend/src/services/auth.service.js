@@ -412,7 +412,7 @@ export const loginUser = async ({ email, password, ipAddress, userAgent }) => {
   const normalizedEmail = email.trim().toLowerCase();
 
   const user = await User.findOne({ email: normalizedEmail }).select(
-    "+password"
+    "+password +concurrentLoginDetectionCount"
   );
 
   if (!user) {
@@ -427,6 +427,19 @@ export const loginUser = async ({ email, password, ipAddress, userAgent }) => {
   }
 
   if (user.status !== "active") {
+    if (user.status === "suspended") {
+      const error = buildVerificationError(
+        "Your account has been automatically frozen after reaching the concurrent login security limit. Please contact support for account review.",
+        403
+      );
+      error.code = "ACCOUNT_SECURITY_FROZEN";
+      error.security = {
+        detectionCount: user.concurrentLoginDetectionCount || 0,
+        detectionLimit: CONCURRENT_LOGIN_DETECTION_LIMIT,
+        accountFrozen: true,
+      };
+      throw error;
+    }
     throw buildVerificationError("Your account is not active.", 403);
   }
 
