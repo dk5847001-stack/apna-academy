@@ -4,7 +4,7 @@ import crypto from "crypto";
 import User from "../models/User.js";
 import { generateAccessToken } from "../utils/token.js";
 import { sendEmailVerificationOtp, sendPasswordResetEmail } from "./email.service.js";
-import { recordConcurrentLoginEvent } from "./security.service.js";
+import { createConcurrentLoginNotification, recordConcurrentLoginEvent } from "./security.service.js";
 
 const OTP_EXPIRES_MS = 10 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
@@ -105,6 +105,11 @@ const establishSession = async (user, { ipAddress = null, userAgent = null, sour
         correlationId: sessionId,
       }).catch((error) => {
         console.error("Concurrent login audit event failed:", error);
+      });
+
+      await createConcurrentLoginNotification({
+        userId: user._id,
+        detectionNumber: detectionCount,
       });
     }
 
