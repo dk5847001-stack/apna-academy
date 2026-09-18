@@ -13,6 +13,41 @@ import {
 import razorpay from "../config/razorpay.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { successResponse } from "../utils/apiResponse.js";
+import { getActiveCoursePurchase } from "../services/purchase.service.js";
+
+/**
+ * Check whether the authenticated user has an active normal course purchase.
+ * All-access checkout is allowed only after this entitlement exists.
+ */
+export const getCoursePurchaseStatus = asyncHandler(async (req, res) => {
+  const { courseId } = req.params;
+
+  if (!courseId) {
+    return res.status(400).json({ success: false, message: "Course ID is required." });
+  }
+
+  const course = await Course.findById(courseId).select("_id isPublished title");
+  if (!course || !course.isPublished) {
+    return res.status(404).json({ success: false, message: "Course not found." });
+  }
+
+  const purchase = await Purchase.findOne({
+    user: req.user.userId,
+    course: course._id,
+    purchaseType: "course",
+    paymentStatus: "paid",
+    $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
+  }).select("_id purchasedAt expiresAt unlockMode");
+
+  return successResponse({
+    res,
+    data: {
+      courseId: course._id,
+      hasCoursePurchase: Boolean(purchase),
+      purchase: purchase || null,
+    },
+  });
+});
 
 /**
  * Create Razorpay order for:
@@ -95,6 +130,25 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
 
     if (purchaseType === "course") {
       return res.status(409).json({ success: false, message: "You have already purchased this course." });
+    }
+  }
+
+  if (purchaseType === "all-access") {
+    const coursePurchase = await Purchase.findOne({
+      user: req.user.userId,
+      course: course._id,
+      purchaseType: "course",
+      paymentStatus: "paid",
+      $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
+    });
+
+    if (!coursePurchase) {
+      return res.status(403).json({
+        success: false,
+        code: "COURSE_PURCHASE_REQUIRED",
+        message:
+          "Please purchase this course first. The All Modules Unlock option is available only after your course purchase is active.",
+      });
     }
   }
 
