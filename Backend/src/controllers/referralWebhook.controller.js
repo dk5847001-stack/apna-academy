@@ -106,5 +106,7 @@ export const handleRazorpayXReferralWebhook = async (req, res) => {
       reason: providerPayout.failure_reason || providerPayout.status_details?.description || "RazorpayX reported a payout failure.",
       code: providerPayout.error?.reason || providerPayout.status_details?.reason || providerPayout.status || "PROVIDER_FAILURE",
     });
-  }\n\n  return res.status(200).json({ success: true });
+  }
+
+  return res.status(200).json({ success: true });
 };
