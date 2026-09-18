@@ -10,4 +10,4 @@ Disallow: /settings
 Disallow: /practice/code
 Disallow: /unlock
 
-Sitemap: %VITE_DSA_URL%/sitemap.xml
+Sitemap: http://localhost:5173/sitemap.xml
