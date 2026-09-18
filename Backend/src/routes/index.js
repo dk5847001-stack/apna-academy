@@ -33,6 +33,7 @@ import adminMessageRoutes from "./admin.message.routes.js";
 import adminSubscriberRoutes from "./admin.subscriber.routes.js";
 import adminPromoCodeRoutes from "./admin.promoCode.routes.js";
 import referralRoutes from "./referral.routes.js";
+import referralPayoutDestinationRoutes from "./referralPayoutDestination.routes.js";
 import adminReferralPayoutRoutes from "./admin.referralPayout.routes.js";
 
 const router = Router();
@@ -42,6 +43,7 @@ router.use("/courses", courseRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/promocodes", promoCodeRoutes);
 router.use("/referrals", referralRoutes);
+router.use("/referrals/payout-destination", referralPayoutDestinationRoutes);
 router.use("/learning", learningRoutes);
 router.use("/progress", progressRoutes);
 router.use("/assessment", assessmentRoutes);
