@@ -114,6 +114,159 @@ function getPublicSeo(pathname) {
   return null;
 }
 
+function removeJsonLd() {
+  document.head.querySelectorAll('script[data-apna-dsa-jsonld="true"]').forEach((element) => element.remove());
+}
+
+function setJsonLd(graph) {
+  removeJsonLd();
+  if (!graph?.length) return;
+
+  const script = document.createElement("script");
+  script.type = "application/ld+json";
+  script.dataset.apnaDsaJsonld = "true";
+  script.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": graph,
+  });
+  document.head.appendChild(script);
+}
+
+function breadcrumbGraph(origin, pathname, title) {
+  const parts = pathname.split("/").filter(Boolean);
+  const items = [{ name: "DSA", url: `${origin}/` }];
+  let path = "";
+  parts.forEach((part) => {
+    path += `/${part}`;
+    items.push({
+      name: part
+        .replace(/-/g, " ")
+        .replace(/\\b\\w/g, (letter) => letter.toUpperCase()),
+      url: `${origin}${path}`,
+    });
+  });
+  if (items.length) items[items.length - 1].name = title;
+
+  return {
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
+function baseGraph({ origin, pathname, title, description, pageType = "WebPage" }) {
+  const url = `${origin}${pathname === "/" ? "/" : pathname}`;
+  const graph = [
+    {
+      "@type": "WebSite",
+      "@id": `${origin}/#website`,
+      url: `${origin}/`,
+      name: SITE_NAME,
+      inLanguage: "en-IN",
+    },
+    {
+      "@type": "EducationalOrganization",
+      "@id": `${origin}/#organization`,
+      name: "ApnaAcademy",
+      url: `${origin}/`,
+    },
+    {
+      "@type": pageType,
+      "@id": `${url}#webpage`,
+      url,
+      name: title,
+      description,
+      isPartOf: { "@id": `${origin}/#website` },
+      about: { "@id": `${origin}/#organization` },
+      inLanguage: "en-IN",
+    },
+    breadcrumbGraph(origin, pathname, title),
+  ];
+  return graph;
+}
+
+function problemGraph({ origin, pathname, title, description, problem }) {
+  const url = `${origin}${pathname}`;
+  const graph = baseGraph({
+    origin,
+    pathname,
+    title,
+    description,
+    pageType: "WebPage",
+  });
+  graph.push({
+    "@type": "LearningResource",
+    "@id": `${url}#learning-resource`,
+    url,
+    name: problem.title || title,
+    description,
+    learningResourceType: "DSA Problem",
+    isPartOf: { "@id": `${origin}/#website` },
+  });
+  return graph;
+}
+
+function studyPlanGraph({ origin, pathname, title, description, plan }) {
+  const url = `${origin}${pathname}`;
+  const graph = baseGraph({
+    origin,
+    pathname,
+    title,
+    description,
+    pageType: "WebPage",
+  });
+  graph.push({
+    "@type": "LearningResource",
+    "@id": `${url}#learning-resource`,
+    url,
+    name: plan.title || title,
+    description,
+    learningResourceType: "DSA Study Plan",
+    isPartOf: { "@id": `${origin}/#website` },
+  });
+  return graph;
+}
+
+function listItemGraph({ origin, pathname, title, description, items, itemType }) {
+  const url = `${origin}${pathname}`;
+  const graph = baseGraph({
+    origin,
+    pathname,
+    title,
+    description,
+    pageType: "CollectionPage",
+  });
+  const list = (items || []).slice(0, 100).map((item, index) => {
+    const slug = item.slug;
+    const itemUrl = slug
+      ? `${origin}${itemType === "problem" ? "/practice/" : "/study-plans/"}${encodeURIComponent(slug)}`
+      : null;
+    return itemUrl
+      ? {
+          "@type": "ListItem",
+          position: index + 1,
+          url: itemUrl,
+          name: item.title || item.name || slug,
+        }
+      : null;
+  }).filter(Boolean);
+
+  if (list.length) {
+    graph.push({
+      "@type": "ItemList",
+      "@id": `${url}#itemlist`,
+      url,
+      numberOfItems: list.length,
+      itemListElement: list,
+    });
+  }
+  return graph;
+}
+
 function setRobots(content) {
   upsertMeta('meta[name="robots"]', { name: "robots" }, content);
   upsertMeta('meta[name="googlebot"]', { name: "googlebot" }, content);
@@ -169,7 +322,7 @@ export default function SeoManager() {
         document.title = "Page Not Found | ApnaAcademy DSA";
         setRobots("noindex, nofollow, noarchive, nosnippet, noimageindex");
         removeCanonical();
-        setSocial({ title: "", description: "", url: "", indexable: false });
+        setSocial({ title: "", description: "", url: "", indexable: false });\n        removeJsonLd();
         return;
       }
 
@@ -216,6 +369,13 @@ export default function SeoManager() {
             160
           );
           applySeo({ title, description, topics });
+          setJsonLd(problemGraph({
+            origin,
+            pathname: normalizedPath,
+            title,
+            description,
+            problem,
+          }));
         })
         .catch(() => {
           // Keep the stable route-level SEO on transient API failures.
@@ -232,6 +392,13 @@ export default function SeoManager() {
             160
           );
           applySeo({ title, description });
+          setJsonLd(studyPlanGraph({
+            origin,
+            pathname: normalizedPath,
+            title,
+            description,
+            plan,
+          }));
         })
         .catch(() => {
           // Keep the stable route-level SEO on transient API failures.
