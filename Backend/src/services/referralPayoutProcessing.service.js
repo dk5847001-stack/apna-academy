@@ -10,6 +10,7 @@ import {
   fetchPayoutByReference,
   sanitizeProviderError,
 } from "./razorpayX.service.js";
+import { isRazorpayXEnabled } from "../config/razorpayX.js";
 
 const fail = (message, statusCode = 400, code = "REFERRAL_PAYOUT_ERROR") =>
   Object.assign(new Error(message), { statusCode, code });
@@ -653,6 +654,19 @@ const applyProviderStatus = async (payoutId, provider) => {
 };
 
 export const processReferralPayout = async ({ payoutId, adminId }) => {
+  if (!isRazorpayXEnabled) {
+    throw fail(
+      "RazorpayX payouts are not enabled on the server.",
+      503,
+      "RAZORPAYX_DISABLED"
+    );
+  }
+
+  const preflight = await ReferralPayout.findById(payoutId)
+    .select("+providerFundAccountId +providerPayoutId");
+
+  validatePayoutForProvider(preflight);
+
   const payout = await markProcessing({ payoutId, adminId });
 
   validatePayoutForProvider(payout);
