@@ -23,6 +23,26 @@ const referralPayoutSchema = new mongoose.Schema(
       index: true,
     },
 
+    // Stable application-level identifiers. These are safe to expose to
+    // the client and are never used as provider secrets.
+    withdrawalId: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 64,
+      unique: true,
+      index: true,
+    },
+
+    payoutTransactionId: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 64,
+      unique: true,
+      index: true,
+    },
+
     amountPaise: {
       type: Number,
       required: true,
