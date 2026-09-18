@@ -1,14 +1,36 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const siteUrl = (process.env.VITE_DSA_URL || "").replace(/\/$/, "");
-const apiBaseUrl = (process.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+// Vite loads .env files automatically, but this Node script does not.
+// Read local Vite-style variables so `npm run build` works consistently.
+const readDotEnv = () => {
+  const files = [".env", ".env.local"];
+  const values = {};
+  for (const file of files) {
+    const filePath = path.join(process.cwd(), file);
+    if (!fs.existsSync(filePath)) continue;
+    for (const line of fs.readFileSync(filePath, "utf8").split(/\r?\n/)) {
+      const match = line.match(/^\\s*([A-Z_][A-Z0-9_]*)\\s*=\\s*(.*)\\s*$/);
+      if (!match || match[1] in values) continue;
+      values[match[1]] = match[2].replace(/^["']|["']$/g, "");
+    }
+  }
+  return values;
+};
 
-if (!siteUrl || !/^https?:\/\//i.test(siteUrl)) {
-  throw new Error("VITE_DSA_URL must be set to an absolute production URL.");
+const dotEnv = readDotEnv();
+const siteUrl = (process.env.VITE_DSA_URL || dotEnv.VITE_DSA_URL || "http://localhost:5173").replace(/\/$/, "");
+const apiBaseUrl = (process.env.VITE_API_BASE_URL || dotEnv.VITE_API_BASE_URL || "http://localhost:5000/api/v1").replace(/\/$/, "");
+
+if (!/^https?:\/\//i.test(siteUrl)) {
+  throw new Error("VITE_DSA_URL must be an absolute URL.");
 }
-if (!apiBaseUrl || !/^https?:\/\//i.test(apiBaseUrl)) {
-  throw new Error("VITE_API_BASE_URL must be set to an absolute API URL for dynamic DSA SEO generation.");
+if (!/^https?:\/\//i.test(apiBaseUrl)) {
+  throw new Error("VITE_API_BASE_URL must be an absolute API URL.");
+}
+
+if (siteUrl === "http://localhost:5173") {
+  console.warn("VITE_DSA_URL is not configured; using http://localhost:5173 for local SEO build output.");
 }
 
 const publicDir = path.join(process.cwd(), "public");
