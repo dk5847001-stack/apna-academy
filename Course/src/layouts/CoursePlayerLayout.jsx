@@ -129,7 +129,7 @@ export default function CoursePlayerLayout({
   onPause,
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [openModule, setOpenModule] = useState(null);
+  const [openModules, setOpenModules] = useState({});
   const normalizedProgress = Math.min(100, Math.max(0, Number(progress) || 0));
   const safeModules = useMemo(() => (Array.isArray(modules) ? modules : []), [modules]);
   const allVideos = useMemo(
@@ -184,7 +184,7 @@ export default function CoursePlayerLayout({
         ) : (
           safeModules.map((module, moduleIndex) => {
             const moduleKey = module?._id || module?.order || module?.id || moduleIndex + 1;
-            const isOpen = String(openModule) === String(moduleKey);
+            const isOpen = Boolean(openModules[String(moduleKey)]);
             const moduleVideos = Array.isArray(module?.videos) ? module.videos : [];
             const completedCount = moduleVideos.filter(isVideoCompleted).length;
             const moduleOrder = Number(module?.order) || moduleIndex + 1;
@@ -195,7 +195,7 @@ export default function CoursePlayerLayout({
             });
             return (
               <Box key={module?._id || moduleKey} sx={{ borderBottom: "1px solid #e2e8f0" }}>
-                <Button fullWidth onClick={() => setOpenModule(isOpen ? null : moduleKey)} sx={{ minHeight: 66, px: { xs: 2.25, sm: 2.75 }, py: 1.5, justifyContent: "space-between", textAlign: "left", textTransform: "none", color: "#334155", backgroundColor: COLORS.white, borderRadius: 0, borderLeft: "4px solid transparent", "&:hover": { backgroundColor: "#f8fafc" }, "&:focus-visible": { outline: "none" } }}>
+                <Button fullWidth onClick={() => setOpenModules((previous) => ({ ...previous, [String(moduleKey)]: !isOpen }))} sx={{ minHeight: 66, px: { xs: 2.25, sm: 2.75 }, py: 1.5, justifyContent: "space-between", textAlign: "left", textTransform: "none", color: "#334155", backgroundColor: COLORS.white, borderRadius: 0, borderLeft: "4px solid transparent", "&:hover": { backgroundColor: "#f8fafc" }, "&:focus-visible": { outline: "none" } }}>
                   <Box sx={{ minWidth: 0, pr: 1.5 }}>
                     <Typography sx={{ fontSize: { xs: "0.88rem", sm: "0.93rem" }, fontWeight: 400, lineHeight: 1.35, color: "#334155" }}>{moduleIndex + 1}. {module?.title || "Module"}</Typography>
                     <Typography sx={{ mt: 0.4, fontSize: "0.68rem", color: "#94a3b8", fontWeight: 500 }}>{moduleVideos.length} lesson{moduleVideos.length === 1 ? "" : "s"}{completedCount > 0 ? ` • ${completedCount} completed` : ""}</Typography>
