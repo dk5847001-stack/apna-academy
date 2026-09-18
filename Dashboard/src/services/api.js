@@ -44,7 +44,7 @@ api.interceptors.response.use(
       return api.request(request);
     }
 
-    if (status === 401) {
+    if (status === 401 || status === 403) {
       const responseData = error?.response?.data || {};
 
       window.dispatchEvent(
