@@ -7,7 +7,6 @@ import SecurityEvent from "../models/SecurityEvent.js";
 
 const ALLOWED_ROLES = new Set(["user", "admin"]);
 const ALLOWED_STATUSES = new Set(["active", "inactive", "suspended"]);
-const SECURITY_FREEZE_REASON = "Automatic security freeze after repeated concurrent login detections.";
 
 const sanitizeUser = (user) => ({
   id: user._id?.toString(), name: user.name, email: user.email, role: user.role, avatar: user.avatar || "", phone: user.phone || "",
