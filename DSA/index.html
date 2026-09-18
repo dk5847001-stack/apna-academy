@@ -27,6 +27,52 @@
 
     <link rel="canonical" href="%VITE_DSA_URL%/" />
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "%VITE_DSA_URL%/#website",
+            "url": "%VITE_DSA_URL%/",
+            "name": "ApnaAcademy DSA",
+            "inLanguage": "en-IN"
+          },
+          {
+            "@type": "EducationalOrganization",
+            "@id": "%VITE_DSA_URL%/#organization",
+            "name": "ApnaAcademy",
+            "url": "%VITE_DSA_URL%/"
+          },
+          {
+            "@type": "WebPage",
+            "@id": "%VITE_DSA_URL%/#webpage",
+            "url": "%VITE_DSA_URL%/",
+            "name": "ApnaAcademy DSA — Practice & Coding",
+            "description": "ApnaAcademy DSA — structured data structures and algorithms practice, company preparation, coding practice, progress tracking and study plans.",
+            "isPartOf": {
+              "@id": "%VITE_DSA_URL%/#website"
+            },
+            "about": {
+              "@id": "%VITE_DSA_URL%/#organization"
+            },
+            "inLanguage": "en-IN"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "%VITE_DSA_URL%/#breadcrumb",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "DSA",
+                "item": "%VITE_DSA_URL%/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
     <title>ApnaAcademy DSA — Practice &amp; Coding</title>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
