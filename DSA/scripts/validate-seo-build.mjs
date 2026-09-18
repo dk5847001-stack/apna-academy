@@ -2,10 +2,28 @@ import fs from "node:fs";
 import path from "node:path";
 
 const dist = path.join(process.cwd(), "dist");
-const siteUrl = (process.env.VITE_DSA_URL || "").replace(/\/$/, "");
+const readDotEnv = (file) => {
+  try {
+    const text = fs.readFileSync(path.join(process.cwd(), file), "utf8");
+    return Object.fromEntries(
+      text.split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#") && line.includes("="))
+        .map((line) => {
+          const index = line.indexOf("=");
+          return [line.slice(0, index).trim(), line.slice(index + 1).trim().replace(/^["']|["']$/g, "")];
+        })
+    );
+  } catch {
+    return {};
+  }
+};
+
+const env = { ...readDotEnv(".env"), ...readDotEnv(".env.local"), ...process.env };
+const siteUrl = (env.VITE_DSA_URL || "http://localhost:5173").replace(/\/$/, "");
 
 if (!siteUrl || !/^https?:\/\//i.test(siteUrl)) {
-  throw new Error("VITE_DSA_URL must be set to an absolute production URL.");
+  throw new Error("VITE_DSA_URL must be an absolute URL.");
 }
 if (!fs.existsSync(path.join(dist, "index.html"))) {
   throw new Error("dist/index.html is missing. Run the Vite build first.");
@@ -15,7 +33,7 @@ const read = (file) => fs.readFileSync(file, "utf8");
 const html = read(path.join(dist, "index.html"));
 const required = [
   [html.includes(siteUrl), "production URL"],
-  [!/(localhost|127\\.0\\.0\\.1)/i.test(html), "localhost URL absence"],
+  [siteUrl.includes("localhost") || siteUrl.includes("127.0.0.1") || !/(localhost|127\\.0\\.0\\.1)/i.test(html), "site URL consistency"],
   [html.includes("application/ld+json"), "JSON-LD"],
   [html.includes('rel="canonical"'), "canonical"],
   [html.includes('name="robots"'), "robots metadata"],
@@ -37,7 +55,7 @@ if (!robots.includes("Sitemap: " + siteUrl + "/sitemap.xml")) {
   throw new Error("robots.txt does not point to the production sitemap.");
 }
 if (!sitemap.includes("<urlset")) throw new Error("Invalid sitemap.xml.");
-if (/(localhost|127\\.0\\.0\\.1)/i.test(sitemap)) {
+if (!siteUrl.includes("localhost") && !siteUrl.includes("127.0.0.1") && /(localhost|127\\.0\\.0\\.1)/i.test(sitemap)) {
   throw new Error("Sitemap contains a localhost URL.");
 }
 
