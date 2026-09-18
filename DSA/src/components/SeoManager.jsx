@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { getDsaProblem, getDsaStudyPlan } from "../services/dsa.service.js";
 
 const SITE_NAME = "ApnaAcademy DSA";
 
@@ -86,6 +87,11 @@ function isPrivatePath(pathname) {
   );
 }
 
+function clampText(value, maxLength) {
+  const text = String(value || "").replace(/\\s+/g, " ").trim();
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1).trim()}…` : text;
+}
+
 function getPublicSeo(pathname) {
   if (PUBLIC_SEO[pathname]) return PUBLIC_SEO[pathname];
 
@@ -150,31 +156,89 @@ export default function SeoManager() {
   const { pathname } = useLocation();
 
   useEffect(() => {
+    let cancelled = false;
     const origin = getOrigin();
     const normalizedPath = pathname === "/" ? "/" : pathname.replace(/\/$/, "");
     const canonicalUrl = `${origin}${normalizedPath === "/" ? "/" : normalizedPath}`;
-    const seo = getPublicSeo(normalizedPath);
     const privatePath = isPrivatePath(normalizedPath);
-    const notFound = !seo && !privatePath;
+    const baseSeo = getPublicSeo(normalizedPath);
 
-    if (privatePath || notFound) {
-      document.title = privatePath ? "ApnaAcademy DSA" : "Page Not Found | ApnaAcademy DSA";
+    const applySeo = (seo) => {
+      if (cancelled) return;
+      if (!seo) {
+        document.title = "Page Not Found | ApnaAcademy DSA";
+        setRobots("noindex, nofollow, noarchive, nosnippet, noimageindex");
+        removeCanonical();
+        setSocial({ title: "", description: "", url: "", indexable: false });
+        return;
+      }
+
+      document.title = seo.title;
+      upsertMeta('meta[name="description"]', { name: "description" }, seo.description);
+      setRobots("index, follow, max-image-preview:large");
+      upsertLink("canonical", canonicalUrl);
+      setSocial({
+        title: seo.title,
+        description: seo.description,
+        url: canonicalUrl,
+        indexable: true,
+      });
+    };
+
+    if (privatePath) {
+      document.title = "ApnaAcademy DSA";
       setRobots("noindex, nofollow, noarchive, nosnippet, noimageindex");
       removeCanonical();
       setSocial({ title: "", description: "", url: "", indexable: false });
-      return;
+      return () => { cancelled = true; };
     }
 
-    document.title = seo.title;
-    upsertMeta('meta[name="description"]', { name: "description" }, seo.description);
-    setRobots("index, follow, max-image-preview:large");
-    upsertLink("canonical", canonicalUrl);
-    setSocial({
-      title: seo.title,
-      description: seo.description,
-      url: canonicalUrl,
-      indexable: true,
-    });
+    if (!baseSeo) {
+      applySeo(null);
+      return () => { cancelled = true; };
+    }
+
+    applySeo(baseSeo);
+
+    const problemMatch = normalizedPath.match(/^\/practice\/([^/]+)$/);
+    const planMatch = normalizedPath.match(/^\/study-plans\/([^/]+)$/);
+
+    if (problemMatch && problemMatch[1] !== "code") {
+      getDsaProblem(decodeURIComponent(problemMatch[1]))
+        .then((problem) => {
+          if (!problem) return applySeo(null);
+          const topics = (problem.topics || []).slice(0, 3).join(", ");
+          const difficulty = problem.difficulty ? ` — ${problem.difficulty}` : "";
+          const title = clampText(`${problem.title || "DSA Problem"}${difficulty} | ApnaAcademy`, 65);
+          const description = clampText(
+            problem.description ||
+              `Practice ${problem.title || "this DSA problem"} with examples, constraints and coding preparation on ApnaAcademy.`,
+            160
+          );
+          applySeo({ title, description, topics });
+        })
+        .catch(() => {
+          // Keep the stable route-level SEO on transient API failures.
+        });
+    } else if (planMatch) {
+      getDsaStudyPlan(decodeURIComponent(planMatch[1]))
+        .then((plan) => {
+          if (!plan) return applySeo(null);
+          const duration = plan.durationDays ? ` — ${plan.durationDays} Days` : "";
+          const title = clampText(`${plan.title || "DSA Study Plan"}${duration} | ApnaAcademy`, 65);
+          const description = clampText(
+            plan.description ||
+              `Follow the ${plan.title || "DSA study plan"} for structured data structures and algorithms preparation on ApnaAcademy.`,
+            160
+          );
+          applySeo({ title, description });
+        })
+        .catch(() => {
+          // Keep the stable route-level SEO on transient API failures.
+        });
+    }
+
+    return () => { cancelled = true; };
   }, [pathname]);
 
   return null;
