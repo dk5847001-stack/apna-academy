@@ -261,11 +261,55 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Payment could not be verified." });
   }
 
-  purchase.razorpayPaymentId = razorpay_payment_id;
-  purchase.paymentStatus = "paid";
-  purchase.purchasedAt = new Date();
+  /*
+   * Convert the promo reservation + purchase to paid in one MongoDB
+   * transaction. If either update fails, neither the usage counter nor the
+   * purchase status is committed.
+   */
+  const session = await Purchase.startSession();
 
-  await purchase.save();
+  try {
+    await session.withTransaction(async () => {
+      const lockedPurchase = await Purchase.findOne({
+        _id: purchase._id,
+        user: req.user.userId,
+        razorpayOrderId: razorpay_order_id,
+        paymentStatus: "pending",
+      }).session(session);
+
+      if (!lockedPurchase) {
+        throw Object.assign(new Error("Payment order is no longer pending."), {
+          statusCode: 409,
+        });
+      }
+
+      if (lockedPurchase.promoReservation) {
+        const consumed = await consumePromoReservation({
+          razorpayOrderId: razorpay_order_id,
+          userId: req.user.userId,
+          purchaseId: lockedPurchase._id,
+          session,
+        });
+
+        if (!consumed) {
+          throw Object.assign(
+            new Error(
+              "Promo reservation could not be finalized. Please contact support before retrying."
+            ),
+            { statusCode: 409 }
+          );
+        }
+      }
+
+      lockedPurchase.razorpayPaymentId = razorpay_payment_id;
+      lockedPurchase.paymentStatus = "paid";
+      lockedPurchase.purchasedAt = new Date();
+
+      await lockedPurchase.save({ session });
+    });
+  } finally {
+    await session.endSession();
+  }
 
   return successResponse({
     res,
