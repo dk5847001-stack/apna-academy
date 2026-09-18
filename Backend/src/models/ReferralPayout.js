@@ -23,9 +23,6 @@ const referralPayoutSchema = new mongoose.Schema(
       index: true,
     },
 
-    /*
-     * The exact wallet amount locked for this payout.
-     */
     amountPaise: {
       type: Number,
       required: true,
@@ -56,10 +53,6 @@ const referralPayoutSchema = new mongoose.Schema(
       index: true,
     },
 
-    /*
-     * Provider-side destination identifiers will be stored in later phases.
-     * Raw bank/UPI secrets should not be duplicated in payout documents.
-     */
     providerFundAccountId: {
       type: String,
       default: null,
@@ -70,7 +63,7 @@ const referralPayoutSchema = new mongoose.Schema(
 
     destinationSnapshot: {
       type: mongoose.Schema.Types.Mixed,
-      default: null,
+      required: true,
     },
 
     requestedAt: {
@@ -80,6 +73,11 @@ const referralPayoutSchema = new mongoose.Schema(
     },
 
     approvedAt: {
+      type: Date,
+      default: null,
+    },
+
+    processingAt: {
       type: Date,
       default: null,
     },
@@ -94,11 +92,23 @@ const referralPayoutSchema = new mongoose.Schema(
       default: null,
     },
 
+    reconciledAt: {
+      type: Date,
+      default: null,
+    },
+
     failureReason: {
       type: String,
       default: null,
       trim: true,
       maxlength: 500,
+    },
+
+    failureCode: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 120,
     },
 
     rejectionReason: {
@@ -120,23 +130,64 @@ const referralPayoutSchema = new mongoose.Schema(
       maxlength: 500,
     },
 
-    /*
-     * Provider payout identifiers are unique when present.
-     */
     providerPayoutId: {
       type: String,
       default: null,
       trim: true,
       maxlength: 200,
+      select: false,
+    },
+
+    providerStatus: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 80,
+    },
+
+    providerReferenceId: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 80,
+    },
+
+    providerUtr: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 120,
+    },
+
+    providerFailureReason: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 500,
+    },
+
+    providerFailureCode: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 120,
     },
 
     idempotencyKey: {
       type: String,
-      default: null,
+      required: true,
       trim: true,
       maxlength: 200,
       unique: true,
-      sparse: true,
+    },
+
+    correlationId: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200,
+      unique: true,
+      index: true,
     },
 
     adminActor: {
@@ -169,10 +220,16 @@ referralPayoutSchema.index(
     },
   }
 );
-
-const ReferralPayout = mongoose.model(
-  "ReferralPayout",
-  referralPayoutSchema
+referralPayoutSchema.index(
+  { providerReferenceId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      providerReferenceId: { $type: "string", $ne: "" },
+    },
+  }
 );
+
+const ReferralPayout = mongoose.model("ReferralPayout", referralPayoutSchema);
 
 export default ReferralPayout;
