@@ -250,6 +250,7 @@ export default function Register() {
         throw new Error("Email was verified, but the server returned an invalid user response.");
       }
 
+      sessionStorage.removeItem("apnaacademy_referral_code");
       setSuccess("Email verified successfully. Opening your dashboard...");
       window.setTimeout(() => {
         window.location.replace(getDashboardUrl());
