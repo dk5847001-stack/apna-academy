@@ -2,6 +2,7 @@ import { Router } from "express";
 import authRoutes from "./auth.routes.js";
 import courseRoutes from "./course.routes.js";
 import paymentRoutes from "./payment.routes.js";
+import promoCodeRoutes from "./promoCode.routes.js";
 import learningRoutes from "./learning.routes.js";
 import progressRoutes from "./progress.routes.js";
 import assessmentRoutes from "./assessment.routes.js";
@@ -36,6 +37,7 @@ router.get("/", (req, res) => res.status(200).json({ success: true, message: "Ap
 router.use("/auth", authRoutes);
 router.use("/courses", courseRoutes);
 router.use("/payments", paymentRoutes);
+router.use("/promocodes", promoCodeRoutes);
 router.use("/learning", learningRoutes);
 router.use("/progress", progressRoutes);
 router.use("/assessment", assessmentRoutes);
