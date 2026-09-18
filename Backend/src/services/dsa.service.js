@@ -1,6 +1,7 @@
 import DsaEntitlement from "../models/DsaEntitlement.js";
 import DsaProblem from "../models/DsaProblem.js";
 import DsaProgress from "../models/DsaProgress.js";
+import DsaStudyPlan from "../models/DsaStudyPlan.js";
 
 const FREE_PERCENT = 20;
 
@@ -149,6 +150,28 @@ export const getProblemBySlug = async (userId, slug) => {
     return { locked: true, slug: problem.slug, title: problem.title, difficulty: problem.difficulty, topics: problem.topics, companies: problem.companies };
   }
   return { ...problem, locked: false };
+};
+
+export const getDsaSeoIndex = async () => {
+  const [problems, studyPlans] = await Promise.all([
+    DsaProblem.find({ status: "PUBLISHED" })
+      .select("slug title description difficulty topics isPremium order updatedAt")
+      .sort({ order: 1, createdAt: 1 })
+      .lean(),
+    DsaStudyPlan.find({ isPublished: true })
+      .select("slug title description durationDays level focus order updatedAt")
+      .sort({ order: 1, durationDays: 1 })
+      .lean(),
+  ]);
+
+  return {
+    problems: problems.map(({ slug, title, description, difficulty, topics, isPremium, order, updatedAt }) => ({
+      slug, title, description, difficulty, topics, isPremium, order, updatedAt,
+    })),
+    studyPlans: studyPlans.map(({ slug, title, description, durationDays, level, focus, order, updatedAt }) => ({
+      slug, title, description, durationDays, level, focus, order, updatedAt,
+    })),
+  };
 };
 
 export const getProgress = async (userId) => {
