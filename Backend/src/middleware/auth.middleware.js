@@ -114,10 +114,24 @@ export const authenticate = async (req, res, next) => {
     }
 
     if (user.status !== "active") {
+      const isSecurityFrozen = user.status === "suspended";
+
       return res.status(403).json({
         success: false,
-        message: "Your account is not active.",
-        code: "ACCOUNT_INACTIVE",
+        message: isSecurityFrozen
+          ? "Your account has been automatically frozen after reaching the concurrent login security limit. Please contact support for account review."
+          : "Your account is not active.",
+        code: isSecurityFrozen
+          ? "ACCOUNT_SECURITY_FROZEN"
+          : "ACCOUNT_INACTIVE",
+        ...(isSecurityFrozen && {
+          security: {
+            concurrentLoginDetected: true,
+            detectionCount: user.concurrentLoginDetectionCount || 0,
+            detectionLimit: 5,
+            accountFrozen: true,
+          },
+        }),
       });
     }
 
