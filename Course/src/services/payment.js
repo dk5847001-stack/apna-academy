@@ -1,5 +1,15 @@
 import api from "./api";
 
+export const validatePromoCode = async ({ code, courseId, amount }) => {
+  const response = await api.post("/promocodes/validate", {
+    code,
+    courseId,
+    amount,
+  });
+
+  return response.data;
+};
+
 const RAZORPAY_CHECKOUT_URL =
   "https://checkout.razorpay.com/v1/checkout.js";
 
