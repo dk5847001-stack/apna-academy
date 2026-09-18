@@ -45,8 +45,16 @@ api.interceptors.response.use(
     }
 
     if (status === 401) {
+      const responseData = error?.response?.data || {};
+
       window.dispatchEvent(
-        new Event("apnaacademy-auth-change")
+        new CustomEvent("apnaacademy-auth-change", {
+          detail: {
+            code: responseData.code || null,
+            message: responseData.message || "Your session is no longer valid.",
+            security: responseData.security || null,
+          },
+        })
       );
     }
 
