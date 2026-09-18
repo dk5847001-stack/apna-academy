@@ -49,6 +49,9 @@ const audit = async ({
   );
 };
 
+const getPayoutTransactionReference = (payout) =>
+  payout?.payoutTransactionId || payout?._id?.toString();
+
 const validatePayoutForProvider = (payout) => {
   if (!payout) throw fail("Referral payout not found.", 404, "PAYOUT_NOT_FOUND");
   if (payout.currency !== "INR") {
@@ -738,7 +741,7 @@ export const processReferralPayout = async ({ payoutId, adminId }) => {
         currency: payout.currency,
         providerFundAccountId: payout.providerFundAccountId,
         payoutMethod: payout.payoutMethod,
-        referenceId: payout.payoutTransactionId,
+        referenceId: getPayoutTransactionReference(payout),
         idempotencyKey: payout.idempotencyKey,
       });
     } catch (error) {
@@ -775,7 +778,7 @@ export const reconcileReferralPayout = async ({ payoutId, adminId }) => {
   if (payout.providerPayoutId) {
     providerList = [await fetchPayout(payout.providerPayoutId)];
   } else {
-    providerList = await fetchPayoutByReference(payout.payoutTransactionId);
+    providerList = await fetchPayoutByReference(getPayoutTransactionReference(payout));
   }
 
   if (!providerList.length) {
