@@ -86,6 +86,19 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
+    blockedAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    blockReason: {
+      type: String,
+      default: null,
+      select: false,
+      maxlength: 500,
+    },
+
     status: {
       type: String,
       enum: ["active", "inactive", "suspended"],
