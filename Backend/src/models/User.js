@@ -60,6 +60,16 @@ const userSchema = new mongoose.Schema(
       index: true,
     },
 
+    // Preserved until registration attribution is successfully created.
+    pendingReferralCode: {
+      type: String,
+      default: null,
+      trim: true,
+      uppercase: true,
+      maxlength: 32,
+      select: false,
+    },
+
     isEmailVerified: {
       type: Boolean,
       default: false,
