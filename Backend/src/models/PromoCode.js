@@ -179,6 +179,19 @@ const promoCodeSchema = new mongoose.Schema(
      * Incremented only after a successfully completed/verified purchase.
      * It must never be trusted for frontend pricing.
      */
+    reservedCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+      validate: {
+        validator(value) {
+          return Number.isInteger(value);
+        },
+        message: "Reserved count must be a whole number.",
+      },
+      index: true,
+    },
+
     usedCount: {
       type: Number,
       default: 0,
