@@ -1,18 +1,17 @@
-import nodemailer from "nodemailer";
-
 const getEmailConfig = () => {
-  const user = process.env.APP_EMAIL?.trim();
-  const password = process.env.APP_PASSWORD?.trim();
+  const apiKey = process.env.BREVO_API_KEY?.trim();
+  const senderEmail = process.env.BREVO_SENDER_EMAIL?.trim() || process.env.APP_EMAIL?.trim();
+  const senderName = process.env.BREVO_SENDER_NAME?.trim() || "ApnaAcademy";
 
-  if (!user || !password) {
+  if (!apiKey || !senderEmail) {
     const error = new Error(
-      "Email service is not configured. Set APP_EMAIL and APP_PASSWORD in the backend environment."
+      "Email service is not configured. Set BREVO_API_KEY and BREVO_SENDER_EMAIL in the backend environment."
     );
     error.statusCode = 503;
     throw error;
   }
 
-  return { user, password };
+  return { apiKey, senderEmail, senderName };
 };
 
 const getFrontendPublicUrl = () => {
@@ -57,27 +56,36 @@ const escapeHtml = (value = "") =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 
-let transporter;
+const sendTransactionalEmail = async ({ to, toName, subject, textContent, htmlContent }) => {
+  const { apiKey, senderEmail, senderName } = getEmailConfig();
 
-const getTransporter = () => {
-  if (transporter) return transporter;
-
-  const { user, password } = getEmailConfig();
-
-  transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user,
-      pass: password,
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      "api-key": apiKey,
     },
-    tls: {
-      minVersion: "TLSv1.2",
-    },
+    body: JSON.stringify({
+      sender: { name: senderName, email: senderEmail },
+      to: [{ email: to, ...(toName ? { name: toName } : {}) }],
+      subject,
+      textContent,
+      htmlContent,
+    }),
+    signal: AbortSignal.timeout(30000),
   });
 
-  return transporter;
+  if (!response.ok) {
+    const details = await response.text().catch(() => "");
+    const error = new Error(
+      `Brevo email API failed with HTTP ${response.status}${details ? `: ${details}` : ""}`
+    );
+    error.statusCode = response.status >= 500 ? 502 : 503;
+    throw error;
+  }
+
+  return response.json().catch(() => ({}));
 };
 
 export const sendEmailVerificationOtp = async ({
@@ -86,15 +94,15 @@ export const sendEmailVerificationOtp = async ({
   otp,
   expiresInMinutes = 10,
 }) => {
-  const { user } = getEmailConfig();
+  const { senderEmail } = getEmailConfig();
   const safeName = escapeHtml(String(name || "Student").trim() || "Student");
 
-  await getTransporter().sendMail({
-    from: `ApnaAcademy <${user}>`,
+  await sendTransactionalEmail({
     to,
+    toName: String(name || "Student").trim() || "Student",
     subject: `${otp} is your ApnaAcademy verification code`,
-    text: `Hi ${safeName},\n\nYour ApnaAcademy email verification code is ${otp}. It expires in ${expiresInMinutes} minutes.\n\nIf you did not request this, you can safely ignore this email.\n\nApnaAcademy`,
-    html: `
+    textContent: `Hi ${safeName},\n\nYour ApnaAcademy email verification code is ${otp}. It expires in ${expiresInMinutes} minutes.\n\nIf you did not request this, you can safely ignore this email.\n\nApnaAcademy`,
+    htmlContent: `
       <div style="margin:0;padding:32px 16px;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
         <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(15,23,42,.08)">
           <div style="padding:28px 32px;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff">
@@ -113,8 +121,7 @@ export const sendEmailVerificationOtp = async ({
           </div>
           <div style="padding:18px 32px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px">© ${new Date().getFullYear()} ApnaAcademy. All rights reserved.</div>
         </div>
-      </div>
-    `,
+      </div>`,
   });
 };
 
@@ -124,19 +131,19 @@ export const sendPasswordResetEmail = async ({
   token,
   expiresInMinutes = 15,
 }) => {
-  const { user } = getEmailConfig();
+  const { senderEmail } = getEmailConfig();
   const safeName = escapeHtml(String(name || "Student").trim() || "Student");
   const frontendUrl = getFrontendPublicUrl();
   const resetUrl = new URL("/reset-password", `${frontendUrl}/`);
   resetUrl.searchParams.set("token", token);
   const resetLink = resetUrl.toString();
 
-  await getTransporter().sendMail({
-    from: `ApnaAcademy <${user}>`,
+  await sendTransactionalEmail({
     to,
+    toName: String(name || "Student").trim() || "Student",
     subject: "Reset your ApnaAcademy password",
-    text: `Hi ${name || "Student"},\n\nWe received a request to reset your ApnaAcademy password. Use the link below to choose a new password:\n\n${resetLink}\n\nThis link expires in ${expiresInMinutes} minutes and can only be used once. If you did not request a password reset, you can safely ignore this email.\n\nApnaAcademy`,
-    html: `
+    textContent: `Hi ${name || "Student"},\n\nWe received a request to reset your ApnaAcademy password. Use the link below to choose a new password:\n\n${resetLink}\n\nThis link expires in ${expiresInMinutes} minutes and can only be used once. If you did not request a password reset, you can safely ignore this email.\n\nApnaAcademy`,
+    htmlContent: `
       <div style="margin:0;padding:32px 16px;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
         <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(15,23,42,.08)">
           <div style="padding:28px 32px;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff">
@@ -157,7 +164,6 @@ export const sendPasswordResetEmail = async ({
           </div>
           <div style="padding:18px 32px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px">© ${new Date().getFullYear()} ApnaAcademy. All rights reserved.</div>
         </div>
-      </div>
-    `,
+      </div>`,
   });
 };
