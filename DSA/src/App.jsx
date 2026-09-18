@@ -5,6 +5,7 @@ import Problems from "./pages/Problems.jsx";
 import ProblemDetails from "./pages/ProblemDetails.jsx";
 import Topics from "./pages/Topics.jsx";
 import Companies from "./pages/Companies.jsx";
+import CompanyDetails from "./pages/CompanyDetails.jsx";
 import DailyChallenge from "./pages/DailyChallenge.jsx";
 import StudyPlans from "./pages/StudyPlans.jsx";
 import StudyPlanDetails from "./pages/StudyPlanDetails.jsx";
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="practice/code" element={<div />} />
         <Route path="topics" element={<Topics />} />
         <Route path="companies" element={<Companies />} />
+    <Route path="companies/:slug" element={<CompanyDetails />} />
         <Route path="daily-challenge" element={<DailyChallenge />} />
         <Route path="study-plans" element={<StudyPlans />} />
         <Route path="study-plans/:slug" element={<StudyPlanDetails />} />
