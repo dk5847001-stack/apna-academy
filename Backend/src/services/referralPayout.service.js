@@ -9,6 +9,7 @@ import User from "../models/User.js";
 import { evaluateReferralWithdrawalRisk, recordReferralRiskEvent } from "./referralRisk.service.js";
 import { ensureFundAccount } from "./razorpayX.service.js";
 import { isRazorpayXEnabled } from "../config/razorpayX.js";
+import { encryptPayoutSecret } from "../utils/payoutSecret.js";
 
 const MIN_WITHDRAWAL_PAISE = Number.isSafeInteger(Number(process.env.REFERRAL_MIN_WITHDRAWAL_PAISE)) ? Number(process.env.REFERRAL_MIN_WITHDRAWAL_PAISE) : 19900;
 const MAX_WITHDRAWAL_PAISE = Number.isSafeInteger(Number(process.env.REFERRAL_MAX_WITHDRAWAL_PAISE)) ? Number(process.env.REFERRAL_MAX_WITHDRAWAL_PAISE) : 10000000;
@@ -260,8 +261,9 @@ export const requestReferralWithdrawal = async ({
 
   destinationRecord.method = destination.method;
   destinationRecord.accountHolderName = destination.accountHolderName;
-  destinationRecord.upiId =
-    destination.method === "upi" ? destination.upiId : null;
+  destinationRecord.upiId = null;
+  destinationRecord.encryptedUpiId =
+    destination.method === "upi" ? encryptPayoutSecret(destination.upiId) : null;
   destinationRecord.accountNumberLast4 =
     destination.method === "bank" ? destination.accountNumberLast4 : null;
   destinationRecord.ifsc =
