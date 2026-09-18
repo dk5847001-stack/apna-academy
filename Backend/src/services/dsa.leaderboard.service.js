@@ -12,23 +12,24 @@ export const getDsaLeaderboard = async (userId, { page = 1, limit = 50 } = {}) =
   const safeLimit = clampInt(limit, 50, 100);
   const skip = (safePage - 1) * safeLimit;
 
-  const [rows, currentProgress, participantCount] = await Promise.all([
+  const [rows, currentProgress] = await Promise.all([
     DsaProgress.aggregate([
       { $match: { totalSolved: { $gt: 0 } } },
-      { $sort: { totalSolved: -1, xp: -1, longestStreak: -1, updatedAt: 1, _id: 1 } },
-      { $skip: skip },
-      { $limit: safeLimit },
       { $lookup: { from: User.collection.name, localField: "userId", foreignField: "_id", as: "user" } },
       { $unwind: "$user" },
       { $match: { "user.status": "active", "user.role": "user" } },
+      { $sort: { totalSolved: -1, xp: -1, longestStreak: -1, updatedAt: 1, _id: 1 } },
+      { $skip: skip },
+      { $limit: safeLimit },
       { $project: {
         userId: 1, name: "$user.name", avatar: "$user.avatar",
         totalSolved: 1, totalAttempted: 1, xp: 1, currentStreak: 1, longestStreak: 1,
       } },
     ]),
     DsaProgress.findOne({ userId }).select("totalSolved totalAttempted xp currentStreak longestStreak").lean(),
-    DsaProgress.countDocuments({ totalSolved: { $gt: 0 } }),
   ]);
+
+  const participantCount = await DsaProgress.countDocuments({ totalSolved: { $gt: 0 } });
 
   const items = rows.map((item, index) => ({
     rank: skip + index + 1,
