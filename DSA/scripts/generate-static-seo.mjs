@@ -38,10 +38,10 @@ const setMeta = (html, attr, key, content) => {
   const tag = `<meta ${attr}="${key}" content="${safe}">`;
   return replaceOrAdd(html, regex, tag);
 };
-const setCanonical = (html, url) => replaceOrAdd(html, /<link\\s+[^>]*rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${escapeHtml(url)}">`);
+const setCanonical = (html, url) => replaceOrAdd(html, /<link\s+[^>]*rel=["']canonical["'][^>]*>/i, `<link rel="canonical" href="${escapeHtml(url)}">`);
 const setJsonLd = (html, graph) => replaceOrAdd(
   html,
-  /<script\\s+type=["']application\\/ld\\+json["'][^>]*>[\\s\\S]*?<\\/script>/i,
+  /<script\s+type=["']application\\/ld\\+json["'][^>]*>[\s\S]*?<\/script>/i,
   `<script type="application/ld+json">${escapeJson({ "@context": "https://schema.org", "@graph": graph })}</script>`,
 );
 
@@ -51,7 +51,7 @@ const breadcrumb = (route, title) => {
   let current = "";
   parts.forEach((part, index) => {
     current += "/" + part;
-    itemList.push({ "@type": "ListItem", position: index + 2, name: part.replace(/-/g, " ").replace(/\\b\\w/g, (m) => m.toUpperCase()), item: canonical(current) });
+    itemList.push({ "@type": "ListItem", position: index + 2, name: part.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase()), item: canonical(current) });
   });
   if (parts.length) itemList[itemList.length - 1].name = title;
   return { "@type": "BreadcrumbList", itemListElement: itemList };
@@ -59,7 +59,7 @@ const breadcrumb = (route, title) => {
 
 const render = ({ route, title, description, type, extra }) => {
   let html = fs.readFileSync(templatePath, "utf8");
-  html = html.replace(/<title>[^<]*<\\/title>/i, `<title>${escapeHtml(title)}</title>`);
+  html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtml(title)}</title>`);
   html = setMeta(html, "name", "description", description);
   html = setMeta(html, "name", "robots", "index, follow, max-image-preview:large");
   html = setMeta(html, "name", "googlebot", "index, follow, max-image-preview:large");
@@ -80,7 +80,6 @@ const render = ({ route, title, description, type, extra }) => {
   return setJsonLd(html, graph);
 };
 
-const base = fs.readFileSync(templatePath, "utf8");
 const routes = [
   { route: "/", title: "ApnaAcademy DSA – Data Structures & Algorithms", description: "Practice Data Structures and Algorithms with interview problems, topics, company patterns, daily challenges and structured study plans.", type: "WebPage" },
   { route: "/practice", title: "DSA Practice – Coding Problems | ApnaAcademy", description: "Practice published Data Structures and Algorithms problems with difficulty, topics, companies and coding patterns.", type: "CollectionPage" },
