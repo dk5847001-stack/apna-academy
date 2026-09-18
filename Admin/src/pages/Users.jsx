@@ -37,7 +37,7 @@ import {
   WorkspacePremiumOutlined,
 } from "@mui/icons-material";
 import { getApiErrorMessage } from "../services/api";
-import { getAdminUserDetails, listAdminUsers, updateAdminUser } from "../services/adminUser.service";
+import { activateAdminUser, blockAdminUser, getAdminUserDetails, listAdminUsers, suspendAdminUser, unblockAdminUser, unfreezeAdminUser, updateAdminUser } from "../services/adminUser.service";
 
 const statusColor = { active: "success", inactive: "default", suspended: "error" };
 const money = (amount, currency = "INR") => {
@@ -73,6 +73,7 @@ export default function Users({ admin }) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState(0);
   const [confirm, setConfirm] = useState(null);
+  const [actionReason, setActionReason] = useState("");
 
   const load = async (page = 1) => {
     try {
@@ -116,15 +117,29 @@ export default function Users({ admin }) {
     try {
       setSaving(true);
       setError("");
-      const updated = await updateAdminUser(selected.user.id, { [confirm.field]: confirm.value });
+      let updated;
+      if (confirm.action === "block") updated = await blockAdminUser(selected.user.id, actionReason);
+      else if (confirm.action === "suspend") updated = await suspendAdminUser(selected.user.id, actionReason);
+      else if (confirm.action === "unblock") updated = await unblockAdminUser(selected.user.id);
+      else if (confirm.action === "activate") updated = await activateAdminUser(selected.user.id);
+      else if (confirm.action === "unfreeze") updated = await unfreezeAdminUser(selected.user.id);
+      else updated = await updateAdminUser(selected.user.id, { [confirm.field]: confirm.value });
       setSelected((current) => ({ ...current, user: updated }));
       setUsers((items) => items.map((item) => item.id === updated.id ? updated : item));
       setConfirm(null);
+      setActionReason("");
     } catch (err) {
-      setError(getApiErrorMessage(err, "Unable to update user."));
+      setError(getApiErrorMessage(err, "Unable to update user account."));
     } finally {
       setSaving(false);
     }
+  };
+
+  const requestAccountAction = (action) => {
+    if (!selected?.user || saving || selected.user.id === admin?.id) return;
+    const labels = { block: "block this user", suspend: "suspend this user", unblock: "unblock this user", activate: "activate this user", unfreeze: "remove the security freeze from this user" };
+    setActionReason("");
+    setConfirm({ action, label: labels[action] || "change this user's account status" });
   };
 
   const summary = selected?.summary || {};
@@ -178,6 +193,18 @@ export default function Users({ admin }) {
             <Metric icon={<BadgeOutlined />} label="Certificates" value={summary.certificates ?? 0} />
           </div>
 
+          <Paper elevation={0} className="rounded-2xl border border-slate-200 p-4 sm:p-5">
+            <Typography variant="subtitle1" className="font-extrabold">Account actions</Typography>
+            <Typography variant="body2" className="mt-1 text-slate-500">Manage this user's access. Buttons stay visible; unavailable actions are disabled.</Typography>
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              <Button fullWidth variant="outlined" color="error" disabled={saving || selected.user.id === admin?.id || selected.user.role === "admin" || selected.user.status !== "active"} onClick={() => requestAccountAction("block")}>Block User</Button>
+              <Button fullWidth variant="outlined" color="warning" disabled={saving || selected.user.id === admin?.id || selected.user.role === "admin" || selected.user.status !== "active"} onClick={() => requestAccountAction("suspend")}>Suspend User</Button>
+              <Button fullWidth variant="outlined" disabled={saving || selected.user.id === admin?.id || selected.user.status !== "inactive"} onClick={() => requestAccountAction("unblock")}>Unblock User</Button>
+              <Button fullWidth variant="outlined" color="success" disabled={saving || selected.user.id === admin?.id || selected.user.status !== "suspended" || Boolean(selected.user.securityFrozenAt)} onClick={() => requestAccountAction("activate")}>Activate User</Button>
+              <Button fullWidth variant="outlined" color="warning" disabled={saving || selected.user.id === admin?.id || selected.user.status !== "suspended" || !selected.user.securityFrozenAt} onClick={() => requestAccountAction("unfreeze")}>Security Unfreeze</Button>
+            </div>
+          </Paper>
+
           <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="scrollable" allowScrollButtonsMobile>
             <Tab label="Overview" />
             <Tab label={`Purchases (${purchaseRows.length})`} />
@@ -207,7 +234,14 @@ export default function Users({ admin }) {
       <DialogActions><Button onClick={() => setOpen(false)} disabled={saving}>Close</Button></DialogActions>
     </Dialog>
 
-    <Dialog open={Boolean(confirm)} onClose={() => !saving && setConfirm(null)} maxWidth="xs" fullWidth><DialogTitle className="font-extrabold flex items-center gap-2"><WarningAmberOutlined /> Confirm change</DialogTitle><DialogContent><Typography className="text-slate-600">Are you sure you want to change this user's {confirm?.label} to <strong>{confirm?.value}</strong>?</Typography></DialogContent><DialogActions><Button onClick={() => setConfirm(null)} disabled={saving}>Cancel</Button><Button variant="contained" onClick={change} disabled={saving}>{saving ? "Saving..." : "Confirm"}</Button></DialogActions></Dialog>
+    <Dialog open={Boolean(confirm)} onClose={() => !saving && setConfirm(null)} maxWidth="sm" fullWidth>
+      <DialogTitle className="font-extrabold flex items-center gap-2"><WarningAmberOutlined /> Confirm account action</DialogTitle>
+      <DialogContent dividers>
+        <Typography className="text-slate-600">Are you sure you want to <strong>{confirm?.label}</strong>?</Typography>
+        {(confirm?.action === "block" || confirm?.action === "suspend") && <TextField fullWidth multiline minRows={3} className="mt-4" label={confirm.action === "suspend" ? "Suspension reason (optional)" : "Block reason (optional)"} value={actionReason} onChange={(e) => setActionReason(e.target.value)} inputProps={{ maxLength: 500 }} />}
+      </DialogContent>
+      <DialogActions><Button onClick={() => setConfirm(null)} disabled={saving}>Cancel</Button><Button color={confirm?.action === "block" ? "error" : confirm?.action === "suspend" ? "warning" : "primary"} variant="contained" onClick={change} disabled={saving}>{saving ? "Saving..." : "Confirm"}</Button></DialogActions>
+    </Dialog>
   </Box>;
 }
 
