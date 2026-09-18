@@ -3,6 +3,11 @@ import crypto from "crypto";
 import Course from "../models/Course.js";
 import Purchase from "../models/Purchase.js";
 import { validatePromoCode } from "../services/promoCode.service.js";
+import {
+  consumePromoReservation,
+  releasePromoReservation,
+  reservePromoForOrder,
+} from "../services/promoReservation.service.js";
 
 import razorpay from "../config/razorpay.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -106,7 +111,31 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
     },
   });
 
-  await Purchase.create({
+  let promoReservation = null;
+
+  if (appliedPromo?.promo?.id) {
+    promoReservation = await reservePromoForOrder({
+      promoCodeId: appliedPromo.promo.id,
+      userId: req.user.userId,
+      courseId: course._id,
+      razorpayOrderId: order.id,
+      pricing: appliedPromo.pricing,
+    });
+
+    if (!promoReservation) {
+      return res.status(409).json({
+        success: false,
+        code: "PROMO_CHECKOUT_LIMIT_REACHED",
+        message:
+          "This promo code is currently unavailable because its usage limit has been reached. Please try again or remove the promo code.",
+      });
+    }
+  }
+
+  let purchase;
+
+  try {
+    purchase = await Purchase.create({
     user: req.user.userId,
     course: course._id,
     razorpayOrderId: order.id,
@@ -123,9 +152,23 @@ export const createPaymentOrder = asyncHandler(async (req, res) => {
           promoDiscountValue: appliedPromo.promo.discountValue,
           promoDiscountAmount: Number(appliedPromo.pricing.discountAmount),
           originalAmount: Number(appliedPromo.pricing.originalAmount),
+          promoReservation: promoReservation._id,
         }
       : {}),
-  });
+    });
+
+    if (promoReservation) {
+      await promoReservation.updateOne({ $set: { purchase: purchase._id } });
+    }
+  } catch (error) {
+    if (promoReservation) {
+      await releasePromoReservation({
+        razorpayOrderId: order.id,
+        userId: req.user.userId,
+      });
+    }
+    throw error;
+  }
 
   return successResponse({
     res,
