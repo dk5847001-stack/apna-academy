@@ -21,6 +21,7 @@ const createSessionId = () => crypto.randomUUID();
  */
 const MAX_CONCURRENT_LOGIN_HISTORY = 20;
 const SESSION_UPDATE_RETRIES = 5;
+const CONCURRENT_LOGIN_DETECTION_LIMIT = 5;
 
 const establishSession = async (user, { ipAddress = null, userAgent = null, source = "login" } = {}) => {
   for (let attempt = 0; attempt < SESSION_UPDATE_RETRIES; attempt += 1) {
@@ -57,12 +58,23 @@ const establishSession = async (user, { ipAddress = null, userAgent = null, sour
       },
     };
 
+    let detectionNumber = null;
+
     if (hadPreviousSession) {
-      const detectionNumber =
+      detectionNumber =
         (currentUser.concurrentLoginDetectionCount || 0) + 1;
 
       update.$inc = { concurrentLoginDetectionCount: 1 };
       update.$set.lastConcurrentLoginDetectedAt = issuedAt;
+
+      if (detectionNumber >= CONCURRENT_LOGIN_DETECTION_LIMIT) {
+        update.$set.status = "suspended";
+        update.$set.securityFrozenAt = issuedAt;
+        update.$set.securityFreezeReason =
+          "Automatic security freeze after repeated concurrent login detections.";
+        update.$set.activeSessionId = null;
+        update.$set.activeSessionIssuedAt = null;
+      }
       update.$push = {
         concurrentLoginDetectionHistory: {
           $each: [
@@ -111,6 +123,20 @@ const establishSession = async (user, { ipAddress = null, userAgent = null, sour
         userId: user._id,
         detectionNumber: detectionCount,
       });
+
+      if (detectionNumber >= CONCURRENT_LOGIN_DETECTION_LIMIT) {
+        const error = new Error(
+          "Your account has been automatically frozen after reaching the concurrent login security limit. Please contact support for account review."
+        );
+        error.statusCode = 403;
+        error.code = "ACCOUNT_SECURITY_FROZEN";
+        error.security = {
+          detectionCount,
+          detectionLimit: CONCURRENT_LOGIN_DETECTION_LIMIT,
+          accountFrozen: true,
+        };
+        throw error;
+      }
     }
 
     return {
