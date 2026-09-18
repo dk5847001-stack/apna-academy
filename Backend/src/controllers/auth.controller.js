@@ -24,7 +24,7 @@ const getCookieOptions = () => {
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "lax",
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
@@ -36,7 +36,6 @@ const setAuthenticationCookie = (res, token) => {
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
-
   const errors = validateRegisterInput({ name, email, password });
 
   if (Object.keys(errors).length > 0) {
@@ -90,7 +89,6 @@ export const verifyRegistrationEmail = asyncHandler(async (req, res) => {
   }
 
   const result = await verifyEmailOtp({ email, otp });
-
   setAuthenticationCookie(res, result.token);
 
   return successResponse({
@@ -102,7 +100,6 @@ export const verifyRegistrationEmail = asyncHandler(async (req, res) => {
 
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
   const errors = validateLoginInput({ email, password });
 
   if (Object.keys(errors).length > 0) {
@@ -113,7 +110,6 @@ export const login = asyncHandler(async (req, res) => {
   }
 
   const result = await loginUser({ email, password });
-
   setAuthenticationCookie(res, result.token);
 
   return successResponse({
@@ -133,13 +129,9 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  // Keep the response identical for valid email-shaped input so callers
-  // cannot discover whether an account exists.
   try {
     await createPasswordResetToken(normalizedEmail);
   } catch (error) {
-    // SMTP/provider failures must not turn this endpoint into an account
-    // enumeration oracle. The service clears the reset token before throwing.
     if (error?.code !== "PASSWORD_RESET_EMAIL_FAILED") {
       throw error;
     }
@@ -189,10 +181,10 @@ export const me = asyncHandler(async (req, res) => {
 export const logout = async (req, res) => {
   const isProduction = process.env.NODE_ENV === "production";
 
-  res.clearCookie("apnaacademy_token", {
+  res.clearCookie(AUTH_COOKIE_NAME, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "lax",
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
   });
 
