@@ -27,20 +27,16 @@ const referralPayoutSchema = new mongoose.Schema(
     // the client and are never used as provider secrets.
     withdrawalId: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
       maxlength: 64,
-      unique: true,
-      index: true,
     },
 
     payoutTransactionId: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
       maxlength: 64,
-      unique: true,
-      index: true,
     },
 
     amountPaise: {
@@ -227,6 +223,15 @@ const referralPayoutSchema = new mongoose.Schema(
   {
     timestamps: true,
   }
+);
+
+referralPayoutSchema.index(
+  { withdrawalId: 1 },
+  { unique: true, partialFilterExpression: { withdrawalId: { $type: "string" } } }
+);
+referralPayoutSchema.index(
+  { payoutTransactionId: 1 },
+  { unique: true, partialFilterExpression: { payoutTransactionId: { $type: "string" } } }
 );
 
 referralPayoutSchema.index({ user: 1, status: 1, createdAt: -1 });
