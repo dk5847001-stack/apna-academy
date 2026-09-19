@@ -1,18 +1,18 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  "http://localhost:5000/api/v1";
+  "https://api.apnaacademy.me/api/v1";
 
 export const FRONTEND_URL =
   import.meta.env.VITE_FRONTEND_URL ||
-  "http://localhost:5174";
+  "https://apnaacademy.me";
 
 export const DASHBOARD_URL =
   import.meta.env.VITE_DASHBOARD_URL ||
-  "http://localhost:5175";
+  "https://dashboard.apnaacademy.me";
 
 export const COURSE_URL =
   import.meta.env.VITE_COURSE_URL ||
-  "http://localhost:5173";
+  "https://course.apnaacademy.me";
 
 export const APP_NAME = "ApnaAcademy";
 
