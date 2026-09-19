@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 import {
   Avatar,
@@ -447,7 +447,8 @@ export default function Home() {
                   variant="contained"
                   size="large"
                   endIcon={<ArrowForward />}
-                  onClick={() => navigate("/courses")}
+                  component={RouterLink}
+                  to="/courses"
                   className="
                     !rounded-xl
                     !bg-blue-600
