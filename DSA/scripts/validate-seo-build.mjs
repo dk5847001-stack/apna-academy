@@ -21,7 +21,7 @@ const readDotEnv = (file) => {
 };
 
 const env = { ...readDotEnv(".env"), ...readDotEnv(".env.local"), ...process.env };
-const siteUrl = (env.VITE_DSA_URL || "http://localhost:5173").replace(/\/$/, "");
+const siteUrl = (env.VITE_DSA_URL || "https://dsa.apnaacademy.me").replace(/\/$/, "");
 const isLocalBuild = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(siteUrl.replace(/^https?:\/\//i, ""));
 
 const fail = (message) => {
