@@ -37,7 +37,7 @@ const FALLBACK_THUMBNAIL =
   "https://placehold.co/1280x720/e2e8f0/334155?text=ApnaAcademy";
 
 const COURSE_APP_URL =
-  import.meta.env.VITE_COURSE_URL || "http://localhost:5174";
+  import.meta.env.VITE_COURSE_URL || "https://course.apnaacademy.me";
 
 function formatPrice(price) {
   const numericPrice = Number(price);
