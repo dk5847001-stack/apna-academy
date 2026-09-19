@@ -76,18 +76,26 @@ const replaceMetaContent = (
   });
 };
 
-const replaceCanonical = (html, value) =>
-  html.replace(
-    /<link\s+[^>]*rel\s*=\s*["']canonical["'][^>]*>/i,
-    (tag) => {
-      const hrefPattern = /href\s*=\s*["'][^"']*["']/i;
+const ensureCanonical = (html, value) => {
+  const canonicalPattern =
+    /<link\\s+[^>]*rel\\s*=\\s*["']canonical["'][^>]*>/i;
+
+  if (canonicalPattern.test(html)) {
+    return html.replace(canonicalPattern, (tag) => {
+      const hrefPattern = /href\\s*=\\s*["'][^"']*["']/i;
       if (!hrefPattern.test(tag)) {
         return tag;
       }
 
       return tag.replace(hrefPattern, `href="${value}"`);
-    }
+    });
+  }
+
+  return html.replace(
+    /<\\/head>/i,
+    `    <link rel="canonical" href="${value}" />\\n  </head>`
   );
+};
 
 const ensureOgUrl = (html, value) => {
   const ogUrlPattern =
@@ -124,7 +132,7 @@ indexHtml = replaceMetaContent(
   "twitter:image",
   `${origin}/favicon.png`
 );
-indexHtml = replaceCanonical(indexHtml, `${origin}/`);
+indexHtml = ensureCanonical(indexHtml, `${origin}/`);
 
 const hasSeoMetadata =
   /<link\s+[^>]*rel\s*=\s*["']canonical["'][^>]*>/i.test(indexHtml) ||
