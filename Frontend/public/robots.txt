@@ -5,4 +5,4 @@ Disallow: /register
 Disallow: /forgot-password
 Disallow: /reset-password
 
-Sitemap: http://localhost:5173/sitemap.xml
+Sitemap: https://apnaacademy.me/sitemap.xml
