@@ -53,7 +53,7 @@ await writeFile(resolve(publicDir, "robots.txt"), robots, "utf8");
 let indexHtml = await readFile(indexHtmlPath, "utf8");
 
 const escapeRegex = (value) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  value.replace(/[.*+?^\${}()|[\]\\]/g, "\\$&");
 
 const replaceMetaContent = (
   html,
@@ -62,7 +62,7 @@ const replaceMetaContent = (
   value
 ) => {
   const tagPattern = new RegExp(
-    `<meta\\s+[^>]*${escapeRegex(attributeName)}\\s*=\\s*[\"']${escapeRegex(attributeValue)}[\"'][^>]*>`,
+    `<meta\\s+[^>]*${escapeRegex(attributeName)}\\s*=\\s*["']${escapeRegex(attributeValue)}["'][^>]*>`,
     "i"
   );
 
@@ -78,11 +78,11 @@ const replaceMetaContent = (
 
 const ensureCanonical = (html, value) => {
   const canonicalPattern =
-    /<link\\s+[^>]*rel\\s*=\\s*["']canonical["'][^>]*>/i;
+    /<link\s+[^>]*rel\s*=\s*["']canonical["'][^>]*>/i;
 
   if (canonicalPattern.test(html)) {
     return html.replace(canonicalPattern, (tag) => {
-      const hrefPattern = /href\\s*=\\s*["'][^"']*["']/i;
+      const hrefPattern = /href\s*=\s*["'][^"']*["']/i;
       if (!hrefPattern.test(tag)) {
         return tag;
       }
@@ -92,8 +92,8 @@ const ensureCanonical = (html, value) => {
   }
 
   return html.replace(
-    /<\\/head>/i,
-    `    <link rel="canonical" href="${value}" />\\n  </head>`
+    /<\/head>/i,
+    `    <link rel="canonical" href="${value}" />\n  </head>`
   );
 };
 
@@ -112,7 +112,12 @@ const ensureOgUrl = (html, value) => {
     return html;
   }
 
-  const tag = `    <meta\n      property="og:url"\n      content="${value}"\n    />\n\n`;
+  const tag = `    <meta
+      property="og:url"
+      content="${value}"
+    />
+
+`;
 
   return html.replace(ogTypePattern, (match) => `${match}${tag}`);
 };
