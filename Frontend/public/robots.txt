@@ -1,8 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /login
-Disallow: /register
-Disallow: /forgot-password
-Disallow: /reset-password
 
 Sitemap: https://apnaacademy.me/sitemap.xml
