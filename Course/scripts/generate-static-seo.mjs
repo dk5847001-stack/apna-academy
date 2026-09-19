@@ -169,6 +169,16 @@ const buildBreadcrumb = (course, canonical) => ({
 });
 
 const injectHead = (html, { title, description, canonical, image, schema }) => {
+  const cleanedHtml = html
+    .replace(/\s*<title>[\s\S]*?<\/title>/i, "")
+    .replace(/\s*<meta\s+name="description"[^>]*>/gi, "")
+    .replace(/\s*<meta\s+name="robots"[^>]*>/gi, "")
+    .replace(/\s*<meta\s+name="googlebot"[^>]*>/gi, "")
+    .replace(/\s*<meta\s+name="bingbot"[^>]*>/gi, "")
+    .replace(/\s*<meta\s+property="og:[^"]+"[^>]*>/gi, "")
+    .replace(/\s*<meta\s+name="twitter:[^"]+"[^>]*>/gi, "")
+    .replace(/\s*<link\s+rel="canonical"[^>]*>/gi, "");
+
   const tags = `
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
@@ -190,7 +200,7 @@ const injectHead = (html, { title, description, canonical, image, schema }) => {
     <script type="application/ld+json">${escapeJson(schema.breadcrumb)}</script>
   `;
 
-  return html.replace("</head>", `${tags}\n  </head>`);
+  return cleanedHtml.replace("</head>", `${tags}\n  </head>`);
 };
 
 const main = async () => {
