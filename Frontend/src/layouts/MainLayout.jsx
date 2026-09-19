@@ -50,6 +50,7 @@ import {
   COURSE_URL,
   DASHBOARD_URL,
   ADMIN_URL,
+  DSA_URL,
 } from "../constants/config";
 
 /* ============================================================
@@ -161,6 +162,7 @@ export default function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
+  const [moreAnchor, setMoreAnchor] = useState(null);
   const [user, setUser] = useState(getStoredUser);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem("theme") === "dark";
@@ -169,6 +171,7 @@ export default function MainLayout() {
   const isLoggedIn = Boolean(localStorage.getItem("token") && user);
   const profileOpen = Boolean(profileAnchor);
   const notificationOpen = Boolean(notificationAnchor);
+  const moreOpen = Boolean(moreAnchor);
 
   /* ==========================================================
      AUTH STATE SYNC
@@ -229,6 +232,7 @@ export default function MainLayout() {
   const closeMobileMenu = () => setMobileOpen(false);
   const closeProfileMenu = () => setProfileAnchor(null);
   const closeNotificationMenu = () => setNotificationAnchor(null);
+  const closeMoreMenu = () => setMoreAnchor(null);
 
   const handleCourses = () => {
     closeMobileMenu();
@@ -285,8 +289,15 @@ export default function MainLayout() {
   };
 
   const handleDsaApp = () => {
+    closeMoreMenu();
     closeMobileMenu();
-    window.location.href = "/dsa";
+    window.location.href = DSA_URL;
+  };
+
+  const handlePricing = () => {
+    closeMoreMenu();
+    closeMobileMenu();
+    navigate("/pricing");
   };
 
   /* ==========================================================
@@ -400,6 +411,23 @@ export default function MainLayout() {
                 {item.label}
               </NavLink>
             ))}
+            <Button
+              onClick={(event) => setMoreAnchor(event.currentTarget)}
+              endIcon={<KeyboardArrowDown fontSize="small" />}
+              sx={{
+                minHeight: 40,
+                px: 1.5,
+                borderRadius: "9px",
+                color: moreOpen ? "#1d4ed8" : "#475569",
+                backgroundColor: moreOpen ? "#eff6ff" : "transparent",
+                textTransform: "none",
+                fontSize: "0.875rem",
+                fontWeight: 700,
+                "&:hover": { color: "#1d4ed8", backgroundColor: "#eff6ff" },
+              }}
+            >
+              More
+            </Button>
           </nav>
 
           <div className="ml-auto flex items-center gap-1.5">
@@ -531,6 +559,23 @@ export default function MainLayout() {
       </Menu>
 
       <Menu
+        anchorEl={moreAnchor}
+        open={moreOpen}
+        onClose={closeMoreMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+      >
+        <MenuItem onClick={handlePricing}>
+          <ListItemIcon><MenuBook fontSize="small" /></ListItemIcon>
+          Pricing
+        </MenuItem>
+        <MenuItem onClick={handleDsaApp}>
+          <ListItemIcon><School fontSize="small" /></ListItemIcon>
+          DSA Practice
+        </MenuItem>
+      </Menu>
+
+      <Menu
         anchorEl={notificationAnchor}
         open={notificationOpen}
         onClose={closeNotificationMenu}
@@ -559,6 +604,10 @@ export default function MainLayout() {
             <ListItemButton onClick={handleLearningApp}>
               <ListItemIcon><MenuBook fontSize="small" /></ListItemIcon>
               <ListItemText primary="Learning App" />
+            </ListItemButton>
+            <ListItemButton onClick={handlePricing}>
+              <ListItemIcon><MenuBook fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Pricing" />
             </ListItemButton>
             <ListItemButton onClick={handleDsaApp}>
               <ListItemIcon><School fontSize="small" /></ListItemIcon>
