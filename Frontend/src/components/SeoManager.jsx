@@ -347,7 +347,7 @@ export default function SeoManager() {
           const items = courses
             .filter((course) => course?.slug && course?.title)
             .map((course, index) => {
-              const courseUrl = `${origin}/course/courses/${encodeURIComponent(
+              const courseUrl = `${import.meta.env.VITE_COURSE_URL || "https://course.apnaacademy.me"}/courses/${encodeURIComponent(
                 course.slug
               )}`;
 
