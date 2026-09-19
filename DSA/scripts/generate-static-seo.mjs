@@ -19,8 +19,8 @@ const readDotEnv = (file) => {
 };
 
 const env = { ...readDotEnv(".env"), ...readDotEnv(".env.local"), ...process.env };
-const siteUrl = (env.VITE_DSA_URL || "http://localhost:5173").replace(/\/$/, "");
-const apiBaseUrl = (env.VITE_API_BASE_URL || "http://localhost:5000/api/v1").replace(/\/$/, "");
+const siteUrl = (env.VITE_DSA_URL || "https://dsa.apnaacademy.me").replace(/\/$/, "");
+const apiBaseUrl = (env.VITE_API_BASE_URL || "https://api.apnaacademy.me/api/v1").replace(/\/$/, "");
 
 if (!/^https?:\/\//i.test(siteUrl)) throw new Error("VITE_DSA_URL must be an absolute URL.");
 if (!/^https?:\/\//i.test(apiBaseUrl)) throw new Error("VITE_API_BASE_URL must be an absolute URL.");
