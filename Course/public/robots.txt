@@ -9,4 +9,4 @@ Disallow: /courses/*/assessment
 Disallow: /courses/*/certificate
 Disallow: /certificate/verify
 
-Sitemap: /sitemap.xml
+Sitemap: https://course.apnaacademy.me/sitemap.xml
