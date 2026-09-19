@@ -32,9 +32,6 @@ if (!/^https?:\/\//i.test(apiBaseUrl)) {
   throw new Error("VITE_API_BASE_URL must be an absolute API URL.");
 }
 
-if (siteUrl === "http://localhost:5173") {
-  console.warn("VITE_DSA_URL is not configured; using http://localhost:5173 for local SEO build output.");
-}
 
 const publicDir = path.join(process.cwd(), "public");
 fs.mkdirSync(publicDir, { recursive: true });
