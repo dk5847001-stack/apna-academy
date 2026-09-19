@@ -7,14 +7,13 @@ if (!/^https?:\/\/[^\s/]+$/i.test(siteUrl)) {
 }
 
 const distDir = resolve(process.cwd(), "dist");
-const publicDir = resolve(process.cwd(), "public");
 const routes = ["/", "/courses", "/pricing", "/about", "/contact", "/blog", "/privacy-policy", "/refund-policy"];
 const read = (path) => readFile(path, "utf8");
 const fail = (message) => { throw new Error(`SEO validation failed: ${message}`); };
 
 const indexHtml = await read(resolve(distDir, "index.html"));
-const robots = await read(resolve(publicDir, "robots.txt"));
-const sitemap = await read(resolve(publicDir, "sitemap.xml"));
+const robots = await read(resolve(distDir, "robots.txt"));
+const sitemap = await read(resolve(distDir, "sitemap.xml"));
 
 if (/localhost|127\.0\.0\.1/i.test(indexHtml)) fail("production HTML contains a local URL");
 if (!indexHtml.includes(siteUrl)) fail("configured production origin is missing from index.html");
