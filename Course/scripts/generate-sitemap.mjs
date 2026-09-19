@@ -2,12 +2,16 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const siteUrl = (
-  process.env.VITE_COURSE_URL || process.env.VITE_SITE_URL || "http://localhost:5173"
+  process.env.VITE_COURSE_URL || process.env.VITE_SITE_URL || "https://course.apnaacademy.me"
 ).replace(/\/$/, "");
 
 const apiBaseUrl = (
-  process.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1"
+  process.env.VITE_API_BASE_URL || "https://api.apnaacademy.me/api/v1"
 ).replace(/\/$/, "");
+
+if (!/^https:\/\//i.test(siteUrl)) {
+  throw new Error("VITE_COURSE_URL must be an HTTPS absolute URL in production.");
+}
 
 const outputPath = path.resolve(process.cwd(), "dist", "sitemap.xml");
 const pageSize = 50;
@@ -17,7 +21,7 @@ const escapeXml = (value) =>
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
+    .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 
 const toIsoDate = (value, fallback) => {
@@ -43,11 +47,20 @@ const fetchPublishedCourses = async () => {
 
     const payload = await response.json();
     const result = payload?.data;
-    const pageCourses = Array.isArray(result?.courses) ? result.courses : [];
+    const pageCourses = Array.isArray(result?.courses)
+      ? result.courses
+      : Array.isArray(result)
+        ? result
+        : Array.isArray(payload?.courses)
+          ? payload.courses
+          : [];
     const pagination = result?.pagination || {};
-
     courses.push(...pageCourses);
-    totalPages = Math.max(Number(pagination.totalPages) || 1, page);
+
+    totalPages = Math.max(
+      Number(pagination.totalPages) || 1,
+      page,
+    );
     page += 1;
   }
 
@@ -68,12 +81,14 @@ const buildSitemap = (courses) => {
     if (!slug) return;
 
     const url = `${siteUrl}/courses/${encodeURIComponent(slug)}`;
-    const lastmod = toIsoDate(course?.updatedAt || course?.createdAt, fallbackLastmod);
-    const existing = entriesByUrl.get(url);
+    const lastmod = toIsoDate(
+      course?.updatedAt || course?.createdAt,
+      fallbackLastmod,
+    );
 
     entriesByUrl.set(url, {
       url,
-      lastmod: existing?.lastmod || lastmod,
+      lastmod,
     });
   });
 
