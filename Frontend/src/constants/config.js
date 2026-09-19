@@ -21,3 +21,8 @@ export const COURSE_URL =
 export const ADMIN_URL =
   import.meta.env.VITE_ADMIN_URL ||
   "http://localhost:5176";
+
+// Separate DSA Practice React App
+export const DSA_URL =
+  import.meta.env.VITE_DSA_URL ||
+  "https://dsa.apnaacademy.me";
