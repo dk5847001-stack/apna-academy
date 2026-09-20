@@ -23,6 +23,32 @@ const appendPlayerJsFlag = (url) => {
   }
 };
 
+const extractGoogleDriveFileId = (value) => {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return "";
+
+  const patterns = [
+    /drive\.google\.com\/file\/d\/([^/]+)/i,
+    /drive\.google\.com\/open\?[^#]*\bid=([^&]+)/i,
+    /drive\.google\.com\/uc\?[^#]*\bid=([^&]+)/i,
+    /docs\.google\.com\/file\/d\/([^/]+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = raw.match(pattern);
+    if (match?.[1]) return decodeURIComponent(match[1]);
+  }
+
+  if (/^[a-zA-Z0-9_-]{20,}$/.test(raw)) return raw;
+  return "";
+};
+
+const resolveGoogleDriveEmbedUrl = (video) => {
+  const rawUrl = typeof video?.videoUrl === "string" ? video.videoUrl.trim() : "";
+  const fileId = extractGoogleDriveFileId(rawUrl);
+  if (!fileId) return "";
+  return "https://drive.google.com/file/d/" + encodeURIComponent(fileId) + "/preview";
+};
 const resolveBunnyEmbedUrl = (video) => {
   const rawUrl = typeof video?.videoUrl === "string" ? video.videoUrl.trim() : "";
 
@@ -120,7 +146,12 @@ export default function BunnyVideoPlayer({
 
   const bunnyEmbedUrl = useMemo(
     () => resolveBunnyEmbedUrl(video),
-    [video?.videoUrl, video?.bunnyVideoId]
+    [video?.videoSource, video?.videoUrl, video?.bunnyVideoId]
+  );
+
+  const googleDriveEmbedUrl = useMemo(
+    () => resolveGoogleDriveEmbedUrl(video),
+    [video?.videoSource, video?.videoUrl]
   );
 
   const nativeVideoUrl = useMemo(() => {
@@ -133,9 +164,15 @@ export default function BunnyVideoPlayer({
     return rawUrl;
   }, [video?.notesPdfUrl]);
 
-  const useBunnyEmbed = Boolean(bunnyEmbedUrl);
-  const useNativeVideo = !useBunnyEmbed && Boolean(nativeVideoUrl);
-  const hasVideoSource = useBunnyEmbed || useNativeVideo;
+  const useBunnyEmbed = video?.videoSource !== "drive" && Boolean(bunnyEmbedUrl);
+  const useGoogleDriveEmbed =
+    video?.videoSource === "drive" && Boolean(googleDriveEmbedUrl);
+  const useNativeVideo =
+    video?.videoSource !== "drive" &&
+    !useBunnyEmbed &&
+    Boolean(nativeVideoUrl);
+  const hasVideoSource =
+    useBunnyEmbed || useGoogleDriveEmbed || useNativeVideo;
   const hasPdfSource = Boolean(pdfUrl);
 
   const stopBunnyProgressPolling = () => {
@@ -150,7 +187,16 @@ export default function BunnyVideoPlayer({
     setHasError(false);
     bunnyPlayerRef.current = null;
     stopBunnyProgressPolling();
-  }, [video?._id, video?.id, video?.videoUrl, video?.bunnyVideoId, bunnyEmbedUrl, nativeVideoUrl]);
+  }, [
+    video?._id,
+    video?.id,
+    video?.videoSource,
+    video?.videoUrl,
+    video?.bunnyVideoId,
+    bunnyEmbedUrl,
+    googleDriveEmbedUrl,
+    nativeVideoUrl,
+  ]);
 
   useEffect(() => {
     if (!useBunnyEmbed || !iframeRef.current) return undefined;
@@ -410,6 +456,22 @@ export default function BunnyVideoPlayer({
           loading="eager"
           referrerPolicy="origin"
           allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowFullScreen
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setIsLoading(false);
+            setHasError(true);
+          }}
+          style={{ width: "100%", height: "100%", border: 0, display: "block", backgroundColor: "#000000" }}
+        />
+      ) : useGoogleDriveEmbed ? (
+        <iframe
+          key={`${video._id || video.id || "video"}-${googleDriveEmbedUrl}`}
+          src={googleDriveEmbedUrl}
+          title={video.title || "Google Drive course video"}
+          loading="eager"
+          referrerPolicy="origin"
+          allow="autoplay; fullscreen"
           allowFullScreen
           onLoad={() => setIsLoading(false)}
           onError={() => {
