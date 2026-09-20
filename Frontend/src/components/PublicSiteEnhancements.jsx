@@ -138,7 +138,7 @@ const addHomeSuccessSections = () => {
 
   const wrapper = document.createElement("div");
   wrapper.dataset.apnaSuccessSections = "true";
-  wrapper.innerHTML = \`
+  wrapper.innerHTML = `
     <section class="relative overflow-hidden border-t border-slate-100 bg-white py-14 sm:py-16 lg:py-20">
       <div aria-hidden="true" class="pointer-events-none absolute -left-24 top-0 h-56 w-56 rounded-full bg-blue-100/70 blur-3xl"></div>
       <div aria-hidden="true" class="pointer-events-none absolute -right-24 top-0 h-56 w-56 rounded-full bg-violet-100/70 blur-3xl"></div>
@@ -151,7 +151,7 @@ const addHomeSuccessSections = () => {
           <div aria-hidden="true" class="pointer-events-none absolute -left-2 top-16 hidden -rotate-6 text-left font-mono text-sm font-bold leading-5 text-blue-500 sm:block lg:-left-24">Learn<br/>Grow<br/>Succeed<span class="mt-1 block h-0.5 w-14 -rotate-6 bg-blue-500"></span></div>
           <div aria-hidden="true" class="pointer-events-none absolute -right-2 top-16 hidden rotate-6 text-left font-mono text-sm font-bold leading-5 text-slate-500 sm:block lg:-right-24">Your<br/>Next Chapter<br/>Starts Here<span class="mt-1 block h-8 w-8 rotate-12 rounded-bl-full border-b-2 border-l-2 border-slate-500"></span></div>
         </div>
-        <div class="mt-9 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">\${STUDENT_FEATURES.map(renderStudentCard).join("")}</div>
+        <div class="mt-9 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">${STUDENT_FEATURES.map(renderStudentCard).join("")}</div>
         <div class="mt-8 rounded-2xl border border-slate-200 bg-white/90 px-4 py-4 shadow-[0_8px_30px_rgba(15,23,42,0.05)] backdrop-blur sm:mt-9 sm:rounded-3xl sm:px-6 sm:py-5">
           <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-0">
             <div class="flex items-center gap-3 border-b border-slate-100 pb-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-5"><div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 sm:h-11 sm:w-11"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5 sm:h-6 sm:w-6"><path d="M12 3 19 6v5c0 4.5-3 7.5-7 10-4-2.5-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg></div><div><p class="text-[10px] font-black text-slate-900 sm:text-xs">Secure Platform</p><p class="mt-0.5 text-[8px] leading-4 text-slate-400 sm:text-[9px]">Your data, always safe</p></div></div>
@@ -166,10 +166,10 @@ const addHomeSuccessSections = () => {
     <section class="border-t border-slate-200 bg-white py-16 sm:py-20">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-3xl text-center"><span class="inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[.12em] text-slate-700">Companies students aspire to join</span><h2 class="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Industry names. Career-ready skills.</h2><p class="mt-4 text-sm leading-7 text-slate-500 sm:text-base">Explore the kinds of companies and technology environments that inspire modern career preparation.</p></div>
-        <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">\${COMPANY_PATHS.map(([name, tone, logo]) => '<div class="group flex min-h-32 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-5 text-center shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white"><img src="' + logo + '" alt="' + name + ' logo" loading="lazy" class="max-h-9 max-w-10 object-contain"/></div><p class="mt-3 text-sm font-black text-slate-900">' + name + '</p><p class="mt-1 text-[10px] font-bold leading-4 text-slate-400">' + tone + '</p></div>').join("")}</div>
+        <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">${COMPANY_PATHS.map(([name, tone, logo]) => '<div class="group flex min-h-32 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-5 text-center shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white"><img src="' + logo + '" alt="' + name + ' logo" loading="lazy" class="max-h-9 max-w-10 object-contain"/></div><p class="mt-3 text-sm font-black text-slate-900">' + name + '</p><p class="mt-1 text-[10px] font-bold leading-4 text-slate-400">' + tone + '</p></div>').join("")}</div>
         <p class="mx-auto mt-7 max-w-3xl text-center text-[11px] leading-5 text-slate-400">Company names and logos are displayed for career-orientation context only. They do not indicate a partnership, sponsorship, endorsement or placement affiliation unless separately verified and stated.</p>
       </div>
-    </section>\`;
+    </section>`;
 
   const faq = main.querySelector('[data-apna-faq="true"]');
   if (faq) faq.before(wrapper); else main.append(wrapper);
