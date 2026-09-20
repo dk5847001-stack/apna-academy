@@ -821,6 +821,168 @@ export default function Home() {
       </section>
 
       {/* =====================================================
+          TEAM
+      ====================================================== */}
+
+      <section className="relative overflow-hidden border-b border-slate-200 bg-white">
+        <div className="pointer-events-none absolute -left-24 top-16 h-64 w-64 rounded-full bg-blue-100/40 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 bottom-8 h-64 w-64 rounded-full bg-violet-100/40 blur-3xl" />
+
+        <Container maxWidth="lg" className="relative">
+          <div className="py-14 sm:py-18 lg:py-20">
+            <div className="mx-auto max-w-3xl text-center">
+              <div className="mb-2 flex items-center justify-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 sm:text-[11px]">
+                <span className="h-px w-8 bg-gradient-to-r from-transparent to-blue-300 sm:w-14" />
+                <span>Meet Our Team</span>
+                <span className="h-px w-8 bg-gradient-to-l from-transparent to-violet-300 sm:w-14" />
+              </div>
+
+              <Typography
+                component="h2"
+                className="!text-3xl !font-black !leading-[1.08] !tracking-[-0.04em] !text-slate-950 sm:!text-5xl"
+              >
+                The People Behind{" "}
+                <span className="relative inline-block bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                  Your Success
+                  <span className="absolute -bottom-1 left-1/2 h-1 w-[84%] -translate-x-1/2 rounded-full bg-blue-600 sm:-bottom-2" />
+                </span>
+              </Typography>
+
+              <Typography
+                component="p"
+                className="!mx-auto !mt-4 !max-w-2xl !text-xs !leading-6 !text-slate-500 sm:!text-base sm:!leading-7"
+              >
+                A passionate team bringing education, technology and learner-first thinking together.
+              </Typography>
+            </div>
+
+            <div className="mt-8 grid grid-cols-2 gap-2.5 sm:mt-10 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+              {[
+                {
+                  name: "Harry Ali Khan",
+                  role: "Team Management",
+                  bio: "Focused on building a structured learning environment where students can learn, practice and grow with confidence.",
+                  image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-ZG7Em57ag-WD1-dICUGdF7lH1wJ-kYAdQ8XgryiMag&s=10",
+                  color: "blue",
+                  note: "Build\nLearn\nGrow",
+                  tags: ["Strategy", "Product"],
+                },
+                {
+                  name: "Shradha Khapra",
+                  role: "Team Director",
+                  bio: "Creates engaging learning experiences with a strong focus on clarity, accessibility and practical technology skills.",
+                  image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDE-SJTtsq58khCMm50OCqxyL5HHjlwROvDfsOUcF6Ww&s=10",
+                  color: "violet",
+                  note: "Learn\nCreate\nInspire",
+                  tags: ["Design", "Creativity"],
+                },
+                {
+                  name: "Alakh Panday",
+                  role: "Team Leader",
+                  bio: "Brings a practical, learner-first approach to technical education, systems and scalable digital learning.",
+                  image: "https://www.cioandleader.com/wp-content/uploads/2024/09/Alakh-Pandey-Founder-and-CEO-Physics-Wallah-PW.jpg",
+                  color: "emerald",
+                  note: "Learn\nSolve\nGrow",
+                  tags: ["Data", "Technology"],
+                },
+                {
+                  name: "Sneha Patel",
+                  role: "Data Analytics",
+                  bio: "Turns learning data and user insights into thoughtful improvements for a smoother and more useful student experience.",
+                  image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGWPFfG2wBAHhPdOXIyP3JZGnHogJLqntEnjBrdcQnSQ&s=10",
+                  color: "orange",
+                  note: "Create\nConnect\nImpact",
+                  tags: ["Content", "Community"],
+                },
+              ].map((member) => {
+                const palette = {
+                  blue: { border: "border-blue-200", wash: "from-blue-50 via-white to-indigo-50", blob: "bg-blue-200/65", tag: "bg-blue-600", text: "text-blue-700", line: "from-blue-500 to-indigo-500" },
+                  violet: { border: "border-violet-200", wash: "from-violet-50 via-white to-fuchsia-50", blob: "bg-violet-200/65", tag: "bg-violet-600", text: "text-violet-700", line: "from-violet-500 to-fuchsia-500" },
+                  emerald: { border: "border-emerald-200", wash: "from-emerald-50 via-white to-teal-50", blob: "bg-emerald-200/65", tag: "bg-emerald-700", text: "text-emerald-700", line: "from-emerald-500 to-teal-500" },
+                  orange: { border: "border-orange-200", wash: "from-orange-50 via-white to-amber-50", blob: "bg-orange-200/65", tag: "bg-orange-500", text: "text-orange-700", line: "from-orange-400 to-amber-500" },
+                }[member.color];
+
+                return (
+                  <article
+                    key={member.name}
+                    className={`group relative overflow-hidden rounded-[1.4rem] border bg-white shadow-[0_10px_30px_rgba(15,23,42,.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(15,23,42,.11)] ${palette.border}`}
+                  >
+                    <div className={`relative h-[142px] overflow-hidden bg-gradient-to-br ${palette.wash} sm:h-[174px]`}>
+                      <div className={`absolute -left-5 top-5 h-28 w-36 rotate-[-8deg] rounded-[52%_48%_45%_55%] ${palette.blob} sm:left-1 sm:top-6 sm:h-40 sm:w-48`} />
+                      <div className="absolute left-6 top-8 h-20 w-24 rotate-[8deg] rounded-[55%_45%_50%_50%] bg-white/65 sm:left-10 sm:top-11 sm:h-28 sm:w-32" />
+
+                      <div className={`absolute right-3 top-3 z-[3] max-w-[34%] whitespace-pre-line text-right font-serif text-[7px] font-bold italic leading-[1.05] sm:right-5 sm:top-5 sm:text-[10px] ${palette.text}`}>
+                        {member.note}
+                        <span className={`mt-1 ml-auto block h-0.5 w-7 rounded-full bg-gradient-to-r ${palette.line} sm:w-10`} />
+                      </div>
+
+                      <div className="absolute bottom-0 left-2 z-[1] h-[108px] w-[65%] overflow-hidden rounded-[48%_52%_38%_34%] sm:left-4 sm:h-[145px] sm:w-[68%]">
+                        <img
+                          src={member.image}
+                          alt={`${member.name} — ${member.role}`}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.035]"
+                        />
+                      </div>
+
+                      <span className={`absolute bottom-2 left-2 z-[2] inline-flex max-w-[92%] items-center rounded-full px-2 py-1 text-[6px] font-black uppercase tracking-[0.045em] text-white shadow-lg sm:bottom-3 sm:left-3 sm:px-2.5 sm:py-1.5 sm:text-[8px] ${palette.tag}`}>
+                        {member.role}
+                      </span>
+                    </div>
+
+                    <div className="relative px-3 pb-3 pt-3 sm:px-4 sm:pb-4 sm:pt-3.5">
+                      <div className={`absolute right-3 top-4 h-0.5 w-8 rounded-full bg-gradient-to-r ${palette.line} sm:right-4 sm:w-10`} />
+
+                      <Typography
+                        component="h3"
+                        className="!pr-9 !text-[12px] !font-black !leading-tight !text-slate-950 sm:!text-lg"
+                      >
+                        {member.name}
+                      </Typography>
+
+                      <Typography
+                        component="p"
+                        className={`!mt-0.5 !text-[6.5px] !font-black !uppercase !tracking-[0.13em] sm:!text-[9px] ${palette.text}`}
+                      >
+                        {member.role}
+                      </Typography>
+
+                      <Typography
+                        component="p"
+                        className="!mt-1.5 !line-clamp-2 !text-[8px] !leading-4 !text-slate-500 sm:!mt-2 sm:!text-[10px] sm:!leading-5"
+                      >
+                        {member.bio}
+                      </Typography>
+
+                      <div className="mt-2 flex flex-wrap gap-1 sm:mt-3 sm:gap-1.5">
+                        {member.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className={`rounded-full bg-white px-1.5 py-0.5 text-[6px] font-bold shadow-sm ring-1 ring-slate-100 sm:px-2 sm:py-1 sm:text-[8px] ${palette.text}`}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 text-center text-[9px] font-bold tracking-wide text-slate-400 sm:mt-8 sm:text-xs">
+              <span>Different Skills</span>
+              <span className="mx-2 text-blue-400">•</span>
+              <span>Same Goal</span>
+              <span className="mx-2 text-violet-400">•</span>
+              <span>Your Growth</span>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* =====================================================
           CTA
       ====================================================== */}
 
