@@ -28,6 +28,20 @@ const videoSchema = new mongoose.Schema(
       default: "",
     },
 
+    /*
+     * Video provider/source used by the learning player.
+     *
+     * Existing documents default to Bunny so the source migration is
+     * backward-compatible. Phase 2 will expose this field in Admin and
+     * Phase 3 will switch the player based on this value.
+     */
+    videoSource: {
+      type: String,
+      enum: ["bunny", "drive"],
+      default: "bunny",
+      index: true,
+    },
+
     videoUrl: {
       type: String,
       default: "",
