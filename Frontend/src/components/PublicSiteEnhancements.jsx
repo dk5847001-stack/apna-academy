@@ -179,7 +179,7 @@ const addHomeSuccessSections = () => {
         </div>
 
         <div class="mt-9 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-4 lg:grid-cols-4 lg:gap-5">
-          \${[
+          ${[
             ["Rahul Sharma","Web Development Intern","B.Tech CSE | Sandip University","4.8/5","InternovaTech has been a game-changer for me. The structured learning and supportive mentors helped me build real-world skills.","Verified Student","blue",STUDENTS[0]?.[3],"Learn|Build|Grow"],
             ["Priya Verma","UI/UX Design Intern","B.Sc. Design | Delhi University","4.9/5","The hands-on projects and expert mentors gave me the confidence to take on real challenges. I built my portfolio and got placed within 3 months.","Got Placed","amber",STUDENTS[1]?.[3],"From|Learning|to Earning"],
             ["Arjun Mehta","Data Science Intern","B.Tech AI | VIT Bhopal","4.7/5","Apna Academy’s practical approach really works! I gained industry-relevant skills, worked on real projects, and always had support when I needed it.","Project Based Learning","violet",STUDENTS[2]?.[3],"Better|Skills|Bigger Dreams"],
