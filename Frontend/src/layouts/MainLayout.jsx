@@ -367,22 +367,24 @@ export default function MainLayout() {
               <School fontSize="small" />
             </div>
 
-            <div className="hidden sm:block">
+            <div className="min-w-0">
               <Typography
                 component="div"
+                className="truncate"
                 sx={{
                   color: "#0f172a",
                   fontWeight: 900,
-                  fontSize: "1.08rem",
+                  fontSize: { xs: "0.98rem", sm: "1.08rem" },
                   lineHeight: 1.1,
                   letterSpacing: "-0.02em",
                 }}
               >
-                ApnaAcademy
+                Apna Academy
               </Typography>
               <Typography
                 component="div"
                 sx={{
+                  display: { xs: "none", sm: "block" },
                   color: "#64748b",
                   fontSize: "0.67rem",
                   lineHeight: 1.2,
