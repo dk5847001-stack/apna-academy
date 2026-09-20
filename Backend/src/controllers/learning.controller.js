@@ -35,6 +35,7 @@ const formatVideo = (video, unlocked, completedVideos = []) => {
     isCompleted,
     ...(unlocked
       ? {
+          videoSource: video.videoSource || "bunny",
           videoUrl: video.videoUrl,
           bunnyVideoId: video.bunnyVideoId,
           notesPdfUrl: video.notesPdfUrl || "",
