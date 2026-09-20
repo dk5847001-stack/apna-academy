@@ -231,6 +231,7 @@ export const getPublishedCourseBySlug = async (slug) => {
           // SECURITY:
           // Only preview video gets video URL.
           ...(isPreview && {
+            videoSource: video.videoSource || "bunny",
             videoUrl: video.videoUrl,
             bunnyVideoId: video.bunnyVideoId,
           }),
