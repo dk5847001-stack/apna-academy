@@ -53,80 +53,82 @@ export default function AboutPremium() {
     </section>
 
     <section className="relative overflow-hidden bg-white">
-      <div className="pointer-events-none absolute -left-24 top-20 h-72 w-72 rounded-full bg-blue-100/60 blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 bottom-10 h-72 w-72 rounded-full bg-violet-100/60 blur-3xl" />
-      <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+      <div className="pointer-events-none absolute -left-24 top-24 h-64 w-64 rounded-full bg-blue-100/50 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 bottom-16 h-64 w-64 rounded-full bg-violet-100/50 blur-3xl" />
+      <div className="relative mx-auto max-w-7xl px-3 py-14 sm:px-6 sm:py-18 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-3 flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.28em] text-slate-400 sm:text-xs">
-            <span className="h-px w-10 bg-gradient-to-r from-transparent to-blue-300 sm:w-16" />
+          <div className="mb-2 flex items-center justify-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 sm:text-[11px]">
+            <span className="h-px w-8 bg-gradient-to-r from-transparent to-blue-300 sm:w-14" />
             <span>Meet Our Team</span>
-            <span className="h-px w-10 bg-gradient-to-l from-transparent to-violet-300 sm:w-16" />
+            <span className="h-px w-8 bg-gradient-to-l from-transparent to-violet-300 sm:w-14" />
           </div>
-          <h2 className="text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+          <h2 className="text-3xl font-black leading-tight tracking-[-0.04em] text-slate-950 sm:text-5xl">
             The People Behind{" "}
-            <span className="relative inline-block bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+            <span className="relative inline-block bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">
               Your Success
-              <span className="absolute -bottom-2 left-1/2 h-1 w-[88%] -translate-x-1/2 rotate-[-1deg] rounded-full bg-blue-600/90" />
+              <span className="absolute -bottom-1 left-1/2 h-1 w-[85%] -translate-x-1/2 rounded-full bg-blue-600 sm:-bottom-2" />
             </span>
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-slate-500 sm:text-base">
-            A passionate team bringing together education, technology, design and learner-first thinking to make every learning journey more meaningful.
+          <p className="mx-auto mt-4 max-w-2xl text-xs leading-6 text-slate-500 sm:mt-5 sm:text-base sm:leading-7">
+            A small team with one shared goal — making practical learning simpler, more useful and more inspiring.
           </p>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-5 lg:grid-cols-4 lg:gap-6">
-          {TEAM.map(({ name, role, bio, image, icon: Icon, tone, linkedin }, index) => {
-            const accents = [
-              { border: "border-blue-200/80", blob: "bg-blue-200/55", blob2: "bg-blue-50", icon: "bg-blue-600", tag: "bg-blue-600", line: "from-blue-500 to-indigo-500", text: "text-blue-700", doodle: "text-blue-500", quote: "Build • Learn • Grow" },
-              { border: "border-violet-200/80", blob: "bg-violet-200/55", blob2: "bg-violet-50", icon: "bg-violet-600", tag: "bg-violet-600", line: "from-violet-500 to-fuchsia-500", text: "text-violet-700", doodle: "text-violet-500", quote: "Learn • Create • Inspire" },
-              { border: "border-emerald-200/80", blob: "bg-emerald-200/55", blob2: "bg-emerald-50", icon: "bg-emerald-700", tag: "bg-emerald-700", line: "from-emerald-500 to-teal-500", text: "text-emerald-700", doodle: "text-emerald-600", quote: "Learn • Solve • Grow" },
-              { border: "border-orange-200/80", blob: "bg-orange-200/55", blob2: "bg-orange-50", icon: "bg-orange-500", tag: "bg-orange-500", line: "from-orange-400 to-amber-500", text: "text-orange-700", doodle: "text-orange-500", quote: "Create • Connect • Impact" },
+        <div className="mt-8 grid grid-cols-2 gap-2.5 sm:mt-10 sm:gap-5 lg:grid-cols-4 lg:gap-6">
+          {TEAM.map(({ name, role, bio, image, icon: Icon, linkedin }, index) => {
+            const a = [
+              { border: "border-blue-200", wash: "from-blue-50 to-indigo-50", blob: "bg-blue-200/70", tag: "bg-blue-600", text: "text-blue-700", line: "from-blue-500 to-indigo-500", note: "Build • Learn • Grow" },
+              { border: "border-violet-200", wash: "from-violet-50 to-fuchsia-50", blob: "bg-violet-200/70", tag: "bg-violet-600", text: "text-violet-700", line: "from-violet-500 to-fuchsia-500", note: "Create • Inspire" },
+              { border: "border-emerald-200", wash: "from-emerald-50 to-teal-50", blob: "bg-emerald-200/70", tag: "bg-emerald-700", text: "text-emerald-700", line: "from-emerald-500 to-teal-500", note: "Learn • Solve • Grow" },
+              { border: "border-orange-200", wash: "from-orange-50 to-amber-50", blob: "bg-orange-200/70", tag: "bg-orange-500", text: "text-orange-700", line: "from-orange-400 to-amber-500", note: "Create • Connect" },
             ][index % 4];
 
             return (
-              <article key={name} className={`group relative overflow-hidden rounded-[1.45rem] border bg-white shadow-[0_10px_35px_rgba(15,23,42,.06)] transition duration-500 hover:-translate-y-1.5 hover:shadow-[0_22px_55px_rgba(15,23,42,.12)] sm:rounded-[1.8rem] ${accents.border}`}>
-                <div className="relative h-[185px] overflow-hidden bg-gradient-to-br from-white via-slate-50 to-white sm:h-[230px]">
-                  <div className={`absolute left-4 top-7 h-36 w-36 rounded-[42%_58%_62%_38%] rotate-[-8deg] ${accents.blob} sm:left-7 sm:h-44 sm:w-44`} />
-                  <div className={`absolute left-8 top-12 h-28 w-28 rounded-[58%_42%_38%_62%] rotate-[8deg] opacity-80 ${accents.blob2} sm:left-12 sm:top-14 sm:h-36 sm:w-36`} />
-                  <div className={`absolute right-3 top-5 max-w-[42%] text-right font-serif text-[11px] font-bold italic leading-tight ${accents.doodle} sm:right-5 sm:top-7 sm:text-sm`}>
-                    {accents.quote}
-                    <span className={`mt-1 ml-auto block h-0.5 w-10 rotate-[-4deg] rounded-full bg-gradient-to-r ${accents.line} sm:w-14`} />
+              <article key={name} className={`group relative overflow-hidden rounded-2xl border bg-white shadow-[0_8px_26px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_35px_rgba(15,23,42,0.1)] sm:rounded-[1.35rem] ${a.border}`}>
+                <div className={`relative h-[112px] overflow-hidden bg-gradient-to-br ${a.wash} sm:h-[148px]`}>
+                  <div className={`absolute -left-3 top-5 h-24 w-28 rounded-[45%_55%_55%_45%] rotate-[-7deg] ${a.blob} sm:left-3 sm:h-32 sm:w-36`} />
+                  <div className="absolute right-2 top-2 max-w-[48%] text-right font-serif text-[8px] font-bold italic leading-tight text-slate-700/80 sm:right-4 sm:top-4 sm:text-[11px]">
+                    {a.note}
+                    <span className={`mt-1 ml-auto block h-0.5 w-7 rotate-[-4deg] rounded-full bg-gradient-to-r ${a.line} sm:w-10`} />
                   </div>
-                  <img src={image} alt={`${name} - ${role}`} loading="lazy" className="absolute bottom-0 left-2 z-[1] h-[175px] w-[72%] object-contain object-bottom transition duration-700 group-hover:scale-[1.035] sm:left-4 sm:h-[220px] sm:w-[74%]" />
-                  <span className={`absolute bottom-3 left-3 z-[2] inline-flex max-w-[82%] items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[0.07em] text-white shadow-lg ${accents.tag} sm:bottom-4 sm:left-5 sm:px-3 sm:py-1.5 sm:text-[9px]`}>
-                    <Icon sx={{ fontSize: 14 }} /> {role}
+                  <img
+                    src={image}
+                    alt={`${name} — ${role}`}
+                    loading="lazy"
+                    className="absolute bottom-0 left-0 z-[1] h-[108px] w-[67%] object-contain object-bottom transition duration-500 group-hover:scale-[1.035] sm:left-2 sm:h-[145px] sm:w-[70%]"
+                  />
+                  <span className={`absolute bottom-2 left-2 z-[2] inline-flex max-w-[88%] items-center gap-1 rounded-full px-2 py-1 text-[6.5px] font-black uppercase tracking-[0.05em] text-white shadow-md ${a.tag} sm:bottom-3 sm:left-3 sm:px-2.5 sm:py-1.5 sm:text-[8px]`}>
+                    <Icon sx={{ fontSize: 11 }} /> {role}
                   </span>
-                  <div className={`pointer-events-none absolute -bottom-8 -right-10 h-28 w-28 rounded-full bg-gradient-to-br ${accents.line} opacity-10 blur-2xl`} />
                 </div>
 
-                <div className="relative p-4 sm:p-5">
-                  <div className={`absolute right-4 top-4 h-1 w-9 rounded-full bg-gradient-to-r ${accents.line} sm:right-5 sm:w-12`} />
-                  <h3 className="pr-10 text-base font-black leading-tight text-slate-950 sm:text-xl">{name}</h3>
-                  <p className={`mt-1 text-[9px] font-black uppercase tracking-[0.15em] sm:text-[10px] ${accents.text}`}>{role}</p>
-                  <p className="mt-3 line-clamp-3 text-[10px] leading-5 text-slate-500 sm:text-xs sm:leading-6">{bio}</p>
+                <div className="relative px-2.5 pb-2.5 pt-2.5 sm:px-4 sm:pb-4 sm:pt-3.5">
+                  <div className={`absolute right-2.5 top-3 h-0.5 w-6 rounded-full bg-gradient-to-r ${a.line} sm:right-4 sm:top-4 sm:w-9`} />
+                  <h3 className="pr-8 text-[12px] font-black leading-tight text-slate-950 sm:text-lg">{name}</h3>
+                  <p className={`mt-0.5 text-[7px] font-black uppercase tracking-[0.1em] sm:text-[9px] ${a.text}`}>{role}</p>
+                  <p className="mt-1.5 line-clamp-2 text-[8px] leading-4 text-slate-500 sm:mt-2 sm:text-[10px] sm:leading-5">{bio}</p>
 
-                  <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
-                    {[index === 0 ? "Strategy" : index === 1 ? "Design" : index === 2 ? "Technology" : "Community", index === 0 ? "Product" : index === 1 ? "Creativity" : index === 2 ? "Analytics" : "Communication", "ApnaAcademy"].map((tag) => (
-                      <span key={tag} className={`rounded-full bg-slate-50 px-2 py-1 text-[8px] font-bold ${accents.text} ring-1 ring-slate-100 sm:px-2.5 sm:text-[9px]`}>{tag}</span>
+                  <div className="mt-2 flex flex-wrap gap-1 sm:mt-3 sm:gap-1.5">
+                    {(index === 0 ? ["Strategy", "Product"] : index === 1 ? ["Design", "Creativity"] : index === 2 ? ["Data", "Technology"] : ["Content", "Community"]).map((tag) => (
+                      <span key={tag} className={`rounded-full bg-slate-50 px-1.5 py-0.5 text-[6.5px] font-bold ring-1 ring-slate-100 sm:px-2 sm:py-1 sm:text-[8px] ${a.text}`}>{tag}</span>
                     ))}
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 sm:mt-5 sm:pt-4">
-                    <div className="flex gap-1.5 sm:gap-2">
+                  <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-2 sm:mt-3 sm:pt-3">
+                    <div className="flex gap-1">
                       {linkedin ? (
-                        <a href={linkedin} target="_blank" rel="noreferrer" aria-label={`${name} LinkedIn`} className={`grid h-7 w-7 place-items-center rounded-full bg-slate-50 text-slate-500 transition hover:text-white ${accents.icon} sm:h-8 sm:w-8`}>
-                          <LinkedIn sx={{ fontSize: 14 }} />
+                        <a href={linkedin} target="_blank" rel="noreferrer" aria-label={`${name} LinkedIn`} className="grid h-6 w-6 place-items-center rounded-full bg-slate-50 text-slate-500 transition hover:bg-blue-600 hover:text-white sm:h-7 sm:w-7">
+                          <LinkedIn sx={{ fontSize: 12 }} />
                         </a>
                       ) : (
                         <>
-                          <span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-full bg-slate-50 text-[10px] font-black text-slate-400 sm:h-8 sm:w-8">in</span>
-                          <span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-full bg-slate-50 text-[10px] font-black text-slate-400 sm:h-8 sm:w-8">𝕏</span>
-                          <span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-full bg-slate-50 text-[11px] text-slate-400 sm:h-8 sm:w-8">↗</span>
+                          <span className="grid h-6 w-6 place-items-center rounded-full bg-slate-50 text-[8px] font-black text-slate-400 sm:h-7 sm:w-7 sm:text-[9px]">in</span>
+                          <span className="grid h-6 w-6 place-items-center rounded-full bg-slate-50 text-[8px] font-black text-slate-400 sm:h-7 sm:w-7 sm:text-[9px]">𝕏</span>
                         </>
                       )}
                     </div>
-                    <span className={`grid h-8 w-8 place-items-center rounded-full text-white shadow-md transition group-hover:translate-x-0.5 bg-gradient-to-br ${accents.line} sm:h-9 sm:w-9`} aria-hidden="true">
-                      <ArrowForward sx={{ fontSize: 16 }} />
+                    <span className={`grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br text-white shadow-sm transition group-hover:translate-x-0.5 sm:h-7 sm:w-7 ${a.line}`} aria-hidden="true">
+                      <ArrowForward sx={{ fontSize: 12 }} />
                     </span>
                   </div>
                 </div>
@@ -135,8 +137,8 @@ export default function AboutPremium() {
           })}
         </div>
 
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-2 text-[10px] font-bold text-slate-400 sm:text-xs">
-          <span>Different Skills</span><span className="text-blue-400">•</span><span>Same Goal</span><span className="text-violet-400">•</span><span>Your Growth</span>
+        <div className="mt-6 text-center text-[9px] font-bold tracking-wide text-slate-400 sm:mt-8 sm:text-xs">
+          <span>Different Skills</span><span className="mx-2 text-blue-400">•</span><span>Same Goal</span><span className="mx-2 text-violet-400">•</span><span>Your Growth</span>
         </div>
       </div>
     </section>
