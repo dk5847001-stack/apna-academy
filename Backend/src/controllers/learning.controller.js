@@ -220,6 +220,7 @@ export const getLearningVideo = asyncHandler(
             order: video.order,
             isPreview: true,
             isLocked: false,
+            videoSource: video.videoSource || "bunny",
             videoUrl: video.videoUrl,
             bunnyVideoId: video.bunnyVideoId,
             notesPdfUrl: video.notesPdfUrl || "",
