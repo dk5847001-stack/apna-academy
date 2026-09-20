@@ -10,6 +10,7 @@ import {
 const BUNNY_LIBRARY_ID = import.meta.env.VITE_BUNNY_LIBRARY_ID || "";
 const BUNNY_PLAYER_JS_URL = "https://assets.mediadelivery.net/playerjs/player-0.1.0.min.js";
 const BUNNY_PROGRESS_POLL_MS = 2000;
+const DRIVE_PROGRESS_POLL_MS = 1000;
 
 let bunnyPlayerScriptPromise = null;
 
@@ -138,6 +139,7 @@ export default function BunnyVideoPlayer({
   const bunnyPlayerRef = useRef(null);
   const currentTimeRef = useRef(0);
   const progressPollRef = useRef(null);
+  const driveProgressPollRef = useRef(null);
   const callbacksRef = useRef({});
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -204,12 +206,42 @@ export default function BunnyVideoPlayer({
     }
   };
 
+  const stopDriveProgressPolling = () => {
+    if (driveProgressPollRef.current) {
+      window.clearInterval(driveProgressPollRef.current);
+      driveProgressPollRef.current = null;
+    }
+  };
+
+  const emitDriveProgress = (player) => {
+    if (!player) return;
+
+    const current = Number(player.currentTime);
+    const duration = Number(player.duration);
+
+    if (!Number.isFinite(current) || current < 0) return;
+
+    callbacksRef.current.onTimeUpdate?.({
+      currentTime: current,
+      duration: Number.isFinite(duration) && duration > 0 ? duration : 0,
+    });
+  };
+
+  const startDriveProgressPolling = (player) => {
+    stopDriveProgressPolling();
+    emitDriveProgress(player);
+    driveProgressPollRef.current = window.setInterval(() => {
+      emitDriveProgress(player);
+    }, DRIVE_PROGRESS_POLL_MS);
+  };
+
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
     setDriveMediaFailed(false);
     bunnyPlayerRef.current = null;
     stopBunnyProgressPolling();
+    stopDriveProgressPolling();
   }, [
     video?._id,
     video?.id,
@@ -512,18 +544,39 @@ export default function BunnyVideoPlayer({
               try { player.currentTime = currentTimeRef.current; } catch {}
             }
             callbacksRef.current.onLoadedMetadata?.(player);
+            emitDriveProgress(player);
           }}
-          onCanPlay={() => setIsLoading(false)}
+          onLoadedData={(event) => emitDriveProgress(event.currentTarget)}
+          onDurationChange={(event) => emitDriveProgress(event.currentTarget)}
+          onCanPlay={(event) => {
+            setIsLoading(false);
+            emitDriveProgress(event.currentTarget);
+          }}
           onWaiting={() => setIsLoading(true)}
-          onPlaying={() => setIsLoading(false)}
+          onPlaying={(event) => {
+            setIsLoading(false);
+            startDriveProgressPolling(event.currentTarget);
+          }}
           onError={() => {
+            stopDriveProgressPolling();
             setIsLoading(false);
             setDriveMediaFailed(true);
           }}
-          onTimeUpdate={(event) => callbacksRef.current.onTimeUpdate?.(event.currentTarget)}
-          onEnded={(event) => callbacksRef.current.onEnded?.(event.currentTarget)}
-          onPlay={(event) => callbacksRef.current.onPlay?.(event.currentTarget)}
-          onPause={(event) => callbacksRef.current.onPause?.(event.currentTarget)}
+          onTimeUpdate={(event) => emitDriveProgress(event.currentTarget)}
+          onEnded={(event) => {
+            stopDriveProgressPolling();
+            callbacksRef.current.onEnded?.(event.currentTarget);
+            emitDriveProgress(event.currentTarget);
+          }}
+          onPlay={(event) => {
+            callbacksRef.current.onPlay?.(event.currentTarget);
+            startDriveProgressPolling(event.currentTarget);
+          }}
+          onPause={(event) => {
+            stopDriveProgressPolling();
+            callbacksRef.current.onPause?.(event.currentTarget);
+            emitDriveProgress(event.currentTarget);
+          }}
           style={{ width: "100%", height: "100%", display: "block", objectFit: "contain", backgroundColor: "#000000" }}
         />
       ) : useGoogleDriveEmbed ? (
