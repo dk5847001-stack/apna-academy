@@ -496,8 +496,9 @@ export default function BunnyVideoPlayer({
           controls
           playsInline
           preload="metadata"
-          controlsList="nodownload"
+          controlsList="nodownload noplaybackrate"
           disablePictureInPicture
+          disableRemotePlayback
           onLoadedMetadata={(event) => {
             const player = event.currentTarget;
             setIsLoading(false);
@@ -543,8 +544,9 @@ export default function BunnyVideoPlayer({
           controls
           playsInline
           preload="metadata"
-          controlsList="nodownload"
+          controlsList="nodownload noplaybackrate"
           disablePictureInPicture
+          disableRemotePlayback
           onLoadedMetadata={(event) => {
             const player = event.currentTarget;
             setIsLoading(false);
