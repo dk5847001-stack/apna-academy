@@ -273,7 +273,18 @@ export default function CoursePlayerLayout({
                 <Button variant="text" startIcon={<ChevronLeft />} onClick={() => previousVideo && onPrevious?.(previousVideo)} disabled={!previousVideo} sx={{ color: "#e2e8f0", textTransform: "none", fontWeight: 700, minWidth: 0, "&.Mui-disabled": { color: "#475569" } }}>previous</Button>
                 <Button variant="text" endIcon={<ChevronRight />} onClick={() => nextVideo && onNext?.(nextVideo)} disabled={!nextVideo} sx={{ color: "#e2e8f0", textTransform: "none", fontWeight: 700, minWidth: 0, "&.Mui-disabled": { color: "#475569" } }}>next</Button>
               </Stack>
-              <Box sx={{ backgroundColor: "#000000", width: "100%" }}><BunnyVideoPlayer video={currentVideo} currentTime={currentPosition} onTimeUpdate={onTimeUpdate} onLoadedMetadata={onLoadedMetadata} onEnded={onEnded} onPlay={onPlay} onPause={onPause} /></Box>
+              <Box sx={{ backgroundColor: "#000000", width: "100%" }}>
+                <BunnyVideoPlayer
+                  key={`${getVideoId(currentVideo)}-${currentVideo?.videoSource || "bunny"}-${currentVideo?.videoUrl || ""}-${currentVideo?.bunnyVideoId || ""}`}
+                  video={currentVideo}
+                  currentTime={currentPosition}
+                  onTimeUpdate={onTimeUpdate}
+                  onLoadedMetadata={onLoadedMetadata}
+                  onEnded={onEnded}
+                  onPlay={onPlay}
+                  onPause={onPause}
+                />
+              </Box>
               <Box sx={{ backgroundColor: "#111827", px: { xs: 1.5, sm: 2.5, md: 3 }, py: { xs: 1.5, sm: 2.25 } }}>
                 <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} justifyContent="space-between" spacing={1.5}><Box sx={{ minWidth: 0 }}><Typography sx={{ color: "#7184e7", fontSize: "0.64rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.13em" }}>Now learning</Typography><Typography sx={{ mt: 0.45, color: "#ffffff", fontWeight: 850, fontSize: { xs: "0.95rem", sm: "1.05rem" }, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getVideoTitle(currentVideo)}</Typography></Box></Stack>
                 {notesPdfUrl && <Paper variant="outlined" sx={{ mt: 2, p: { xs: 1.25, sm: 1.5 }, borderRadius: 2, borderColor: COLORS.border, backgroundColor: COLORS.panel }}><Stack direction={{ xs: "column", sm: "row" }} spacing={1.25} alignItems={{ xs: "stretch", sm: "center" }} justifyContent="space-between"><Stack direction="row" spacing={1} alignItems="center"><Description sx={{ color: "#93c5fd", fontSize: 20 }} /><Box><Typography sx={{ color: "#fff", fontSize: "0.8rem", fontWeight: 800 }}>Lesson Notes</Typography><Typography sx={{ color: "#94a3b8", fontSize: "0.66rem" }}>PDF notes for this lesson</Typography></Box></Stack><Stack direction={{ xs: "column", sm: "row" }} spacing={1}><Button component="a" href={notesPdfUrl} target="_blank" rel="noopener noreferrer" variant="outlined" startIcon={<Description />} sx={{ textTransform: "none", fontWeight: 800, color: "#dbeafe", borderColor: "#475569" }}>View Notes</Button><Button component="a" href={notesPdfUrl} target="_blank" rel="noopener noreferrer" variant="contained" startIcon={<Download />} sx={{ textTransform: "none", fontWeight: 800 }}>Open PDF</Button></Stack></Stack></Paper>}
