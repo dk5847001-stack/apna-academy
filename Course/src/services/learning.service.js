@@ -188,6 +188,11 @@ export const normalizeLearningVideo = (
     isPreview:
       Boolean(video.isPreview),
 
+    videoSource:
+      video.videoSource === "drive"
+        ? "drive"
+        : "bunny",
+
     duration:
       Number(video.duration) || 0,
 
