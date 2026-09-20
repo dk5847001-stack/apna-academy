@@ -53,23 +53,23 @@ export default function AboutPremium() {
     </section>
 
     <section className="relative overflow-hidden bg-white">
-      <div className="pointer-events-none absolute -left-28 top-16 h-72 w-72 rounded-full bg-blue-100/40 blur-3xl" />
-      <div className="pointer-events-none absolute -right-28 bottom-8 h-72 w-72 rounded-full bg-violet-100/40 blur-3xl" />
-      <div className="relative mx-auto max-w-7xl px-3 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <div className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rounded-full bg-blue-100/45 blur-3xl" />
+      <div className="pointer-events-none absolute -right-28 bottom-10 h-72 w-72 rounded-full bg-violet-100/45 blur-3xl" />
+      <div className="relative mx-auto max-w-7xl px-3 py-14 sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-2 flex items-center justify-center gap-3 text-[9px] font-black uppercase tracking-[0.32em] text-slate-400 sm:text-[11px]">
-            <span className="h-px w-8 bg-gradient-to-r from-transparent to-blue-300 sm:w-14" />
+          <div className="mb-2 flex items-center justify-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 sm:text-[11px]">
+            <span className="h-px w-8 bg-gradient-to-r from-transparent to-blue-300 sm:w-16" />
             <span>Meet Our Team</span>
-            <span className="h-px w-8 bg-gradient-to-l from-transparent to-violet-300 sm:w-14" />
+            <span className="h-px w-8 bg-gradient-to-l from-transparent to-violet-300 sm:w-16" />
           </div>
-          <h2 className="text-3xl font-black leading-[1.06] tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-[3.2rem]">
+          <h2 className="text-3xl font-black leading-[1.08] tracking-[-0.04em] text-slate-950 sm:text-5xl lg:text-[3.35rem]">
             The People Behind{" "}
             <span className="relative inline-block bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">
               Your Success
-              <span className="absolute -bottom-1 left-1/2 h-1 w-[84%] -translate-x-1/2 rounded-full bg-blue-600 sm:-bottom-2" />
+              <span className="absolute -bottom-1 left-1/2 h-1 w-[86%] -translate-x-1/2 rounded-full bg-blue-600 sm:-bottom-2" />
             </span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-xs leading-6 text-slate-500 sm:text-base sm:leading-7">
+          <p className="mx-auto mt-4 max-w-2xl text-xs leading-6 text-slate-500 sm:mt-5 sm:text-base sm:leading-7">
             A passionate team bringing education, technology and learner-first thinking together.
           </p>
         </div>
@@ -77,46 +77,47 @@ export default function AboutPremium() {
         <div className="mt-8 grid grid-cols-2 gap-2.5 sm:mt-10 sm:gap-5 lg:grid-cols-4 lg:gap-6">
           {TEAM.map(({ name, role, bio, image, icon: Icon, linkedin }, index) => {
             const a = [
-              { border: "border-blue-200", wash: "from-blue-50 via-white to-indigo-50", blob: "bg-blue-200/65", tag: "bg-blue-600", text: "text-blue-700", line: "from-blue-500 to-indigo-500", note: "Build\nLearn\nGrow" },
-              { border: "border-violet-200", wash: "from-violet-50 via-white to-fuchsia-50", blob: "bg-violet-200/65", tag: "bg-violet-600", text: "text-violet-700", line: "from-violet-500 to-fuchsia-500", note: "Learn\nCreate\nInspire" },
-              { border: "border-emerald-200", wash: "from-emerald-50 via-white to-teal-50", blob: "bg-emerald-200/65", tag: "bg-emerald-700", text: "text-emerald-700", line: "from-emerald-500 to-teal-500", note: "Learn\nSolve\nGrow" },
-              { border: "border-orange-200", wash: "from-orange-50 via-white to-amber-50", blob: "bg-orange-200/65", tag: "bg-orange-500", text: "text-orange-700", line: "from-orange-400 to-amber-500", note: "Create\nConnect\nImpact" },
+              { border: "border-blue-200", wash: "from-blue-50 via-white to-indigo-50", blob: "bg-blue-200/65", tag: "bg-blue-600", text: "text-blue-700", line: "from-blue-500 to-indigo-500", note: "Build • Learn • Grow" },
+              { border: "border-violet-200", wash: "from-violet-50 via-white to-fuchsia-50", blob: "bg-violet-200/65", tag: "bg-violet-600", text: "text-violet-700", line: "from-violet-500 to-fuchsia-500", note: "Learn • Create • Inspire" },
+              { border: "border-emerald-200", wash: "from-emerald-50 via-white to-teal-50", blob: "bg-emerald-200/65", tag: "bg-emerald-700", text: "text-emerald-700", line: "from-emerald-500 to-teal-500", note: "Learn • Solve • Grow" },
+              { border: "border-orange-200", wash: "from-orange-50 via-white to-amber-50", blob: "bg-orange-200/65", tag: "bg-orange-500", text: "text-orange-700", line: "from-orange-400 to-amber-500", note: "Create • Connect • Impact" },
             ][index % 4];
 
             return (
-              <article key={name} className={`group relative overflow-hidden rounded-[1.4rem] border bg-white/95 shadow-[0_10px_30px_rgba(15,23,42,.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(15,23,42,.11)] ${a.border}`}>
-                <div className={`relative h-[142px] overflow-hidden bg-gradient-to-br ${a.wash} sm:h-[174px]`}>
-                  <div className={`absolute -left-5 top-5 h-28 w-36 rotate-[-8deg] rounded-[52%_48%_45%_55%] ${a.blob} sm:left-1 sm:top-6 sm:h-40 sm:w-48`} />
-                  <div className="absolute left-6 top-8 h-20 w-24 rotate-[8deg] rounded-[55%_45%_50%_50%] bg-white/65 sm:left-10 sm:top-11 sm:h-28 sm:w-32" />
-
-                  <div className={`absolute right-2 top-3 z-[3] max-w-[32%] whitespace-pre-line text-right font-serif text-[8px] font-bold italic leading-[1.05] sm:right-4 sm:top-5 sm:text-[11px] ${a.text}`}>
+              <article key={name} className={`group relative overflow-hidden rounded-2xl border bg-white shadow-[0_8px_28px_rgba(15,23,42,.055)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(15,23,42,.1)] sm:rounded-[1.35rem] ${a.border}`}>
+                <div className={`relative h-[118px] overflow-hidden bg-gradient-to-br ${a.wash} sm:h-[160px]`}>
+                  <div className={`absolute left-[-14px] top-4 h-24 w-28 rounded-[48%_52%_58%_42%] rotate-[-8deg] ${a.blob} sm:left-2 sm:top-5 sm:h-36 sm:w-40`} />
+                  <div className={`absolute left-5 top-9 h-16 w-20 rounded-[55%_45%_45%_55%] bg-white/60 rotate-[7deg] sm:left-10 sm:top-12 sm:h-24 sm:w-28`} />
+                  <div className={`absolute right-2 top-2 max-w-[46%] text-right font-serif text-[7px] font-bold italic leading-tight sm:right-4 sm:top-4 sm:text-[10px] ${a.text}`}>
                     {a.note}
-                    <span className={`mt-1 ml-auto block h-0.5 w-7 rounded-full bg-gradient-to-r ${a.line} sm:w-10`} />
+                    <span className={`mt-1 ml-auto block h-0.5 w-7 rotate-[-4deg] rounded-full bg-gradient-to-r ${a.line} sm:w-11`} />
                   </div>
 
-                  <div className="absolute bottom-0 left-1 z-[2] h-[128px] w-[64%] overflow-hidden [clip-path:ellipse(48%_57%_at_50%_56%)] sm:left-3 sm:h-[158px] sm:w-[67%]">
+                  <div className="absolute bottom-0 left-2 z-[1] h-[104px] w-[62%] overflow-hidden rounded-t-[42%] rounded-b-[22%] sm:left-4 sm:h-[142px] sm:w-[66%]">
                     <img
                       src={image}
                       alt={`${name} — ${role}`}
                       loading="lazy"
-                      className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.04]"
+                      className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.035]"
                     />
                   </div>
 
-                  <span className={`absolute bottom-2 left-2 z-[4] inline-flex max-w-[92%] items-center gap-1 rounded-full px-2 py-1 text-[6px] font-black uppercase tracking-[0.045em] text-white shadow-lg sm:bottom-3 sm:left-3 sm:px-2.5 sm:py-1.5 sm:text-[8px] ${a.tag}`}>
+                  <span className={`absolute bottom-2 left-2 z-[2] inline-flex max-w-[90%] items-center gap-1 rounded-full px-2 py-1 text-[6px] font-black uppercase tracking-[0.045em] text-white shadow-md ${a.tag} sm:bottom-3 sm:left-3 sm:px-2.5 sm:py-1.5 sm:text-[8px]`}>
                     <Icon sx={{ fontSize: 10 }} /> {role}
                   </span>
+
+                  <span className={`absolute bottom-0 right-2 h-8 w-8 rounded-full bg-gradient-to-br opacity-20 blur-lg ${a.line} sm:right-5 sm:h-12 sm:w-12`} />
                 </div>
 
-                <div className="relative px-3 pb-3 pt-3 sm:px-4 sm:pb-4 sm:pt-3.5">
-                  <div className={`absolute right-3 top-4 h-0.5 w-8 rounded-full bg-gradient-to-r ${a.line} sm:right-4 sm:w-10`} />
-                  <h3 className="pr-9 text-[12px] font-black leading-tight text-slate-950 sm:text-lg">{name}</h3>
-                  <p className={`mt-0.5 text-[6.5px] font-black uppercase tracking-[0.13em] sm:text-[9px] ${a.text}`}>{role}</p>
+                <div className="relative px-2.5 pb-2.5 pt-2.5 sm:px-4 sm:pb-4 sm:pt-3.5">
+                  <div className={`absolute right-2.5 top-3 h-0.5 w-6 rounded-full bg-gradient-to-r ${a.line} sm:right-4 sm:top-4 sm:w-10`} />
+                  <h3 className="pr-8 text-[12px] font-black leading-tight text-slate-950 sm:text-lg">{name}</h3>
+                  <p className={`mt-0.5 text-[6.5px] font-black uppercase tracking-[0.12em] sm:text-[9px] ${a.text}`}>{role}</p>
                   <p className="mt-1.5 line-clamp-2 text-[7.5px] leading-4 text-slate-500 sm:mt-2 sm:text-[10px] sm:leading-5">{bio}</p>
 
                   <div className="mt-2 flex flex-wrap gap-1 sm:mt-3 sm:gap-1.5">
                     {(index === 0 ? ["Strategy", "Product"] : index === 1 ? ["Design", "Creativity"] : index === 2 ? ["Data", "Technology"] : ["Content", "Community"]).map((tag) => (
-                      <span key={tag} className={`rounded-full bg-white px-1.5 py-0.5 text-[6px] font-bold shadow-sm ring-1 ring-slate-100 sm:px-2 sm:py-1 sm:text-[8px] ${a.text}`}>{tag}</span>
+                      <span key={tag} className={`rounded-full bg-slate-50 px-1.5 py-0.5 text-[6px] font-bold ring-1 ring-slate-100 sm:px-2 sm:py-1 sm:text-[8px] ${a.text}`}>{tag}</span>
                     ))}
                   </div>
 
