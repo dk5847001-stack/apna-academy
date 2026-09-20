@@ -147,27 +147,6 @@ const videoToForm = (video) => ({
   bunnyVideoId: video.bunnyVideoId || "",
   thumbnailUrl: video.thumbnailUrl || "",
   notesPdfUrl: video.notesPdfUrl || "",
-  duration: video.duration ?? 0,
-  order: video.order ?? 1,
-  isPreview: Boolean(video.isPreview),
-  isPublished: video.isPublished !== undefined ? Boolean(video.isPublished) : true,
-});
-
-const moduleToForm = (module) => ({
-  title: module.title || "",
-  description: module.description || "",
-  order: module.order || 1,
-  isPublished: module.isPublished !== false,
-});
-
-const videoToForm = (video) => ({
-  ...emptyVideo,
-  title: video.title || "",
-  description: video.description || "",
-  videoUrl: video.videoUrl || "",
-  bunnyVideoId: video.bunnyVideoId || "",
-  thumbnailUrl: video.thumbnailUrl || "",
-  notesPdfUrl: video.notesPdfUrl || "",
   duration: video.duration || 0,
   order: video.order || 1,
   isPreview: Boolean(video.isPreview),
