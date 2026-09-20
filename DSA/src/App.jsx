@@ -14,13 +14,14 @@ import Submissions from "./pages/Submissions.jsx";
 import Leaderboard from "./pages/Leaderboard.jsx";
 import Unlock from "./pages/Unlock.jsx";
 import CodingPractice from "./pages/CodingPractice.jsx";
+import Settings from "./pages/Settings.jsx";
 
 function Placeholder({ title }) {
   return (
-    <section className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm sm:p-14">
+    <section className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm sm:p-14 dark:border-slate-800 dark:bg-slate-900">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">ApnaAcademy DSA</p>
-      <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">{title}</h1>
-      <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-500">This DSA module is planned for a later implementation phase. The shared workspace and backend-connected problem library are already available.</p>
+      <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 dark:text-white">{title}</h1>
+      <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-500 dark:text-slate-400">This DSA module is planned for a later implementation phase. The shared workspace and backend-connected problem library are already available.</p>
     </section>
   );
 }
@@ -45,7 +46,7 @@ export default function App() {
         <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="unlock" element={<Unlock />} />
         <Route path="profile" element={<Placeholder title="Profile" />} />
-        <Route path="settings" element={<Placeholder title="Settings" />} />
+        <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Placeholder title="Page Not Found" />} />
       </Route>
     </Routes>
