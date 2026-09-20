@@ -4,12 +4,15 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import SeoManager from './components/SeoManager.jsx'
+import { SettingsProvider } from './context/SettingsContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <SeoManager />
-      <App />
-    </BrowserRouter>
+    <SettingsProvider>
+      <BrowserRouter>
+        <SeoManager />
+        <App />
+      </BrowserRouter>
+    </SettingsProvider>
   </StrictMode>,
 )
