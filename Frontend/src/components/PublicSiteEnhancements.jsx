@@ -163,45 +163,46 @@ const addHomeSuccessSections = () => {
         <p class="mx-auto mt-5 max-w-3xl text-center text-[10px] leading-5 text-slate-400">Student imagery and outcome figures are illustrative UI content and should be replaced with verified ApnaAcademy data and approved student photographs before making public outcome claims.</p>
       </div>
     </section>
-    <section class="relative overflow-hidden border-t border-slate-100 bg-white py-14 sm:py-16 lg:py-20">
-      <div aria-hidden="true" class="pointer-events-none absolute -left-24 top-0 h-64 w-64 rounded-full bg-blue-100/70 blur-3xl"></div>
-      <div aria-hidden="true" class="pointer-events-none absolute -right-24 top-0 h-64 w-64 rounded-full bg-indigo-100/70 blur-3xl"></div>
-      <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section class="relative overflow-hidden border-t border-slate-100 bg-white py-12 sm:py-14 lg:py-16">
+      <div aria-hidden="true" class="pointer-events-none absolute -left-28 -top-20 h-64 w-64 rounded-full bg-blue-100/70 blur-3xl"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -right-28 -top-16 h-64 w-64 rounded-full bg-blue-100/50 blur-3xl"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute left-0 bottom-0 h-24 w-24 rounded-full bg-blue-50"></div>
+      <div class="relative mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-4xl text-center">
-          <div class="inline-flex items-center gap-2 text-sm font-extrabold text-slate-900 sm:text-base">
-            <span class="inline-flex h-8 w-8 items-center justify-center text-blue-600"><svg viewBox="0 0 24 24" fill="currentColor" class="h-7 w-7" aria-hidden="true"><path d="M12 2.8 14.5 5l3.3-.3-.3 3.3 2.2 2.5-2.2 2.5.3 3.3-3.3-.3-2.5 2.2-2.5-2.2-3.3.3.3-3.3-2.2-2.5L6.5 8l-.3-3.3L9.5 5 12 2.8Z"/></svg></span>
-            <span>Apna Academy</span>
+          <div class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.3em] text-slate-500 sm:text-xs">
+            <span class="text-blue-600">REAL PEOPLE</span><span>•</span><span>REAL STORIES</span><span>•</span><span>REAL IMPACT</span>
           </div>
-          <h2 class="mt-5 text-4xl font-black leading-[1.08] tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">Real Learners, <span class="relative inline-block font-semibold italic text-blue-600">Real Stories<span aria-hidden="true" class="absolute -bottom-2 left-1/2 h-1 w-[88%] -translate-x-1/2 rotate-[-2deg] rounded-full bg-blue-500"></span></span></h2>
-          <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-slate-500 sm:text-lg sm:leading-8">See how Apna Academy helped students build skills,<br class="hidden sm:block"/> gain confidence and create a better future.</p>
-          <div aria-hidden="true" class="mx-auto mt-3 flex w-24 items-center justify-between text-blue-500"><span class="h-1 w-1 rounded-full bg-current"></span><span class="h-1 w-1 rounded-full bg-current"></span><span class="h-1 w-8 rounded-full bg-current"></span><span class="h-1 w-1 rounded-full bg-current"></span><span class="h-1 w-1 rounded-full bg-current"></span></div>
+          <h2 class="mt-4 text-4xl font-black leading-none tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+            What Our <span class="relative inline-block font-semibold italic text-blue-600">Learners Say<span aria-hidden="true" class="absolute -bottom-2 left-0 h-1 w-full rotate-[-1deg] rounded-full bg-blue-500"></span></span>
+          </h2>
+          <p class="mx-auto mt-5 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base sm:leading-7">Hear from our students who turned their goals into achievements<br class="hidden sm:block"/> with Apna Academy.</p>
         </div>
 
-        <div class="mt-10 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-5 lg:grid-cols-4 lg:gap-6">
-          ${[
-            ["Rahul Sharma","Web Development Intern","B.Tech CSE | Sandip University","4.8/5","Learn|Build|Grow","InternovaTech has been a game-changer for me. The structured learning, practical projects and supportive mentors helped me build real-world skills. The platform is easy to use and the certificate added great value to my resume.","Verified Student","blue",STUDENTS[0]?.[3]],
-            ["Priya Verma","UI/UX Design Intern","B.Sc. Design | Delhi University","4.9/5","From|Learning|to Earning","The hands-on projects and expert mentors at Apna Academy gave me the confidence to take on real challenges. I was able to build my portfolio and get placed within 3 months. Highly recommended!","Got Placed","amber",STUDENTS[1]?.[3]],
-            ["Arjun Mehta","Data Science Intern","B.Tech AI | VIT Bhopal","4.7/5","Better|Skills|Bigger Dreams","Apna Academy’s practical approach to learning really works! I gained industry-relevant skills, worked on real projects, and the support team was always there whenever I needed help.","Verified Student","violet",STUDENTS[2]?.[3]],
-            ["Neha Singh","Digital Marketing Intern","B.Com | Amity University","4.8/5","Skills|for a|Brighter|Future","The curriculum is well-structured and easy to follow. The mentors are supportive and the community is amazing. Apna Academy truly helps you grow, not just as a student, but as a professional.","Completed Internship","teal",STUDENTS[3]?.[3]],
-          ].map(([name,role,education,rating,tagline,review,badge,accent,image]) => {
+        <div class="mt-9 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+          \${[
+            ["Rahul Sharma","Web Development Intern","B.Tech CSE | Sandip University","4.8/5","InternovaTech has been a game-changer for me. The structured learning and supportive mentors helped me build real-world skills.","Verified Student","blue",STUDENTS[0]?.[3],"Learn|Build|Grow"],
+            ["Priya Verma","UI/UX Design Intern","B.Sc. Design | Delhi University","4.9/5","The hands-on projects and expert mentors gave me the confidence to take on real challenges. I built my portfolio and got placed within 3 months.","Got Placed","amber",STUDENTS[1]?.[3],"From|Learning|to Earning"],
+            ["Arjun Mehta","Data Science Intern","B.Tech AI | VIT Bhopal","4.7/5","Apna Academy’s practical approach really works! I gained industry-relevant skills, worked on real projects, and always had support when I needed it.","Project Based Learning","violet",STUDENTS[2]?.[3],"Better|Skills|Bigger Dreams"],
+            ["Neha Singh","Digital Marketing Intern","B.Com | Amity University","4.8/5","The curriculum is well-structured and easy to follow. The mentors are supportive and the community helps you grow as a professional.","Community Support","teal",STUDENTS[3]?.[3],"Skills|for a|Brighter Future"],
+          ].map(([name,role,education,rating,review,badge,accent,image,tagline]) => {
             const styles = {
-              blue: ["border-blue-200","bg-blue-100","text-blue-600","bg-emerald-50","text-emerald-600"],
-              amber: ["border-amber-200","bg-amber-100","text-amber-600","bg-violet-50","text-violet-600"],
-              violet: ["border-violet-200","bg-violet-100","text-violet-600","bg-emerald-50","text-emerald-600"],
-              teal: ["border-emerald-200","bg-emerald-100","text-emerald-600","bg-violet-50","text-violet-600"],
+              blue: ["border-blue-200","bg-blue-50","text-blue-600","bg-emerald-50","text-emerald-600"],
+              amber: ["border-amber-200","bg-amber-50","text-amber-600","bg-violet-50","text-violet-600"],
+              violet: ["border-violet-200","bg-violet-50","text-violet-600","bg-blue-50","text-blue-600"],
+              teal: ["border-emerald-200","bg-emerald-50","text-emerald-600","bg-emerald-50","text-emerald-600"],
             }[accent];
-            const [border,blob,accentText,badgeBg,badgeText] = styles;
-            return '<article class="group relative min-w-0 overflow-hidden rounded-[1.35rem] border '+border+' bg-white p-3.5 shadow-[0_8px_28px_rgba(15,23,42,0.05)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(15,23,42,0.10)] sm:rounded-[1.5rem] sm:p-4 lg:p-5">'+
-              '<div class="relative h-[150px] overflow-hidden rounded-[1.2rem] '+blob+' sm:h-[168px] lg:h-[180px]">'+
-                '<div class="absolute left-4 top-4 h-28 w-44 rounded-[2rem] bg-white/40 blur-sm sm:h-32 sm:w-52"></div>'+
-                '<img src="'+(image || STUDENTS[0]?.[3] || "")+'" alt="'+name+' - student review" loading="lazy" decoding="async" class="absolute bottom-0 left-4 h-[155px] w-[68%] object-cover object-top drop-shadow-lg sm:left-5 sm:h-[175px] lg:h-[188px]"/>'+
-                '<div class="absolute right-2 top-5 max-w-[38%] text-center text-[17px] font-black italic leading-[1.1] '+accentText+' sm:right-3 sm:text-lg lg:text-xl">'+tagline.split("|").map((line,i)=>'<span class="block '+(i===tagline.split("|").length-1?'border-b-2 border-current pb-1':'')+'">'+line+'</span>').join("")+'</div>'+
-                '<span aria-hidden="true" class="absolute right-3 bottom-4 '+accentText+'"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" class="h-8 w-8"><path d="M6 24c5-8 10-11 20-14"/><path d="m18 9 7 1-3 6"/></svg></span>'+
+            const [border,photoBg,accentText,badgeBg,badgeText]=styles;
+            return '<article class="group relative flex h-[292px] min-w-0 flex-col overflow-hidden rounded-[1.25rem] border '+border+' bg-white p-3 shadow-[0_7px_24px_rgba(15,23,42,0.045)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_15px_35px_rgba(15,23,42,0.09)] sm:h-[305px] sm:rounded-[1.35rem] sm:p-3.5 lg:h-[320px] lg:p-4">'+
+              '<div class="relative h-[84px] shrink-0 sm:h-[92px]">'+
+                '<div class="absolute left-0 top-1 h-[78px] w-[78px] rounded-full '+photoBg+' sm:h-[88px] sm:w-[88px]"></div>'+
+                '<img src="'+(image || STUDENTS[0]?.[3] || "")+'" alt="'+name+' - student review" loading="lazy" decoding="async" class="absolute bottom-0 left-1 h-[104px] w-[104px] rounded-[46%] object-cover object-top drop-shadow-md sm:h-[112px] sm:w-[112px]"/>'+
+                '<div class="absolute right-0 top-2 max-w-[48%] text-right text-[11px] font-black italic leading-[1.05] '+accentText+' sm:text-xs lg:text-sm">'+tagline.split("|").map((line,i)=>'<span class="block '+(i===tagline.split("|").length-1?'border-b-2 border-current pb-0.5':'')+'">'+line+'</span>').join("")+'</div>'+
+                '<span aria-hidden="true" class="absolute right-0 top-1 '+accentText+' opacity-45"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" class="h-7 w-7"><path d="M5 23c5-8 10-11 20-14"/><path d="m18 9 7 1-3 6"/></svg></span>'+
               '</div>'+
-              '<div class="mt-4 flex items-center gap-2"><span class="text-[17px] tracking-[-1px] text-amber-400 sm:text-lg">★★★★★</span><span class="text-sm font-black text-slate-900 sm:text-base">'+rating.replace("/5","")+'<span class="font-medium text-slate-500">/5</span></span></div>'+
-              '<div class="mt-3 flex gap-2"><span class="shrink-0 pt-0.5 text-4xl font-black leading-none '+accentText+'">“</span><p class="text-[11px] leading-[1.55] text-slate-600 sm:text-xs sm:leading-5">'+review+'</p></div>'+
-              '<div class="mt-4"><h3 class="text-base font-black text-slate-950 sm:text-lg">'+name+'</h3><p class="mt-0.5 text-[11px] font-bold text-slate-500 sm:text-xs">'+role+'</p><p class="mt-0.5 text-[10px] leading-4 text-slate-400 sm:text-[11px]">'+education+'</p></div>'+
-              '<div class="mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-[9px] font-extrabold '+badgeBg+' '+badgeText+' sm:text-[10px]"><span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/80"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" class="h-3 w-3"><path d="m5 10 3 3 7-7"/></svg></span>'+badge+'</div>'+
+              '<div class="mt-1 flex items-center gap-1.5"><span class="text-[15px] leading-none tracking-[-1px] text-amber-400 sm:text-base">★</span><span class="text-xs font-black text-slate-900 sm:text-sm">'+rating.replace("/5","")+'<span class="font-medium text-slate-500">/5</span></span></div>'+
+              '<div class="mt-2 flex min-h-0 flex-1 gap-1.5 overflow-hidden"><span class="shrink-0 text-3xl font-black leading-none '+accentText+'">“</span><p class="line-clamp-4 text-[9px] leading-[1.45] text-slate-600 sm:text-[10px] sm:leading-[1.5] lg:text-[11px]">'+review+'</p></div>'+
+              '<div class="mt-2 shrink-0"><h3 class="text-sm font-black leading-tight text-slate-950 sm:text-base">'+name+'</h3><p class="mt-0.5 text-[9px] font-bold text-slate-500 sm:text-[10px]">'+role+'</p><p class="text-[8px] leading-3 text-slate-400 sm:text-[9px]">'+education+'</p></div>'+
+              '<div class="mt-2 inline-flex w-fit max-w-full shrink-0 items-center gap-1.5 rounded-full border border-white/70 px-2.5 py-1 text-[8px] font-extrabold '+badgeBg+' '+badgeText+' sm:px-3 sm:py-1.5 sm:text-[9px]"><span class="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/80"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" class="h-2.5 w-2.5"><path d="m5 10 3 3 7-7"/></svg></span>'+badge+'</div>'+
             '</article>';
           }).join("")}
         </div>
