@@ -49,6 +49,13 @@ const resolveGoogleDriveEmbedUrl = (video) => {
   if (!fileId) return "";
   return "https://drive.google.com/file/d/" + encodeURIComponent(fileId) + "/preview";
 };
+
+const resolveGoogleDriveMediaUrl = (video) => {
+  const rawUrl = typeof video?.videoUrl === "string" ? video.videoUrl.trim() : "";
+  const fileId = extractGoogleDriveFileId(rawUrl);
+  if (!fileId) return "";
+  return "https://drive.google.com/uc?export=download&id=" + encodeURIComponent(fileId);
+};
 const resolveBunnyEmbedUrl = (video) => {
   const rawUrl = typeof video?.videoUrl === "string" ? video.videoUrl.trim() : "";
 
@@ -134,6 +141,7 @@ export default function BunnyVideoPlayer({
   const callbacksRef = useRef({});
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [driveMediaFailed, setDriveMediaFailed] = useState(false);
 
   currentTimeRef.current = Number(currentTime) || 0;
   callbacksRef.current = {
@@ -154,6 +162,11 @@ export default function BunnyVideoPlayer({
     [video?.videoSource, video?.videoUrl]
   );
 
+  const googleDriveMediaUrl = useMemo(
+    () => resolveGoogleDriveMediaUrl(video),
+    [video?.videoSource, video?.videoUrl]
+  );
+
   const nativeVideoUrl = useMemo(() => {
     const rawUrl = typeof video?.videoUrl === "string" ? video.videoUrl.trim() : "";
     return isNativeVideoUrl(rawUrl) ? rawUrl : "";
@@ -165,14 +178,23 @@ export default function BunnyVideoPlayer({
   }, [video?.notesPdfUrl]);
 
   const useBunnyEmbed = video?.videoSource !== "drive" && Boolean(bunnyEmbedUrl);
+  const useGoogleDriveNative =
+    video?.videoSource === "drive" &&
+    Boolean(googleDriveMediaUrl) &&
+    !driveMediaFailed;
   const useGoogleDriveEmbed =
-    video?.videoSource === "drive" && Boolean(googleDriveEmbedUrl);
+    video?.videoSource === "drive" &&
+    Boolean(googleDriveEmbedUrl) &&
+    driveMediaFailed;
   const useNativeVideo =
     video?.videoSource !== "drive" &&
     !useBunnyEmbed &&
     Boolean(nativeVideoUrl);
   const hasVideoSource =
-    useBunnyEmbed || useGoogleDriveEmbed || useNativeVideo;
+    useBunnyEmbed ||
+    useGoogleDriveNative ||
+    useGoogleDriveEmbed ||
+    useNativeVideo;
   const hasPdfSource = Boolean(pdfUrl);
 
   const stopBunnyProgressPolling = () => {
@@ -185,6 +207,7 @@ export default function BunnyVideoPlayer({
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
+    setDriveMediaFailed(false);
     bunnyPlayerRef.current = null;
     stopBunnyProgressPolling();
   }, [
@@ -195,6 +218,7 @@ export default function BunnyVideoPlayer({
     video?.bunnyVideoId,
     bunnyEmbedUrl,
     googleDriveEmbedUrl,
+    googleDriveMediaUrl,
     nativeVideoUrl,
   ]);
 
@@ -464,6 +488,38 @@ export default function BunnyVideoPlayer({
           }}
           style={{ width: "100%", height: "100%", border: 0, display: "block", backgroundColor: "#000000" }}
         />
+      ) : useGoogleDriveNative ? (
+        <video
+          key={`${video._id || video.id || "video"}-${googleDriveMediaUrl}`}
+          src={googleDriveMediaUrl}
+          poster={video.thumbnailUrl || undefined}
+          controls
+          playsInline
+          preload="metadata"
+          controlsList="nodownload"
+          disablePictureInPicture
+          onLoadedMetadata={(event) => {
+            const player = event.currentTarget;
+            setIsLoading(false);
+            setHasError(false);
+            if (currentTimeRef.current > 0 && Number.isFinite(currentTimeRef.current)) {
+              try { player.currentTime = currentTimeRef.current; } catch {}
+            }
+            callbacksRef.current.onLoadedMetadata?.(player);
+          }}
+          onCanPlay={() => setIsLoading(false)}
+          onWaiting={() => setIsLoading(true)}
+          onPlaying={() => setIsLoading(false)}
+          onError={() => {
+            setIsLoading(false);
+            setDriveMediaFailed(true);
+          }}
+          onTimeUpdate={(event) => callbacksRef.current.onTimeUpdate?.(event.currentTarget)}
+          onEnded={(event) => callbacksRef.current.onEnded?.(event.currentTarget)}
+          onPlay={(event) => callbacksRef.current.onPlay?.(event.currentTarget)}
+          onPause={(event) => callbacksRef.current.onPause?.(event.currentTarget)}
+          style={{ width: "100%", height: "100%", display: "block", objectFit: "contain", backgroundColor: "#000000" }}
+        />
       ) : useGoogleDriveEmbed ? (
         <iframe
           key={`${video._id || video.id || "video"}-${googleDriveEmbedUrl}`}
@@ -479,8 +535,7 @@ export default function BunnyVideoPlayer({
             setHasError(true);
           }}
           style={{ width: "100%", height: "100%", border: 0, display: "block", backgroundColor: "#000000" }}
-        />
-      ) : (
+        />      ) : (
         <video
           key={`${video._id || video.id || "video"}-${nativeVideoUrl}`}
           src={nativeVideoUrl}
