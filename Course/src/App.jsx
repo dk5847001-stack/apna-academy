@@ -295,6 +295,7 @@ function CourseLearningPage() {
       onTimeUpdate={handleTimeUpdate}
       onLoadedMetadata={handleLoadedMetadata}
       onEnded={handleEnded}
+      onPlay={() => {}}
       onPause={handlePause}
     />
   );
