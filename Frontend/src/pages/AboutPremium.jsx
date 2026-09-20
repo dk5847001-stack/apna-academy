@@ -55,7 +55,7 @@ export default function AboutPremium() {
     <section className="relative overflow-hidden bg-white">
       <div className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rounded-full bg-blue-100/45 blur-3xl" />
       <div className="pointer-events-none absolute -right-28 bottom-10 h-72 w-72 rounded-full bg-violet-100/45 blur-3xl" />
-      <div className="relative mx-auto max-w-7xl px-3 py-14 sm:px-6 sm:py-20 lg:px-8">
+      <div className="relative mx-auto max-w-7xl px-3 pb-14 pt-20 sm:px-6 sm:pb-20 sm:pt-24 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-2 flex items-center justify-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 sm:text-[11px]">
             <span className="h-px w-8 bg-gradient-to-r from-transparent to-blue-300 sm:w-16" />
@@ -77,10 +77,10 @@ export default function AboutPremium() {
         <div className="mt-8 grid grid-cols-2 gap-2.5 sm:mt-10 sm:gap-5 lg:grid-cols-4 lg:gap-6">
           {TEAM.map(({ name, role, bio, image, icon: Icon, linkedin }, index) => {
             const a = [
-              { border: "border-blue-200", wash: "from-blue-50 via-white to-indigo-50", blob: "bg-blue-200/65", tag: "bg-blue-600", text: "text-blue-700", line: "from-blue-500 to-indigo-500", note: "Build • Learn • Grow" },
-              { border: "border-violet-200", wash: "from-violet-50 via-white to-fuchsia-50", blob: "bg-violet-200/65", tag: "bg-violet-600", text: "text-violet-700", line: "from-violet-500 to-fuchsia-500", note: "Learn • Create • Inspire" },
-              { border: "border-emerald-200", wash: "from-emerald-50 via-white to-teal-50", blob: "bg-emerald-200/65", tag: "bg-emerald-700", text: "text-emerald-700", line: "from-emerald-500 to-teal-500", note: "Learn • Solve • Grow" },
-              { border: "border-orange-200", wash: "from-orange-50 via-white to-amber-50", blob: "bg-orange-200/65", tag: "bg-orange-500", text: "text-orange-700", line: "from-orange-400 to-amber-500", note: "Create • Connect • Impact" },
+              { border: "border-blue-200", wash: "from-blue-50 via-white to-indigo-50", blob: "bg-blue-200/65", tag: "bg-blue-600", text: "text-blue-700", line: "from-blue-500 to-indigo-500", note: "Build\nLearn\nGrow" },
+              { border: "border-violet-200", wash: "from-violet-50 via-white to-fuchsia-50", blob: "bg-violet-200/65", tag: "bg-violet-600", text: "text-violet-700", line: "from-violet-500 to-fuchsia-500", note: "Learn\nCreate\nInspire" },
+              { border: "border-emerald-200", wash: "from-emerald-50 via-white to-teal-50", blob: "bg-emerald-200/65", tag: "bg-emerald-700", text: "text-emerald-700", line: "from-emerald-500 to-teal-500", note: "Learn\nSolve\nGrow" },
+              { border: "border-orange-200", wash: "from-orange-50 via-white to-amber-50", blob: "bg-orange-200/65", tag: "bg-orange-500", text: "text-orange-700", line: "from-orange-400 to-amber-500", note: "Create\nConnect\nImpact" },
             ][index % 4];
 
             return (
@@ -88,17 +88,17 @@ export default function AboutPremium() {
                 <div className={`relative h-[118px] overflow-hidden bg-gradient-to-br ${a.wash} sm:h-[160px]`}>
                   <div className={`absolute left-[-14px] top-4 h-24 w-28 rounded-[48%_52%_58%_42%] rotate-[-8deg] ${a.blob} sm:left-2 sm:top-5 sm:h-36 sm:w-40`} />
                   <div className={`absolute left-5 top-9 h-16 w-20 rounded-[55%_45%_45%_55%] bg-white/60 rotate-[7deg] sm:left-10 sm:top-12 sm:h-24 sm:w-28`} />
-                  <div className={`absolute right-2 top-2 max-w-[46%] text-right font-serif text-[7px] font-bold italic leading-tight sm:right-4 sm:top-4 sm:text-[10px] ${a.text}`}>
+                  <div className={`absolute right-3 top-3 max-w-[34%] whitespace-pre-line text-right font-serif text-[7px] font-bold italic leading-[1.05] sm:right-5 sm:top-5 sm:text-[10px] ${a.text}`}>
                     {a.note}
                     <span className={`mt-1 ml-auto block h-0.5 w-7 rotate-[-4deg] rounded-full bg-gradient-to-r ${a.line} sm:w-11`} />
                   </div>
 
-                  <div className="absolute bottom-0 left-2 z-[1] h-[104px] w-[62%] overflow-hidden rounded-t-[42%] rounded-b-[22%] sm:left-4 sm:h-[142px] sm:w-[66%]">
+                  <div className="absolute bottom-0 left-2 z-[1] h-[108px] w-[65%] overflow-hidden rounded-[48%_52%_38%_34%] sm:left-4 sm:h-[145px] sm:w-[68%]">
                     <img
                       src={image}
                       alt={`${name} — ${role}`}
                       loading="lazy"
-                      className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.035]"
+                      className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.035]"
                     />
                   </div>
 
@@ -113,7 +113,7 @@ export default function AboutPremium() {
                   <div className={`absolute right-2.5 top-3 h-0.5 w-6 rounded-full bg-gradient-to-r ${a.line} sm:right-4 sm:top-4 sm:w-10`} />
                   <h3 className="pr-8 text-[12px] font-black leading-tight text-slate-950 sm:text-lg">{name}</h3>
                   <p className={`mt-0.5 text-[6.5px] font-black uppercase tracking-[0.12em] sm:text-[9px] ${a.text}`}>{role}</p>
-                  <p className="mt-1.5 line-clamp-2 text-[7.5px] leading-4 text-slate-500 sm:mt-2 sm:text-[10px] sm:leading-5">{bio}</p>
+                  <p className="mt-1.5 line-clamp-2 text-[8px] leading-4 text-slate-500 sm:mt-2 sm:text-[10px] sm:leading-5">{bio}</p>
 
                   <div className="mt-2 flex flex-wrap gap-1 sm:mt-3 sm:gap-1.5">
                     {(index === 0 ? ["Strategy", "Product"] : index === 1 ? ["Design", "Creativity"] : index === 2 ? ["Data", "Technology"] : ["Content", "Community"]).map((tag) => (
