@@ -6,24 +6,15 @@ const SITE_DESCRIPTION =
   "ApnaAcademy is a modern online learning platform for practical courses, skill development and career-focused learning.";
 
 const BLOG_POSTS = [
-  {
-    title: "How to Build Job-Ready Web Development Skills",
-    date: "2026-09-14",
-    description:
-      "A practical roadmap for frontend, backend, APIs, databases and real-world projects.",
-  },
-  {
-    title: "Why Project-Based Learning Works",
-    date: "2026-09-10",
-    description:
-      "Move from passive tutorials to structured projects and measurable progress.",
-  },
-  {
-    title: "A Better Way to Prepare for Technical Interviews",
-    date: "2026-09-05",
-    description:
-      "Balance DSA, computer science fundamentals, projects and communication.",
-  },
+  { title: "How to Build Job-Ready Web Development Skills", date: "2026-09-14", description: "A practical roadmap from web fundamentals to React, Node.js, APIs, databases and deployment." },
+  { title: "Why Project-Based Learning Works", date: "2026-09-10", description: "How structured projects turn concepts into practical skills, debugging experience and portfolio evidence." },
+  { title: "A Better Way to Prepare for Technical Interviews", date: "2026-09-05", description: "A balanced approach to DSA, computer science fundamentals, projects and technical communication." },
+  { title: "DSA Roadmap: From Basics to Interview Practice", date: "2026-09-03", description: "A structured path through core data structures, algorithms and problem-solving practice." },
+  { title: "How to Choose Your First Programming Language", date: "2026-08-30", description: "A practical guide to choosing Java, C++, Python or JavaScript based on your learning and project goals." },
+  { title: "How to Build a Strong Developer Portfolio", date: "2026-08-26", description: "What to include in a developer portfolio to demonstrate projects, technical decisions and practical ability." },
+  { title: "What Makes a Good Full Stack Project?", date: "2026-08-22", description: "Key features that turn a basic application into a useful full-stack project with authentication, APIs, data and deployment." },
+  { title: "AI and Machine Learning Learning Path for Beginners", date: "2026-08-18", description: "A beginner-friendly sequence for Python, data handling, machine learning concepts and practical AI projects." },
+  { title: "How to Study Consistently While in College", date: "2026-08-14", description: "A realistic weekly system for balancing classes, DSA, projects, revision and long-term skill development." },
 ];
 
 const PAGE_SEO = {
