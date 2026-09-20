@@ -361,38 +361,46 @@ export default function MainLayout() {
           <Link
             to="/"
             onClick={closeMobileMenu}
-            className="flex shrink-0 items-center gap-2.5 no-underline"
+            aria-label="Apna Academy home"
+            className="group flex min-w-0 shrink-0 items-center gap-2.5 no-underline"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-700">
-              <School fontSize="small" />
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[13px] bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-white shadow-[0_6px_18px_rgba(37,99,235,0.22)] transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_9px_24px_rgba(37,99,235,0.3)]">
+              <div className="absolute -right-3 -top-3 h-7 w-7 rounded-full bg-white/20 blur-md" />
+              <School sx={{ position: "relative", fontSize: 21 }} />
             </div>
 
-            <div className="min-w-0">
-              <Typography
-                component="div"
-                className="truncate"
-                sx={{
-                  color: "#0f172a",
-                  fontWeight: 900,
-                  fontSize: { xs: "0.98rem", sm: "1.08rem" },
-                  lineHeight: 1.1,
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                Apna Academy
-              </Typography>
-              <Typography
-                component="div"
-                sx={{
-                  display: { xs: "none", sm: "block" },
-                  color: "#64748b",
-                  fontSize: "0.67rem",
-                  lineHeight: 1.2,
-                  fontWeight: 600,
-                }}
-              >
-                Learn. Build. Grow.
-              </Typography>
+            <div className="min-w-0 leading-none">
+              <div className="flex items-baseline gap-1">
+                <Typography
+                  component="span"
+                  className="truncate"
+                  sx={{
+                    color: "#0f172a",
+                    fontWeight: 950,
+                    fontSize: { xs: "1rem", sm: "1.08rem" },
+                    lineHeight: 1,
+                    letterSpacing: "-0.045em",
+                  }}
+                >
+                  Apna
+                </Typography>
+                <Typography
+                  component="span"
+                  className="truncate bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent"
+                  sx={{
+                    fontWeight: 950,
+                    fontSize: { xs: "1rem", sm: "1.08rem" },
+                    lineHeight: 1,
+                    letterSpacing: "-0.045em",
+                  }}
+                >
+                  Academy
+                </Typography>
+              </div>
+
+              <div className="mt-1 flex items-center gap-1 text-[8px] font-extrabold uppercase tracking-[0.16em] text-slate-400 sm:text-[9px]">
+                <span>Learn</span><span className="text-blue-400">•</span><span>Build</span><span className="text-violet-400">•</span><span>Grow</span>
+              </div>
             </div>
           </Link>
 
