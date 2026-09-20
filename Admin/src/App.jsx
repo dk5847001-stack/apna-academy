@@ -87,6 +87,7 @@ const emptyModule = { title: "", description: "", order: 1, isPublished: true };
 const emptyVideo = {
   title: "",
   description: "",
+  videoSource: "bunny",
   videoUrl: "",
   bunnyVideoId: "",
   thumbnailUrl: "",
@@ -135,6 +136,21 @@ const courseToForm = (course) => ({
   isPublished: Boolean(course.isPublished),
   isFeatured: Boolean(course.isFeatured),
   tags: Array.isArray(course.tags) ? course.tags.join(", ") : "",
+});
+
+const videoToForm = (video) => ({
+  ...emptyVideo,
+  title: video.title || "",
+  description: video.description || "",
+  videoSource: video.videoSource === "drive" ? "drive" : "bunny",
+  videoUrl: video.videoUrl || "",
+  bunnyVideoId: video.bunnyVideoId || "",
+  thumbnailUrl: video.thumbnailUrl || "",
+  notesPdfUrl: video.notesPdfUrl || "",
+  duration: video.duration ?? 0,
+  order: video.order ?? 1,
+  isPreview: Boolean(video.isPreview),
+  isPublished: video.isPublished !== undefined ? Boolean(video.isPublished) : true,
 });
 
 const moduleToForm = (module) => ({
@@ -296,8 +312,9 @@ function App() {
       const payload = {
         title: videoForm.title.trim(),
         description: videoForm.description,
+        videoSource: videoForm.videoSource === "drive" ? "drive" : "bunny",
         videoUrl: videoForm.videoUrl.trim(),
-        bunnyVideoId: videoForm.bunnyVideoId.trim(),
+        bunnyVideoId: videoForm.videoSource === "bunny" ? videoForm.bunnyVideoId.trim() : "",
         thumbnailUrl: videoForm.thumbnailUrl.trim(),
         notesPdfUrl: videoForm.notesPdfUrl.trim(),
         duration: Math.max(Number(videoForm.duration) || 0, 0),
@@ -538,6 +555,6 @@ function CourseDialog({ open, onClose, form, setForm, saving, editing, onSave })
 
 function ModuleDialog({ open, onClose, form, setForm, saving, editing, onSave }) { const update = (key, value) => setForm((p) => ({ ...p, [key]: value })); return <Dialog open={open} onClose={saving ? undefined : onClose} fullWidth maxWidth="sm"><DialogTitle className="font-extrabold">{editing ? "Edit Module" : "Add Module"}</DialogTitle><DialogContent dividers><Stack spacing={3} className="pt-1"><Field label="Module title *" value={form.title} onChange={(v) => update("title", v)} /><Field label="Description" value={form.description} onChange={(v) => update("description", v)} multiline /><Field label="Order" type="number" value={form.order} onChange={(v) => update("order", v)} /><FormControlLabel control={<Switch checked={form.isPublished} onChange={(e) => update("isPublished", e.target.checked)} />} label="Published" /></Stack></DialogContent><DialogActions className="p-4"><Button onClick={onClose}>Cancel</Button><Button variant="contained" onClick={onSave} disabled={saving || !form.title.trim()}>{saving ? <CircularProgress size={20} /> : "Save Module"}</Button></DialogActions></Dialog>; }
 
-function VideoDialog({ open, onClose, form, setForm, saving, editing, onSave }) { const update = (key, value) => setForm((p) => ({ ...p, [key]: value })); return <Dialog open={open} onClose={saving ? undefined : onClose} fullWidth maxWidth="md"><DialogTitle className="flex items-center justify-between font-extrabold">{editing ? "Edit Video" : "Add Video"}<IconButton onClick={onClose}><Close /></IconButton></DialogTitle><DialogContent dividers><div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-1"><Field label="Video title *" value={form.title} onChange={(v) => update("title", v)} className="md:col-span-2" /><Field label="Description" value={form.description} onChange={(v) => update("description", v)} multiline className="md:col-span-2" /><Field label="Bunny Video ID" value={form.bunnyVideoId} onChange={(v) => update("bunnyVideoId", v)} helperText="Preferred source for the Bunny player." /><Field label="Video URL" value={form.videoUrl} onChange={(v) => update("videoUrl", v)} helperText="Optional fallback/source URL." /><Field label="Thumbnail URL" value={form.thumbnailUrl} onChange={(v) => update("thumbnailUrl", v)} className="md:col-span-2" /><Field label="Notes PDF URL" value={form.notesPdfUrl} onChange={(v) => update("notesPdfUrl", v)} helperText="Optional. Shown only when the lesson is authorized/previewable." className="md:col-span-2" /><Field label="Duration (seconds)" type="number" value={form.duration} onChange={(v) => update("duration", v)} helperText="Required for server-side 80% completion enforcement." /><Field label="Video order" type="number" value={form.order} onChange={(v) => update("order", v)} /></div><Stack direction="row" spacing={2} flexWrap="wrap" className="mt-4"><FormControlLabel control={<Switch checked={form.isPreview} onChange={(e) => update("isPreview", e.target.checked)} />} label="Preview video" /><FormControlLabel control={<Switch checked={form.isPublished} onChange={(e) => update("isPublished", e.target.checked)} />} label="Published" /></Stack></DialogContent><DialogActions className="p-4"><Button onClick={onClose}>Cancel</Button><Button variant="contained" onClick={onSave} disabled={saving || !form.title.trim()}>{saving ? <CircularProgress size={20} /> : "Save Video"}</Button></DialogActions></Dialog>; }
+function VideoDialog({ open, onClose, form, setForm, saving, editing, onSave }) { const update = (key, value) => setForm((p) => ({ ...p, [key]: value })); return <Dialog open={open} onClose={saving ? undefined : onClose} fullWidth maxWidth="md"><DialogTitle className="flex items-center justify-between font-extrabold">{editing ? "Edit Video" : "Add Video"}<IconButton onClick={onClose}><Close /></IconButton></DialogTitle><DialogContent dividers><div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-1"><Field label="Video title *" value={form.title} onChange={(v) => update("title", v)} className="md:col-span-2" /><Field label="Description" value={form.description} onChange={(v) => update("description", v)} multiline className="md:col-span-2" /><FormControl fullWidth><InputLabel>Video Source</InputLabel><Select label="Video Source" value={form.videoSource} onChange={(e) => update("videoSource", e.target.value)}><MenuItem value="bunny">Bunny</MenuItem><MenuItem value="drive">Google Drive</MenuItem></Select></FormControl>{form.videoSource === "bunny" ? <Field label="Bunny Video ID" value={form.bunnyVideoId} onChange={(v) => update("bunnyVideoId", v)} helperText="Bunny Stream video ID used by the existing player." /> : <Field label="Google Drive Video URL" value={form.videoUrl} onChange={(v) => update("videoUrl", v)} helperText="Paste the Google Drive video link for this lesson." className="md:col-span-2" />}<Field label="Thumbnail URL" value={form.thumbnailUrl} onChange={(v) => update("thumbnailUrl", v)} className="md:col-span-2" /><Field label="Notes PDF URL" value={form.notesPdfUrl} onChange={(v) => update("notesPdfUrl", v)} helperText="Optional. Shown only when the lesson is authorized/previewable." className="md:col-span-2" /><Field label="Duration (seconds)" type="number" value={form.duration} onChange={(v) => update("duration", v)} helperText="Required for server-side 80% completion enforcement." /><Field label="Video order" type="number" value={form.order} onChange={(v) => update("order", v)} /></div><Stack direction="row" spacing={2} flexWrap="wrap" className="mt-4"><FormControlLabel control={<Switch checked={form.isPreview} onChange={(e) => update("isPreview", e.target.checked)} />} label="Preview video" /><FormControlLabel control={<Switch checked={form.isPublished} onChange={(e) => update("isPublished", e.target.checked)} />} label="Published" /></Stack></DialogContent><DialogActions className="p-4"><Button onClick={onClose}>Cancel</Button><Button variant="contained" onClick={onSave} disabled={saving || !form.title.trim()}>{saving ? <CircularProgress size={20} /> : "Save Video"}</Button></DialogActions></Dialog>; }
 
 export default App;
