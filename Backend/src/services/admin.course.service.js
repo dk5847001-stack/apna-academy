@@ -87,6 +87,7 @@ const formatVideo = (video) => ({
   module: video.module,
   title: video.title,
   description: video.description,
+  videoSource: video.videoSource || "bunny",
   videoUrl: video.videoUrl,
   bunnyVideoId: video.bunnyVideoId,
   thumbnailUrl: video.thumbnailUrl,
@@ -415,6 +416,7 @@ export const createAdminVideo = async (moduleId, payload = {}) => {
     module: module._id,
     title,
     description: payload.description || "",
+    videoSource: payload.videoSource || "bunny",
     videoUrl: payload.videoUrl || "",
     bunnyVideoId: payload.bunnyVideoId || "",
     thumbnailUrl: payload.thumbnailUrl || "",
@@ -441,6 +443,7 @@ export const updateAdminVideo = async (videoId, payload = {}) => {
   const allowed = [
     "title",
     "description",
+    "videoSource",
     "videoUrl",
     "bunnyVideoId",
     "thumbnailUrl",
@@ -453,6 +456,10 @@ export const updateAdminVideo = async (videoId, payload = {}) => {
 
   for (const key of allowed) {
     if (payload[key] !== undefined) video[key] = payload[key];
+  }
+
+  if (!["bunny", "drive"].includes(video.videoSource)) {
+    video.videoSource = "bunny";
   }
 
   video.title = String(video.title || "").trim();
