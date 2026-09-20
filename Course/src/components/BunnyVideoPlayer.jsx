@@ -268,8 +268,6 @@ export default function BunnyVideoPlayer({
       const loaded = await loadBunnyPlayerScript();
       if (!mounted) return;
 
-      // Bunny playback must not depend on Player.js. The new Bunny player
-      // can play normally even when the legacy Player.js bridge is unavailable.
       if (!loaded || !window.playerjs?.Player) {
         setIsLoading(false);
         return;
@@ -311,9 +309,6 @@ export default function BunnyVideoPlayer({
                 currentTime: position,
               });
 
-              // Start polling as soon as the Bunny bridge is ready. Relying
-              // only on the Player.js "play" event can miss progress when
-              // the embedded Bunny player does not emit that event reliably.
               startBunnyProgressPolling();
             });
           });
@@ -354,8 +349,6 @@ export default function BunnyVideoPlayer({
           });
         });
       } catch (error) {
-        // Do not block the actual Bunny iframe when the optional Player.js
-        // bridge cannot initialize.
         console.warn("Bunny Player.js bridge unavailable; iframe playback remains active.", error);
         if (mounted) setIsLoading(false);
       }
@@ -459,6 +452,17 @@ export default function BunnyVideoPlayer({
 
   return (
     <Box sx={{ position: "relative", width: "100%", aspectRatio: "16 / 9", backgroundColor: "#000000", overflow: "hidden" }}>
+      <style>{`
+        /* Chrome/Edge native media controls: hide the picture-in-picture/pop-out button. */
+        video.apna-academy-video::-webkit-media-controls-picture-in-picture-button {
+          display: none !important;
+        }
+        /* Keep remote playback disabled where Chromium exposes this control. */
+        video.apna-academy-video::-webkit-media-controls-remote-playback-button {
+          display: none !important;
+        }
+      `}</style>
+
       {isLoading && (
         <Box sx={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#000000" }}>
           <CircularProgress size={34} sx={{ color: "#ffffff" }} />
@@ -490,13 +494,14 @@ export default function BunnyVideoPlayer({
         />
       ) : useGoogleDriveNative ? (
         <video
+          className="apna-academy-video"
           key={`${video._id || video.id || "video"}-${googleDriveMediaUrl}`}
           src={googleDriveMediaUrl}
           poster={video.thumbnailUrl || undefined}
           controls
           playsInline
           preload="metadata"
-          controlsList="nodownload noplaybackrate"
+          controlsList="nodownload noplaybackrate noremoteplayback"
           disablePictureInPicture
           disableRemotePlayback
           onLoadedMetadata={(event) => {
@@ -536,15 +541,17 @@ export default function BunnyVideoPlayer({
             setHasError(true);
           }}
           style={{ width: "100%", height: "100%", border: 0, display: "block", backgroundColor: "#000000" }}
-        />      ) : (
+        />
+      ) : (
         <video
+          className="apna-academy-video"
           key={`${video._id || video.id || "video"}-${nativeVideoUrl}`}
           src={nativeVideoUrl}
           poster={video.thumbnailUrl || undefined}
           controls
           playsInline
           preload="metadata"
-          controlsList="nodownload noplaybackrate"
+          controlsList="nodownload noplaybackrate noremoteplayback"
           disablePictureInPicture
           disableRemotePlayback
           onLoadedMetadata={(event) => {
