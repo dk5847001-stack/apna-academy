@@ -121,7 +121,7 @@ const addHomeSuccessSections = () => {
         '<div class="flex min-h-[184px] flex-col gap-3 sm:min-h-[205px] sm:flex-row sm:gap-4 lg:min-h-[230px]">' +
           '<div class="relative flex h-24 w-full shrink-0 items-end justify-center sm:h-auto sm:w-[42%] sm:items-center">' +
             '<div class="absolute bottom-1 left-1/2 h-20 w-20 -translate-x-1/2 rounded-[2rem] ' + color.blob + ' sm:h-28 sm:w-28 lg:h-32 lg:w-32"></div>' +
-            '<img src="' + (card.image || STUDENTS[0]?.[3] || "") + '" alt="Student learning at ApnaAcademy" loading="lazy" decoding="async" class="relative z-10 h-24 w-24 object-cover object-center drop-shadow-md transition duration-500 group-hover:scale-[1.035] sm:h-32 sm:w-32 lg:h-36 lg:w-36" style="clip-path:polygon(18% 0,84% 0,100% 18%,92% 82%,72% 100%,18% 94%,0 72%,8% 18%);"/>' +
+            '<img src="' + (card.image || STUDENTS[0]?.[3] || "") + '" alt="Student learning at ApnaAcademy" loading="lazy" decoding="async" class="relative z-10 h-24 w-24 object-cover object-center drop-shadow-md transition duration-500 group-hover:scale-[1.035] sm:h-32 sm:w-32 lg:h-36 lg:w-36 [clip-path:polygon(18%_0,84%_0,100%_18%,92%_82%,72%_100%,18%_94%,0_72%,8%_18%)]"/>' +
             '<span class="absolute right-1 top-2 z-20 ' + color.doodle + '"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" class="h-7 w-7 sm:h-8 sm:w-8"><path d="M6 23c4-7 9-10 18-12"/><path d="m18 9 7 2-4 6"/></svg></span>' +
           '</div>' +
           '<div class="flex min-w-0 flex-1 flex-col justify-center">' +
