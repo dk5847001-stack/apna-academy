@@ -90,29 +90,90 @@ const addHomeSuccessSections = () => {
   const old = document.querySelector('[data-apna-success-sections="true"]');
   if (window.location.pathname !== "/") { old?.remove(); return; }
   if (old) return;
+
   const main = document.querySelector("main");
   if (!main) return;
+
+  const STUDENT_FEATURES = [
+    { number: "01", title: "Online Internships", description: "Work on real-world projects, get hands-on experience and build your professional portfolio.", stat: "10,000+", statLabel: "Happy Students", href: "/courses", image: STUDENTS[0]?.[3], accent: "blue", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19h16"/><path d="M6 17V9h12v8"/><path d="M8 9V5h8v4"/><path d="M9 13h6"/></svg>' },
+    { number: "02", title: "Expert-Led Courses", description: "Learn from industry experts with structured modules, lifetime access and practical assignments.", stat: "50+", statLabel: "Courses", href: "/courses", image: STUDENTS[1]?.[3], accent: "teal", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/><path d="m10 7 5 3-5 3V7Z"/></svg>' },
+    { number: "03", title: "Verified Certificates", description: "Get industry-recognized certificates with unique verification IDs to showcase your skills.", stat: "100%", statLabel: "Authentic & Verifiable", href: "/about", image: STUDENTS[2]?.[3], accent: "violet", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 19 6v5c0 4.5-3 7.5-7 10-4-2.5-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/><path d="M16.5 17.5 18 21l-2.2-1.2L14 21l-.8-2.1"/></svg>' },
+    { number: "04", title: "Track Your Progress", description: "Monitor your learning journey with real-time progress tracking and performance insights.", stat: "Personalized", statLabel: "Learning Path", href: "/login", image: STUDENTS[3]?.[3], accent: "orange", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/><path d="m4 6 5-3 5 4 6-4"/></svg>' },
+    { number: "05", title: "Career Support", description: "Get resume guidance, interview tips and placement support to kickstart your career.", stat: "100%", statLabel: "Placement Support", href: "/about", image: STUDENTS[0]?.[3], accent: "pink", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 8h14v12H5z"/><path d="M9 8V5h6v3"/><path d="M9 13h6"/><path d="m17 4 1.5 1.5L21 3"/></svg>' },
+    { number: "06", title: "Flexible Learning", description: "Learn at your own pace, anytime, anywhere — on any device.", stat: "Any Device", statLabel: "Anytime, Anywhere", href: "/courses", image: STUDENTS[3]?.[3], accent: "blue", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>' },
+    { number: "07", title: "Community & Networking", description: "Connect with peers, mentors and industry professionals to grow together.", stat: "24/7", statLabel: "Community Support", href: "/contact", image: STUDENTS[2]?.[3], accent: "violet", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c.7-3.3 2.7-5 6-5s5.3 1.7 6 5"/><path d="M14 16c3-.2 5 1.2 6 4"/></svg>' },
+    { number: "08", title: "Multiple Domains", description: "Choose from Web Development, Data Science, AI, Finance and more to match your goals.", stat: "4+ Domains", statLabel: "Endless Opportunities", href: "/courses", image: STUDENTS[1]?.[3], accent: "teal", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>' },
+  ];
+
+  const accents = {
+    blue: { blob: "bg-blue-100", icon: "bg-blue-100 text-blue-600 ring-blue-100", button: "bg-blue-600 hover:bg-blue-700", doodle: "text-blue-500" },
+    teal: { blob: "bg-teal-100", icon: "bg-teal-100 text-teal-600 ring-teal-100", button: "bg-teal-500 hover:bg-teal-600", doodle: "text-teal-500" },
+    violet: { blob: "bg-violet-100", icon: "bg-violet-100 text-violet-600 ring-violet-100", button: "bg-violet-600 hover:bg-violet-700", doodle: "text-violet-500" },
+    orange: { blob: "bg-orange-100", icon: "bg-orange-100 text-orange-600 ring-orange-100", button: "bg-orange-500 hover:bg-orange-600", doodle: "text-orange-500" },
+    pink: { blob: "bg-pink-100", icon: "bg-pink-100 text-pink-600 ring-pink-100", button: "bg-pink-600 hover:bg-pink-700", doodle: "text-pink-500" },
+  };
+
+  const renderStudentCard = (card) => {
+    const color = accents[card.accent] || accents.blue;
+    return (
+      '<article class="group relative min-w-0 overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-3 shadow-[0_8px_30px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-blue-100 hover:shadow-[0_18px_45px_rgba(37,99,235,0.12)] sm:rounded-3xl sm:p-4">' +
+        '<span class="absolute right-3 top-3 z-20 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-slate-50 px-1.5 text-[9px] font-black text-slate-400 ring-1 ring-slate-100 sm:right-4 sm:top-4 sm:h-7 sm:min-w-7 sm:text-[10px]">' + card.number + '</span>' +
+        '<div class="flex min-h-[184px] flex-col gap-3 sm:min-h-[205px] sm:flex-row sm:gap-4 lg:min-h-[230px]">' +
+          '<div class="relative flex h-24 w-full shrink-0 items-end justify-center sm:h-auto sm:w-[42%] sm:items-center">' +
+            '<div class="absolute bottom-1 left-1/2 h-20 w-20 -translate-x-1/2 rounded-[2rem] ' + color.blob + ' sm:h-28 sm:w-28 lg:h-32 lg:w-32"></div>' +
+            '<img src="' + (card.image || STUDENTS[0]?.[3] || "") + '" alt="Student learning at ApnaAcademy" loading="lazy" decoding="async" class="relative z-10 h-24 w-24 object-cover object-center drop-shadow-md transition duration-500 group-hover:scale-[1.035] sm:h-32 sm:w-32 lg:h-36 lg:w-36" style="clip-path:polygon(18% 0,84% 0,100% 18%,92% 82%,72% 100%,18% 94%,0 72%,8% 18%);"/>' +
+            '<span class="absolute right-1 top-2 z-20 ' + color.doodle + '"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" class="h-7 w-7 sm:h-8 sm:w-8"><path d="M6 23c4-7 9-10 18-12"/><path d="m18 9 7 2-4 6"/></svg></span>' +
+          '</div>' +
+          '<div class="flex min-w-0 flex-1 flex-col justify-center">' +
+            '<div class="mb-2 flex h-9 w-9 items-center justify-center rounded-xl ring-1 ' + color.icon + ' shadow-sm sm:h-10 sm:w-10">' + card.icon + '</div>' +
+            '<h3 class="text-[14px] font-black leading-[1.15] tracking-tight text-slate-950 sm:text-base lg:text-lg">' + card.title + '</h3>' +
+            '<p class="mt-1.5 line-clamp-3 text-[9px] leading-[1.45] text-slate-500 sm:text-[11px] sm:leading-4 lg:text-xs">' + card.description + '</p>' +
+            '<div class="mt-2.5 flex min-w-0 items-end justify-between gap-2 sm:mt-3"><div class="min-w-0"><p class="truncate text-[10px] font-black text-slate-900 sm:text-xs">' + card.stat + '</p><p class="truncate text-[8px] font-medium text-slate-400 sm:text-[9px]">' + card.statLabel + '</p></div>' +
+            '<a href="' + card.href + '" class="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-[9px] font-extrabold text-white no-underline shadow-sm transition duration-200 hover:-translate-y-0.5 ' + color.button + ' sm:px-3.5 sm:py-2 sm:text-[10px]"><span class="hidden sm:inline">Learn More</span><span class="sm:hidden">Learn</span><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" class="h-3 w-3"><path d="M4 10h11"/><path d="m11 6 4 4-4 4"/></svg></a></div>' +
+          '</div>' +
+        '</div>' +
+      '</article>'
+    );
+  };
+
   const wrapper = document.createElement("div");
   wrapper.dataset.apnaSuccessSections = "true";
-  wrapper.innerHTML = `
-    <section class="border-t border-slate-200 bg-slate-50 py-16 sm:py-20">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-3xl text-center"><span class="inline-flex rounded-full bg-blue-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[.12em] text-blue-700">Student success</span><h2 class="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Students who turn learning into career momentum.</h2><p class="mt-4 text-sm leading-7 text-slate-500 sm:text-base">Professional success-story cards inspired by the outcome-focused presentation used by leading learning platforms.</p></div>
-        <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">${STUDENTS.map(([name, role, company, photo, logo]) => `<article class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl"><div class="relative h-64 overflow-hidden bg-slate-100"><img src="${photo}" alt="Student success profile" loading="lazy" class="h-full w-full object-cover transition duration-500 group-hover:scale-105"/><div class="absolute inset-x-4 bottom-4 flex items-center justify-between rounded-2xl border border-white/60 bg-white/95 px-4 py-3 shadow-lg backdrop-blur"><div><p class="text-[10px] font-extrabold uppercase tracking-[.12em] text-slate-400">Career destination</p><p class="mt-0.5 text-sm font-black text-slate-900">${company}</p></div><img src="${logo}" alt="${company} logo" class="h-8 w-8 object-contain" loading="lazy"/></div></div><div class="p-6"><h3 class="text-lg font-black text-slate-950">${name}</h3><p class="mt-1 text-sm font-semibold text-blue-700">${role}</p><div class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4"><span class="text-xs font-bold text-slate-500">Skills → Projects → Career</span><span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700">Success story</span></div></div></article>`).join("")}</div>
-        <p class="mx-auto mt-7 max-w-3xl text-center text-[11px] leading-5 text-slate-400">The photographs and names in these cards are illustrative UI content. Replace them with verified ApnaAcademy student outcomes and approved photographs before publishing placement claims.</p>
+  wrapper.innerHTML = \`
+    <section class="relative overflow-hidden border-t border-slate-100 bg-white py-14 sm:py-16 lg:py-20">
+      <div aria-hidden="true" class="pointer-events-none absolute -left-24 top-0 h-56 w-56 rounded-full bg-blue-100/70 blur-3xl"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -right-24 top-0 h-56 w-56 rounded-full bg-violet-100/70 blur-3xl"></div>
+      <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="relative mx-auto max-w-5xl text-center">
+          <div class="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/80 px-4 py-2 text-[10px] font-black uppercase tracking-[.18em] text-blue-700 shadow-sm sm:text-xs"><span class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5"><path d="M4 5h16v10H4z"/><path d="M8 19h8M12 15v4"/></svg></span>Student Section</div>
+          <h2 class="mt-4 text-3xl font-black leading-[1.08] tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">Build Your Future With <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">InternovaTech</span></h2>
+          <p class="mx-auto mt-4 max-w-3xl text-sm leading-6 text-slate-500 sm:text-base sm:leading-7">Join a platform built for learners, by experts. Gain real skills, work on practical projects, and get industry-recognized certificates to boost your career.</p>
+          <div class="mx-auto mt-4 h-1 w-24 rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500"></div>
+          <div aria-hidden="true" class="pointer-events-none absolute -left-2 top-16 hidden -rotate-6 text-left font-mono text-sm font-bold leading-5 text-blue-500 sm:block lg:-left-24">Learn<br/>Grow<br/>Succeed<span class="mt-1 block h-0.5 w-14 -rotate-6 bg-blue-500"></span></div>
+          <div aria-hidden="true" class="pointer-events-none absolute -right-2 top-16 hidden rotate-6 text-left font-mono text-sm font-bold leading-5 text-slate-500 sm:block lg:-right-24">Your<br/>Next Chapter<br/>Starts Here<span class="mt-1 block h-8 w-8 rotate-12 rounded-bl-full border-b-2 border-l-2 border-slate-500"></span></div>
+        </div>
+        <div class="mt-9 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">\${STUDENT_FEATURES.map(renderStudentCard).join("")}</div>
+        <div class="mt-8 rounded-2xl border border-slate-200 bg-white/90 px-4 py-4 shadow-[0_8px_30px_rgba(15,23,42,0.05)] backdrop-blur sm:mt-9 sm:rounded-3xl sm:px-6 sm:py-5">
+          <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-0">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-5"><div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 sm:h-11 sm:w-11"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5 sm:h-6 sm:w-6"><path d="M12 3 19 6v5c0 4.5-3 7.5-7 10-4-2.5-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg></div><div><p class="text-[10px] font-black text-slate-900 sm:text-xs">Secure Platform</p><p class="mt-0.5 text-[8px] leading-4 text-slate-400 sm:text-[9px]">Your data, always safe</p></div></div>
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-3 sm:border-b-0 sm:border-r sm:px-5 sm:pb-0"><div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 sm:h-11 sm:w-11"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5 sm:h-6 sm:w-6"><path d="m13 2-9 12h7l-1 8 9-12h-7l1-8Z"/></svg></div><div><p class="text-[10px] font-black text-slate-900 sm:text-xs">Lifetime Access</p><p class="mt-0.5 text-[8px] leading-4 text-slate-400 sm:text-[9px]">Learn forever, at your pace</p></div></div>
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-3 sm:border-b-0 sm:border-r sm:px-5 sm:pb-0"><div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 sm:h-11 sm:w-11"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5 sm:h-6 sm:w-6"><path d="M4 13a8 8 0 0 1 16 0"/><path d="M4 13v3a2 2 0 0 0 2 2h1v-5H4ZM20 13v3a2 2 0 0 1-2 2h-1v-5h3Z"/><path d="M12 21h3"/></svg></div><div><p class="text-[10px] font-black text-slate-900 sm:text-xs">24/7 Support</p><p class="mt-0.5 text-[8px] leading-4 text-slate-400 sm:text-[9px]">We're always here to help</p></div></div>
+            <div class="flex items-center gap-3 px-0 pt-0 sm:px-5"><div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 sm:h-11 sm:w-11"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5 sm:h-6 sm:w-6"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></svg></div><div><p class="text-[10px] font-black text-slate-900 sm:text-xs">Trusted by 10,000+ Students</p><p class="mt-0.5 text-[8px] leading-4 text-slate-400 sm:text-[9px]">Join a growing community</p></div></div>
+          </div>
+        </div>
+        <p class="mx-auto mt-5 max-w-3xl text-center text-[10px] leading-5 text-slate-400">Student imagery and outcome figures are illustrative UI content and should be replaced with verified ApnaAcademy data and approved student photographs before making public outcome claims.</p>
       </div>
     </section>
     <section class="border-t border-slate-200 bg-white py-16 sm:py-20">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-3xl text-center"><span class="inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[.12em] text-slate-700">Companies students aspire to join</span><h2 class="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Industry names. Career-ready skills.</h2><p class="mt-4 text-sm leading-7 text-slate-500 sm:text-base">Explore the kinds of companies and technology environments that inspire modern career preparation.</p></div>
-        <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">${COMPANY_PATHS.map(([name, tone, logo]) => `<div class="group flex min-h-32 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-5 text-center shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white"><img src="${logo}" alt="${name} logo" loading="lazy" class="max-h-9 max-w-10 object-contain"/></div><p class="mt-3 text-sm font-black text-slate-900">${name}</p><p class="mt-1 text-[10px] font-bold leading-4 text-slate-400">${tone}</p></div>`).join("")}</div>
+        <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">\${COMPANY_PATHS.map(([name, tone, logo]) => '<div class="group flex min-h-32 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-5 text-center shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"><div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white"><img src="' + logo + '" alt="' + name + ' logo" loading="lazy" class="max-h-9 max-w-10 object-contain"/></div><p class="mt-3 text-sm font-black text-slate-900">' + name + '</p><p class="mt-1 text-[10px] font-bold leading-4 text-slate-400">' + tone + '</p></div>').join("")}</div>
         <p class="mx-auto mt-7 max-w-3xl text-center text-[11px] leading-5 text-slate-400">Company names and logos are displayed for career-orientation context only. They do not indicate a partnership, sponsorship, endorsement or placement affiliation unless separately verified and stated.</p>
       </div>
-    </section>`;
+    </section>\`;
+
   const faq = main.querySelector('[data-apna-faq="true"]');
   if (faq) faq.before(wrapper); else main.append(wrapper);
 };
-
 const addFaq = () => {
   const old = document.querySelector('[data-apna-faq="true"]');
   if (window.location.pathname !== "/") { old?.remove(); return; }
