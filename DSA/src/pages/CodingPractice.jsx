@@ -21,6 +21,7 @@ export default function CodingPractice() {
   const [submission, setSubmission] = useState(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [busyAction, setBusyAction] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -37,10 +38,15 @@ export default function CodingPractice() {
 
   const availableLanguages = useMemo(() => problem?.supportedLanguages?.length ? problem.supportedLanguages : languages, [problem])
 
-  const execute = async () => {
+  const goToLogin = () => {
+    const redirect = window.location.href
+    window.location.href = `https://apnaacademy.me/login?redirect=${encodeURIComponent(redirect)}`
+  }
+
+  const execute = async (action = 'submit') => {
     if (!problem || busy) return
     if (!code.trim()) { setError('Write some code first.'); return }
-    setBusy(true); setError(''); setStatus('Queued'); setSubmission(null)
+    setBusy(true); setBusyAction(action); setError(''); setSubmission(null); setActiveTab('result')
     try {
       const created = await submitDsaSolution({ problemSlug: problem.slug, language, code })
       setSubmission(created)
@@ -51,8 +57,19 @@ export default function CodingPractice() {
         if (latest.status !== 'Pending') break
       }
     } catch (err) {
-      setError(err?.message || 'Unable to queue submission.')
-    } finally { setBusy(false) }
+      if (err?.status === 401) {
+        setError('Please login to run or submit code. Redirecting to secure login...')
+        window.setTimeout(goToLogin, 700)
+      } else if (err?.status === 403) {
+        setError(err?.message || 'Premium access is required for this problem.')
+      } else if (err?.status === 429) {
+        setError('Judge queue is busy. Please wait a moment and try again.')
+      } else if (err?.status === 503) {
+        setError(err?.message || 'Secure judge is temporarily unavailable.')
+      } else {
+        setError(err?.message || 'Unable to queue submission.')
+      }
+    } finally { setBusy(false); setBusyAction('') }
   }
   const [activeTab, setActiveTab] = useState('testcases')
 
@@ -81,7 +98,7 @@ export default function CodingPractice() {
       <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3"><div className="flex items-center gap-2 text-sm font-black text-white"><Code2 className="h-4 w-4 text-blue-300" /> {language}</div><button type="button" onClick={() => setCode(starterCode[language])} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold text-slate-400 hover:bg-white/5 hover:text-white"><RotateCcw className="h-3.5 w-3.5" /> Reset</button></div>
         <textarea value={code} onChange={(event) => setCode(event.target.value)} spellCheck="false" aria-label="Code editor" className="min-h-[390px] w-full resize-y bg-slate-950 p-5 font-mono text-xs leading-6 text-slate-200 outline-none" />
-        <div className="flex flex-wrap justify-between gap-2 border-t border-white/10 px-4 py-3"><div className="flex items-center gap-2 text-[11px] font-bold text-slate-500"><Terminal className="h-3.5 w-3.5" /> Secure judge queue</div><div className="flex gap-2"><button type="button" onClick={execute} className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-xs font-black text-slate-300 hover:bg-white/5"><Play className="h-3.5 w-3.5" /> Run</button><button type="button" onClick={execute} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-black text-white hover:bg-blue-700"><Send className="h-3.5 w-3.5" /> Submit</button></div></div>
+        <div className="flex flex-wrap justify-between gap-2 border-t border-white/10 px-4 py-3"><div className="flex items-center gap-2 text-[11px] font-bold text-slate-500"><Terminal className="h-3.5 w-3.5" /> Secure judge queue</div><div className="flex gap-2"><button type="button" onClick={() => execute('run')} disabled={busy} className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-xs font-black text-slate-300 hover:bg-white/5"><Play className="h-3.5 w-3.5" /> {busyAction === 'run' ? 'Running…' : 'Run'}</button><button type="button" onClick={() => execute('submit')} disabled={busy} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-black text-white hover:bg-blue-700"><Send className="h-3.5 w-3.5" /> {busyAction === 'submit' ? 'Submitting…' : 'Submit'}</button></div></div>
       </section>
     </div>
 
