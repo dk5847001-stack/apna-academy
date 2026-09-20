@@ -12,12 +12,6 @@ const BLOG_INACTIVE_CLASSES =
 const BLOG_ACTIVE_CLASSES =
   "rounded-lg px-3.5 py-2 text-sm font-semibold no-underline transition-colors duration-200 bg-blue-50 text-blue-700";
 
-const PRICING_INACTIVE_CLASSES =
-  "rounded-lg px-3.5 py-2 text-sm font-semibold no-underline transition-colors duration-200 text-slate-600 hover:bg-slate-50 hover:text-blue-700";
-
-const PRICING_ACTIVE_CLASSES =
-  "rounded-lg px-3.5 py-2 text-sm font-semibold no-underline transition-colors duration-200 bg-blue-50 text-blue-700";
-
 function BlogNavigationGuard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,101 +72,6 @@ function BlogNavigationGuard() {
     return () => {
       observer.disconnect();
       document.removeEventListener("click", handleBlogClick);
-    };
-  }, [location.pathname, navigate]);
-
-  return null;
-}
-
-function PricingNavigationGuard() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    const ensurePricingLink = () => {
-      document.querySelectorAll("nav").forEach((nav) => {
-        if (nav.querySelector('[data-apna-pricing="true"]')) return;
-
-        const courses = [...nav.querySelectorAll("a")].find(
-          (link) => link.textContent?.trim() === "Courses"
-        );
-
-        if (!courses) return;
-
-        const link = document.createElement("a");
-        link.href = "/pricing";
-        link.dataset.apnaPricing = "true";
-        link.textContent = "Pricing";
-        link.className = PRICING_INACTIVE_CLASSES;
-        link.setAttribute("aria-label", "Pricing");
-
-        courses.insertAdjacentElement("afterend", link);
-      });
-    };
-
-    const syncPricingStyles = () => {
-      const links = document.querySelectorAll(
-        'a[href="/pricing"]:not(footer[data-premium-footer="true"] a), a[data-apna-pricing="true"]:not(footer[data-premium-footer="true"] a)'
-      );
-
-      const isPricingActive = location.pathname === "/pricing";
-      const className = isPricingActive
-        ? PRICING_ACTIVE_CLASSES
-        : PRICING_INACTIVE_CLASSES;
-
-      links.forEach((link) => {
-        link.className = className;
-        link.setAttribute(
-          "aria-current",
-          isPricingActive ? "page" : "false"
-        );
-      });
-    };
-
-    const syncPricingNavigation = () => {
-      ensurePricingLink();
-      syncPricingStyles();
-    };
-
-    const handlePricingClick = (event) => {
-      if (event.defaultPrevented || event.button !== 0) return;
-      if (
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey
-      ) {
-        return;
-      }
-
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-
-      const link = target.closest(
-        'a[href="/pricing"], a[data-apna-pricing="true"]'
-      );
-      if (!link || link.closest('footer[data-premium-footer="true"]')) return;
-
-      event.preventDefault();
-      navigate("/pricing");
-    };
-
-    syncPricingNavigation();
-
-    const observer = new MutationObserver(() => {
-      syncPricingNavigation();
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-
-    document.addEventListener("click", handlePricingClick);
-
-    return () => {
-      observer.disconnect();
-      document.removeEventListener("click", handlePricingClick);
     };
   }, [location.pathname, navigate]);
 
@@ -369,7 +268,6 @@ function AppContent() {
     <>
       <SeoManager />
       <BlogNavigationGuard />
-      <PricingNavigationGuard />
       <CompanyMarqueeEnhancement />
       <NavbarFunctionality />
       <AuthNavbarSync />
