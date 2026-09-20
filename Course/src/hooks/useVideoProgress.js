@@ -115,7 +115,11 @@ export default function useVideoProgress({
     async (player) => {
       if (!player || !video) return;
 
-      const { duration, currentTime } = getPlayerMetrics(player);
+      const metrics = getPlayerMetrics(player);
+      const fallbackDuration = Math.max(0, Number(video?.duration) || 0);
+      const duration =
+        metrics.duration > 0 ? metrics.duration : fallbackDuration;
+      const currentTime = metrics.currentTime;
 
       if (duration <= 0 || !Number.isFinite(currentTime)) return;
 
@@ -146,8 +150,14 @@ export default function useVideoProgress({
 
   const handleEnded = useCallback(
     async (player) => {
-      const { duration, currentTime } = getPlayerMetrics(player);
+      const metrics = getPlayerMetrics(player);
+      const fallbackDuration = Math.max(0, Number(video?.duration) || 0);
+      const duration =
+        metrics.duration > 0 ? metrics.duration : fallbackDuration;
+      const currentTime = metrics.currentTime;
       const finalPosition = duration > 0 ? duration : currentTime;
+
+      if (duration <= 0) return;
 
       await saveProgress({
         position: finalPosition,
@@ -156,12 +166,16 @@ export default function useVideoProgress({
         force: true,
       });
     },
-    [saveProgress]
+    [video, saveProgress]
   );
 
   const handlePause = useCallback(
     async (player) => {
-      const { currentTime, duration } = getPlayerMetrics(player);
+      const metrics = getPlayerMetrics(player);
+      const fallbackDuration = Math.max(0, Number(video?.duration) || 0);
+      const duration =
+        metrics.duration > 0 ? metrics.duration : fallbackDuration;
+      const currentTime = metrics.currentTime;
       const completionThreshold =
         duration *
         (LEARNING_RULES.VIDEO_COMPLETION_PERCENTAGE / 100);
@@ -183,7 +197,7 @@ export default function useVideoProgress({
         force: true,
       });
     },
-    [saveProgress]
+    [video, saveProgress]
   );
 
   const handleLoadedMetadata = useCallback(
