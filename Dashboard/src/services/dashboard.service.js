@@ -225,8 +225,7 @@ export const getLearningVideo = async ({
 ========================================================= */
 
 /**
- * Get current user's progress
- * for a course.
+ * Get current user's progress for a course.
  *
  * GET /api/v1/progress/courses/:courseId
  */
@@ -252,16 +251,13 @@ export const getCourseProgress = async (
 };
 
 /**
- * Save video watch position
- * or completion.
+ * Mark a lesson complete when the user selects it.
  *
- * POST /api/v1/progress/courses/:courseId/videos/:videoId
+ * POST /api/v1/progress/courses/:courseId/videos/:videoId/complete
  */
-export const updateVideoProgress = async ({
+export const completeVideoLesson = async ({
   courseId,
   videoId,
-  position = 0,
-  completed = false,
 }) => {
   if (!courseId || !videoId) {
     throw new Error(
@@ -274,16 +270,12 @@ export const updateVideoProgress = async ({
       courseId
     )}/videos/${encodeURIComponent(
       videoId
-    )}`,
-    {
-      position,
-      completed,
-    }
+    )}/complete`
   );
 
   return ensureSuccess(
     response,
-    "Unable to save learning progress."
+    "Unable to complete this lesson."
   );
 };
 
@@ -436,7 +428,7 @@ const dashboardService = {
   getLearningVideo,
 
   getCourseProgress,
-  updateVideoProgress,
+  completeVideoLesson,
 
   normalizeLearningData,
   getContinueLearningData,
