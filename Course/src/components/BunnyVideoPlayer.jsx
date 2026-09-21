@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { API_BASE_URL } from "../constants/config";
 import {
   Alert,
   Box,
@@ -128,6 +129,7 @@ const loadBunnyPlayerScript = () => {
 
 export default function BunnyVideoPlayer({
   video = null,
+  courseId = "",
   currentTime = 0,
   onTimeUpdate,
   onLoadedMetadata,
@@ -164,10 +166,22 @@ export default function BunnyVideoPlayer({
     [video?.videoSource, video?.videoUrl]
   );
 
-  const googleDriveMediaUrl = useMemo(
-    () => resolveGoogleDriveMediaUrl(video),
-    [video?.videoSource, video?.videoUrl]
-  );
+  const googleDriveMediaUrl = useMemo(() => {
+    const normalizedCourseId = String(courseId || "").trim();
+    const normalizedVideoId = String(video?._id || video?.id || "").trim();
+
+    if (
+      video?.videoSource !== "drive" ||
+      !normalizedCourseId ||
+      !normalizedVideoId
+    ) {
+      return "";
+    }
+
+    return `${API_BASE_URL}/videos/courses/${encodeURIComponent(
+      normalizedCourseId
+    )}/videos/${encodeURIComponent(normalizedVideoId)}/stream`;
+  }, [courseId, video?._id, video?.id, video?.videoSource]);
 
   const nativeVideoUrl = useMemo(() => {
     const rawUrl = typeof video?.videoUrl === "string" ? video.videoUrl.trim() : "";
@@ -529,6 +543,7 @@ export default function BunnyVideoPlayer({
           className="apna-academy-video"
           key={`${video._id || video.id || "video"}-${googleDriveMediaUrl}`}
           src={googleDriveMediaUrl}
+          crossOrigin="use-credentials"
           poster={video.thumbnailUrl || undefined}
           controls
           playsInline
