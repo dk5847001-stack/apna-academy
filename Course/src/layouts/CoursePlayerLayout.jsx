@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   Check,
+  PlayCircle,
   ExpandMore,
   ChevronLeft,
   ChevronRight,
@@ -39,49 +40,6 @@ const getVideoDuration = (video) => {
 };
 const isVideoLocked = (video) => Boolean(video?.isLocked ?? video?.locked);
 const isVideoCompleted = (video) => Boolean(video?.isCompleted ?? video?.completed);
-const PlayVideoIcon = ({ active = false }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className="size-6"
-    style={{ width: 18, height: 18, color: active ? "#9caaf8" : "#e2e8f0" }}
-    aria-hidden="true"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z"
-    />
-  </svg>
-);
-
-const CompletedVideoIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="white"
-    className="size-6"
-    style={{ width: 24, height: 24, display: "block", flexShrink: 0 }}
-    aria-hidden="true"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-    />
-  </svg>
-);
-
 const getNotesPdfUrl = (video) => (typeof video?.notesPdfUrl === "string" ? video.notesPdfUrl.trim() : "");
 
 const normalizeMediaValue = (value) => (typeof value === "string" ? value.trim() : "");
@@ -254,8 +212,8 @@ export default function CoursePlayerLayout({
                       const pdfOnly = Boolean(getNotesPdfUrl(video)) && !hasVideoSource(video);
                       return (
                         <Button key={getVideoId(video)} fullWidth disabled={locked} onClick={() => handleVideoClick(video)} sx={{ minHeight: 70, pl: { xs: 2.25, sm: 2.75 }, pr: { xs: 2.25, sm: 2.75 }, py: 1.35, justifyContent: "flex-start", alignItems: "center", gap: 1.3, textAlign: "left", textTransform: "none", borderRadius: 0, borderTop: "1px solid rgba(255,255,255,0.045)", borderLeft: "4px solid transparent", backgroundColor: active ? "#29313c" : COLORS.lesson, color: locked ? "#64748b" : "#ffffff", transition: "background-color 180ms ease", "&:hover": { backgroundColor: locked ? COLORS.lesson : COLORS.lessonHover, "& .course-video-title": { transform: locked ? "translateX(0)" : "translateX(6px)" } }, "&:focus": { outline: "none", boxShadow: "none" }, "&:focus-visible": { outline: "none", boxShadow: "none" }, "&.Mui-focusVisible": { backgroundColor: active ? "#29313c" : COLORS.lesson, boxShadow: "none", outline: "none" }, "&.Mui-disabled": { color: "#64748b", opacity: 1 } }}>
-                          <Box sx={{ width: 32, height: 32, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", backgroundColor: completed ? "transparent" : active ? "#33427a" : "#303844", border: completed ? "none" : "1px solid", borderColor: active ? "#6274d0" : "#4a5565" }}>
-                            {completed ? <CompletedVideoIcon /> : locked ? <Lock sx={{ fontSize: 15, color: "#94a3b8" }} /> : pdfOnly ? <Description sx={{ fontSize: 18, color: active ? "#9caaf8" : "#e2e8f0" }} /> : <PlayVideoIcon active={active} />}
+                          <Box sx={{ width: 32, height: 32, flexShrink: 0, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: completed ? "#16351f" : active ? "#33427a" : "#303844", border: "1px solid", borderColor: completed ? "#3b8150" : active ? "#6274d0" : "#4a5565" }}>
+                            {completed ? <Check sx={{ fontSize: 17, color: "#69d58a" }} /> : locked ? <Lock sx={{ fontSize: 15, color: "#94a3b8" }} /> : pdfOnly ? <Description sx={{ fontSize: 18, color: active ? "#9caaf8" : "#e2e8f0" }} /> : <PlayCircle sx={{ fontSize: 18, color: active ? "#9caaf8" : "#e2e8f0" }} />}
                           </Box>
                           <Box sx={{ minWidth: 0, flex: 1 }}>
                             <Typography className="course-video-title" sx={{ display: "block", transform: "translateX(0)", transition: "transform 180ms ease", fontSize: { xs: "0.78rem", sm: "0.82rem" }, fontWeight: active ? 800 : 650, color: locked ? "#64748b" : "#f8fafc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", willChange: "transform" }}>{getVideoTitle(video)}</Typography>
