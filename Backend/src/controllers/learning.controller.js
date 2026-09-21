@@ -97,8 +97,38 @@ export const getLearningCourse = asyncHandler(
         modules,
       });
 
-    const completedVideos =
-      progress?.completedVideos || [];
+    const publishedVideoIdSet = new Set(
+      videos.map((video) => video._id.toString())
+    );
+
+    const completedVideoIds = [];
+    const seenCompletedIds = new Set();
+
+    for (const value of progress?.completedVideos || []) {
+      const id = String(value);
+
+      if (
+        !publishedVideoIdSet.has(id) ||
+        seenCompletedIds.has(id)
+      ) {
+        continue;
+      }
+
+      seenCompletedIds.add(id);
+      completedVideoIds.push(value);
+    }
+
+    const totalPublishedVideos = videos.length;
+    const completedVideoCount = completedVideoIds.length;
+    const overallProgress =
+      totalPublishedVideos > 0
+        ? Math.min(
+            100,
+            Math.round(
+              (completedVideoCount / totalPublishedVideos) * 100
+            )
+          )
+        : 0;
 
     const formattedModules = modules.map((module) => {
       const moduleUnlocked =
@@ -123,7 +153,7 @@ export const getLearningCourse = asyncHandler(
           formatVideo(
             video,
             moduleUnlocked || video.isPreview,
-            completedVideos
+            completedVideoIds
           )
         ),
       };
@@ -155,10 +185,10 @@ export const getLearningCourse = asyncHandler(
         },
 
         progress: {
-          overallProgress:
-            progress?.overallProgress || 0,
-          completedVideos:
-            progress?.completedVideos || [],
+          overallProgress,
+          completedVideos: completedVideoIds,
+          completedVideoCount,
+          totalVideos: totalPublishedVideos,
           lastWatchedVideo:
             progress?.lastWatchedVideo || null,
           lastWatchedPosition:
