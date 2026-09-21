@@ -252,7 +252,7 @@ const addLegal = () => {
 
 export default function PublicSiteEnhancements() {
   useEffect(() => {
-    const enhance = () => { addBlog(); addSocialAndNewsletter(); addLegal(); addHomeSuccessSections(); addFaq(); };
+    const enhance = () => { addBlog(); addHomeSuccessSections(); addFaq(); };
     enhance();
     const observer = new MutationObserver(enhance);
     observer.observe(document.body, { childList: true, subtree: true });
