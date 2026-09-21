@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 import {
@@ -143,13 +143,13 @@ function CoursePreviewCard({ course }) {
         overflow-hidden
         !rounded-2xl
         !border
-        !border-slate-200
-        !bg-white
+        !border-blue-100/80
+        !bg-white/95
         transition-all
         duration-200
         hover:-translate-y-1
         hover:!border-blue-200
-        hover:shadow-xl
+        hover:shadow-2xl
         hover:shadow-slate-200/60
       "
     >
@@ -367,12 +367,18 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="overflow-hidden bg-white text-slate-900">
+    <main className="relative min-h-screen overflow-hidden bg-[#f7faff] text-slate-900">
       {/* =====================================================
-          HERO
+          PAGE AMBIENT BACKGROUND + HERO
       ====================================================== */}
 
-      <section className="relative border-b border-slate-200 bg-white">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-32 top-24 h-80 w-80 rounded-full bg-blue-200/30 blur-3xl" />
+        <div className="absolute right-[-8rem] top-[24rem] h-96 w-96 rounded-full bg-indigo-200/25 blur-3xl" />
+        <div className="absolute bottom-[20rem] left-[25%] h-72 w-72 rounded-full bg-cyan-100/35 blur-3xl" />
+      </div>
+
+      <section className="relative border-b border-blue-100/80 bg-transparent">
         <div
           aria-hidden="true"
           className="
@@ -383,7 +389,7 @@ export default function Home() {
             h-72
             w-72
             rounded-full
-            bg-blue-100/60
+            bg-blue-200/45
             blur-3xl
           "
         />
@@ -511,8 +517,8 @@ export default function Home() {
 
             {/* Hero visual */}
             <div className="relative mx-auto w-full max-w-xl">
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3 shadow-2xl shadow-slate-200/70 sm:p-4">
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div className="rounded-[2rem] border border-white/90 bg-white/70 p-3 shadow-[0_24px_70px_rgba(37,99,235,0.12)] backdrop-blur-xl sm:p-4">
+                <div className="overflow-hidden rounded-[1.5rem] border border-blue-100/80 bg-white/90 shadow-inner">
                   <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="h-2.5 w-2.5 rounded-full bg-slate-300" />
@@ -650,13 +656,13 @@ export default function Home() {
           TRUST / VALUE
       ====================================================== */}
 
-      <section className="border-b border-slate-200 bg-slate-50">
+      <section className="border-b border-blue-100/70 bg-white/65 backdrop-blur-sm">
         <Container maxWidth="lg">
           <div className="grid gap-4 py-8 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-2xl border border-slate-200 bg-white p-5"
+                className="rounded-2xl border border-blue-100/80 bg-white/85 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/50"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                   {feature.icon}
@@ -685,14 +691,14 @@ export default function Home() {
     FEATURED COURSES
 ====================================================== */}
 
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-blue-100/70 bg-white/80 backdrop-blur-sm">
         <Container maxWidth="lg">
           <div className="py-14 sm:py-18 lg:py-20">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="max-w-2xl">
                 <Typography
                   component="p"
-                  className="!text-xs !font-black !uppercase !tracking-[0.18em] !text-blue-600"
+                  className="!inline-flex !rounded-full !border !border-blue-100 !bg-blue-50 !px-3 !py-1 !text-xs !font-black !uppercase !tracking-[0.16em] !text-blue-700"
                 >
                   Featured learning
                 </Typography>
@@ -761,7 +767,7 @@ export default function Home() {
           LEARNING PROCESS
       ====================================================== */}
 
-      <section className="border-b border-slate-200 bg-slate-50">
+      <section className="border-b border-blue-100/70 bg-white/60 backdrop-blur-sm">
         <Container maxWidth="lg">
           <div className="py-14 sm:py-18 lg:py-20">
             <div className="mx-auto max-w-2xl text-center">
@@ -791,7 +797,7 @@ export default function Home() {
               {learningSteps.map((step) => (
                 <div
                   key={step.number}
-                  className="rounded-2xl border border-slate-200 bg-white p-5"
+                  className="rounded-2xl border border-blue-100/80 bg-white/90 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/50"
                 >
                   <Typography
                     component="span"
@@ -824,7 +830,7 @@ export default function Home() {
           TEAM
       ====================================================== */}
 
-      <section className="relative overflow-hidden border-b border-slate-200 bg-white">
+      <section className="relative overflow-hidden border-b border-blue-100/70 bg-transparent">
         <div className="pointer-events-none absolute -left-24 top-16 h-64 w-64 rounded-full bg-blue-100/40 blur-3xl" />
         <div className="pointer-events-none absolute -right-24 bottom-8 h-64 w-64 rounded-full bg-violet-100/40 blur-3xl" />
 
@@ -989,7 +995,7 @@ export default function Home() {
       <section className="bg-white">
         <Container maxWidth="lg">
           <div className="py-14 sm:py-18 lg:py-20">
-            <div className="relative overflow-hidden rounded-3xl border border-blue-100 bg-blue-50 px-6 py-10 sm:px-10 sm:py-14">
+            <div className="relative overflow-hidden rounded-[2rem] border border-blue-100/80 bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-6 py-10 shadow-[0_24px_70px_rgba(37,99,235,0.10)] sm:px-10 sm:py-14">
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-white/60 blur-3xl"
