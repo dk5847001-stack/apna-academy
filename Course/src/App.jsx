@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { Alert, Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 import Courses from "./pages/Courses";
@@ -11,7 +11,7 @@ import Assessment from "./pages/Assessment";
 import { COURSE_ROUTES, FRONTEND_URL } from "./constants/config";
 import { getCourseBySlug } from "./services/course.service";
 import { getLearningCourse, normalizeLearningCourse, normalizeLearningVideo } from "./services/learning.service";
-import useVideoProgress from "./hooks/useVideoProgress";
+import { completeVideoLesson } from "./services/progress.service";
 
 const getVideoId = (video) => {
   if (!video) return "";
@@ -154,15 +154,6 @@ function CourseLearningPage() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [slug, modules]);
 
-  const currentPosition = useMemo(() => {
-    if (!progress || !currentVideo) return 0;
-
-    const lastId = getLastWatchedVideoId(progress.lastWatchedVideo);
-    if (!lastId || String(lastId) !== String(getVideoId(currentVideo))) return 0;
-
-    return Math.max(0, Number(progress.lastWatchedPosition) || 0);
-  }, [progress, currentVideo]);
-
   const handleProgressUpdated = useCallback((updatedProgress) => {
     if (!updatedProgress) return;
 
@@ -199,43 +190,56 @@ function CourseLearningPage() {
     );
   }, []);
 
-  const handleVideoCompleted = useCallback(
-    (updatedProgress) => handleProgressUpdated(updatedProgress),
-    [handleProgressUpdated]
-  );
-
-  const {
-    handleTimeUpdate,
-    handleEnded,
-    handlePause,
-    handleLoadedMetadata,
-  } = useVideoProgress({
-    courseId: course?._id || course?.id || null,
-    video: currentVideo,
-    initialPosition: currentPosition,
-    onProgressUpdated: handleProgressUpdated,
-    onCompleted: handleVideoCompleted,
-  });
+  const completingVideoIdRef = useRef("");
 
   const selectLesson = useCallback(
-    (video) => {
+    async (video) => {
       if (!video || video.isLocked) return;
 
       const id = getVideoId(video);
       if (!id || !slug) return;
 
-      setCurrentVideo(normalizeLearningVideo({ video }));
+      if (completingVideoIdRef.current === String(id)) return;
 
-      // pushState changes only the browser URL. It does NOT trigger a React
-      // Router navigation, so the player remains mounted and no course-level
-      // loading spinner/refetch occurs when a lesson is selected.
-      window.history.pushState(
-        window.history.state,
-        "",
-        COURSE_ROUTES.VIDEO(slug, id)
-      );
+      completingVideoIdRef.current = String(id);
+
+      try {
+        // Completion is intentionally tied to lesson selection/click.
+        // The backend is authoritative and also validates purchase/module access.
+        const updatedProgress = await completeVideoLesson({
+          courseId: course?._id || course?.id || "",
+          videoId: id,
+        });
+
+        handleProgressUpdated(updatedProgress);
+
+        setCurrentVideo(
+          normalizeLearningVideo({
+            video: {
+              ...video,
+              isCompleted: true,
+            },
+          })
+        );
+
+        // Keep lesson navigation client-side without remounting the whole page.
+        window.history.pushState(
+          window.history.state,
+          "",
+          COURSE_ROUTES.VIDEO(slug, id)
+        );
+      } catch (err) {
+        console.error("Unable to complete lesson:", err);
+        setError(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Unable to mark this lesson as completed. Please try again."
+        );
+      } finally {
+        completingVideoIdRef.current = "";
+      }
     },
-    [slug]
+    [course, handleProgressUpdated, slug]
   );
 
   const handleVideoSelect = useCallback((video) => selectLesson(video), [selectLesson]);
@@ -285,7 +289,6 @@ function CourseLearningPage() {
       access={access}
       progress={progress?.overallProgress || 0}
       currentVideo={currentVideo}
-      currentPosition={currentPosition}
       courseCompleted={courseCompleted}
       onAssessment={handleAssessment}
       onCertificate={handleCertificate}
@@ -293,10 +296,6 @@ function CourseLearningPage() {
       onPrevious={handlePrevious}
       onNext={handleNext}
       onVideoSelect={handleVideoSelect}
-      onTimeUpdate={handleTimeUpdate}
-      onLoadedMetadata={handleLoadedMetadata}
-      onEnded={handleEnded}
-      onPause={handlePause}
     />
   );
 }
