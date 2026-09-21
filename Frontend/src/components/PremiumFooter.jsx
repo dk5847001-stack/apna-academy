@@ -111,7 +111,7 @@ export default function PremiumFooter() {
   };
 
   return (
-    <footer data-premium-footer="true" className="relative overflow-hidden border-t border-slate-200 bg-slate-100 text-slate-700">
+    <footer data-premium-footer="true" className="relative overflow-hidden border-t border-slate-200 bg-slate-50 text-slate-700">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent" />
       <div className="pointer-events-none absolute -left-32 top-8 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
       <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" />
@@ -130,7 +130,7 @@ export default function PremiumFooter() {
               <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-extrabold text-slate-600">Verified Certificates</span>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/courses" className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-extrabold text-slate-900 no-underline transition hover:bg-blue-500"><MenuBook fontSize="small" />Explore Courses</Link>
+              <Link to="/courses" className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-extrabold text-white no-underline transition hover:bg-blue-500"><MenuBook fontSize="small" />Explore Courses</Link>
               <button type="button" onClick={() => goTo(isLoggedIn ? DASHBOARD_URL : "/register")} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-extrabold text-slate-700 transition hover:border-blue-400/50 hover:bg-blue-50 hover:text-blue-700"><Dashboard fontSize="small" />{isLoggedIn ? "Open Dashboard" : "Get Started"}</button>
             </div>
             <div className="mt-7">
@@ -144,7 +144,7 @@ export default function PremiumFooter() {
               <p className="mt-1 text-xs leading-5 text-slate-500">Get course announcements and platform updates.</p>
               <form onSubmit={handleSubscribe} className="mt-3 flex flex-col gap-2 sm:flex-row">
                 <input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} placeholder="Enter your email address" className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
-                <button type="submit" disabled={submitting} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-extrabold text-slate-900 transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60">{submitting ? "Subscribing..." : "Subscribe"}</button>
+                <button type="submit" disabled={submitting} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-extrabold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60">{submitting ? "Subscribing..." : "Subscribe"}</button>
               </form>
               <p className="mt-2 min-h-4 text-xs font-bold text-slate-500" aria-live="polite">{status}</p>
             </div>
