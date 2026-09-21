@@ -223,7 +223,7 @@ export default function Courses() {
       ====================================================== */}
 
       <section className="border-b border-slate-200 bg-slate-50/70">
-        <Container maxWidth="lg">
+        <Container maxWidth={false} className="!w-full !max-w-none !px-4 sm:!px-6 lg:!px-10 xl:!px-14">
           <div className="py-12 sm:py-16">
             <div className="max-w-3xl">
               <Chip
@@ -614,7 +614,7 @@ export default function Courses() {
       ====================================================== */}
 
       <section className="border-t border-slate-200 bg-slate-50 py-14">
-        <Container maxWidth="md">
+        <Container maxWidth={false} className="!w-full !max-w-none !px-4 sm:!px-6 lg:!px-10 xl:!px-14"><div className="mx-auto w-full max-w-5xl">
           <div className="rounded-3xl border border-blue-100 bg-blue-50 px-6 py-9 text-center sm:px-10">
             <Typography
               component="h2"
@@ -630,6 +630,7 @@ export default function Courses() {
               Explore the learning library and choose a
               practical path that matches your goals.
             </Typography>
+          </div>
           </div>
         </Container>
       </section>
