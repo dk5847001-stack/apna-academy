@@ -1,12 +1,28 @@
 import Course from "../models/Course.js";
 import Video from "../models/Video.js";
 import Progress from "../models/Progress.js";
-import Purchase from "../models/Purchase.js";
+
+import {
+  getActiveCoursePurchase,
+  canAccessVideo,
+} from "../services/purchase.service.js";
 
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { successResponse } from "../utils/apiResponse.js";
 
-const VIDEO_COMPLETION_PERCENTAGE = 80;
+/**
+ * Progress is lesson-click based.
+ *
+ * A lesson becomes completed when an authenticated, purchased user
+ * clicks/selects that lesson from the learning sidebar.
+ *
+ * Overall progress:
+ *   completed lessons / total published lessons * 100
+ *
+ * Example:
+ *   100 total lessons + 1 completed = 1%
+ *   100 total lessons + 50 completed = 50%
+ */
 
 const getOrCreateProgress = async (userId, courseId) => {
   let progress = await Progress.findOne({
@@ -27,13 +43,48 @@ const getOrCreateProgress = async (userId, courseId) => {
   return progress;
 };
 
-const calculateProgress = (completedCount, totalVideos) => {
-  if (!totalVideos || totalVideos <= 0) return 0;
+const getValidProgressSnapshot = async (courseId, progress) => {
+  const publishedVideoIds = await Video.find({
+    course: courseId,
+    isPublished: true,
+  })
+    .select("_id")
+    .lean();
 
-  return Math.min(
-    100,
-    Math.round((completedCount / totalVideos) * 100)
+  const validVideoIdSet = new Set(
+    publishedVideoIds.map((video) => String(video._id))
   );
+
+  // Keep only unique IDs that still belong to published lessons in this course.
+  // This prevents deleted/unpublished lessons or duplicate IDs from inflating progress.
+  const validCompletedIds = [];
+  const seen = new Set();
+
+  for (const value of progress.completedVideos || []) {
+    const id = String(value);
+    if (!validVideoIdSet.has(id) || seen.has(id)) continue;
+
+    seen.add(id);
+    validCompletedIds.push(value);
+  }
+
+  const totalVideos = publishedVideoIds.length;
+  const completedVideoCount = validCompletedIds.length;
+
+  const overallProgress =
+    totalVideos > 0
+      ? Math.min(
+          100,
+          Math.round((completedVideoCount / totalVideos) * 100)
+        )
+      : 0;
+
+  return {
+    validCompletedIds,
+    totalVideos,
+    completedVideoCount,
+    overallProgress,
+  };
 };
 
 export const getCourseProgress = asyncHandler(async (req, res) => {
@@ -56,38 +107,36 @@ export const getCourseProgress = asyncHandler(async (req, res) => {
     courseId
   );
 
-  const totalVideos = await Video.countDocuments({
-    course: courseId,
-    isPublished: true,
-  });
-
-  const completedVideos = progress.completedVideos || [];
-  const overallProgress = calculateProgress(
-    completedVideos.length,
-    totalVideos
+  const snapshot = await getValidProgressSnapshot(
+    courseId,
+    progress
   );
 
-  if (progress.overallProgress !== overallProgress) {
-    progress.overallProgress = overallProgress;
-    progress.isCompleted =
-      totalVideos > 0 && completedVideos.length >= totalVideos;
+  progress.completedVideos = snapshot.validCompletedIds;
+  progress.overallProgress = snapshot.overallProgress;
+  progress.isCompleted =
+    snapshot.totalVideos > 0 &&
+    snapshot.completedVideoCount >= snapshot.totalVideos;
 
-    if (progress.isCompleted && !progress.completedAt) {
+  if (progress.isCompleted) {
+    if (!progress.completedAt) {
       progress.completedAt = new Date();
     }
-
-    await progress.save();
+  } else {
+    progress.completedAt = null;
   }
+
+  await progress.save();
 
   return successResponse({
     res,
     message: "Course progress fetched successfully.",
     data: {
       courseId,
-      overallProgress,
-      completedVideos,
-      completedVideoCount: completedVideos.length,
-      totalVideos,
+      overallProgress: snapshot.overallProgress,
+      completedVideos: snapshot.validCompletedIds,
+      completedVideoCount: snapshot.completedVideoCount,
+      totalVideos: snapshot.totalVideos,
       lastWatchedVideo: progress.lastWatchedVideo,
       lastWatchedPosition: progress.lastWatchedPosition,
       isCompleted: progress.isCompleted,
@@ -96,13 +145,20 @@ export const getCourseProgress = asyncHandler(async (req, res) => {
   });
 });
 
-export const updateVideoProgress = asyncHandler(async (req, res) => {
+/**
+ * POST /api/v1/progress/courses/:courseId/videos/:videoId/complete
+ *
+ * Marks one lesson complete immediately when the user selects it.
+ *
+ * Important:
+ * - The backend remains authoritative.
+ * - The user must own an active purchase.
+ * - The lesson's module must currently be unlocked.
+ * - Re-clicking an already completed lesson is idempotent.
+ * - No video duration/watch percentage is involved.
+ */
+export const completeVideoLesson = asyncHandler(async (req, res) => {
   const { courseId, videoId } = req.params;
-  const {
-    position = 0,
-    duration = 0,
-    completed = false,
-  } = req.body || {};
 
   const course = await Course.findOne({
     _id: courseId,
@@ -116,20 +172,16 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
     });
   }
 
-  const purchase = await Purchase.findOne({
-    user: req.user.userId,
-    course: courseId,
-    paymentStatus: "paid",
-    $or: [
-      { expiresAt: null },
-      { expiresAt: { $gt: new Date() } },
-    ],
-  }).lean();
+  const purchase = await getActiveCoursePurchase(
+    req.user.userId,
+    courseId
+  );
 
   if (!purchase) {
     return res.status(403).json({
       success: false,
       message: "Please purchase this course first.",
+      code: "COURSE_NOT_PURCHASED",
     });
   }
 
@@ -142,55 +194,35 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
   if (!video) {
     return res.status(404).json({
       success: false,
-      message: "Video not found.",
+      message: "Lesson not found.",
+      code: "VIDEO_NOT_FOUND",
     });
   }
 
-  if (purchase.unlockMode !== "all_access") {
-    const purchaseDate = new Date(purchase.purchasedAt);
-    const now = new Date();
+  const access = await canAccessVideo({
+    userId: req.user.userId,
+    courseId,
+    moduleId: video.module,
+    video,
+  });
 
-    const purchaseDay = new Date(
-      purchaseDate.getFullYear(),
-      purchaseDate.getMonth(),
-      purchaseDate.getDate()
-    );
+  if (!access.allowed) {
+    const statusCode =
+      access.reason === "COURSE_NOT_PURCHASED" ||
+      access.reason === "MODULE_LOCKED"
+        ? 403
+        : 404;
 
-    const currentDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate()
-    );
-
-    const millisecondsPerDay = 24 * 60 * 60 * 1000;
-
-    const elapsedDays = Math.max(
-      0,
-      Math.floor(
-        (currentDay.getTime() - purchaseDay.getTime()) /
-          millisecondsPerDay
-      )
-    );
-
-    const Module = (await import("../models/Module.js")).default;
-    const videoModule = await Module.findById(video.module).lean();
-
-    if (!videoModule) {
-      return res.status(404).json({
-        success: false,
-        message: "Video module not found.",
-      });
-    }
-
-    const highestUnlockedOrder = elapsedDays + 1;
-
-    if (videoModule.order > highestUnlockedOrder) {
-      return res.status(403).json({
-        success: false,
-        message: "This module is still locked.",
-        code: "MODULE_LOCKED",
-      });
-    }
+    return res.status(statusCode).json({
+      success: false,
+      message:
+        access.reason === "MODULE_LOCKED"
+          ? "This module is still locked."
+          : access.reason === "COURSE_NOT_PURCHASED"
+            ? "Please purchase this course first."
+            : "Lesson access denied.",
+      code: access.reason,
+    });
   }
 
   const progress = await getOrCreateProgress(
@@ -198,96 +230,33 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
     courseId
   );
 
-  const numericPosition = Number(position);
-  const safePosition = Number.isFinite(numericPosition)
-    ? Math.max(0, numericPosition)
-    : 0;
+  const alreadyCompleted = (progress.completedVideos || []).some(
+    (id) => String(id) === String(videoId)
+  );
 
-  const numericDuration = Number(duration);
-  const reportedDuration = Number.isFinite(numericDuration)
-    ? Math.max(0, numericDuration)
-    : 0;
-
-  let videoDuration = Number(video.duration);
-
-  /*
-   * Some older Bunny videos may have duration=0 because the
-   * duration was never entered in Admin. The authenticated
-   * player can provide the actual media duration. We only use
-   * this fallback when the database does not have a duration,
-   * then persist it so future requests use the same value.
-   */
-  if (
-    (!Number.isFinite(videoDuration) || videoDuration <= 0) &&
-    reportedDuration > 0
-  ) {
-    videoDuration = reportedDuration;
-
-    await Video.updateOne(
-      { _id: video._id, duration: { $lte: 0 } },
-      { $set: { duration: reportedDuration } }
-    );
-  }
-
-  const hasKnownDuration =
-    Number.isFinite(videoDuration) && videoDuration > 0;
-
-  const clampedPosition = hasKnownDuration
-    ? Math.min(safePosition, videoDuration)
-    : safePosition;
-
-  const completionThresholdReached =
-    hasKnownDuration &&
-    clampedPosition >=
-      videoDuration * (VIDEO_COMPLETION_PERCENTAGE / 100);
-
-  if (Boolean(completed) && !completionThresholdReached) {
-    return res.status(400).json({
-      success: false,
-      message: `Watch at least ${VIDEO_COMPLETION_PERCENTAGE}% of the video before marking it complete.`,
-      code: "COMPLETION_THRESHOLD_NOT_REACHED",
-      data: {
-        position: clampedPosition,
-        duration: hasKnownDuration ? videoDuration : null,
-        requiredPercentage: VIDEO_COMPLETION_PERCENTAGE,
-      },
-    });
+  if (!alreadyCompleted) {
+    progress.completedVideos.push(videoId);
   }
 
   progress.lastWatchedVideo = videoId;
-  progress.lastWatchedPosition = clampedPosition;
+  progress.lastWatchedPosition = 0;
 
-  if (Boolean(completed) && completionThresholdReached) {
-    const alreadyCompleted = progress.completedVideos.some(
-      (id) => id.toString() === videoId.toString()
-    );
-
-    if (!alreadyCompleted) {
-      progress.completedVideos.push(videoId);
-    }
-  }
-
-  const totalVideos = await Video.countDocuments({
-    course: courseId,
-    isPublished: true,
-  });
-
-  progress.overallProgress = calculateProgress(
-    progress.completedVideos.length,
-    totalVideos
+  const snapshot = await getValidProgressSnapshot(
+    courseId,
+    progress
   );
 
-  if (
-    totalVideos > 0 &&
-    progress.completedVideos.length >= totalVideos
-  ) {
-    progress.isCompleted = true;
+  progress.completedVideos = snapshot.validCompletedIds;
+  progress.overallProgress = snapshot.overallProgress;
+  progress.isCompleted =
+    snapshot.totalVideos > 0 &&
+    snapshot.completedVideoCount >= snapshot.totalVideos;
 
+  if (progress.isCompleted) {
     if (!progress.completedAt) {
       progress.completedAt = new Date();
     }
   } else {
-    progress.isCompleted = false;
     progress.completedAt = null;
   }
 
@@ -295,15 +264,16 @@ export const updateVideoProgress = asyncHandler(async (req, res) => {
 
   return successResponse({
     res,
-    message:
-      Boolean(completed) && completionThresholdReached
-        ? "Video completed and progress saved."
-        : "Video progress saved.",
+    message: alreadyCompleted
+      ? "Lesson was already completed."
+      : "Lesson completed successfully.",
     data: {
       courseId,
       videoId,
-      overallProgress: progress.overallProgress,
-      completedVideos: progress.completedVideos,
+      overallProgress: snapshot.overallProgress,
+      completedVideos: snapshot.validCompletedIds,
+      completedVideoCount: snapshot.completedVideoCount,
+      totalVideos: snapshot.totalVideos,
       lastWatchedVideo: progress.lastWatchedVideo,
       lastWatchedPosition: progress.lastWatchedPosition,
       isCompleted: progress.isCompleted,
