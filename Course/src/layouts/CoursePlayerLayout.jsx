@@ -110,6 +110,7 @@ const COLORS = {
 export default function CoursePlayerLayout({
   course = null,
   courseTitle = "",
+  courseId = "",
   modules = [],
   access = null,
   progress = 0,
@@ -277,6 +278,7 @@ export default function CoursePlayerLayout({
                 <BunnyVideoPlayer
                   key={`${getVideoId(currentVideo)}-${currentVideo?.videoSource || "bunny"}-${currentVideo?.videoUrl || ""}-${currentVideo?.bunnyVideoId || ""}`}
                   video={currentVideo}
+                  courseId={courseId}
                   currentTime={currentPosition}
                   onTimeUpdate={onTimeUpdate}
                   onLoadedMetadata={onLoadedMetadata}
