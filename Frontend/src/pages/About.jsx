@@ -136,7 +136,7 @@ function AnimatedCounter({ value, suffix = "", decimals = 0 }) {
 
 function StatCard({ icon, value, label }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+    <div className="rounded-2xl border border-blue-100/80 bg-white/90 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
           {icon}
@@ -160,7 +160,7 @@ function InfoCard({ icon, label, title, description }) {
   return (
     <Card
       elevation={0}
-      className="!h-full !rounded-3xl !border !border-slate-200 !bg-white"
+      className="!h-full !rounded-3xl !border !border-blue-100/80 !bg-white/90"
     >
       <CardContent className="!p-7 sm:!p-9">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
@@ -191,8 +191,13 @@ function InfoCard({ icon, label, title, description }) {
 
 export default function About() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white text-slate-900">
-      <section className="border-b border-slate-200 bg-white">
+    <main className="relative min-h-screen overflow-x-hidden bg-[#f7faff] text-slate-900">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-32 top-20 h-80 w-80 rounded-full bg-blue-200/30 blur-3xl" />
+        <div className="absolute right-[-8rem] top-[28rem] h-96 w-96 rounded-full bg-indigo-200/25 blur-3xl" />
+        <div className="absolute bottom-[18rem] left-[28%] h-72 w-72 rounded-full bg-cyan-100/35 blur-3xl" />
+      </div>
+      <section className="relative border-b border-blue-100/80 bg-transparent">
         <Container maxWidth="lg">
           <div className="grid items-center gap-12 py-16 sm:py-20 lg:grid-cols-[1.08fr_0.92fr] lg:py-24">
             <div>
@@ -200,7 +205,7 @@ export default function About() {
                 icon={<AutoAwesome fontSize="small" />}
                 label="About ApnaAcademy"
                 variant="outlined"
-                className="!border-blue-200 !bg-white !font-semibold !text-blue-700"
+                className="!border-blue-100 !bg-blue-50 !font-bold !text-blue-700"
               />
 
               <Typography
@@ -264,7 +269,7 @@ export default function About() {
 
             <Card
               elevation={0}
-              className="!rounded-3xl !border !border-slate-200 !bg-white !shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
+              className="!rounded-[2rem] !border !border-white/90 !bg-white/75 !shadow-[0_24px_70px_rgba(37,99,235,0.12)] !backdrop-blur-xl"
             >
               <CardContent className="!p-6 sm:!p-8">
                 <div className="flex items-center justify-between gap-4">
@@ -294,7 +299,7 @@ export default function About() {
                   <StatCard icon={<Groups />} value="Connect" label="Learning Community" />
                 </div>
 
-                <Box className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+                <Box className="mt-5 rounded-2xl border border-blue-100/80 bg-white/90 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm">
                   <div className="flex items-start gap-3">
                     <AutoAwesome fontSize="small" className="!mt-0.5 !text-blue-600" />
                     <Typography className="!text-sm !leading-6 !text-slate-600">
@@ -309,13 +314,13 @@ export default function About() {
         </Container>
       </section>
 
-      <section className="border-y border-slate-200 bg-white">
+      <section className="border-y border-blue-100/70 bg-white/65 backdrop-blur-sm">
         <Container maxWidth="lg">
           <div className="grid gap-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
             {platformStats.map((stat) => (
               <div
                 key={stat.label}
-                className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"
+                className="group rounded-2xl border border-blue-100/80 bg-white/90 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"
               >
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-transform duration-300 group-hover:scale-105">
@@ -340,7 +345,7 @@ export default function About() {
         </Container>
       </section>
 
-      <section className="bg-white">
+      <section className="bg-white/60 backdrop-blur-sm">
         <Container maxWidth="lg">
           <div className="py-16 sm:py-20">
             <div className="mx-auto mb-10 max-w-3xl text-center">
@@ -380,7 +385,7 @@ export default function About() {
         </Container>
       </section>
 
-      <section className="bg-white">
+      <section className="bg-white/60 backdrop-blur-sm">
         <Container maxWidth="lg">
           <div className="py-16 sm:py-20">
             <div className="max-w-2xl">
@@ -412,7 +417,7 @@ export default function About() {
                   <Card
                     key={item.title}
                     elevation={0}
-                    className="!h-full !rounded-2xl !border !border-slate-200 !bg-white !shadow-sm !transition-shadow !duration-200 hover:!border-blue-200 hover:!shadow-lg"
+                    className="!h-full !rounded-2xl !border !border-blue-100/80 !bg-white/90 !shadow-sm !transition-shadow !duration-200 hover:!border-blue-200 hover:!shadow-lg"
                   >
                     <CardContent className="!p-6">
                       <Box className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
@@ -439,7 +444,7 @@ export default function About() {
         </Container>
       </section>
 
-      <section className="bg-white">
+      <section className="bg-white/60 backdrop-blur-sm">
         <Container maxWidth="lg">
           <div className="py-16 sm:py-20">
             <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-center">
@@ -471,7 +476,7 @@ export default function About() {
                   return (
                     <div
                       key={item.title}
-                      className="rounded-2xl border border-slate-200 bg-white p-5"
+                      className="rounded-2xl border border-blue-100/80 bg-white/90 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm"
                     >
                       <div className="flex items-start gap-4">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
@@ -495,7 +500,7 @@ export default function About() {
         </Container>
       </section>
 
-      <section className="bg-white">
+      <section className="bg-white/60 backdrop-blur-sm">
         <Container maxWidth="lg">
           <div className="py-16 sm:py-20">
             <div className="grid items-center gap-10 lg:grid-cols-[1fr_1fr]">
@@ -530,7 +535,7 @@ export default function About() {
 
               <Card
                 elevation={0}
-                className="!rounded-3xl !border !border-slate-200 !bg-white"
+                className="!rounded-3xl !border !border-blue-100/80 !bg-white/90"
               >
                 <CardContent className="!p-6 sm:!p-8">
                   <div className="flex items-center gap-3">
@@ -548,7 +553,7 @@ export default function About() {
                     {trustPoints.map((point) => (
                       <div
                         key={point}
-                        className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4"
+                        className="flex items-start gap-3 rounded-xl border border-blue-100/80 bg-white/90 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-sm"
                       >
                         <CheckCircle className="mt-0.5 shrink-0 !text-[19px] !text-blue-600" />
                         <Typography className="!text-sm !font-semibold !leading-6 !text-slate-700">
@@ -564,10 +569,10 @@ export default function About() {
         </Container>
       </section>
 
-      <section className="border-t border-slate-200 bg-white">
+      <section className="border-t border-blue-100/70 bg-white/65 backdrop-blur-sm">
         <Container maxWidth="lg">
           <div className="py-14 sm:py-16">
-            <div className="rounded-[2rem] border border-blue-200 bg-white px-6 py-10 shadow-[0_20px_50px_rgba(15,23,42,0.06)] sm:px-10 sm:py-12">
+            <div className="relative overflow-hidden rounded-[2rem] border border-blue-100/80 bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-6 py-10 shadow-[0_24px_70px_rgba(37,99,235,0.10)] sm:px-10 sm:py-12">
               <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
                 <div className="max-w-2xl">
                   <div className="flex items-center gap-3">
