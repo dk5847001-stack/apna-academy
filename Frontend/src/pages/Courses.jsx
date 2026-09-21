@@ -311,7 +311,7 @@ export default function Courses() {
       ====================================================== */}
 
       <section className="border-b border-slate-200 bg-white">
-        <Container maxWidth="lg">
+        <Container maxWidth={false} className="!w-full !max-w-none !px-4 sm:!px-6 lg:!px-10 xl:!px-14">
           <div className="flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-2">
               <Tune className="!text-[20px] !text-blue-600" />
@@ -486,7 +486,7 @@ export default function Courses() {
       ====================================================== */}
 
       <section className="bg-white py-10 sm:py-14">
-        <Container maxWidth="lg">
+        <Container maxWidth={false} className="!w-full !max-w-none !px-4 sm:!px-6 lg:!px-10 xl:!px-14">
           {loading ? (
             <div className="flex min-h-[360px] items-center justify-center">
               <Stack
