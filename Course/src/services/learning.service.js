@@ -129,6 +129,18 @@ export const normalizeLearningCourse = (
             ?.overallProgress
         ) || 0,
 
+      completedVideoCount:
+        Number(
+          learningData.progress
+            ?.completedVideoCount
+        ) || 0,
+
+      totalVideos:
+        Number(
+          learningData.progress
+            ?.totalVideos
+        ) || 0,
+
       completedVideos:
         Array.isArray(
           learningData.progress
