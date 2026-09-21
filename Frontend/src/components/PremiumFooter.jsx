@@ -21,7 +21,7 @@ function getStoredUser() {
 
 function FooterLink({ to, children }) {
   return (
-    <Link to={to} className="group inline-flex w-fit items-center gap-1 rounded-md py-1 text-sm text-slate-400 no-underline transition duration-200 hover:text-white">
+    <Link to={to} className="group inline-flex w-fit items-center gap-1 rounded-md py-1 text-sm text-slate-600 no-underline transition duration-200 hover:text-blue-600">
       <span>{children}</span>
       <span aria-hidden="true" className="text-xs opacity-0 transition duration-200 group-hover:translate-x-0.5 group-hover:opacity-100">↗</span>
     </Link>
@@ -30,17 +30,17 @@ function FooterLink({ to, children }) {
 
 function AppCard({ icon: Icon, title, description, onClick, accent = "blue" }) {
   const accentClasses = accent === "violet"
-    ? "bg-violet-500/10 text-violet-300 group-hover:border-violet-400/40"
+    ? "bg-violet-50 text-violet-600 group-hover:border-violet-200"
     : accent === "slate"
-      ? "bg-slate-800 text-slate-300 group-hover:border-slate-600"
-      : "bg-blue-500/10 text-blue-300 group-hover:border-blue-400/40";
+      ? "bg-slate-100 text-slate-600 group-hover:border-slate-300"
+      : "bg-blue-50 text-blue-600 group-hover:border-blue-200";
 
   return (
-    <button type="button" onClick={onClick} className="group flex w-full items-center gap-3 rounded-2xl border border-slate-700 bg-slate-800/70 p-3 text-left transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800">
+    <button type="button" onClick={onClick} className="group flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-left transition duration-200 hover:-translate-y-0.5 hover:bg-slate-50">
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${accentClasses}`}><Icon fontSize="small" /></span>
       <span className="min-w-0">
-        <span className="block truncate text-sm font-extrabold text-white">{title}</span>
-        <span className="mt-0.5 block text-[11px] leading-4 text-slate-400">{description}</span>
+        <span className="block truncate text-sm font-extrabold text-slate-900">{title}</span>
+        <span className="mt-0.5 block text-[11px] leading-4 text-slate-500">{description}</span>
       </span>
     </button>
   );
@@ -111,42 +111,42 @@ export default function PremiumFooter() {
   };
 
   return (
-    <footer data-premium-footer="true" className="relative overflow-hidden border-t border-slate-700 bg-slate-900 text-slate-300">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-      <div className="pointer-events-none absolute -left-32 top-8 h-72 w-72 rounded-full bg-blue-600/10 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-indigo-600/10 blur-3xl" />
+    <footer data-premium-footer="true" className="relative overflow-hidden border-t border-slate-200 bg-slate-100 text-slate-700">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent" />
+      <div className="pointer-events-none absolute -left-32 top-8 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.6fr_1fr_1fr_1.25fr]">
           <div className="min-w-0">
             <Link to="/" className="inline-flex items-center gap-3 no-underline">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-400/20 bg-blue-500/10 text-blue-300 shadow-lg shadow-blue-950/20"><School fontSize="small" /></span>
-              <span><span className="block text-lg font-black tracking-tight text-white">ApnaAcademy</span><span className="block text-xs font-semibold text-slate-500">Learn. Build. Grow.</span></span>
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-200 bg-blue-50 text-blue-600 shadow-lg shadow-blue-900/5"><School fontSize="small" /></span>
+              <span><span className="block text-lg font-black tracking-tight text-slate-900">ApnaAcademy</span><span className="block text-xs font-semibold text-slate-500">Learn. Build. Grow.</span></span>
             </Link>
-            <p className="mt-5 max-w-md text-sm leading-7 text-slate-400">Practical, structured learning for students who want to build real skills, complete projects and grow with confidence.</p>
+            <p className="mt-5 max-w-md text-sm leading-7 text-slate-600">Practical, structured learning for students who want to build real skills, complete projects and grow with confidence.</p>
             <div className="mt-5 flex flex-wrap gap-2">
-              <span className="rounded-full border border-blue-400/15 bg-blue-500/10 px-3 py-1 text-[11px] font-extrabold text-blue-200">Practical Learning</span>
-              <span className="rounded-full border border-emerald-400/15 bg-emerald-500/10 px-3 py-1 text-[11px] font-extrabold text-emerald-200">Career Focused</span>
-              <span className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-[11px] font-extrabold text-slate-300">Verified Certificates</span>
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-extrabold text-blue-700">Practical Learning</span>
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-extrabold text-emerald-700">Career Focused</span>
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-extrabold text-slate-600">Verified Certificates</span>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/courses" className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-extrabold text-white no-underline transition hover:bg-blue-500"><MenuBook fontSize="small" />Explore Courses</Link>
-              <button type="button" onClick={() => goTo(isLoggedIn ? DASHBOARD_URL : "/register")} className="inline-flex items-center gap-2 rounded-xl border border-slate-600 bg-slate-800 px-4 py-2.5 text-sm font-extrabold text-slate-200 transition hover:border-blue-400/50 hover:bg-blue-500/10 hover:text-white"><Dashboard fontSize="small" />{isLoggedIn ? "Open Dashboard" : "Get Started"}</button>
+              <Link to="/courses" className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-extrabold text-slate-900 no-underline transition hover:bg-blue-500"><MenuBook fontSize="small" />Explore Courses</Link>
+              <button type="button" onClick={() => goTo(isLoggedIn ? DASHBOARD_URL : "/register")} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-extrabold text-slate-700 transition hover:border-blue-400/50 hover:bg-blue-50 hover:text-blue-700"><Dashboard fontSize="small" />{isLoggedIn ? "Open Dashboard" : "Get Started"}</button>
             </div>
             <div className="mt-7">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-500">Follow us</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-slate-400 no-underline transition hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-200"><Icon fontSize="small" /></a>)}
+                {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 no-underline transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"><Icon fontSize="small" /></a>)}
               </div>
             </div>
-            <div className="mt-7 max-w-md rounded-2xl border border-slate-700 bg-slate-800/70 p-4">
-              <p className="text-sm font-extrabold text-white">Stay updated</p>
-              <p className="mt-1 text-xs leading-5 text-slate-400">Get course announcements and platform updates.</p>
+            <div className="mt-7 max-w-md rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="text-sm font-extrabold text-slate-900">Stay updated</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">Get course announcements and platform updates.</p>
               <form onSubmit={handleSubscribe} className="mt-3 flex flex-col gap-2 sm:flex-row">
-                <input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} placeholder="Enter your email address" className="min-w-0 flex-1 rounded-xl border border-slate-600 bg-slate-900 px-3.5 py-2.5 text-sm font-semibold text-white outline-none placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
-                <button type="submit" disabled={submitting} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-extrabold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60">{submitting ? "Subscribing..." : "Subscribe"}</button>
+                <input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} placeholder="Enter your email address" className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                <button type="submit" disabled={submitting} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-extrabold text-slate-900 transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60">{submitting ? "Subscribing..." : "Subscribe"}</button>
               </form>
-              <p className="mt-2 min-h-4 text-xs font-bold text-slate-400" aria-live="polite">{status}</p>
+              <p className="mt-2 min-h-4 text-xs font-bold text-slate-500" aria-live="polite">{status}</p>
             </div>
           </div>
 
@@ -165,13 +165,13 @@ export default function PremiumFooter() {
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500">Learning &amp; Account</p>
             <div className="mt-4 flex flex-col items-start gap-1.5">
-              <button type="button" onClick={() => goTo(COURSE_URL)} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-slate-400 transition hover:text-white">Learning App</button>
+              <button type="button" onClick={() => goTo(COURSE_URL)} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition hover:text-blue-600">Learning App</button>
               {isLoggedIn ? <>
-                <button type="button" onClick={() => goTo(DASHBOARD_URL)} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-slate-400 transition hover:text-white">Dashboard</button>
-                <button type="button" onClick={() => goTo(`${DASHBOARD_URL}/courses`)} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-slate-400 transition hover:text-white">My Courses</button>
-                <button type="button" onClick={() => goTo(`${DASHBOARD_URL}/profile`)} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-slate-400 transition hover:text-white">Profile</button>
-                <button type="button" onClick={() => goTo(`${DASHBOARD_URL}/notifications`)} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-slate-400 transition hover:text-white">Notifications</button>
-                <button type="button" onClick={handleLogout} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-red-300 transition hover:text-red-200">Logout</button>
+                <button type="button" onClick={() => goTo(DASHBOARD_URL)} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition hover:text-blue-600">Dashboard</button>
+                <button type="button" onClick={() => goTo(`${DASHBOARD_URL}/courses`)} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition hover:text-blue-600">My Courses</button>
+                <button type="button" onClick={() => goTo(`${DASHBOARD_URL}/profile`)} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition hover:text-blue-600">Profile</button>
+                <button type="button" onClick={() => goTo(`${DASHBOARD_URL}/notifications`)} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition hover:text-blue-600">Notifications</button>
+                <button type="button" onClick={handleLogout} className="block w-fit border-0 bg-transparent py-1 text-left text-sm text-red-600 transition hover:text-red-700">Logout</button>
               </> : <><FooterLink to="/login">Sign In</FooterLink><FooterLink to="/register">Create Account</FooterLink></>}
               <FooterLink to="/contact">Learning Support</FooterLink>
               <FooterLink to="/contact">Help Center</FooterLink>
@@ -189,9 +189,9 @@ export default function PremiumFooter() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-slate-700 pt-7">
+        <div className="mt-12 border-t border-slate-200 pt-7">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div><p className="text-xs leading-5 text-slate-500">© {new Date().getFullYear()} ApnaAcademy. All rights reserved.</p><p className="mt-1 text-[11px] leading-5 text-slate-600">Built for practical learning, structured progress and career-focused skill development.</p></div>
+            <div><p className="text-xs leading-5 text-slate-500">© {new Date().getFullYear()} ApnaAcademy. All rights reserved.</p><p className="mt-1 text-[11px] leading-5 text-slate-500">Built for practical learning, structured progress and career-focused skill development.</p></div>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><FooterLink to="/privacy-policy">Privacy Policy</FooterLink><FooterLink to="/refund-policy">Refund Policy</FooterLink><FooterLink to="/about">About</FooterLink><FooterLink to="/contact">Support</FooterLink><FooterLink to="/contact">Contact</FooterLink></div>
           </div>
         </div>
