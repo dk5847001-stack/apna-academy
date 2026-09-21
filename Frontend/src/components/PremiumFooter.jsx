@@ -111,7 +111,7 @@ export default function PremiumFooter() {
   };
 
   return (
-    <footer data-premium-footer="true" className="relative overflow-hidden border-t border-slate-200 bg-slate-50 text-slate-700">
+    <footer data-premium-footer="true" className="relative overflow-hidden border-t border-slate-300 bg-slate-100 text-slate-700">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent" />
       <div className="pointer-events-none absolute -left-32 top-8 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
       <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" />
