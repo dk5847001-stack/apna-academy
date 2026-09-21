@@ -115,7 +115,6 @@ export default function CoursePlayerLayout({
   access = null,
   progress = 0,
   currentVideo = null,
-  currentPosition = 0,
   courseCompleted = false,
   onAssessment,
   onCertificate,
@@ -123,11 +122,6 @@ export default function CoursePlayerLayout({
   onPrevious,
   onNext,
   onVideoSelect,
-  onTimeUpdate,
-  onLoadedMetadata,
-  onEnded,
-  onPlay,
-  onPause,
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openModules, setOpenModules] = useState({});
@@ -279,12 +273,6 @@ export default function CoursePlayerLayout({
                   key={`${getVideoId(currentVideo)}-${currentVideo?.videoSource || "bunny"}-${currentVideo?.videoUrl || ""}-${currentVideo?.bunnyVideoId || ""}`}
                   video={currentVideo}
                   courseId={courseId}
-                  currentTime={currentPosition}
-                  onTimeUpdate={onTimeUpdate}
-                  onLoadedMetadata={onLoadedMetadata}
-                  onEnded={onEnded}
-                  onPlay={onPlay}
-                  onPause={onPause}
                 />
               </Box>
               <Box sx={{ backgroundColor: "#111827", px: { xs: 1.5, sm: 2.5, md: 3 }, py: { xs: 1.5, sm: 2.25 } }}>
