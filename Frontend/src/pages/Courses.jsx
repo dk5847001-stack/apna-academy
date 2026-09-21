@@ -5,13 +5,11 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   Container,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
-  Stack,
   TextField,
   Typography,
 } from "@mui/material";
@@ -24,7 +22,8 @@ import {
 } from "@mui/icons-material";
 
 import api from "../services/api";
-import CourseCard from "../components/courses/CourseCard";\nimport CourseSkeleton from "../components/courses/CourseSkeleton";
+import CourseCard from "../components/courses/CourseCard";
+import CourseSkeleton from "../components/courses/CourseSkeleton";
 
 const normalizeText = (value) =>
   String(value || "").trim().toLowerCase();
