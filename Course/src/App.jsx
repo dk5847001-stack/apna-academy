@@ -280,6 +280,7 @@ function CourseLearningPage() {
     <CoursePlayerLayout
       course={course}
       courseTitle={course?.title || ""}
+      courseId={course?._id || course?.id || ""}
       modules={modules}
       access={access}
       progress={progress?.overallProgress || 0}
