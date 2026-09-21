@@ -151,14 +151,15 @@ export default function Blog() {
   const featured = posts[0];
 
   return (
-    <Box className="min-h-screen overflow-hidden bg-slate-50 text-slate-900">
-      <section className="relative overflow-hidden border-b border-slate-200 bg-white">
-        <div className="pointer-events-none absolute -left-28 -top-28 h-72 w-72 rounded-full bg-blue-100/70 blur-3xl" />
-        <div className="pointer-events-none absolute -right-28 top-0 h-80 w-80 rounded-full bg-violet-100/70 blur-3xl" />
+    <Box className="min-h-screen overflow-hidden bg-[#f8fbff] text-slate-900">
+      <section className="relative overflow-hidden border-b border-blue-100/70 bg-gradient-to-br from-white via-blue-50/80 to-indigo-50/70">
+        <div className="pointer-events-none absolute -left-24 top-8 h-64 w-64 rounded-full bg-blue-200/30 blur-3xl" />
+        <div className="pointer-events-none absolute right-[-6rem] top-[-5rem] h-80 w-80 rounded-full bg-indigo-200/35 blur-3xl" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-48 w-96 -translate-x-1/2 rounded-full bg-cyan-100/40 blur-3xl" />
         <Container maxWidth="lg">
-          <div className="relative py-16 text-center sm:py-20 lg:py-24">
-            <Chip icon={<AutoStoriesRounded />} label="ApnaAcademy Learning Hub" className="!border !border-blue-200 !bg-blue-50 !font-black !text-blue-700" variant="outlined" />
-            <Typography component="h1" className="!mx-auto !mt-5 !max-w-5xl !text-4xl !font-black !leading-tight !tracking-tight !text-slate-950 sm:!text-5xl lg:!text-6xl">
+          <div className="relative py-12 text-center sm:py-16 lg:py-20">
+            <Chip icon={<AutoStoriesRounded />} label="ApnaAcademy Learning Hub" className="!border !border-blue-200/80 !bg-white/70 !font-black !text-blue-700 !shadow-sm !backdrop-blur-xl" variant="outlined" />
+            <Typography component="h1" className="!mx-auto !mt-5 !max-w-5xl !text-4xl !font-black !leading-tight !tracking-[-0.04em] !text-slate-950 sm:!text-5xl lg:!text-6xl">
               Learn smarter. Build better.{" "}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">Grow faster.</span>
             </Typography>
@@ -167,7 +168,7 @@ export default function Blog() {
             </Typography>
             <div className="mt-8 flex flex-wrap justify-center gap-2">
               {internalLinks.map((link) => (
-                <Link key={link.to} to={link.to} className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-extrabold text-slate-600 no-underline shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+                <Link key={link.to} to={link.to} className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-white/75 px-4 py-2 text-xs font-extrabold text-slate-600 no-underline shadow-sm backdrop-blur-xl transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
                   {link.label}<ArrowForwardRounded sx={{ fontSize: 14 }} />
                 </Link>
               ))}
@@ -177,8 +178,8 @@ export default function Blog() {
       </section>
 
       <Container maxWidth="lg">
-        <section className="py-10 sm:py-12" aria-labelledby="featured-article">
-          <div className="grid overflow-hidden rounded-[2rem] bg-slate-950 shadow-xl lg:grid-cols-[1.3fr_.7fr]">
+        <section className="py-8 sm:py-10" aria-labelledby="featured-article">
+          <div className="grid overflow-hidden rounded-[2rem] border border-blue-100/70 bg-slate-950 shadow-[0_20px_60px_rgba(37,99,235,0.12)] lg:grid-cols-[1.3fr_.7fr]">
             <div className="relative overflow-hidden p-7 sm:p-10 lg:p-12">
               <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-blue-600/30 blur-3xl" />
               <div className="relative">
@@ -201,20 +202,20 @@ export default function Blog() {
           </div>
         </section>
 
-        <section className="pb-8" aria-labelledby="topics-heading">
+        <section className="pb-7" aria-labelledby="topics-heading">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div><Typography id="topics-heading" component="h2" className="!text-2xl !font-black !tracking-tight !text-slate-950 sm:!text-3xl">Explore by topic</Typography><Typography className="!mt-2 !text-sm !text-slate-500">Find the learning resource that matches your current goal.</Typography></div>
-            <div className="relative w-full max-w-sm"><SearchRounded className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" sx={{ fontSize: 20 }} /><input value={query} onChange={(e)=>setQuery(e.target.value)} aria-label="Search blog articles" placeholder="Search guides..." className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm font-semibold outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-50" /></div>
+            <div className="relative w-full max-w-sm"><SearchRounded className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" sx={{ fontSize: 20 }} /><input value={query} onChange={(e)=>setQuery(e.target.value)} aria-label="Search blog articles" placeholder="Search guides..." className="w-full rounded-2xl border border-blue-100 bg-white/85 py-3 pl-10 pr-4 text-sm font-semibold outline-none shadow-sm backdrop-blur-xl transition focus:border-blue-400 focus:ring-4 focus:ring-blue-50" /></div>
           </div>
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-2">{CATEGORIES.map((item)=><button key={item} type="button" onClick={()=>setCategory(item)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-black transition ${category===item?"bg-slate-950 text-white":"border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-700"}`}>{item}</button>)}</div>
+          <div className="mt-5 flex gap-2 overflow-x-auto pb-2">{CATEGORIES.map((item)=><button key={item} type="button" onClick={()=>setCategory(item)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-black transition ${category===item?"bg-blue-600 text-white shadow-sm":"border border-blue-100 bg-white/80 text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"}`}>{item}</button>)}</div>
         </section>
 
-        <section aria-labelledby="articles-heading" className="pb-14 sm:pb-16">
+        <section aria-labelledby="articles-heading" className="pb-12 sm:pb-14">
           <div className="mb-6 flex items-end justify-between gap-4"><div><Typography id="articles-heading" component="h2" className="!text-2xl !font-black !text-slate-950 sm:!text-3xl">Latest practical guides</Typography><Typography className="!mt-2 !text-sm !text-slate-500">{filteredPosts.length} resources available in this learning hub.</Typography></div><span className="hidden rounded-full bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-700 sm:inline-flex">Updated regularly</span></div>
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {filteredPosts.map((post) => {
               const Icon = post.icon;
-              return <article key={post.title} className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl">
+              return <article key={post.title} className="group flex h-full flex-col overflow-hidden rounded-3xl border border-blue-100 bg-white/90 shadow-[0_12px_40px_rgba(37,99,235,0.06)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl">
                 <div className={`relative h-32 bg-gradient-to-br ${toneClasses[post.tone]} p-5 text-white`}><Icon sx={{ fontSize: 40 }} /><span className="absolute right-4 top-4 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider">{post.category}</span></div>
                 <div className="flex flex-1 flex-col p-5 sm:p-6"><div className="flex items-center gap-2 text-[11px] font-bold text-slate-400"><CalendarMonthRounded sx={{fontSize:15}}/>{post.date}<span>·</span>{post.read}</div><h3 className="mt-3 text-lg font-black leading-snug text-slate-950">{post.title}</h3><p className="mt-3 text-sm leading-6 text-slate-600">{post.excerpt}</p><div className="mt-4 space-y-2">{post.points.map((point)=><div key={point} className="flex gap-2 text-xs font-semibold leading-5 text-slate-500"><CheckCircleRounded className="mt-0.5 text-emerald-500" sx={{fontSize:16}}/>{point}</div>)}</div><details className="mt-5 border-t border-slate-100 pt-4"><summary className="cursor-pointer list-none text-sm font-black text-blue-600">Read key takeaways <span className="ml-1">+</span></summary><p className="mt-3 text-sm leading-7 text-slate-600">Use this guide as a practical checklist. Start with one small outcome, build it, review what went wrong, document what you learned and then increase the difficulty. Pair the guide with relevant ApnaAcademy courses and hands-on practice for a structured learning path.</p></details></div>
               </article>;
@@ -223,24 +224,24 @@ export default function Blog() {
           {filteredPosts.length===0 && <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center"><Typography className="!font-black !text-slate-900">No guides found</Typography><Typography className="!mt-2 !text-sm !text-slate-500">Try another keyword or choose All.</Typography></div>}
         </section>
 
-        <section className="border-t border-slate-200 py-14" aria-labelledby="learning-path-heading">
+        <section className="border-t border-blue-100 py-12" aria-labelledby="learning-path-heading">
           <Typography id="learning-path-heading" component="h2" className="!text-2xl !font-black !text-slate-950 sm:!text-3xl">Turn reading into a learning path</Typography>
           <Typography className="!mt-2 !max-w-3xl !text-sm !leading-7 !text-slate-500">A useful blog should lead to action. Pick a goal, study the fundamentals, build something and measure your progress.</Typography>
           <div className="mt-7 grid gap-4 md:grid-cols-3">
-            {[["01","Choose a skill","Pick Web Development, programming, DSA, AI or another clear goal.","/courses"],["02","Learn + practice","Use structured lessons and reinforce them with projects and problem-solving.","/courses"],["03","Build your proof","Turn learning into projects, a portfolio and documented practical experience.","/about"]].map(([n,title,text,to])=><Link key={n} to={to} className="group rounded-3xl border border-slate-200 bg-white p-6 no-underline shadow-sm transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"><span className="text-sm font-black text-blue-600">{n}</span><h3 className="mt-3 text-lg font-black text-slate-950">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-500">{text}</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-black text-blue-600">Continue <ArrowForwardRounded sx={{fontSize:15}}/></span></Link>)}
+            {[["01","Choose a skill","Pick Web Development, programming, DSA, AI or another clear goal.","/courses"],["02","Learn + practice","Use structured lessons and reinforce them with projects and problem-solving.","/courses"],["03","Build your proof","Turn learning into projects, a portfolio and documented practical experience.","/about"]].map(([n,title,text,to])=><Link key={n} to={to} className="group rounded-3xl border border-blue-100 bg-white/85 p-6 no-underline shadow-[0_12px_40px_rgba(37,99,235,0.06)] backdrop-blur-xl transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"><span className="text-sm font-black text-blue-600">{n}</span><h3 className="mt-3 text-lg font-black text-slate-950">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-500">{text}</p><span className="mt-4 inline-flex items-center gap-1 text-xs font-black text-blue-600">Continue <ArrowForwardRounded sx={{fontSize:15}}/></span></Link>)}
           </div>
         </section>
 
         <section className="pb-16 pt-2" aria-labelledby="faq-heading">
-          <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-9">
+          <div className="rounded-[2rem] border border-blue-100 bg-white/90 p-6 shadow-[0_12px_40px_rgba(37,99,235,0.06)] backdrop-blur-xl sm:p-9">
             <Typography id="faq-heading" component="h2" className="!text-2xl !font-black !text-slate-950">Blog & learning questions</Typography>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
-              {[["Is the ApnaAcademy blog free?","Yes. The guides on this public page are designed as free learning resources. Course access and pricing are available separately on the Courses and Pricing pages."],["What topics does ApnaAcademy cover?","The learning hub focuses on web development, programming and DSA, projects, AI and data, learning strategy and career preparation."],["How should I use these articles?","Pick one goal, read the relevant guide, apply the steps in a project or practice session, and track what you can now do independently."],["Where can I start learning?","Explore the current course catalog, compare available plans and choose a structured learning path that matches your goal."]].map(([q,a])=><details key={q} className="group rounded-2xl border border-slate-200 bg-slate-50 p-4"><summary className="cursor-pointer list-none pr-5 text-sm font-black text-slate-900">{q}</summary><p className="mt-3 text-sm leading-6 text-slate-600">{a}</p></details>)}
+              {[["Is the ApnaAcademy blog free?","Yes. The guides on this public page are designed as free learning resources. Course access and pricing are available separately on the Courses and Pricing pages."],["What topics does ApnaAcademy cover?","The learning hub focuses on web development, programming and DSA, projects, AI and data, learning strategy and career preparation."],["How should I use these articles?","Pick one goal, read the relevant guide, apply the steps in a project or practice session, and track what you can now do independently."],["Where can I start learning?","Explore the current course catalog, compare available plans and choose a structured learning path that matches your goal."]].map(([q,a])=><details key={q} className="group rounded-2xl border border-blue-100 bg-blue-50/40 p-4"><summary className="cursor-pointer list-none pr-5 text-sm font-black text-slate-900">{q}</summary><p className="mt-3 text-sm leading-6 text-slate-600">{a}</p></details>)}
             </div>
           </div>
         </section>
 
-        <section className="mb-16 overflow-hidden rounded-[2rem] bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-700 p-7 text-white shadow-xl sm:p-10">
+        <section className="relative mb-16 overflow-hidden rounded-[2rem] bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-700 p-7 text-white shadow-[0_24px_70px_rgba(37,99,235,0.18)] sm:p-10">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div><span className="text-xs font-black uppercase tracking-[.18em] text-blue-100">Next step</span><h2 className="mt-2 text-2xl font-black sm:text-3xl">Ready to turn knowledge into practical skills?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-blue-100">Explore ApnaAcademy courses, compare learning options and continue from reading to structured practice.</p></div>
             <div className="flex shrink-0 flex-wrap gap-3"><Link to="/courses" className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-black text-blue-700 no-underline shadow-lg">Explore Courses <ArrowForwardRounded sx={{fontSize:18}}/></Link><Link to="/pricing" className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm font-black text-white no-underline">View Pricing</Link></div>
