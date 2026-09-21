@@ -36,7 +36,7 @@ function AppCard({ icon: Icon, title, description, onClick, accent = "blue" }) {
       : "bg-blue-50 text-blue-600 group-hover:border-blue-200";
 
   return (
-    <button type="button" onClick={onClick} className="group flex w-full items-center gap-3 rounded-2xl border border-white/80 bg-white/55 p-3 text-left shadow-lg shadow-slate-900/5 backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-blue-200/80 hover:bg-white/75">
+    <button type="button" onClick={onClick} className="group flex w-full items-center gap-3 rounded-2xl border border-white/90 bg-white/45 p-3 text-left shadow-lg shadow-slate-900/5 backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-inset ring-white/50 transition duration-200 hover:-translate-y-0.5 hover:border-blue-200/90 hover:bg-white/70">
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${accentClasses}`}><Icon fontSize="small" /></span>
       <span className="min-w-0">
         <span className="block truncate text-sm font-extrabold text-slate-900">{title}</span>
@@ -111,10 +111,10 @@ export default function PremiumFooter() {
   };
 
   return (
-    <footer data-premium-footer="true" className="relative overflow-hidden border-t border-white/70 bg-slate-100/75 text-slate-700 backdrop-blur-2xl">
+    <footer data-premium-footer="true" className="relative overflow-hidden border-t border-white/80 bg-white/35 text-slate-700 shadow-[0_-12px_40px_rgba(15,23,42,0.06)] backdrop-blur-3xl backdrop-saturate-150 ring-1 ring-inset ring-white/50">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/70 to-transparent" />
-      <div className="pointer-events-none absolute -left-36 top-6 h-80 w-80 rounded-full bg-blue-400/15 blur-3xl" />
-      <div className="pointer-events-none absolute -right-36 bottom-0 h-96 w-96 rounded-full bg-indigo-400/15 blur-3xl" />
+      <div className="pointer-events-none absolute -left-36 top-6 h-80 w-80 rounded-full bg-blue-400/20 blur-3xl" />
+      <div className="pointer-events-none absolute -right-36 bottom-0 h-96 w-96 rounded-full bg-indigo-400/20 blur-3xl" />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.6fr_1fr_1fr_1.25fr]">
@@ -139,7 +139,7 @@ export default function PremiumFooter() {
                 {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 no-underline transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"><Icon fontSize="small" /></a>)}
               </div>
             </div>
-            <div className="mt-7 max-w-md rounded-2xl border border-white/80 bg-white/55 p-4 shadow-xl shadow-slate-900/5 backdrop-blur-xl">
+            <div className="mt-7 max-w-md rounded-2xl border border-white/90 bg-white/45 p-4 shadow-xl shadow-slate-900/5 backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-inset ring-white/50">
               <p className="text-sm font-extrabold text-slate-900">Stay updated</p>
               <p className="mt-1 text-xs leading-5 text-slate-500">Get course announcements and platform updates.</p>
               <form onSubmit={handleSubscribe} className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -189,7 +189,7 @@ export default function PremiumFooter() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-white/80 pt-7">
+        <div className="mt-12 border-t border-white/70 pt-7">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div><p className="text-xs leading-5 text-slate-500">© {new Date().getFullYear()} ApnaAcademy. All rights reserved.</p><p className="mt-1 text-[11px] leading-5 text-slate-500">Built for practical learning, structured progress and career-focused skill development.</p></div>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><FooterLink to="/privacy-policy">Privacy Policy</FooterLink><FooterLink to="/refund-policy">Refund Policy</FooterLink><FooterLink to="/about">About</FooterLink><FooterLink to="/contact">Support</FooterLink><FooterLink to="/contact">Contact</FooterLink></div>
