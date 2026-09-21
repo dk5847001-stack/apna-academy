@@ -24,7 +24,7 @@ import {
 } from "@mui/icons-material";
 
 import api from "../services/api";
-import CourseCard from "../components/courses/CourseCard";
+import CourseCard from "../components/courses/CourseCard";\nimport CourseSkeleton from "../components/courses/CourseSkeleton";
 
 const normalizeText = (value) =>
   String(value || "").trim().toLowerCase();
@@ -488,21 +488,29 @@ export default function Courses() {
       <section className="bg-white py-10 sm:py-14">
         <Container maxWidth="lg">
           {loading ? (
-            <div className="flex min-h-[360px] items-center justify-center">
-              <Stack
-                alignItems="center"
-                spacing={2}
-              >
-                <CircularProgress size={34} />
+            <>
+              <div className="mb-7 flex items-end justify-between gap-4">
+                <div>
+                  <div className="h-7 w-44 animate-pulse rounded-md bg-slate-100 sm:h-8 sm:w-52" />
+                  <div className="mt-2 h-4 w-64 animate-pulse rounded bg-slate-100 sm:w-80" />
+                </div>
+              </div>
 
-                <Typography
-                  component="p"
-                  className="!text-sm !font-semibold !text-slate-500"
-                >
-                  Loading courses...
-                </Typography>
-              </Stack>
-            </div>
+              <div
+                className="
+                  grid
+                  grid-cols-2
+                  gap-3
+                  sm:grid-cols-2
+                  sm:gap-5
+                  lg:grid-cols-3
+                "
+              >
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <CourseSkeleton key={index} />
+                ))}
+              </div>
+            </>
           ) : error ? (
             <div className="mx-auto max-w-2xl">
               <Alert
