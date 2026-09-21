@@ -190,8 +190,8 @@ export default function PremiumFooter() {
         <div className="grid grid-cols-1 gap-x-12 gap-y-12 md:grid-cols-2 lg:grid-cols-[1.65fr_0.95fr_1.05fr_1.2fr] lg:gap-x-10 xl:gap-x-16">
           <div className="min-w-0">
             <Link to="/" className="group inline-flex items-center gap-4 no-underline">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] border border-blue-300/70 bg-gradient-to-br from-blue-400 via-blue-600 to-indigo-600 text-white shadow-[0_16px_34px_rgba(37,99,235,0.24),inset_0_1px_0_rgba(255,255,255,0.55)] transition duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_20px_42px_rgba(37,99,235,0.28)]">
-                <School className="!text-[35px]" />
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border border-blue-300/70 bg-gradient-to-br from-blue-400 via-blue-600 to-indigo-600 text-white shadow-[0_16px_34px_rgba(37,99,235,0.24),inset_0_1px_0_rgba(255,255,255,0.55)] transition duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_20px_42px_rgba(37,99,235,0.28)]">
+                <School className="!text-[30px]" />
               </span>
               <span>
                 <span className="block text-[23px] font-black tracking-[-0.04em] text-slate-900">
