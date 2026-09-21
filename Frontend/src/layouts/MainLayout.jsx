@@ -28,10 +28,8 @@ import {
 
 import {
   Close,
-  ContactSupport,
   Dashboard,
   DarkMode,
-  InfoOutlined,
   LightMode,
   Login,
   Logout,
@@ -113,42 +111,6 @@ function getInitials(user) {
   }
 
   return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-}
-
-/* ============================================================
-   FOOTER COMPONENTS
-============================================================ */
-
-function FooterColumn({ title, children }) {
-  return (
-    <div className="min-w-0">
-      <Typography
-        component="h3"
-        variant="subtitle2"
-        sx={{
-          mb: 1.5,
-          color: "#0f172a",
-          fontWeight: 800,
-          letterSpacing: "0.01em",
-        }}
-      >
-        {title}
-      </Typography>
-
-      <div className="space-y-1">{children}</div>
-    </div>
-  );
-}
-
-function FooterLink({ to, children }) {
-  return (
-    <Link
-      to={to}
-      className="block w-fit rounded-md py-1 text-sm text-slate-600 no-underline transition-colors duration-200 hover:text-blue-700"
-    >
-      {children}
-    </Link>
-  );
 }
 
 /* ============================================================
@@ -701,119 +663,6 @@ export default function MainLayout() {
         <Outlet />
       </main>
 
-      {/* ======================================================
-          FOOTER
-      ======================================================= */}
-
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.45fr_1fr_1fr_1.15fr_1fr]">
-            {/* BRAND */}
-            <div className="max-w-md">
-              <Link to="/" className="inline-flex items-center gap-2.5 no-underline">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
-                  <School fontSize="small" />
-                </div>
-                <Typography sx={{ color: "#0f172a", fontWeight: 900, fontSize: "1.1rem" }}>
-                  ApnaAcademy
-                </Typography>
-              </Link>
-
-              <Typography sx={{ mt: 2, maxWidth: 430, color: "#64748b", fontSize: "0.875rem", lineHeight: 1.7 }}>
-                Build practical skills through structured courses, hands-on learning and outcome-focused education.
-              </Typography>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">Practical Learning</span>
-                <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Career Focused</span>
-              </div>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                <Button onClick={handleCourses} variant="contained" size="small" startIcon={<MenuBook fontSize="small" />} sx={{ borderRadius: 2, textTransform: "none", fontWeight: 800, boxShadow: "none" }}>
-                  Explore Courses
-                </Button>
-                <Button onClick={isLoggedIn ? handleDashboard : handleRegister} variant="outlined" size="small" startIcon={<Dashboard fontSize="small" />} sx={{ borderRadius: 2, textTransform: "none", fontWeight: 800 }}>
-                  {isLoggedIn ? "Open Dashboard" : "Get Started"}
-                </Button>
-              </div>
-            </div>
-
-            {/* QUICK LINKS */}
-            <FooterColumn title="Quick Links">
-              <FooterLink to="/">Home</FooterLink>
-              <FooterLink to="/courses">All Courses</FooterLink>
-              <FooterLink to="/about">About Us</FooterLink>
-              <FooterLink to="/contact">Contact</FooterLink>
-              <FooterLink to="/login">Login</FooterLink>
-              <FooterLink to="/register">Create Account</FooterLink>
-            </FooterColumn>
-
-            {/* LEARNING */}
-            <FooterColumn title="Learning">
-              <button type="button" onClick={handleLearningApp} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">Learning App</button>
-              {isLoggedIn && (
-                <>
-                  <button type="button" onClick={handleMyCourses} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">My Courses</button>
-                  <button type="button" onClick={handleNotifications} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">Notifications</button>
-                </>
-              )}
-              <FooterLink to="/contact">Learning Support</FooterLink>
-            </FooterColumn>
-
-            {/* APPS */}
-            <FooterColumn title="ApnaAcademy Apps">
-              <button type="button" onClick={handleDashboard} className="group flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-blue-700 shadow-sm"><Dashboard fontSize="small" /></span>
-                <span><span className="block text-sm font-bold text-slate-800">Student Dashboard</span><span className="block text-[11px] text-slate-500">Profile & progress</span></span>
-              </button>
-
-              <button type="button" onClick={handleLearningApp} className="group mt-2 flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-blue-700 shadow-sm"><MenuBook fontSize="small" /></span>
-                <span><span className="block text-sm font-bold text-slate-800">Learning App</span><span className="block text-[11px] text-slate-500">Courses & lessons</span></span>
-              </button>
-
-              <button type="button" onClick={handleDsaApp} className="group mt-2 flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-violet-700 shadow-sm"><School fontSize="small" /></span>
-                <span><span className="block text-sm font-bold text-slate-800">DSA Practice</span><span className="block text-[11px] text-slate-500">Practice & challenges</span></span>
-              </button>
-
-              <button type="button" onClick={handleAdminApp} className="group mt-2 flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-100">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-slate-700 shadow-sm"><Settings fontSize="small" /></span>
-                <span><span className="block text-sm font-bold text-slate-800">Admin Portal</span><span className="block text-[11px] text-slate-500">Administration</span></span>
-              </button>
-            </FooterColumn>
-
-            {/* ACCOUNT / SUPPORT */}
-            <FooterColumn title="Account & Support">
-              {isLoggedIn ? (
-                <>
-                  <button type="button" onClick={handleDashboard} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">Dashboard</button>
-                  <button type="button" onClick={handleProfile} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">Profile</button>
-                  <button type="button" onClick={handleLogout} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-red-600 transition-colors duration-200 hover:text-red-700">Logout</button>
-                </>
-              ) : (
-                <>
-                  <FooterLink to="/login">Sign In</FooterLink>
-                  <FooterLink to="/register">Start Learning</FooterLink>
-                </>
-              )}
-              <FooterLink to="/contact">Help Center</FooterLink>
-              <FooterLink to="/contact">Contact Support</FooterLink>
-            </FooterColumn>
-          </div>
-
-          <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <Typography sx={{ color: "#64748b", fontSize: "0.75rem" }}>
-              © {new Date().getFullYear()} ApnaAcademy. All rights reserved.
-            </Typography>
-            <div className="flex flex-wrap items-center gap-4">
-              <Link to="/about" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"><InfoOutlined sx={{ fontSize: 15 }} />About</Link>
-              <Link to="/contact" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"><ContactSupport sx={{ fontSize: 15 }} />Support</Link>
-              <Link to="/contact" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"><Settings sx={{ fontSize: 15 }} />Contact</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
