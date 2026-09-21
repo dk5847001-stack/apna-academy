@@ -36,7 +36,7 @@ function AppCard({ icon: Icon, title, description, onClick, accent = "blue" }) {
       : "bg-blue-50 text-blue-600 group-hover:border-blue-200";
 
   return (
-    <button type="button" onClick={onClick} className="group flex w-full items-center gap-3 rounded-2xl border border-slate-700/70 bg-slate-900/55 p-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(2,6,23,0.3)] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-inset ring-white/5 transition duration-200 hover:-translate-y-0.5 hover:border-blue-400/40 hover:bg-slate-800/65">
+    <button type="button" onClick={onClick} className="group flex w-full items-center gap-3 rounded-2xl border border-slate-700/70 bg-slate-800/48 p-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_24px_rgba(2,6,23,0.24)] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-inset ring-white/5 transition duration-200 hover:-translate-y-0.5 hover:border-blue-400/40 hover:bg-slate-700/55">
       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${accentClasses}`}><Icon fontSize="small" /></span>
       <span className="min-w-0">
         <span className="block truncate text-sm font-extrabold text-white">{title}</span>
@@ -111,10 +111,10 @@ export default function PremiumFooter() {
   };
 
   return (
-    <footer data-premium-footer="true" className="relative overflow-hidden border-t border-slate-700/70 bg-slate-950/90 text-slate-200 shadow-[0_-18px_50px_rgba(2,6,23,0.45)] backdrop-blur-3xl backdrop-saturate-150 ring-1 ring-inset ring-white/5">
+    <footer data-premium-footer="true" className="relative overflow-hidden border-t border-slate-700/70 bg-slate-900/82 text-slate-200 shadow-[0_-18px_50px_rgba(2,6,23,0.32)] backdrop-blur-3xl backdrop-saturate-150 ring-1 ring-inset ring-white/5">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/70 to-transparent" />
-      <div className="pointer-events-none absolute -left-36 top-6 h-80 w-80 rounded-full bg-blue-500/15 blur-3xl" />
-      <div className="pointer-events-none absolute -right-36 bottom-0 h-96 w-96 rounded-full bg-indigo-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute -left-36 top-6 h-80 w-80 rounded-full bg-blue-400/18 blur-3xl" />
+      <div className="pointer-events-none absolute -right-36 bottom-0 h-96 w-96 rounded-full bg-indigo-400/18 blur-3xl" />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.6fr_1fr_1fr_1.25fr]">
@@ -131,7 +131,7 @@ export default function PremiumFooter() {
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/courses" className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-extrabold text-white no-underline transition hover:bg-blue-500"><MenuBook fontSize="small" />Explore Courses</Link>
-              <button type="button" onClick={() => goTo(isLoggedIn ? DASHBOARD_URL : "/register")} className="inline-flex items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/60 px-4 py-2.5 text-sm font-extrabold text-slate-200 transition hover:border-blue-400/50 hover:bg-slate-800 hover:text-blue-300"><Dashboard fontSize="small" />{isLoggedIn ? "Open Dashboard" : "Get Started"}</button>
+              <button type="button" onClick={() => goTo(isLoggedIn ? DASHBOARD_URL : "/register")} className="inline-flex items-center gap-2 rounded-xl border border-slate-600 bg-slate-800/55 px-4 py-2.5 text-sm font-extrabold text-slate-200 transition hover:border-blue-400/50 hover:bg-slate-700/60 hover:text-blue-300"><Dashboard fontSize="small" />{isLoggedIn ? "Open Dashboard" : "Get Started"}</button>
             </div>
             <div className="mt-7">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Follow us</p>
@@ -139,11 +139,11 @@ export default function PremiumFooter() {
                 {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/60 text-slate-400 no-underline transition hover:border-blue-400/50 hover:bg-slate-800 hover:text-blue-300"><Icon fontSize="small" /></a>)}
               </div>
             </div>
-            <div className="mt-7 max-w-md rounded-2xl border border-slate-700/70 bg-slate-900/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_12px_30px_rgba(2,6,23,0.28)] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-inset ring-white/5">
+            <div className="mt-7 max-w-md rounded-2xl border border-slate-700/70 bg-slate-800/48 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_12px_30px_rgba(2,6,23,0.22)] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-inset ring-white/5">
               <p className="text-sm font-extrabold text-slate-900">Stay updated</p>
               <p className="mt-1 text-xs leading-5 text-slate-400">Get course announcements and platform updates.</p>
               <form onSubmit={handleSubscribe} className="mt-3 flex flex-col gap-2 sm:flex-row">
-                <input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} placeholder="Enter your email address" className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-800/70 px-3.5 py-2.5 text-sm font-semibold text-white outline-none placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+                <input value={email} onChange={(event) => setEmail(event.target.value)} required type="email" maxLength={254} placeholder="Enter your email address" className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-700/55 px-3.5 py-2.5 text-sm font-semibold text-white outline-none placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
                 <button type="submit" disabled={submitting} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-extrabold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60">{submitting ? "Subscribing..." : "Subscribe"}</button>
               </form>
               <p className="mt-2 min-h-4 text-xs font-bold text-slate-500" aria-live="polite">{status}</p>
