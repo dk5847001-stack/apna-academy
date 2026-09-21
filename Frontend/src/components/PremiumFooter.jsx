@@ -59,7 +59,7 @@ function SectionHeading({ type }) {
   return (
     <div className="inline-flex flex-col items-start">
       <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-100 bg-white/85 text-blue-600 shadow-[0_8px_22px_rgba(37,99,235,0.12)] backdrop-blur-xl">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-100 bg-white/85 text-blue-600 shadow-[0_8px_22px_rgba(37,99,235,0.12)] backdrop-blur-xl">
           <Icon fontSize="small" />
         </span>
         <span className="text-[13px] font-black uppercase tracking-[0.14em] text-slate-800">
@@ -190,14 +190,14 @@ export default function PremiumFooter() {
         <div className="grid grid-cols-1 gap-x-12 gap-y-12 md:grid-cols-2 lg:grid-cols-[1.65fr_0.95fr_1.05fr_1.2fr] lg:gap-x-10 xl:gap-x-16">
           <div className="min-w-0">
             <Link to="/" className="group inline-flex items-center gap-4 no-underline">
-              <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[24px] border border-blue-300/70 bg-gradient-to-br from-blue-400 via-blue-600 to-indigo-600 text-white shadow-[0_16px_34px_rgba(37,99,235,0.24),inset_0_1px_0_rgba(255,255,255,0.55)] transition duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_20px_42px_rgba(37,99,235,0.28)]">
-                <School className="!text-[43px]" />
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] border border-blue-300/70 bg-gradient-to-br from-blue-400 via-blue-600 to-indigo-600 text-white shadow-[0_16px_34px_rgba(37,99,235,0.24),inset_0_1px_0_rgba(255,255,255,0.55)] transition duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_20px_42px_rgba(37,99,235,0.28)]">
+                <School className="!text-[35px]" />
               </span>
               <span>
-                <span className="block text-[27px] font-black tracking-[-0.04em] text-slate-900">
+                <span className="block text-[23px] font-black tracking-[-0.04em] text-slate-900">
                   Apna<span className="text-blue-600">Academy</span>
                 </span>
-                <span className="mt-1 block text-[16px] font-medium text-slate-500">Learn. Build. Grow.</span>
+                <span className="mt-0.5 block text-[14px] font-medium text-slate-500">Learn. Build. Grow.</span>
               </span>
             </Link>
 
@@ -205,8 +205,8 @@ export default function PremiumFooter() {
               Practical, structured learning for students who want to build real skills, complete projects and grow with confidence.
             </p>
 
-            <div className="mt-5 flex flex-wrap gap-2.5">
-              <span className="rounded-full border border-blue-100 bg-blue-50/80 px-3.5 py-1.5 text-[11px] font-extrabold text-blue-700 shadow-[0_6px_16px_rgba(37,99,235,0.06)]">
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="rounded-full border border-blue-100 bg-blue-50/80 px-3 py-1 text-[10px] font-extrabold text-blue-700 shadow-[0_6px_16px_rgba(37,99,235,0.06)]">
                 Practical Learning
               </span>
               <span className="rounded-full border border-emerald-100 bg-emerald-50/80 px-3.5 py-1.5 text-[11px] font-extrabold text-emerald-600 shadow-[0_6px_16px_rgba(16,185,129,0.06)]">
@@ -217,10 +217,10 @@ export default function PremiumFooter() {
               </span>
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap gap-2.5">
               <Link
                 to="/courses"
-                className="inline-flex items-center gap-2.5 rounded-[14px] bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-3 text-[14px] font-extrabold text-white no-underline shadow-[0_12px_24px_rgba(37,99,235,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(37,99,235,0.28)]"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-2.5 text-[13px] font-extrabold text-white no-underline shadow-[0_12px_24px_rgba(37,99,235,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(37,99,235,0.28)]"
               >
                 <MenuBook fontSize="small" />
                 Explore Courses
@@ -229,16 +229,16 @@ export default function PremiumFooter() {
               <button
                 type="button"
                 onClick={() => goTo(isLoggedIn ? DASHBOARD_URL : "/register")}
-                className="inline-flex items-center gap-2.5 rounded-[14px] border border-blue-100 bg-white/80 px-5 py-3 text-[14px] font-extrabold text-slate-800 shadow-[0_10px_24px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/70 hover:text-blue-700"
+                className="inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-white/80 px-4 py-2.5 text-[13px] font-extrabold text-slate-800 shadow-[0_10px_24px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/70 hover:text-blue-700"
               >
                 <Dashboard fontSize="small" />
                 {isLoggedIn ? "Open Dashboard" : "Get Started"}
               </button>
             </div>
 
-            <div className="mt-7">
+            <div className="mt-5">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-slate-400">Follow us</p>
-              <div className="mt-3 flex flex-wrap gap-2.5">
+              <div className="mt-2.5 flex flex-wrap gap-2">
                 {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
                   <a
                     key={label}
@@ -246,7 +246,7 @@ export default function PremiumFooter() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={label}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-100 bg-white/90 text-slate-500 shadow-[0_8px_18px_rgba(37,99,235,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-blue-100 hover:bg-blue-50 hover:text-blue-600"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-100 bg-white/90 text-slate-500 shadow-[0_8px_18px_rgba(37,99,235,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-blue-100 hover:bg-blue-50 hover:text-blue-600"
                   >
                     <Icon fontSize="small" />
                   </a>
@@ -257,7 +257,7 @@ export default function PremiumFooter() {
 
           <div>
             <SectionHeading type="explore" />
-            <div className="mt-4 flex flex-col items-start gap-1.5">
+            <div className="mt-3 flex flex-col items-start gap-1">
               <FooterLink to="/">Home</FooterLink>
               <FooterLink to="/courses">All Courses</FooterLink>
               <FooterLink to="/pricing">Pricing</FooterLink>
@@ -269,7 +269,7 @@ export default function PremiumFooter() {
 
           <div>
             <SectionHeading type="account" />
-            <div className="mt-4 flex flex-col items-start gap-1.5">
+            <div className="mt-3 flex flex-col items-start gap-1">
               <button type="button" onClick={() => goTo(COURSE_URL)} className="w-fit border-0 bg-transparent py-1 text-left text-[15px] font-medium text-slate-700 transition hover:text-blue-700">
                 Learning App
               </button>
@@ -307,18 +307,18 @@ export default function PremiumFooter() {
 
         <div className="relative mx-auto mt-12 max-w-[1120px] sm:mt-14">
           <div className="pointer-events-none absolute -left-16 -top-10 hidden text-blue-500/80 lg:block">
-            <School className="!text-[82px] -rotate-12 drop-shadow-[0_10px_18px_rgba(37,99,235,0.14)]" />
+            <School className="!text-[64px] -rotate-12 drop-shadow-[0_10px_18px_rgba(37,99,235,0.14)]" />
           </div>
 
-          <div className="relative rounded-[24px] border border-white/90 bg-blue-50/65 p-5 shadow-[0_18px_50px_rgba(37,99,235,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl sm:p-6">
+          <div className="relative rounded-[22px] border border-white/90 bg-blue-50/65 p-4 shadow-[0_18px_50px_rgba(37,99,235,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl sm:p-6">
             <div className="grid items-center gap-5 lg:grid-cols-[1fr_auto] lg:gap-8">
               <div className="flex min-w-0 items-center gap-4">
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-blue-100 bg-white/80 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.10)]">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-white/80 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.10)]">
                   <Email />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[17px] font-extrabold text-slate-900">Stay updated</p>
-                  <p className="mt-1 text-[12px] leading-5 text-slate-500">Get course announcements and platform updates.</p>
+                  <p className="text-[15px] font-extrabold text-slate-900">Stay updated</p>
+                  <p className="mt-0.5 text-[11px] leading-4 text-slate-500">Get course announcements and platform updates.</p>
                 </div>
               </div>
 
@@ -332,13 +332,13 @@ export default function PremiumFooter() {
                     type="email"
                     maxLength={254}
                     placeholder="Enter your email address"
-                    className="h-12 w-full rounded-full border border-white/90 bg-white/95 pl-11 pr-4 text-[13px] font-semibold text-slate-800 outline-none shadow-[0_8px_20px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] placeholder:text-slate-400 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/10"
+                    className="h-11 w-full rounded-full border border-white/90 bg-white/95 pl-11 pr-4 text-[13px] font-semibold text-slate-800 outline-none shadow-[0_8px_20px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] placeholder:text-slate-400 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/10"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 px-7 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(37,99,235,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(37,99,235,0.26)] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 px-7 text-[13px] font-extrabold text-white shadow-[0_10px_24px_rgba(37,99,235,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(37,99,235,0.26)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting ? "Subscribing..." : "Subscribe"}
                   <ArrowForward className="!text-[17px]" />
@@ -349,25 +349,25 @@ export default function PremiumFooter() {
           </div>
         </div>
 
-        <div className="pointer-events-none relative mt-8 hidden h-8 lg:block">
-          <div className="absolute right-36 top-0 flex items-end gap-3 text-blue-500/85">
-            <span className="max-w-[150px] -rotate-6 text-center font-serif text-[21px] font-bold italic leading-5">
+        <div className="pointer-events-none relative mt-7 hidden h-16 lg:block">
+          <div className="absolute right-32 top-0 flex items-end gap-2 text-blue-500/85">
+            <span className="max-w-[135px] -rotate-6 text-center font-serif text-[18px] font-bold italic leading-5">
               Better Learning
               <br />
-              <span className="text-[18px]">Brighter Future</span>
+              <span className="text-[16px]">Brighter Future</span>
             </span>
-            <div className="relative h-16 w-28">
-              <div className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-blue-300 via-blue-600 to-indigo-700 shadow-[0_10px_26px_rgba(37,99,235,0.28)]" />
-              <div className="absolute left-0 top-1/2 h-10 w-28 -translate-y-1/2 rounded-[50%] border border-blue-400/40 -rotate-6" />
+            <div className="relative h-14 w-24">
+              <div className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-blue-300 via-blue-600 to-indigo-700 shadow-[0_10px_26px_rgba(37,99,235,0.28)]" />
+              <div className="absolute left-0 top-1/2 h-9 w-24 -translate-y-1/2 rounded-[50%] border border-blue-400/40 -rotate-6" />
             </div>
           </div>
         </div>
 
-        <div className="relative mt-4 rounded-[22px] border border-white/90 bg-white/70 px-5 py-5 shadow-[0_16px_42px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.98)] backdrop-blur-2xl sm:px-7 lg:px-8">
+        <div className="relative mt-2 rounded-[20px] border border-white/90 bg-white/70 px-5 py-5 shadow-[0_16px_42px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.98)] backdrop-blur-2xl sm:px-7 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-[12px] font-semibold text-slate-700">© {new Date().getFullYear()} ApnaAcademy. All rights reserved.</p>
-              <p className="mt-1 text-[11px] leading-5 text-slate-500">Built for practical learning, structured progress and career-focused skill development.</p>
+              <p className="text-[11px] font-semibold text-slate-700">© {new Date().getFullYear()} ApnaAcademy. All rights reserved.</p>
+              <p className="mt-0.5 text-[10px] leading-4 text-slate-500">Built for practical learning, structured progress and career-focused skill development.</p>
             </div>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
               <FooterLink to="/privacy-policy">Privacy Policy</FooterLink>
