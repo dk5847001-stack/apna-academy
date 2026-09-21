@@ -69,15 +69,15 @@ const CompletedVideoIcon = () => (
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth={1.5}
-    stroke="currentColor"
+    stroke="white"
     className="size-6"
-    style={{ width: 22, height: 22, color: "#69d58a", display: "block" }}
+    style={{ width: 24, height: 24, display: "block", flexShrink: 0 }}
     aria-hidden="true"
   >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
-      d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0Z"
+      d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
     />
   </svg>
 );
