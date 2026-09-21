@@ -87,6 +87,14 @@ export const normalizeProgress = (progressData) => {
 
     isCompleted: Boolean(progress.isCompleted),
     completedAt: progress.completedAt || null,
+    completedVideoCount: Math.max(
+      0,
+      Number(progress.completedVideoCount) || 0
+    ),
+    totalVideos: Math.max(
+      0,
+      Number(progress.totalVideos) || 0
+    ),
   };
 };
 
