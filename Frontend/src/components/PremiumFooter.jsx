@@ -9,7 +9,7 @@ import {
   GitHub,
   Instagram,
   LinkedIn,
-  MailOutline,
+  Email,
   MenuBook,
   School,
   Settings,
@@ -314,7 +314,7 @@ export default function PremiumFooter() {
             <div className="grid items-center gap-5 lg:grid-cols-[1fr_auto] lg:gap-8">
               <div className="flex min-w-0 items-center gap-4">
                 <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-blue-100 bg-white/80 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.10)]">
-                  <MailOutline />
+                  <Email />
                 </span>
                 <div className="min-w-0">
                   <p className="text-[17px] font-extrabold text-slate-900">Stay updated</p>
@@ -324,7 +324,7 @@ export default function PremiumFooter() {
 
               <form onSubmit={handleSubscribe} className="flex w-full min-w-0 flex-col gap-2 sm:flex-row lg:w-[560px]">
                 <div className="relative min-w-0 flex-1">
-                  <MailOutline className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 !text-[18px] text-blue-500" />
+                  <Email className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 !text-[18px] text-blue-500" />
                   <input
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
