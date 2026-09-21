@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import { API_BASE_URL } from "../constants/config";
-
 const SOCIALS = [
   { label: "Instagram", href: "https://www.instagram.com/dilkhush_10star?stkn=MXVubXJtbHdtODA0aA==", icon: `<svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 fill-none stroke-current" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none"/></svg>` },
   { label: "Facebook", href: "https://www.facebook.com/share/1EkezcKBs2/", icon: `<svg viewBox="0 0 24 24" aria-hidden="true" class="h-5 w-5 fill-current"><path d="M13.5 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.6 1.7-1.6h1.8V3.8c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3V10H7.5v3h2.8v8h3.2Z"/></svg>` },
@@ -49,42 +47,6 @@ const addBlog = () => document.querySelectorAll("nav").forEach((nav) => {
   link.style.textDecoration = "none";
   courses.after(link);
 });
-
-const footerBrand = (footer) => [...footer.querySelectorAll("div")].find((el) => (el.textContent || "").replace(/\s+/g, " ").trim().includes("ApnaAcademy") && (el.textContent || "").length < 500) || footer.firstElementChild || footer;
-
-const addSocialAndNewsletter = () => {
-  const footer = document.querySelector("footer");
-  if (!footer) return;
-  const brand = footerBrand(footer);
-  if (!brand) return;
-  if (!brand.querySelector('[data-apna-socials="true"]')) {
-    const social = document.createElement("div");
-    social.dataset.apnaSocials = "true";
-    social.className = "mt-5 w-full";
-    social.innerHTML = `<p class="mb-3 text-xs font-extrabold uppercase tracking-[.14em] text-slate-500">Follow us</p><div class="flex gap-2.5">${SOCIALS.map((s) => `<a href="${s.href}" ${s.label === "GitHub" ? "" : 'target="_blank" rel="noopener noreferrer"'} aria-label="${s.label}" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">${s.icon}</a>`).join("")}</div>`;
-    brand.append(social);
-  }
-  if (brand.querySelector('[data-apna-subscriber="true"]')) return;
-  const box = document.createElement("div");
-  box.dataset.apnaSubscriber = "true";
-  box.className = "mt-5 w-full max-w-md";
-  box.innerHTML = `<p class="text-sm font-extrabold text-slate-900">Stay updated</p><p class="mt-1 text-xs text-slate-500">Get course announcements and platform updates.</p><form class="mt-3 flex flex-col gap-2 sm:flex-row"><input required type="email" maxlength="254" placeholder="Enter your email address" class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/><button class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white">Subscribe</button></form><p data-status class="mt-2 min-h-5 text-xs font-bold"></p>`;
-  brand.append(box);
-  const form = box.querySelector("form"), input = box.querySelector("input"), status = box.querySelector("[data-status]"), button = box.querySelector("button");
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = input.value.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.textContent = "Please enter a valid email address."; status.className = "mt-2 min-h-5 text-xs font-bold text-red-600"; return; }
-    button.disabled = true; button.textContent = "Subscribing...";
-    try {
-      const res = await fetch(`${API_BASE_URL}/subscribers`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.message || "Subscription failed.");
-      status.textContent = data?.message || "Subscribed successfully."; status.className = "mt-2 min-h-5 text-xs font-bold text-emerald-600"; input.value = "";
-    } catch (err) { status.textContent = err?.message || "Unable to subscribe right now."; status.className = "mt-2 min-h-5 text-xs font-bold text-red-600"; }
-    finally { button.disabled = false; button.textContent = "Subscribe"; }
-  });
-};
 
 const addHomeSuccessSections = () => {
   const old = document.querySelector('[data-apna-success-sections="true"]');
@@ -240,19 +202,9 @@ const addFaq = () => {
   });
 };
 
-const addLegal = () => {
-  const footer = document.querySelector("footer");
-  if (!footer || footer.querySelector('[data-apna-legal="true"]')) return;
-  const legal = document.createElement("div");
-  legal.dataset.apnaLegal = "true";
-  legal.className = "mx-auto flex max-w-7xl flex-wrap items-center gap-1 border-t border-slate-200 px-4 py-4 sm:px-6 lg:px-8";
-  legal.innerHTML = `<span class="mr-2 text-xs font-bold text-slate-400">Legal</span><a href="/privacy-policy" class="rounded-lg px-3 py-2 text-xs font-bold text-slate-600 no-underline hover:bg-slate-100">Privacy Policy</a><a href="/refund-policy" class="rounded-lg px-3 py-2 text-xs font-bold text-slate-600 no-underline hover:bg-slate-100">Refund Policy</a>`;
-  footer.append(legal);
-};
-
 export default function PublicSiteEnhancements() {
   useEffect(() => {
-    const enhance = () => { addBlog(); addSocialAndNewsletter(); addLegal(); addHomeSuccessSections(); addFaq(); };
+    const enhance = () => { addBlog(); addHomeSuccessSections(); addFaq(); };
     enhance();
     const observer = new MutationObserver(enhance);
     observer.observe(document.body, { childList: true, subtree: true });
