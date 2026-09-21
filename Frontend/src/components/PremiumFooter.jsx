@@ -363,22 +363,22 @@ export default function PremiumFooter() {
           </div>
         </div>
 
-        <div className="relative mt-2 rounded-[20px] border border-white/90 bg-white/70 px-5 py-5 shadow-[0_16px_42px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.98)] backdrop-blur-2xl sm:px-7 lg:px-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold text-slate-700">© {new Date().getFullYear()} ApnaAcademy. All rights reserved.</p>
-              <p className="mt-0.5 text-[10px] leading-4 text-slate-500">Built for practical learning, structured progress and career-focused skill development.</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
+        <div className="relative mt-2 rounded-[20px] border border-white/90 bg-white/70 px-4 py-4 shadow-[0_16px_42px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.98)] backdrop-blur-2xl sm:px-6 sm:py-5 lg:px-8">
+          <div className="flex flex-col">
+            <nav aria-label="Footer legal and support links" className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-7 sm:gap-y-2 lg:justify-end">
               <FooterLink to="/privacy-policy">Privacy Policy</FooterLink>
               <FooterLink to="/refund-policy">Refund Policy</FooterLink>
               <FooterLink to="/about">About</FooterLink>
               <FooterLink to="/contact">Support</FooterLink>
               <FooterLink to="/contact">Contact</FooterLink>
+            </nav>
+            <div className="my-4 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+            <div className="flex flex-col items-center text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+              <p className="text-[10px] font-medium leading-4 text-slate-500 sm:text-[11px]">Built for practical learning, structured progress and career-focused skill development.</p>
+              <p className="mt-2 text-[11px] font-bold text-slate-700 sm:mt-0 sm:text-[12px]">© {new Date().getFullYear()} ApnaAcademy. All rights reserved.</p>
             </div>
           </div>
-        </div>
-      </div>
+        </div>     </div>
     </footer>
   );
 }
