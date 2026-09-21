@@ -25,15 +25,18 @@ export const getCourseProgress = async (courseId) => {
 };
 
 /* =========================================================
-   UPDATE VIDEO PROGRESS
+   COMPLETE LESSON
 ========================================================= */
 
-export const updateVideoProgress = async ({
+/**
+ * A lesson is completed when the user selects/clicks it.
+ *
+ * The backend validates purchase + module access and calculates
+ * the authoritative course progress from completed lessons.
+ */
+export const completeVideoLesson = async ({
   courseId,
   videoId,
-  position = 0,
-  duration = 0,
-  completed = false,
 }) => {
   if (!courseId) {
     throw new Error("Course ID is required.");
@@ -43,23 +46,15 @@ export const updateVideoProgress = async ({
     throw new Error("Video ID is required.");
   }
 
-  const safePosition = Math.max(0, Number(position) || 0);
-  const safeDuration = Math.max(0, Number(duration) || 0);
-
   const response = await api.post(
-    `/progress/courses/${encodeURIComponent(courseId)}/videos/${encodeURIComponent(videoId)}`,
-    {
-      position: safePosition,
-      duration: safeDuration,
-      completed: Boolean(completed),
-    }
+    `/progress/courses/${encodeURIComponent(courseId)}/videos/${encodeURIComponent(videoId)}/complete`
   );
 
   const responseData = response?.data;
 
   if (!responseData?.success) {
     throw new Error(
-      responseData?.message || "Unable to update video progress."
+      responseData?.message || "Unable to complete this lesson."
     );
   }
 
