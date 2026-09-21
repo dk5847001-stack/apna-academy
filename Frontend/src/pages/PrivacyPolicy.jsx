@@ -12,7 +12,7 @@ import {
   Person,
   Security,
   Share,
-  TableOfContents,
+  MenuBook,
 } from "@mui/icons-material";
 
 const SECTIONS = [
@@ -165,7 +165,7 @@ export default function PrivacyPolicy() {
       <section className="mx-auto grid w-full max-w-7xl gap-4 px-4 py-5 sm:px-6 sm:py-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:px-8">
         <aside className="h-fit rounded-2xl border border-blue-100 bg-white/85 p-4 shadow-[0_12px_40px_rgba(37,99,235,0.07)] backdrop-blur-xl lg:sticky lg:top-24">
           <div className="flex items-center gap-3 px-1 py-1">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><TableOfContents fontSize="small" /></span>
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><MenuBook fontSize="small" /></span>
             <div>
               <h2 className="text-sm font-black text-slate-900">Table of Contents</h2>
               <p className="text-[10px] text-slate-500">Quick navigation to sections</p>
