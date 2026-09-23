@@ -173,7 +173,7 @@ const notFoundHtml = fs.readFileSync(templatePath, "utf8")
   .replace(/<meta\s+name="robots"[^>]*>/i, '<meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />')
   .replace(/<meta\s+name="googlebot"[^>]*>/i, '<meta name="googlebot" content="noindex, nofollow" />')
   .replace(/<link\s+rel="canonical"[^>]*>/i, "")
-  .replace(/<\/head>/i, '    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />\n  </head>');
+  .replace(/<script\s+type="application\/ld\+json"[\s\S]*?<\/script>/gi, "");
 fs.writeFileSync(path.join(dist, "404.html"), notFoundHtml);
 
 console.log(`Generated static DSA SEO pages plus 404.html: ${routes.length + index.problems.length + index.studyPlans.length + index.companies.length}.`);
