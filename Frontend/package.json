@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "node scripts/generate-seo.mjs && vite build && node scripts/generate-static-seo.mjs && node scripts/validate-seo-build.mjs",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "pwa:check": "node scripts/validate-pwa.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
