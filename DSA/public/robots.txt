@@ -1,14 +1,8 @@
 # ApnaAcademy DSA crawler rules
+# Public pages are crawlable. Authenticated/private routes use route-level
+# noindex metadata instead of robots.txt blocks so Google can see the directive.
+
 User-agent: *
 Allow: /
-
-# Private/authenticated routes
-Disallow: /progress
-Disallow: /submissions
-Disallow: /bookmarks
-Disallow: /profile
-Disallow: /settings
-Disallow: /practice/code
-Disallow: /unlock
 
 Sitemap: https://dsa.apnaacademy.me/sitemap.xml
