@@ -6,13 +6,19 @@
   "scope": "/",
   "id": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
   "orientation": "portrait-primary",
   "theme_color": "#2563eb",
   "background_color": "#ffffff",
   "lang": "en-IN",
   "dir": "ltr",
-  "categories": ["education", "learning"],
+  "categories": [
+    "education",
+    "learning"
+  ],
   "icons": [
     {
       "src": "/favicon.png",
@@ -25,6 +31,35 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Browse Courses",
+      "short_name": "Courses",
+      "description": "Explore ApnaAcademy courses.",
+      "url": "/courses",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Pricing",
+      "short_name": "Pricing",
+      "description": "View ApnaAcademy pricing.",
+      "url": "/pricing",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
