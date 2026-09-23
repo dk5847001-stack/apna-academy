@@ -114,16 +114,10 @@ fs.writeFileSync(path.join(publicDir, "sitemap.xml"), sitemap);
 
 const robots = [
   "# ApnaAcademy DSA crawler rules",
+  "# Public pages are crawlable. Authenticated/private routes use route-level",
+  "# noindex metadata so search engines can see the directive.",
   "User-agent: *",
   "Allow: /",
-  "",
-  "Disallow: /progress",
-  "Disallow: /submissions",
-  "Disallow: /bookmarks",
-  "Disallow: /profile",
-  "Disallow: /settings",
-  "Disallow: /practice/code",
-  "Disallow: /unlock",
   "",
   `Sitemap: ${siteUrl}/sitemap.xml`,
   "",
