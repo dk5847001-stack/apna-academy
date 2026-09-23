@@ -1,12 +1,9 @@
 # ApnaAcademy Course App crawler policy
 # Public course catalog and course detail pages may be indexed.
-# Learning, assessment, certificate, and verification areas are user-specific/private.
+# User-specific learning, assessment, certificate, and verification routes
+# are controlled with route-level noindex metadata, not robots.txt blocks.
 
 User-agent: *
 Allow: /
-Disallow: /courses/*/learn
-Disallow: /courses/*/assessment
-Disallow: /courses/*/certificate
-Disallow: /certificate/verify
 
 Sitemap: https://course.apnaacademy.me/sitemap.xml
