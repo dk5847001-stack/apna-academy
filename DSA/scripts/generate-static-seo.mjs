@@ -165,4 +165,15 @@ for (const plan of index.studyPlans) {
   writeRoute(route, render({ route, title, description, type: "WebPage", extra }));
 }
 
-console.log(`Generated static DSA SEO pages: ${routes.length + index.problems.length + index.studyPlans.length + index.companies.length}.`);
+
+// Generate a static 404 document so unknown URLs are not served as an
+// indexable DSA page by static hosts.
+const notFoundHtml = fs.readFileSync(templatePath, "utf8")
+  .replace(/<title>[^<]*<\/title>/i, "<title>Page Not Found | ApnaAcademy DSA</title>")
+  .replace(/<meta\s+name="robots"[^>]*>/i, '<meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />')
+  .replace(/<meta\s+name="googlebot"[^>]*>/i, '<meta name="googlebot" content="noindex, nofollow" />')
+  .replace(/<link\s+rel="canonical"[^>]*>/i, "")
+  .replace(/<\/head>/i, '    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />\n  </head>');
+fs.writeFileSync(path.join(dist, "404.html"), notFoundHtml);
+
+console.log(`Generated static DSA SEO pages plus 404.html: ${routes.length + index.problems.length + index.studyPlans.length + index.companies.length}.`);
