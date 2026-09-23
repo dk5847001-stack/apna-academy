@@ -232,7 +232,18 @@ const main = async () => {
     await fs.writeFile(path.join(outputDir, "index.html"), html, "utf8");
   }
 
-  console.log(`Generated static SEO HTML for ${courses.length} course detail page(s).`);
+  // Generate a real static 404 document so hosts that support Vite/static
+  // deployments can return a non-indexable response for unknown URLs instead
+  // of serving the public course catalog HTML as a soft 404.
+  const notFoundHtml = template
+    .replace(/<title>[^<]*<\/title>/i, "<title>Page Not Found | ApnaAcademy</title>")
+    .replace(/<meta\s+name="robots"[^>]*>/i, '<meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />')
+    .replace(/<meta\s+name="googlebot"[^>]*>/i, '<meta name="googlebot" content="noindex, nofollow" />')
+    .replace(/<link\s+rel="canonical"[^>]*>/i, "")
+    .replace(/<\/head>/i, '    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />\n  </head>');
+  await fs.writeFile(path.join(distRoot, "404.html"), notFoundHtml, "utf8");
+
+  console.log(`Generated static SEO HTML for ${courses.length} course detail page(s) plus 404.html.`);
 };
 
 main().catch((error) => {
