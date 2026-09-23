@@ -1,4 +1,4 @@
-const CACHE_VERSION = "apnaacademy-static-v1";
+const CACHE_VERSION = "apnaacademy-static-v2";
 const STATIC_CACHE = CACHE_VERSION;
 const OFFLINE_URL = "/offline.html";
 
