@@ -239,8 +239,7 @@ const main = async () => {
     .replace(/<title>[^<]*<\/title>/i, "<title>Page Not Found | ApnaAcademy</title>")
     .replace(/<meta\s+name="robots"[^>]*>/i, '<meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />')
     .replace(/<meta\s+name="googlebot"[^>]*>/i, '<meta name="googlebot" content="noindex, nofollow" />')
-    .replace(/<link\s+rel="canonical"[^>]*>/i, "")
-    .replace(/<\/head>/i, '    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />\n  </head>');
+    .replace(/<link\s+rel="canonical"[^>]*>/i, "");
   await fs.writeFile(path.join(distRoot, "404.html"), notFoundHtml, "utf8");
 
   console.log(`Generated static SEO HTML for ${courses.length} course detail page(s) plus 404.html.`);
