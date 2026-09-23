@@ -6,6 +6,16 @@ import App from "./App";
 import PremiumFooter from "./components/PremiumFooter";
 import "./index.css";
 
+const registerServiceWorker = () => {
+  if (!("serviceWorker" in navigator)) return;
+
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      // PWA enhancement is optional; the application continues normally.
+    });
+  });
+};
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
@@ -14,3 +24,6 @@ createRoot(document.getElementById("root")).render(
     </BrowserRouter>
   </StrictMode>
 );
+
+
+registerServiceWorker();
