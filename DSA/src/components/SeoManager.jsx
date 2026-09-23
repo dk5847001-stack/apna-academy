@@ -44,6 +44,7 @@ const PRIVATE_PREFIXES = [
   "/profile",
   "/settings",
   "/practice/code",
+  "/unlock",
 ];
 
 function upsertMeta(selector, attrs, content) {
