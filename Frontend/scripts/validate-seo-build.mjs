@@ -1,5 +1,14 @@
 import { access, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { loadEnvFile } from "node:process";
+
+try {
+  loadEnvFile(resolve(process.cwd(), ".env"));
+} catch (error) {
+  if (error?.code !== "ENOENT") {
+    throw error;
+  }
+}
 
 const siteUrl = (process.env.VITE_SITE_URL || "").trim().replace(/\/$/, "");
 if (!/^https?:\/\/[^\s/]+$/i.test(siteUrl)) {
