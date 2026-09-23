@@ -157,7 +157,10 @@ for (const page of pages) {
 
 const notFoundHtml = template
   .replace(/<title>[^<]*<\/title>/i, "<title>Page Not Found | ApnaAcademy</title>")
-  .replace(/<\/head>/i, `    <meta name="robots" content="noindex, nofollow, noarchive" />\n    <meta name="googlebot" content="noindex, nofollow" />\n  </head>`);
+  .replace(/<meta[^>]+(?:name|property)=["'](?:robots|googlebot|og:[^"']+|twitter:[^"']+)["'][^>]*>/gi, "")
+  .replace(/<link[^>]+rel=["']canonical["'][^>]*>/i, "")
+  .replace(/<script[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, "")
+  .replace(/<\/head>/i, `    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />\n    <meta name="googlebot" content="noindex, nofollow" />\n  </head>`);
 await writeFile(resolve(distDir, "404.html"), notFoundHtml, "utf8");
 
 console.log(`Static SEO HTML generated for ${pages.length} public routes plus 404.html`);
