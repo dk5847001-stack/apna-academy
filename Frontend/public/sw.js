@@ -87,7 +87,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request).catch(() =>
         caches.match(request).then(
-          (cached) => cached || caches.match(OFFLINE_URL)
+          (cached) => cached || caches.match("/").then((shell) => shell || caches.match(OFFLINE_URL))
         )
       )
     );
