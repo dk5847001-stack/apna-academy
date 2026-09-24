@@ -39,6 +39,15 @@
       "purpose": "maskable"
     }
   ],
+  "screenshots": [
+    {
+      "src": "/screenshots/store-home.png",
+      "sizes": "640x360",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "ApnaAcademy home and featured learning"
+    }
+  ],
   "prefer_related_applications": false,
   "shortcuts": [
     {
