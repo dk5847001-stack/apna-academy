@@ -20,11 +20,39 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshots/store-home.png",
-      "sizes": "640x360",
+      "src": "/screenshots/home.png",
+      "sizes": "1899x875",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "ApnaAcademy home and featured learning"
+      "label": "ApnaAcademy home page"
+    },
+    {
+      "src": "/screenshots/course.png",
+      "sizes": "1900x870",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "ApnaAcademy course page"
+    },
+    {
+      "src": "/screenshots/fullStackDevelopment.png",
+      "sizes": "1897x859",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "ApnaAcademy Full Stack Development course"
+    },
+    {
+      "src": "/screenshots/dashboard.png",
+      "sizes": "1904x875",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "ApnaAcademy student dashboard"
+    },
+    {
+      "src": "/screenshots/student.png",
+      "sizes": "1556x875",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "ApnaAcademy student learning experience"
     }
   ],
   "prefer_related_applications": false,
