@@ -2,7 +2,7 @@ import { useState } from 'react'
 import IconButton from '@mui/material/IconButton'
 import {
   ArrowForward,
-  ChevronDown,
+  KeyboardArrowDownRounded,
   Close,
   Menu,
 } from '@mui/icons-material'
@@ -43,7 +43,7 @@ export default function InterviewHeader() {
           <button className="nav-link" onClick={() => scrollTo('stories')}>Success Stories</button>
           <div className="resource-wrap">
             <button className="nav-link" onClick={() => setResourcesOpen((value) => !value)}>
-              Resources <ChevronDown sx={{ fontSize: 16, transition: 'transform .2s', transform: resourcesOpen ? 'rotate(180deg)' : 'none' }} />
+              Resources <KeyboardArrowDownRounded sx={{ fontSize: 16, transition: 'transform .2s', transform: resourcesOpen ? 'rotate(180deg)' : 'none' }} />
             </button>
             {resourcesOpen && (
               <div className="resource-menu">
