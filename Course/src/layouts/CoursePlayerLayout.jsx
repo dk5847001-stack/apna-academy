@@ -30,6 +30,7 @@ import {
 } from "@mui/material";
 
 import BunnyVideoPlayer from "../components/BunnyVideoPlayer";
+import CourseAIAssistant from "../components/CourseAIAssistant";
 
 const getVideoId = (video) => video?._id || video?.id || "";
 const getVideoTitle = (video) => video?.title || "Untitled lesson";
@@ -285,6 +286,7 @@ export default function CoursePlayerLayout({
         </Box>
       </Box>
       <Drawer anchor="left" open={sidebarOpen} onClose={() => setSidebarOpen(false)} ModalProps={{ keepMounted: true }}>{renderSidebarContent(true)}</Drawer>
+      <CourseAIAssistant courseId={courseId} courseTitle={courseTitle || course?.title || ""} />
     </Box>
   );
 }
