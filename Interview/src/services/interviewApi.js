@@ -27,6 +27,10 @@ export async function submitInterviewAnswer({ sessionId, questionId, answer }) {
   });
 }
 
+export async function completeInterview(sessionId) {
+  return request(`/interviews/sessions/${encodeURIComponent(sessionId)}/complete`, { method: 'POST' })
+}
+
 export async function getInterviewResult(sessionId) {
   return request(`/interviews/sessions/${encodeURIComponent(sessionId)}/result`);
 }
@@ -38,6 +42,7 @@ export async function getInterviewHistory() {
 export const interviewApi = {
   createInterview,
   submitInterviewAnswer,
+  completeInterview,
   getInterviewResult,
   getInterviewHistory,
 };
