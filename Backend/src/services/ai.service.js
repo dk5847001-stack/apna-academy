@@ -15,7 +15,7 @@ const normalizeMessage = (message) => ({
   content: message.content.trim(),
 });
 
-const validateMessages = (messages) => {
+const validateMessages = (messages, guest = false) => {
   if (!Array.isArray(messages) || messages.length === 0) {
     const error = new Error("At least one message is required.");
     error.statusCode = 400;
@@ -23,13 +23,15 @@ const validateMessages = (messages) => {
     throw error;
   }
 
-  if (messages.length > 20) {
-    const error = new Error("A maximum of 20 conversation messages is supported.");
+  const maxMessages = guest ? AI_CONFIG.guestMaxMessages : 20;
+  if (messages.length > maxMessages) {
+    const error = new Error("Too many conversation messages.");
     error.statusCode = 413;
-    error.code = "AI_TOO_MANY_MESSAGES";
+    error.code = guest ? "AI_GUEST_CONTEXT_TOO_LARGE" : "AI_TOO_MANY_MESSAGES";
     throw error;
   }
 
+  const maxChars = guest ? AI_CONFIG.guestMaxInputChars : AI_CONFIG.maxInputChars;
   const normalized = messages.map((message) => {
     if (!message || typeof message !== "object") {
       const error = new Error("Each message must be an object.");
@@ -37,14 +39,12 @@ const validateMessages = (messages) => {
       error.code = "AI_INVALID_MESSAGE";
       throw error;
     }
-
     if (typeof message.content !== "string") {
       const error = new Error("Each message content must be a string.");
       error.statusCode = 400;
       error.code = "AI_INVALID_MESSAGE_CONTENT";
       throw error;
     }
-
     return normalizeMessage(message);
   });
 
@@ -55,20 +55,16 @@ const validateMessages = (messages) => {
       error.code = "AI_INVALID_MESSAGE_ROLE";
       throw error;
     }
-
     if (!message.content) {
       const error = new Error("Message content cannot be empty.");
       error.statusCode = 400;
       error.code = "AI_EMPTY_MESSAGE";
       throw error;
     }
-
-    if (message.content.length > AI_CONFIG.maxInputChars) {
-      const error = new Error(
-        "Each message must be " + AI_CONFIG.maxInputChars + " characters or fewer."
-      );
+    if (message.content.length > maxChars) {
+      const error = new Error("Message is too large.");
       error.statusCode = 413;
-      error.code = "AI_MESSAGE_TOO_LARGE";
+      error.code = guest ? "AI_GUEST_MESSAGE_TOO_LARGE" : "AI_MESSAGE_TOO_LARGE";
       throw error;
     }
   }
@@ -83,39 +79,25 @@ const validateMessages = (messages) => {
   return normalized;
 };
 
-export const askAI = async ({ messages, maxTokens, temperature }) => {
-  const normalizedMessages = validateMessages(messages);
+export const askAI = async ({ messages, maxTokens, temperature, guest = false }) => {
+  const normalizedMessages = validateMessages(messages, guest);
+  const maxContextChars = guest ? AI_CONFIG.guestMaxInputChars : AI_CONFIG.maxInputChars * 4;
+  const totalInputChars = normalizedMessages.reduce((total, message) => total + message.content.length, 0);
 
-  const totalInputChars = normalizedMessages.reduce(
-    (total, message) => total + message.content.length,
-    0
-  );
-
-  if (totalInputChars > AI_CONFIG.maxInputChars * 4) {
+  if (totalInputChars > maxContextChars) {
     const error = new Error("The conversation context is too large.");
     error.statusCode = 413;
-    error.code = "AI_CONTEXT_TOO_LARGE";
+    error.code = guest ? "AI_GUEST_CONTEXT_TOO_LARGE" : "AI_CONTEXT_TOO_LARGE";
     throw error;
   }
 
   const result = await generateChatCompletion({
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...normalizedMessages,
-    ],
-    maxTokens,
+    messages: [{ role: "system", content: SYSTEM_PROMPT }, ...normalizedMessages],
+    maxTokens: guest
+      ? Math.min(Number(maxTokens) || AI_CONFIG.guestMaxOutputTokens, AI_CONFIG.guestMaxOutputTokens)
+      : maxTokens,
     temperature,
   });
 
-  return {
-    ...result,
-    provider: AI_CONFIG.provider,
-  };
+  return { ...result, provider: AI_CONFIG.provider };
 };
-
-export const getAIStatus = () => ({
-  enabled: AI_CONFIG.enabled,
-  provider: AI_CONFIG.provider,
-  modelConfigured: Boolean(AI_CONFIG.model),
-  apiKeyConfigured: Boolean(AI_CONFIG.apiKey),
-});
