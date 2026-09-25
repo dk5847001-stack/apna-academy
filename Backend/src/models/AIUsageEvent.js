@@ -7,7 +7,7 @@ const aiUsageEventSchema = new mongoose.Schema(
     conversation: { type: mongoose.Schema.Types.ObjectId, ref: "AIConversation", default: null, index: true },
     feature: {
       type: String,
-      enum: ["chat", "course-chat", "explain", "summarize", "quiz", "study-plan", "code-review", "guest-chat"],
+      enum: ["chat", "course-chat", "explain", "summarize", "quiz", "study-plan", "code-review", "guest-chat", "embedding"],
       required: true,
       index: true,
     },
