@@ -54,7 +54,7 @@ const getOwnedConversation = async (userId, conversationId, { includeArchived = 
   return conversation;
 };
 
-export const listConversations = async ({ userId, limit = 30 }) => {
+export const listConversations = async ({ userId, limit = 30, courseId = null }) => {
   assertUserId(userId);
   const safeLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 30, 1), 50);
 
