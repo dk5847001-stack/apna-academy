@@ -79,7 +79,7 @@ export async function generateOpeningQuestions(setup) {
     question: String(item.question || "").trim().slice(0, 2000),
     hint: String(item.hint || "").trim().slice(0, 500),
   })).filter((item) => item.question);
-  if (questions.length !== setup.questionCount) {
+  if (questions.length !== setup.questionCount || new Set(questions.map((item) => item.id)).size !== questions.length) {
     throw Object.assign(new Error("AI returned invalid interview questions."), { statusCode: 502, code: "NVIDIA_INVALID_RESPONSE" });
   }
   return questions;
