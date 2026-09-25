@@ -3,15 +3,30 @@ import {
   aiProviderModels,
   aiStatus,
   chatWithAI,
+  chatWithGuestAI,
+  publicAIStatus,
 } from "../controllers/ai.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
+import { createGuestAIRateLimiter } from "../middleware/aiGuestRateLimit.middleware.js";
+import { validatePublicAIRequest } from "../middleware/aiRequest.middleware.js";
+import { AI_CONFIG } from "../config/ai.js";
 
 const router = Router();
 
-// Phase 1 keeps AI endpoints authenticated. Public/guest access is added in Phase 2
-// after dedicated guest quotas and abuse protection are implemented.
-router.use(authenticate);
+router.get("/public/status", publicAIStatus);
 
+router.post(
+  "/public/chat",
+  createGuestAIRateLimiter({
+    windowMs: AI_CONFIG.guestWindowMs,
+    maxRequests: AI_CONFIG.guestWindowRequests,
+    dailyMax: AI_CONFIG.guestDailyRequests,
+  }),
+  validatePublicAIRequest,
+  chatWithGuestAI
+);
+
+router.use(authenticate);
 router.get("/status", aiStatus);
 router.get("/provider/models", aiProviderModels);
 router.post("/chat", chatWithAI);
