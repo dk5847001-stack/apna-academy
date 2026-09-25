@@ -27,6 +27,7 @@ export default function InterviewRoomPage() {
   const [showEnd, setShowEnd] = useState(false)
   const [showQuestionList, setShowQuestionList] = useState(false)
   const [voiceEnabled, setVoiceEnabled] = useState(true)
+  const [roomError, setRoomError] = useState('')
   const videoRef = useRef(null)
   const timer = useInterviewTimer(Math.max(60, Number(setup.durationMinutes || 30) * 60), true)
   const voice = useInterviewVoice({ onTranscript: (text) => setAnswer((currentAnswer) => (currentAnswer ? currentAnswer + ' ' : '') + text) })
@@ -45,10 +46,16 @@ export default function InterviewRoomPage() {
     if (!session?.id || String(session.id).startsWith('mock-')) { navigate(ROUTES.INTERVIEW_COMPLETE); return }
     try {
       const data = await interviewApi.completeInterview(session.id)
-      setSession((value) => ({ ...(value || {}), result: data.result, status: 'completed' }))
+      setSession((value) => ({ ...(value || {}), result: data.result || null, status: data.status || 'completed' }))
     } catch (error) {
-      console.error(error)
-    } finally { navigate(ROUTES.INTERVIEW_COMPLETE) }
+      if (error?.code === 'INTERVIEW_NOT_FOUND') {
+        setRoomError('This interview session is no longer active. Please start a new interview.')
+      } else {
+        setRoomError(error?.message || 'We could not finalize the interview. Your saved answers remain on the server.')
+      }
+    } finally {
+      navigate(ROUTES.INTERVIEW_COMPLETE)
+    }
   }
 
   useEffect(() => {
@@ -77,24 +84,38 @@ export default function InterviewRoomPage() {
   const saveAnswer = async () => {
     if (!question || !answer.trim() || submitting) return null
     setSubmitting(true)
+    setRoomError('')
     try {
       if (!session?.id || String(session.id).startsWith('mock-')) throw new Error('Your AI session is not available. Please restart the interview.')
-      const data = await interviewApi.submitInterviewAnswer({ sessionId: session.id, questionId: question.id, answer: answer.trim() })
-      const saved = { questionId: question.id, answer: answer.trim(), score: data.evaluation?.score, feedback: data.evaluation?.feedback, answeredAt: new Date().toISOString() }
+      const cleanAnswer = answer.trim()
+      const data = await interviewApi.submitInterviewAnswer({ sessionId: session.id, questionId: question.id, answer: cleanAnswer })
+      const saved = { questionId: question.id, answer: cleanAnswer, score: data.evaluation?.score, feedback: data.evaluation?.feedback, answeredAt: new Date().toISOString() }
       const nextAnswers = answers.filter((item) => item.questionId !== question.id).concat(saved)
       setAnswers(nextAnswers)
-      setSession((value) => ({ ...(value || {}), answers: nextAnswers, result: data.result || value?.result, status: data.completed ? 'completed' : 'in-progress' }))
+      setSession((value) => ({
+        ...(value || {}),
+        answers: nextAnswers,
+        questions: data.questions || value?.questions,
+        result: data.result || value?.result,
+        status: data.completed ? 'completed' : 'in-progress',
+      }))
       setAnswer('')
       return data
+    } catch (error) {
+      setRoomError(error?.message || 'We could not save your answer. Please try again.')
+      return null
     } finally { setSubmitting(false) }
   }
 
   const nextQuestion = async () => {
     const data = answer.trim() ? await saveAnswer() : null
-    if (data?.completed || current >= questions.length - 1) { navigate(ROUTES.INTERVIEW_COMPLETE); return }
+    if (answer.trim() && !data) return
+    if (data?.completed) { navigate(ROUTES.INTERVIEW_COMPLETE); return }
     const next = current + 1
+    const nextQuestionFromResponse = data?.followUpQuestion || data?.questions?.[next]
+    if (next >= questions.length && !nextQuestionFromResponse) return
     setCurrent(next)
-    setAnswer(answers.find((item) => item.questionId === questions[next]?.id)?.answer || '')
+    setAnswer(answers.find((item) => item.questionId === (data?.questions?.[next]?.id || questions[next]?.id))?.answer || '')
   }
 
   const previousQuestion = () => {
@@ -129,6 +150,7 @@ export default function InterviewRoomPage() {
       </header>
 
       <div className="room-progress-bar"><span style={{ width: progress + '%' }} /></div>
+      {roomError ? <div className="room-inline-error" role="alert"><WarningAmberRounded /> <span>{roomError}</span><button type="button" onClick={() => setRoomError('')}>Dismiss</button></div> : null}
 
       <section className="room-main">
         <aside className={'room-sidebar ' + (showQuestionList ? 'mobile-open' : '')}>
