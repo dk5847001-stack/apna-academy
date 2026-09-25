@@ -377,6 +377,7 @@ export const updateAdminModule = async (moduleId, payload = {}) => {
   if (payload.order !== undefined) module.order = Math.max(Number(payload.order) || 1, 1);
   if (payload.isPublished !== undefined) module.isPublished = Boolean(payload.isPublished);
   await module.save();
+  await AIKnowledgeChunk.deleteMany({ course: module.course, module: module._id });
   await recalculateCourseTotals(module.course);
   return getAdminCourse(module.course);
 };
@@ -471,6 +472,7 @@ export const updateAdminVideo = async (videoId, payload = {}) => {
   video.order = Math.max(Number(video.order) || 1, 1);
   video.notesPdfUrl = String(video.notesPdfUrl || "").trim();
   await video.save();
+  await AIKnowledgeChunk.deleteMany({ course: video.course, video: video._id });
 
   await Promise.all([recalculateModuleTotal(video.module), recalculateCourseTotals(video.course)]);
   return getAdminCourse(video.course);
