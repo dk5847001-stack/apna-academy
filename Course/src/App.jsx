@@ -12,6 +12,8 @@ import { COURSE_ROUTES, FRONTEND_URL } from "./constants/config";
 import { getCourseBySlug } from "./services/course.service";
 import { getLearningCourse, normalizeLearningCourse, normalizeLearningVideo } from "./services/learning.service";
 import { completeVideoLesson } from "./services/progress.service";
+import CourseAIAssistant from "./components/CourseAIAssistant";
+import CourseAILearningTools from "./components/CourseAILearningTools";
 
 const getVideoId = (video) => {
   if (!video) return "";
@@ -281,22 +283,34 @@ function CourseLearningPage() {
   }
 
   return (
-    <CoursePlayerLayout
-      course={course}
-      courseTitle={course?.title || ""}
-      courseId={course?._id || course?.id || ""}
-      modules={modules}
-      access={access}
-      progress={progress?.overallProgress || 0}
-      currentVideo={currentVideo}
-      courseCompleted={courseCompleted}
-      onAssessment={handleAssessment}
-      onCertificate={handleCertificate}
-      onBack={handleBack}
-      onPrevious={handlePrevious}
-      onNext={handleNext}
-      onVideoSelect={handleVideoSelect}
-    />
+    <>
+      <CoursePlayerLayout
+        course={course}
+        courseTitle={course?.title || ""}
+        courseId={course?._id || course?.id || ""}
+        modules={modules}
+        access={access}
+        progress={progress?.overallProgress || 0}
+        currentVideo={currentVideo}
+        courseCompleted={courseCompleted}
+        onAssessment={handleAssessment}
+        onCertificate={handleCertificate}
+        onBack={handleBack}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        onVideoSelect={handleVideoSelect}
+      />
+      <CourseAIAssistant
+        courseId={course?._id || course?.id || ""}
+        courseTitle={course?.title || ""}
+      />
+      <CourseAILearningTools
+        courseId={course?._id || course?.id || ""}
+        courseTitle={course?.title || ""}
+        videoId={getVideoId(currentVideo)}
+        moduleId={currentVideo?.module || currentVideo?.moduleId || ""}
+      />
+    </>
   );
 }
 

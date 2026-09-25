@@ -30,6 +30,7 @@ function isDark() {
 
 function applyTailwindDarkClasses() {
   document.querySelectorAll("*").forEach((element) => {
+    if (element.closest('footer[data-premium-footer="true"]')) return;
     DARK_CLASS_MAP.forEach(([lightClass, darkClass]) => {
       if (element.classList.contains(lightClass)) {
         element.classList.add(darkClass);
@@ -40,6 +41,7 @@ function applyTailwindDarkClasses() {
 
 function removeTailwindDarkClasses() {
   document.querySelectorAll("*").forEach((element) => {
+    if (element.closest('footer[data-premium-footer="true"]')) return;
     DARK_CLASS_MAP.forEach(([, darkClass]) => {
       element.classList.remove(darkClass);
     });

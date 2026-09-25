@@ -100,3 +100,8 @@ export const deleteAdminVideo = async (videoId) => {
   const response = await api.delete(`${ADMIN_VIDEOS}/${videoId}`);
   return response.data.data;
 };
+
+export const indexAdminCourseAIKnowledge = async (courseId) => {
+  const response = await api.post(`/admin/ai/courses/${courseId}/index`);
+  return response.data.data;
+};

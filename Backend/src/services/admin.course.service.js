@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Course from "../models/Course.js";
 import Module from "../models/Module.js";
 import Video from "../models/Video.js";
+import AIKnowledgeChunk from "../models/AIKnowledgeChunk.js";
 
 const ADMIN_COURSE_LIST_PROJECTION = [
   "title",
@@ -310,6 +311,7 @@ export const updateAdminCourse = async (courseId, payload = {}) => {
   course.allAccessPrice = Math.max(Number(course.allAccessPrice) || 0, 0);
   course.durationDays = Math.max(Number(course.durationDays) || 1, 1);
   await course.save();
+  await AIKnowledgeChunk.deleteMany({ course: course._id });
   return getAdminCourse(course._id);
 };
 
@@ -326,6 +328,7 @@ export const deleteAdminCourse = async (courseId) => {
     Video.deleteMany({ course: courseId }),
     Module.deleteMany({ course: courseId }),
     Course.deleteOne({ _id: courseId }),
+    AIKnowledgeChunk.deleteMany({ course: courseId }),
   ]);
 
   return { id: courseId };
@@ -374,6 +377,7 @@ export const updateAdminModule = async (moduleId, payload = {}) => {
   if (payload.order !== undefined) module.order = Math.max(Number(payload.order) || 1, 1);
   if (payload.isPublished !== undefined) module.isPublished = Boolean(payload.isPublished);
   await module.save();
+  await AIKnowledgeChunk.deleteMany({ course: module.course, module: module._id });
   await recalculateCourseTotals(module.course);
   return getAdminCourse(module.course);
 };
@@ -390,6 +394,7 @@ export const deleteAdminModule = async (moduleId) => {
   await Promise.all([
     Video.deleteMany({ module: moduleId }),
     Module.deleteOne({ _id: moduleId }),
+    AIKnowledgeChunk.deleteMany({ course: module.course, module: moduleId }),
   ]);
   await recalculateCourseTotals(module.course);
   return { courseId: module.course, id: moduleId };
@@ -467,6 +472,7 @@ export const updateAdminVideo = async (videoId, payload = {}) => {
   video.order = Math.max(Number(video.order) || 1, 1);
   video.notesPdfUrl = String(video.notesPdfUrl || "").trim();
   await video.save();
+  await AIKnowledgeChunk.deleteMany({ course: video.course, video: video._id });
 
   await Promise.all([recalculateModuleTotal(video.module), recalculateCourseTotals(video.course)]);
   return getAdminCourse(video.course);
@@ -482,6 +488,7 @@ export const deleteAdminVideo = async (videoId) => {
   }
 
   await Video.deleteOne({ _id: videoId });
+  await AIKnowledgeChunk.deleteMany({ course: video.course, video: videoId });
   await Promise.all([recalculateModuleTotal(video.module), recalculateCourseTotals(video.course)]);
   return { courseId: video.course, moduleId: video.module, id: videoId };
 };
