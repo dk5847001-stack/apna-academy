@@ -2,7 +2,11 @@ import InterviewSession from "../models/InterviewSession.js";
 import { buildFinalReport, evaluateAnswer, generateOpeningQuestions } from "./groqInterview.service.js";
 
 const allowedTypes = new Set(["technical", "dsa", "behavioral"]);
-const allowedDifficulties = new Set(["easy", "medium", "hard"]);\nconst MAX_ROLE_CHARS = Math.max(20, Math.min(120, Number(process.env.INTERVIEW_MAX_ROLE_CHARS || 80)));\nconst MAX_EXPERIENCE_CHARS = Math.max(20, Math.min(80, Number(process.env.INTERVIEW_MAX_EXPERIENCE_CHARS || 50)));\nconst MAX_QUESTIONS = Math.max(1, Math.min(30, Number(process.env.INTERVIEW_MAX_QUESTIONS || 30)));\nconst MAX_FOLLOWUPS = Math.max(0, Math.min(10, Number(process.env.INTERVIEW_MAX_FOLLOWUPS || 5)));
+const allowedDifficulties = new Set(["easy", "medium", "hard"]);
+const MAX_ROLE_CHARS = Math.max(20, Math.min(120, Number(process.env.INTERVIEW_MAX_ROLE_CHARS || 80)));
+const MAX_EXPERIENCE_CHARS = Math.max(20, Math.min(80, Number(process.env.INTERVIEW_MAX_EXPERIENCE_CHARS || 50)));
+const MAX_QUESTIONS = Math.max(1, Math.min(30, Number(process.env.INTERVIEW_MAX_QUESTIONS || 30)));
+const MAX_FOLLOWUPS = Math.max(0, Math.min(10, Number(process.env.INTERVIEW_MAX_FOLLOWUPS || 5)));
 
 const cleanSetup = (input = {}) => {
   const role = String(input.role || "").trim().slice(0, MAX_ROLE_CHARS);
