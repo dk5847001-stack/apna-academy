@@ -4,7 +4,7 @@ import AIConversation from "../models/AIConversation.js";
 import AIMessage from "../models/AIMessage.js";
 import { AI_CONFIG } from "../config/ai.js";
 import { askAI } from "./ai.service.js";
-import { getActiveCoursePurchase } from "./purchase.service.js";
+import { requireCourseAIEntitlement, requireConversationCourseAIEntitlement } from "./aiCourseAuthorization.service.js";
 import { retrieveCourseKnowledge, buildRagContext } from "./ai.rag.service.js";
 
 const MAX_TITLE_LENGTH = 120;
