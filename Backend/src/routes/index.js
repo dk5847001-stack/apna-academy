@@ -80,5 +80,6 @@ router.use("/admin/messages", adminMessageRoutes);
 router.use("/admin/subscribers", adminSubscriberRoutes);
 router.use("/admin/promocodes", adminPromoCodeRoutes);
 router.use("/admin/referral-payouts", adminReferralPayoutRoutes);
+router.use("/admin/ai", adminAIRoutes);
 
 export default router;
