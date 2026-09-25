@@ -52,3 +52,14 @@ export async function getInterviewResult({ userId, sessionId }) {
 export async function listInterviewHistory({ userId, limit = 20 }) {
   return InterviewSession.find({ userId, status: { $in: ["completed", "expired"] } }).sort({ createdAt: -1 }).limit(Math.min(50, Math.max(1, limit))).lean();
 }
+
+export async function completeInterview({ userId, sessionId }) {
+  const session = await InterviewSession.findOne({ _id: sessionId, userId, status: "active" });
+  if (!session) throw Object.assign(new Error("Interview session not found or already completed."), { statusCode: 404, code: "INTERVIEW_NOT_FOUND" });
+  if (!session.answers.length) throw Object.assign(new Error("Submit at least one answer before completing the interview."), { statusCode: 400, code: "NO_ANSWERS" });
+  session.status = "completed";
+  session.completedAt = new Date();
+  session.result = await buildFinalReport({ setup: session.setup, answers: session.answers.map((item) => item.toObject ? item.toObject() : item) });
+  await session.save();
+  return session;
+}
