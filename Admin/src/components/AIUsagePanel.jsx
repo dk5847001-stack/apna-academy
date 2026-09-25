@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, CircularProgress, Refresh } from "@mui/material";
+import { Alert, CircularProgress } from "@mui/material";
+import { Refresh } from "@mui/icons-material";
 import { getAdminAIUsage } from "../services/adminAIUsage.service";
 import { getApiErrorMessage } from "../services/api";
 
