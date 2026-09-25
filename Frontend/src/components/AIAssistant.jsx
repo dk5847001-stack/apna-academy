@@ -20,9 +20,9 @@ const loadMessages = () => {
 function MessageContent({ content }) {
   return (
     <div className="space-y-2 whitespace-pre-wrap text-sm leading-6">
-      {String(content).split(/(```[\\s\\S]*?```)/g).map((part, index) => {
+      {String(content).split(/(```[\s\S]*?```)/g).map((part, index) => {
         if (part.startsWith("```")) {
-          const code = part.replace(/^```[^\\n]*\\n?/, "").replace(/```$/, "");
+          const code = part.replace(/^```[^\n]*\n?/, "").replace(/```$/, "");
           return <pre key={index} className="overflow-x-auto rounded-xl bg-slate-950 p-3 text-xs leading-5 text-slate-100"><code>{code}</code></pre>;
         }
         return <span key={index}>{part}</span>;
