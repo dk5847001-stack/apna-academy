@@ -282,7 +282,7 @@ const dotProduct = (a, b) => {
   return score;
 };
 
-const vectorSearch = async (courseId, queryVector) => {
+const vectorSearch = async (courseId, queryVector, allowedModuleIds = []) => {
   const limit = AI_CONFIG.ragTopK;
   const candidates = Math.min(10000, Math.max(limit * 20, 100));
 
@@ -294,7 +294,7 @@ const vectorSearch = async (courseId, queryVector) => {
         queryVector,
         numCandidates: candidates,
         limit,
-        filter: { course: new mongoose.Types.ObjectId(courseId) },
+        filter: {\n          $and: [\n            { course: new mongoose.Types.ObjectId(courseId) },\n            { module: { $in: [null, ...allowedModuleIds.map((id) => new mongoose.Types.ObjectId(id))] } },\n          ],\n        },
       },
     },
     { $project: { text: 1, sourceType: 1, sourceTitle: 1, sourceUrl: 1, page: 1, module: 1, video: 1, score: { $meta: "vectorSearchScore" } } },
@@ -303,7 +303,7 @@ const vectorSearch = async (courseId, queryVector) => {
   return rows;
 };
 
-export const retrieveCourseKnowledge = async ({ courseId, query }) => {
+export const retrieveCourseKnowledge = async ({ courseId, query, allowedModuleIds = [] }) => {
   assertObjectId(courseId, "course id");
   const normalizedQuery = normalizeText(query);
   if (!normalizedQuery) return [];
@@ -311,7 +311,7 @@ export const retrieveCourseKnowledge = async ({ courseId, query }) => {
 
   if (AI_CONFIG.ragUseVectorSearch) {
     try {
-      return await vectorSearch(courseId, queryVector);
+      return await vectorSearch(courseId, queryVector, allowedModuleIds);
     } catch (error) {
       // Keep the feature usable on small/free MongoDB deployments without
       // Vector Search enabled. Production can turn this on after the index is ready.
@@ -321,7 +321,7 @@ export const retrieveCourseKnowledge = async ({ courseId, query }) => {
     }
   }
 
-  const chunks = await AIKnowledgeChunk.find({ course: courseId })
+  const chunks = await AIKnowledgeChunk.find({\n    course: courseId,\n    module: { $in: [null, ...allowedModuleIds] },\n  })
     .select("text sourceType sourceTitle sourceUrl page module video embedding")
     .limit(10000)
     .lean();
