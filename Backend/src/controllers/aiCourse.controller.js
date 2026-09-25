@@ -18,6 +18,7 @@ export const getAICourseAccess = async (req, res, next) => {
           title: entitlement.course.title,
         },
         unlockedModuleCount: entitlement.unlockedModuleIds.length,
+        totalPublishedModules: entitlement.publishedModuleCount,
         unlockMode: entitlement.purchase.unlockMode,
       },
     });
