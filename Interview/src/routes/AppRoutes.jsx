@@ -7,6 +7,8 @@ import InterviewSetupPage from '../pages/InterviewSetupPage'
 import InterviewPreparationPage from '../pages/InterviewPreparationPage'
 import InterviewRoomPage from '../pages/InterviewRoomPage'
 import InterviewCompletePage from '../pages/InterviewCompletePage'
+import InterviewResultPage from '../pages/InterviewResultPage'
+import InterviewHistoryPage from '../pages/InterviewHistoryPage'
 
 const pages = {
   [ROUTES.HOME]: HomePage,
@@ -15,8 +17,8 @@ const pages = {
   [ROUTES.INTERVIEW_PREPARATION]: InterviewPreparationPage,
   [ROUTES.INTERVIEW_ROOM]: InterviewRoomPage,
   [ROUTES.INTERVIEW_COMPLETE]: InterviewCompletePage,
-  [ROUTES.INTERVIEW_RESULT]: RoutePlaceholder,
-  [ROUTES.HISTORY]: RoutePlaceholder,
+  [ROUTES.INTERVIEW_RESULT]: InterviewResultPage,
+  [ROUTES.HISTORY]: InterviewHistoryPage,
   [ROUTES.DEMO]: RoutePlaceholder,
 }
 
