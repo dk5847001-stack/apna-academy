@@ -43,14 +43,48 @@ const callNvidia = async ({ system, user, temperature = 0.4, maxTokens = 1200 })
       }),
       signal: controller.signal,
     });
-    const payload = await response.json().catch(() => ({}));
+    const rawBody = await response.text().catch(() => "");
+    let payload = {};
+    try {
+      payload = rawBody ? JSON.parse(rawBody) : {};
+    } catch {
+      payload = {};
+    }
+
     if (!response.ok) {
-      const error = new Error(payload?.error?.message || "NVIDIA API request failed.");
-      error.statusCode = response.status === 429 ? 429 : response.status >= 500 ? 502 : 400;
+      const providerMessage =
+        payload?.error?.message ||
+        payload?.message ||
+        (rawBody && rawBody.length < 500 ? rawBody.trim() : "");
+
+      const statusText = response.statusText ? ` ${response.statusText}` : "";
+      const error = new Error(
+        providerMessage
+          ? `NVIDIA API returned HTTP ${response.status}${statusText}: ${providerMessage}`
+          : `NVIDIA API returned HTTP ${response.status}${statusText}.`
+      );
+
+      error.statusCode =
+        response.status === 429
+          ? 429
+          : response.status >= 500
+            ? 502
+            : response.status === 401 || response.status === 403
+              ? 502
+              : 400;
       error.code = "NVIDIA_PROVIDER_ERROR";
+      error.providerStatus = response.status;
       throw error;
     }
-    return payload?.choices?.[0]?.message?.content || "";
+
+    if (!payload?.choices?.[0]?.message?.content) {
+      const error = new Error("NVIDIA API returned an empty AI response.");
+      error.statusCode = 502;
+      error.code = "NVIDIA_EMPTY_RESPONSE";
+      throw error;
+    }
+
+    return payload.choices[0].message.content;
   } catch (error) {
     if (error.name === "AbortError") {
       const timeoutError = new Error("AI provider request timed out.");
