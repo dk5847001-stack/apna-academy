@@ -23,7 +23,8 @@ export const createRateLimiter = ({
   const limit = Math.max(1, Math.floor(positiveNumber(max, 120)));
 
   return (req, res, next) => {
-    const key = keyPrefix + ":" + (req.ip || req.socket.remoteAddress || "unknown");
+    const userPart = req.user?.userId ? "user:" + String(req.user.userId) : "ip:" + (req.ip || req.socket.remoteAddress || "unknown");
+    const key = keyPrefix + ":" + userPart;
     const now = Date.now();
     let bucket = buckets.get(key);
 
