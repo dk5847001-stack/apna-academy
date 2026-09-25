@@ -36,13 +36,16 @@ import adminPromoCodeRoutes from "./admin.promoCode.routes.js";
 import referralRoutes from "./referral.routes.js";
 import aiRoutes from "./ai.routes.js";
 import aiConversationRoutes from "./aiConversation.routes.js";
+import aiCourseRoutes from "./aiCourse.routes.js";
 import referralPayoutDestinationRoutes from "./referralPayoutDestination.routes.js";
 import adminReferralPayoutRoutes from "./admin.referralPayout.routes.js";
+import adminAIRoutes from "./admin.ai.routes.js";
 
 const router = Router();
 router.get("/", (req, res) => res.status(200).json({ success: true, message: "ApnaAcademy API v1 is working 🚀" }));
 router.use("/auth", authRoutes);
 router.use("/ai", aiRoutes);
+router.use("/ai/courses", aiCourseRoutes);
 router.use("/ai/conversations", aiConversationRoutes);
 router.use("/courses", courseRoutes);
 router.use("/payments", paymentRoutes);
