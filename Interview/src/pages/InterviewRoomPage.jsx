@@ -10,6 +10,7 @@ import { buildMockQuestions } from '../data/mockInterview'
 import { useInterviewMedia } from '../hooks/useInterviewMedia'
 import { useInterviewTimer } from '../hooks/useInterviewTimer'
 import { interviewApi } from '../services/interviewApi'
+import { useInterviewVoice } from '../hooks/useInterviewVoice'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
 
@@ -25,8 +26,10 @@ export default function InterviewRoomPage() {
   const [submitting, setSubmitting] = useState(false)
   const [showEnd, setShowEnd] = useState(false)
   const [showQuestionList, setShowQuestionList] = useState(false)
+  const [voiceEnabled, setVoiceEnabled] = useState(true)
   const videoRef = useRef(null)
   const timer = useInterviewTimer(Math.max(60, Number(setup.durationMinutes || 30) * 60), true)
+  const voice = useInterviewVoice({ onTranscript: (text) => setAnswer((currentAnswer) => (currentAnswer ? currentAnswer + ' ' : '') + text) })
 
   useEffect(() => {
     requestMedia().then((stream) => {
@@ -43,8 +46,14 @@ export default function InterviewRoomPage() {
   }, [timer.remaining, navigate])
 
   useEffect(() => {
-    if (paused) timer.pause()
-  }, [paused, timer])
+    if (paused) { timer.pause(); voice.stopListening(); voice.stopSpeaking() }
+  }, [paused, timer, voice.stopListening, voice.stopSpeaking])
+
+  useEffect(() => {
+    if (!voiceEnabled || !question?.question || paused) return
+    voice.speak(question.question)
+    return () => voice.stopSpeaking()
+  }, [current, voiceEnabled, paused, question?.question, voice.speak, voice.stopSpeaking])
 
   useEffect(() => {
     setSession((value) => ({ ...(value || {}), currentQuestion: current, answers }))
@@ -93,6 +102,8 @@ export default function InterviewRoomPage() {
 
   const endInterview = () => {
     timer.pause()
+    voice.stopListening()
+    voice.stopSpeaking()
     navigate(ROUTES.INTERVIEW_COMPLETE)
   }
 
@@ -132,7 +143,7 @@ export default function InterviewRoomPage() {
           <div className="room-ai-card">
             <div className="ai-avatar"><AutoAwesomeRounded /></div>
             <div className="ai-copy"><div><strong>AI Interviewer</strong><span className="ai-speaking"><span /><span /><span /> listening</span></div><p>Take your time. I'm listening to your answer.</p></div>
-            <button type="button" className="icon-room-btn" aria-label="AI interviewer volume"><VolumeUpRounded /></button>
+            <button type="button" className={"icon-room-btn " + (voice.speaking ? "active" : "")} aria-label="Toggle AI interviewer voice" onClick={() => { setVoiceEnabled((value) => !value); if (voice.speaking) voice.stopSpeaking(); else voice.speak(question?.question) }}><VolumeUpRounded /></button>
           </div>
 
           <div className="question-card">
@@ -143,15 +154,17 @@ export default function InterviewRoomPage() {
 
           <div className="answer-card">
             <div className="answer-head">
-              <div><span>Your response</span><small>Text fallback is available while voice mode is being connected.</small></div>
+              <div><span>Your response</span><small>{voice.supported ? "Speak naturally or type your answer." : "Voice input is not supported in this browser; text input is available."}</small></div>
               <span className={'answer-status ' + (answer.trim() ? 'has-answer' : '')}>{answer.trim() ? 'Draft ready' : isAnswered ? 'Previously answered' : 'Waiting for answer'}</span>
             </div>
-            <textarea value={answer} onChange={(event) => setAnswer(event.target.value)} placeholder="Type your answer here, or use your microphone when voice mode is available…" maxLength={5000} />
+            <textarea value={answer} onChange={(event) => setAnswer(event.target.value)} placeholder={voice.supported ? "Speak your answer or type it here…" : "Type your answer here…"} maxLength={5000} />
+            {voice.interimTranscript ? <div className="voice-live-transcript"><KeyboardVoiceRounded /> Listening: <span>{voice.interimTranscript}</span></div> : null}
+            {voice.voiceError ? <div className="voice-error">{voice.voiceError}</div> : null}
             <div className="answer-toolbar">
               <span>{answer.length}/5000</span>
               <div>
-                <button type="button" className={'room-control mic ' + (microphone === 'granted' ? 'on' : '')} onClick={toggleMicrophone} title="Toggle microphone">{microphone === 'granted' ? <MicRounded /> : <MicOffRounded />}</button>
-                <button type="button" className="voice-answer-btn" onClick={toggleMicrophone}><KeyboardVoiceRounded /> {microphone === 'granted' ? 'Mute mic' : 'Enable mic'}</button>
+                <button type="button" className={'room-control mic ' + (microphone === 'granted' ? 'on' : '')} onClick={() => { toggleMicrophone(); if (voice.listening) voice.stopListening(); else voice.startListening() }} title="Toggle microphone">{microphone === 'granted' ? <MicRounded /> : <MicOffRounded />}</button>
+                <button type="button" className={"voice-answer-btn " + (voice.listening ? "active" : "")} onClick={() => { if (microphone !== "granted") requestMedia(); voice.toggleListening() }}><KeyboardVoiceRounded /> {voice.listening ? "Stop speaking" : "Answer by voice"}</button>
                 <button type="button" className="submit-answer-btn" onClick={saveAnswer} disabled={!answer.trim() || submitting}>{submitting ? 'Saving…' : 'Save answer'} <SendRounded /></button>
               </div>
             </div>
