@@ -3,6 +3,8 @@ import AIConversation from "../models/AIConversation.js";
 import AIMessage from "../models/AIMessage.js";
 import { AI_CONFIG } from "../config/ai.js";
 import { askAI } from "./ai.service.js";
+import { getActiveCoursePurchase } from "./purchase.service.js";
+import { retrieveCourseKnowledge, buildRagContext } from "./ai.rag.service.js";
 
 const MAX_TITLE_LENGTH = 120;
 const MAX_STORED_MESSAGES = 200;
@@ -59,17 +61,32 @@ export const listConversations = async ({ userId, limit = 30 }) => {
   return AIConversation.find({ user: userId, archivedAt: null })
     .sort({ updatedAt: -1 })
     .limit(safeLimit)
-    .select("_id title messageCount lastMessageAt createdAt updatedAt")
+    .select("_id course title messageCount lastMessageAt createdAt updatedAt")
     .lean();
 };
 
-export const createConversation = async ({ userId, title }) => {
+export const createConversation = async ({ userId, title, courseId = null }) => {
   assertUserId(userId);
 
-  return AIConversation.create({
-    user: userId,
-    title: normalizeTitle(title),
-  });
+  let course = null;
+  if (courseId) {
+    assertConversationId(courseId);
+    course = await Course.findOne({ _id: courseId, isPublished: true }).lean();
+    if (!course) {
+      const error = new Error("Course not found.");
+      error.statusCode = 404;
+      error.code = "AI_RAG_COURSE_NOT_FOUND";
+      throw error;
+    }
+    const purchase = await getActiveCoursePurchase(userId, course._id);
+    if (!purchase) {
+      const error = new Error("Purchase this course to use course-specific AI knowledge.");
+      error.statusCode = 403;
+      error.code = "AI_COURSE_ACCESS_REQUIRED";
+      throw error;
+    }
+  }
+  return AIConversation.create({ user: userId, course: course?._id || null, title: normalizeTitle(title) });
 };
 
 export const getConversationMessages = async ({
