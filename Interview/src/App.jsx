@@ -161,9 +161,9 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className="app-shell min-h-screen w-full bg-white text-slate-900">
       <header className="site-header">
-        <div className="header-inner">
+        <div className="header-inner flex items-center justify-between">
           <Logo />
           <nav className={`desktop-nav ${menuOpen ? 'mobile-open' : ''}`} aria-label="Primary navigation">
             <button className="nav-link active" onClick={() => goTo('home')}>Home</button>
@@ -184,7 +184,7 @@ function App() {
               )}
             </div>
           </nav>
-          <div className="header-actions">
+          <div className="header-actions flex items-center">
             <button className="login-btn" onClick={() => goTo('login')}>Login</button>
             <button className="gradient-btn small" onClick={() => goTo('start')}>Get Started Free <ArrowForward /></button>
             <IconButton className="mobile-menu-btn" onClick={() => setMenuOpen((v) => !v)} aria-label="Toggle menu">
@@ -271,7 +271,7 @@ function App() {
       </section>
 
       <section id="features" className="features-section page-section">
-        <div className="feature-grid">
+        <div className="feature-grid grid">
           {features.map(([Icon, title, copy], i) => (
             <article className="feature-card" key={title}>
               <span className={`feature-icon feature-icon-${i}`}><Icon /></span>
@@ -288,7 +288,7 @@ function App() {
           <h2>How ApnaAcademy Interview AI Works</h2>
           <p>Start your journey to a successful career in minutes.</p>
         </div>
-        <div className="steps-grid">
+        <div className="steps-grid grid">
           {steps.map(([number, Icon, title, copy], i) => (
             <div className="step-wrap" key={number}>
               <article className="step-card">
@@ -339,7 +339,7 @@ function App() {
         </div>
         <div className="testimonial-stage">
           <Tooltip title="Previous story"><IconButton onClick={() => setTestimonial((testimonial - 1 + testimonials.length) % testimonials.length)}><ChevronLeft /></IconButton></Tooltip>
-          <div className="testimonial-grid">
+          <div className="testimonial-grid grid">
             {testimonials.map((item) => (
               <article className={`testimonial-card ${item === currentTestimonial ? 'selected' : ''}`} key={item.name}>
                 <p>“{item.quote}”</p>
