@@ -55,6 +55,7 @@ jobs:
       - run: npm run build
         env:
           VITE_SITE_URL: https://apnaacademy.me
+      - run: npm run pwa:check
 
   course-build:
     runs-on: ubuntu-latest
