@@ -74,7 +74,7 @@ export default function InterviewSetupPage() {
                 <span className="setup-required">Required</span>
               </div>
               <label className="setup-field-label" htmlFor="role">Target role</label>
-              <div className={\`setup-input-wrap \${errors.role ? 'has-error' : ''}\`}>
+              <div className={`setup-input-wrap ${errors.role ? 'has-error' : ''}`}>
                 <PsychologyRounded />
                 <input id="role" name="role" value={setup.role} onChange={(event) => update('role', event.target.value)} placeholder="e.g. Backend Developer" autoComplete="organization-title" maxLength={80} aria-invalid={Boolean(errors.role)} aria-describedby={errors.role ? 'role-error' : undefined} />
                 {setup.role ? <span className="setup-input-count">{setup.role.length}/80</span> : null}
@@ -107,7 +107,7 @@ export default function InterviewSetupPage() {
               <div className="setup-panel-heading"><div className="setup-heading-group"><span className="setup-step-badge">04</span><div><h2>Set the difficulty</h2><p>Choose how challenging you want the practice to feel.</p></div></div></div>
               <div className="difficulty-grid">
                 {DIFFICULTIES.map((item) => (
-                  <button type="button" key={item.value} className={\`difficulty-option \${selectedDifficulty?.value === item.value ? 'selected' : ''} \${difficultyColors[item.value]}\`} onClick={() => update('difficulty', item.value)} aria-pressed={setup.difficulty === item.value}>
+                  <button type="button" key={item.value} className={`difficulty-option ${selectedDifficulty?.value === item.value ? 'selected' : ''} ${difficultyColors[item.value]}`} onClick={() => update('difficulty', item.value)} aria-pressed={setup.difficulty === item.value}>
                     <span className="difficulty-dot" /><span><strong>{item.label}</strong><small>{item.description}</small></span>
                   </button>
                 ))}
@@ -118,7 +118,7 @@ export default function InterviewSetupPage() {
               <div className="setup-panel-heading"><div className="setup-heading-group"><span className="setup-step-badge">05</span><div><h2>Choose your session length</h2><p>Set the time and number of questions for this practice.</p></div></div></div>
               <div className="setup-subheading"><AccessTimeRounded /> Duration</div>
               <div className="duration-grid">
-                {INTERVIEW_DURATIONS.map((item) => <button type="button" key={item.value} className={\`duration-option \${setup.durationMinutes === item.value ? 'selected' : ''}\`} onClick={() => update('durationMinutes', item.value)}><strong>{item.label}</strong><small>{item.description}</small></button>)}
+                {INTERVIEW_DURATIONS.map((item) => <button type="button" key={item.value} className={`duration-option ${setup.durationMinutes === item.value ? 'selected' : ''}`} onClick={() => update('durationMinutes', item.value)}><strong>{item.label}</strong><small>{item.description}</small></button>)}
               </div>
               <div className="setup-subheading question-heading"><TerminalRounded /> Questions</div>
               <div className="question-count-row" role="group" aria-label="Number of questions">
