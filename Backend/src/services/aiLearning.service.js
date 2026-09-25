@@ -65,6 +65,7 @@ const getScopedContext = async ({ userId, courseId, moduleId = null, videoId = n
     courseId,
     query,
     allowedModuleIds,
+    metadata: { userId, courseId, audience: "user" },
   });
 
   if (!chunks.length) {
@@ -182,6 +183,7 @@ export const createStudyPlan = async ({ userId, courseId, goals, days = 7, daily
     courseId,
     query: cleanGoals,
     allowedModuleIds: entitlement.unlockedModuleIds,
+    metadata: { userId, courseId, audience: "user" },
   }));
 
   if (!context) fail(503, "AI_COURSE_KNOWLEDGE_NOT_AVAILABLE", "No authorized course knowledge is currently available for this study plan.");
