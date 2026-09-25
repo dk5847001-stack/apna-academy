@@ -18,7 +18,7 @@ export const getAIConversations = async (req, res, next) => {
 
 export const postAIConversation = async (req, res, next) => {
   try {
-    const data = await createConversation({ userId: getUserId(req), title: req.body?.title });
+    const data = await createConversation({ userId: getUserId(req), title: req.body?.title, courseId: req.body?.courseId });
     return res.status(201).json({ success: true, message: "AI conversation created.", data });
   } catch (error) { return next(error); }
 };
