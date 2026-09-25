@@ -29,6 +29,7 @@ export default function InterviewRoomPage() {
   const [voiceEnabled, setVoiceEnabled] = useState(true)
   const [roomError, setRoomError] = useState('')
   const videoRef = useRef(null)
+  const finalizingRef = useRef(false)
   const timer = useInterviewTimer(Math.max(60, Number(setup.durationMinutes || 30) * 60), true)
   const voice = useInterviewVoice({ onTranscript: (text) => setAnswer((currentAnswer) => (currentAnswer ? currentAnswer + ' ' : '') + text) })
 
@@ -43,7 +44,14 @@ export default function InterviewRoomPage() {
   }, [camera, microphone, streamRef])
 
   const finalizeSession = async () => {
-    if (!session?.id || String(session.id).startsWith('mock-')) { navigate(ROUTES.INTERVIEW_COMPLETE); return }
+    if (finalizingRef.current) return
+    finalizingRef.current = true
+
+    if (!session?.id || String(session.id).startsWith('mock-')) {
+      navigate(ROUTES.INTERVIEW_COMPLETE)
+      return
+    }
+
     try {
       const data = await interviewApi.completeInterview(session.id)
       setSession((value) => ({ ...(value || {}), result: data.result || null, status: data.status || 'completed' }))
@@ -108,14 +116,25 @@ export default function InterviewRoomPage() {
   }
 
   const nextQuestion = async () => {
-    const data = answer.trim() ? await saveAnswer() : null
-    if (answer.trim() && !data) return
-    if (data?.completed) { navigate(ROUTES.INTERVIEW_COMPLETE); return }
-    const next = current + 1
-    const nextQuestionFromResponse = data?.followUpQuestion || data?.questions?.[next]
-    if (next >= questions.length && !nextQuestionFromResponse) return
-    setCurrent(next)
-    setAnswer(answers.find((item) => item.questionId === (data?.questions?.[next]?.id || questions[next]?.id))?.answer || '')
+    const hadDraft = Boolean(answer.trim())
+    const data = hadDraft ? await saveAnswer() : null
+    if (hadDraft && !data) return
+    if (data?.completed) {
+      navigate(ROUTES.INTERVIEW_COMPLETE)
+      return
+    }
+
+    const responseQuestions = Array.isArray(data?.questions) ? data.questions : questions
+    const nextId = data?.nextQuestion?.id || responseQuestions[current + 1]?.id || questions[current + 1]?.id
+    const nextIndex = responseQuestions.findIndex((item) => item.id === nextId)
+
+    if (nextIndex < 0) {
+      setRoomError('There is no unanswered question available. You can finish the interview.')
+      return
+    }
+
+    setCurrent(nextIndex)
+    setAnswer(answers.find((item) => item.questionId === nextId)?.answer || '')
   }
 
   const previousQuestion = () => {
