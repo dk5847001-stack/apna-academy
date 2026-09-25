@@ -1,4 +1,5 @@
 import { AI_CONFIG } from "../config/ai.js";
+import { recordAIUsage } from "./aiUsage.service.js";
 
 const createEmbeddingError = (message, statusCode = 502, code = "AI_EMBEDDING_ERROR") => {
   const error = new Error(message);
@@ -41,11 +42,13 @@ const normalizeVector = (vector) => {
   return vector.map((value) => Number(value) / magnitude);
 };
 
-export const generateEmbeddings = async (texts, inputType = "passage") => {
+export const generateEmbeddings = async (texts, inputType = "passage", metadata = {}) => {
   assertConfigured();
   if (!Array.isArray(texts) || texts.length === 0) throw createEmbeddingError("At least one text value is required.", 400, "AI_EMBEDDING_INPUT_REQUIRED");
   if (!["passage", "query"].includes(inputType)) throw createEmbeddingError("Embedding input type must be passage or query.", 400, "AI_EMBEDDING_INPUT_TYPE_INVALID");
   const normalizedTexts = texts.map((text) => String(text || "").trim());
+  const requestChars = normalizedTexts.reduce((sum, text) => sum + text.length, 0);
+  const startedAt = Date.now();
   if (normalizedTexts.some((text) => !text)) throw createEmbeddingError("Embedding text cannot be empty.", 400, "AI_EMBEDDING_EMPTY_TEXT");
   const response = await fetchWithTimeout(AI_CONFIG.embeddingBaseUrl + "/embeddings", {
     method: "POST",
@@ -62,5 +65,6 @@ export const generateEmbeddings = async (texts, inputType = "passage") => {
   try { payload = await response.json(); } catch { throw createEmbeddingError("Embedding provider returned invalid JSON.", 502, "AI_EMBEDDING_INVALID_RESPONSE"); }
   const data = Array.isArray(payload?.data) ? payload.data : [];
   if (data.length !== normalizedTexts.length) throw createEmbeddingError("Embedding provider returned an unexpected number of vectors.", 502, "AI_EMBEDDING_COUNT_MISMATCH");
+  await recordAIUsage({ userId: metadata.userId, courseId: metadata.courseId, feature: "embedding", audience: metadata.audience || (metadata.userId ? "user" : "admin"), provider: "nvidia", model: AI_CONFIG.embeddingModel, requestChars, usage: payload?.usage, latencyMs: Date.now() - startedAt, success: true });
   return [...data].sort((a, b) => Number(a.index) - Number(b.index)).map((item) => normalizeVector(item.embedding));
 };
