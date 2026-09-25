@@ -22,7 +22,7 @@ const resolveRange = ({ preset, from, to } = {}) => {
     return { start, end, days: Math.max(1, Math.ceil((end - start) / DAY)) };
   }
 
-  const days = { "1d": 1, "7d": 7, "30d": 30, "90d": 90, "180d": 180 }[preset] || 30;
+  const days = { "1d": 1, "7d": 7, "30d": 30, "90d": 90, "180d": 180, "1y": 365 }[preset] || 30;
   const start = new Date(now);
   start.setUTCDate(start.getUTCDate() - (days - 1));
   start.setUTCHours(0, 0, 0, 0);
