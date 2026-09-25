@@ -311,6 +311,13 @@ export const addMessageAndGenerateReply = async ({
       maxTokens,
       temperature,
       ragContext,
+      metadata: {
+        userId,
+        courseId: conversation.course,
+        conversationId: conversation._id,
+        feature: conversation.course ? "course-chat" : "chat",
+        audience: "user",
+      },
     });
 
     const assistantContent = String(result.text || "")
