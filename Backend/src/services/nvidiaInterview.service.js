@@ -8,6 +8,13 @@ const NVIDIA_URL = (() => {
 })();
 const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "openai/gpt-oss-20b";
 
+// Interview owns its provider timeout so an older/global NVIDIA_TIMEOUT_MS value
+// cannot accidentally force interview requests back to a 30-second timeout.
+const INTERVIEW_NVIDIA_TIMEOUT_MS = Math.max(
+  120_000,
+  Number(process.env.INTERVIEW_NVIDIA_TIMEOUT_MS || 120_000)
+);
+
 const parseJson = (content) => {
   const raw = String(content || "").trim();
   try { return JSON.parse(raw); } catch {}
@@ -30,7 +37,7 @@ const callNvidia = async ({ system, user, temperature = 0.4, maxTokens = 1200 })
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Number(process.env.NVIDIA_TIMEOUT_MS || 30000));
+  const timeout = setTimeout(() => controller.abort(), INTERVIEW_NVIDIA_TIMEOUT_MS);
   try {
     const response = await fetch(NVIDIA_URL, {
       method: "POST",
@@ -110,7 +117,7 @@ const commonRules = (setup) => `You are the AI interviewer for ApnaAcademy. Cond
 export async function generateOpeningQuestions(setup) {
   const system = commonRules(setup);
   const user = `Create exactly ${setup.questionCount} interview questions. Cover the selected role and interview type. Vary categories and difficulty. Each question should be answerable verbally in 1-3 minutes. JSON schema: {"questions":[{"id":"q1","category":"...","question":"...","hint":"..."}]}`;
-  const parsed = parseJson(await callNvidia({ system, user, maxTokens: Math.min(5000, 500 + setup.questionCount * 260) }));
+  const parsed = parseJson(await callNvidia({ system, user, maxTokens: Math.min(2600, 300 + setup.questionCount * 180) }));
   if (!Array.isArray(parsed?.questions) || parsed.questions.length < setup.questionCount) {
     throw Object.assign(new Error("AI returned an incomplete question set."), { statusCode: 502, code: "NVIDIA_INVALID_RESPONSE" });
   }
