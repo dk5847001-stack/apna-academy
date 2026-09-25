@@ -4,14 +4,17 @@ import { ROUTES, routeMeta } from './routes'
 import HomePage from '../pages/HomePage'
 import RoutePlaceholder from '../pages/RoutePlaceholder'
 import InterviewSetupPage from '../pages/InterviewSetupPage'
+import InterviewPreparationPage from '../pages/InterviewPreparationPage'
+import InterviewRoomPage from '../pages/InterviewRoomPage'
+import InterviewCompletePage from '../pages/InterviewCompletePage'
 
 const pages = {
   [ROUTES.HOME]: HomePage,
   [ROUTES.LOGIN]: RoutePlaceholder,
   [ROUTES.INTERVIEW_SETUP]: InterviewSetupPage,
-  [ROUTES.INTERVIEW_PREPARATION]: RoutePlaceholder,
-  [ROUTES.INTERVIEW_ROOM]: RoutePlaceholder,
-  [ROUTES.INTERVIEW_COMPLETE]: RoutePlaceholder,
+  [ROUTES.INTERVIEW_PREPARATION]: InterviewPreparationPage,
+  [ROUTES.INTERVIEW_ROOM]: InterviewRoomPage,
+  [ROUTES.INTERVIEW_COMPLETE]: InterviewCompletePage,
   [ROUTES.INTERVIEW_RESULT]: RoutePlaceholder,
   [ROUTES.HISTORY]: RoutePlaceholder,
   [ROUTES.DEMO]: RoutePlaceholder,
