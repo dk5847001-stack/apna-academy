@@ -24,4 +24,10 @@ export const AI_CONFIG = Object.freeze({
   guestMaxInputChars: parsePositiveInteger(process.env.AI_GUEST_MAX_INPUT_CHARS, 2_500),
   guestMaxOutputTokens: parsePositiveInteger(process.env.AI_GUEST_MAX_OUTPUT_TOKENS, 512),
   guestMaxMessages: parsePositiveInteger(process.env.AI_GUEST_MAX_MESSAGES, 4),
+  authWindowMs: parsePositiveInteger(process.env.AI_AUTH_WINDOW_MS, 60_000),
+  authWindowRequests: parsePositiveInteger(process.env.AI_AUTH_WINDOW_REQUESTS, 10),
+  authDailyRequests: parsePositiveInteger(process.env.AI_AUTH_DAILY_REQUESTS, 100),
+  authDailyWindowMs: parsePositiveInteger(process.env.AI_AUTH_DAILY_WINDOW_MS, 86_400_000),
+  authMaxConcurrentUser: parsePositiveInteger(process.env.AI_AUTH_MAX_CONCURRENT_USER, 2),
+  authMaxConcurrentIp: parsePositiveInteger(process.env.AI_AUTH_MAX_CONCURRENT_IP, 3),
 });
