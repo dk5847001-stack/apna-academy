@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import crypto from "node:crypto";
 import Course from "../models/Course.js";
 import Module from "../models/Module.js";
@@ -16,7 +17,7 @@ const normalizeText = (value) =>
 const hashText = (value) => crypto.createHash("sha256").update(value).digest("hex");
 
 const assertObjectId = (value, name) => {
-  if (!value || !/^[a-f\\d]{24}$/i.test(String(value))) {
+  if (!mongoose.isValidObjectId(value)) {
     const error = new Error(`Invalid ${name}.`);
     error.statusCode = 400;
     error.code = "AI_RAG_INVALID_ID";
@@ -293,7 +294,7 @@ const vectorSearch = async (courseId, queryVector) => {
         queryVector,
         numCandidates: candidates,
         limit,
-        filter: { course: new (await import("mongoose")).default.Types.ObjectId(courseId) },
+        filter: { course: new mongoose.Types.ObjectId(courseId) },
       },
     },
     { $project: { text: 1, sourceType: 1, sourceTitle: 1, sourceUrl: 1, page: 1, module: 1, video: 1, score: { $meta: "vectorSearchScore" } } },
