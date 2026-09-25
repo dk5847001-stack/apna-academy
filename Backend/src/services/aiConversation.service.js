@@ -232,6 +232,7 @@ export const addMessageAndGenerateReply = async ({
       courseId: conversation.course,
       query: userContent,
       allowedModuleIds: entitlement.unlockedModuleIds,
+      metadata: { userId, courseId: conversation.course, conversationId: conversation._id, audience: "user" },
     });
 
     if (!chunks.length) {
