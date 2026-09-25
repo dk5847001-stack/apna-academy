@@ -41,9 +41,19 @@ export default function InterviewRoomPage() {
     if (streamRef.current && videoRef.current) videoRef.current.srcObject = streamRef.current
   }, [camera, microphone, streamRef])
 
+  const finalizeSession = async () => {
+    if (!session?.id || String(session.id).startsWith('mock-')) { navigate(ROUTES.INTERVIEW_COMPLETE); return }
+    try {
+      const data = await interviewApi.completeInterview(session.id)
+      setSession((value) => ({ ...(value || {}), result: data.result, status: 'completed' }))
+    } catch (error) {
+      console.error(error)
+    } finally { navigate(ROUTES.INTERVIEW_COMPLETE) }
+  }
+
   useEffect(() => {
-    if (timer.remaining === 0) navigate(ROUTES.INTERVIEW_COMPLETE)
-  }, [timer.remaining, navigate])
+    if (timer.remaining === 0) finalizeSession()
+  }, [timer.remaining])
 
   useEffect(() => {
     if (paused) { timer.pause(); voice.stopListening(); voice.stopSpeaking() }
@@ -100,11 +110,11 @@ export default function InterviewRoomPage() {
     setShowQuestionList(false)
   }
 
-  const endInterview = () => {
+  const endInterview = async () => {
     timer.pause()
     voice.stopListening()
     voice.stopSpeaking()
-    navigate(ROUTES.INTERVIEW_COMPLETE)
+    await finalizeSession()
   }
 
   return (
