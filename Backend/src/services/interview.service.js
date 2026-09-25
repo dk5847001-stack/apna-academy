@@ -1,5 +1,5 @@
 import InterviewSession from "../models/InterviewSession.js";
-import { buildFinalReport, evaluateAnswer, generateOpeningQuestions } from "./nvidiaInterview.service.js";
+import { buildFinalReport, evaluateAnswer, generateOpeningQuestions } from "./groqInterview.service.js";
 
 const allowedTypes = new Set(["technical", "dsa", "behavioral"]);
 const allowedDifficulties = new Set(["easy", "medium", "hard"]);
