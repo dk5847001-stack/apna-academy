@@ -11,7 +11,7 @@ const getUserId = (req) => req.user?.userId;
 
 export const getAIConversations = async (req, res, next) => {
   try {
-    const data = await listConversations({ userId: getUserId(req), limit: req.query.limit });
+    const data = await listConversations({ userId: getUserId(req), limit: req.query.limit, courseId: req.query.courseId });
     return res.status(200).json({ success: true, data });
   } catch (error) { return next(error); }
 };
