@@ -74,12 +74,13 @@ const getScopedContext = async ({ userId, courseId, moduleId = null, videoId = n
   return { entitlement, context: buildRagContext(chunks) };
 };
 
-const run = async ({ prompt, context, maxTokens = 1024, temperature = 0.2 }) => {
+const run = async ({ prompt, context, maxTokens = 1024, temperature = 0.2, metadata = {} }) => {
   const result = await askAI({
     messages: [{ role: "user", content: prompt }],
     maxTokens,
     temperature,
     ragContext: context,
+    metadata,
   });
   const text = String(result.text || "").trim();
   if (!text) fail(502, "AI_EMPTY_PROVIDER_RESPONSE", "The AI returned an empty response.");
@@ -112,6 +113,7 @@ export const explainCourseTopic = async ({ userId, courseId, moduleId, videoId, 
   return run({
     context,
     maxTokens: 1200,
+    metadata: { userId, courseId, feature: "explain", audience: "user" },
     prompt:
       "Teach this topic to a student using only the authorized course context as the primary source. Level: " + level + ".\n\nTopic: " + cleanTopic + "\n\nGive: 1) simple explanation, 2) key idea, 3) concrete example, 4) common mistake, 5) one short practice task. If the context does not contain enough information, clearly say what is missing instead of inventing course-specific facts.",
   });
@@ -126,6 +128,7 @@ export const summarizeCourseLesson = async ({ userId, courseId, moduleId, videoI
   return run({
     context,
     maxTokens: 1000,
+    metadata: { userId, courseId, feature: "summarize", audience: "user" },
     prompt:
       "Summarize the authorized lesson material for the student. Do not add facts that are not supported by the provided course context. Use headings: Overview, Key Concepts, Important Details, Example/Pattern, Revision Checklist.",
   });
@@ -140,6 +143,7 @@ export const generatePracticeQuiz = async ({ userId, courseId, moduleId, videoId
     context,
     maxTokens: 1800,
     temperature: 0.15,
+    metadata: { userId, courseId, feature: "quiz", audience: "user" },
     prompt:
       "Generate exactly " + safeCount + " multiple-choice practice questions from the authorized course context. Difficulty: " + difficulty + ". Return ONLY valid JSON, no markdown, using this schema: {\"questions\":[{\"question\":\"string\",\"options\":[\"string\",\"string\",\"string\",\"string\"],\"correctOptionIndex\":0,\"explanation\":\"string\"}]}. Each question must have exactly 4 options, one correct answer, and a short explanation. Do not use information outside the supplied course context.",
   });
@@ -185,6 +189,7 @@ export const createStudyPlan = async ({ userId, courseId, goals, days = 7, daily
   return run({
     context,
     maxTokens: 1800,
+    metadata: { userId, courseId, feature: "study-plan", audience: "user" },
     prompt:
       "Create a realistic " + safeDays + "-day study plan using only the currently authorized course material. Daily study time: " + safeMinutes + " minutes. Student goals: " + cleanGoals + ". Include day-by-day topics, active practice, revision, and a small checkpoint. Do not schedule locked modules and do not invent course content.",
   });
@@ -201,6 +206,7 @@ export const reviewCode = async ({ userId, courseId, moduleId, videoId, language
     context,
     maxTokens: 1600,
     temperature: 0.15,
+    metadata: { userId, courseId, feature: "code-review", audience: "user" },
     prompt:
       "Review the student's " + language + " code. Do not execute it. Use the authorized course context only for course-specific expectations.\n\nStudent question: " + (question.trim() || "Review this code and help me improve it.") + "\n\nCode:\n" + cleanCode + "\n\nReturn: correctness observations, bugs/edge cases, complexity when applicable, security/reliability concerns when applicable, and concrete improvement suggestions. Do not rewrite the entire solution unless necessary.",
   });
