@@ -469,7 +469,8 @@ function App() {
                           <Typography variant="caption" className="text-slate-400">{selectedCourse.totalModules || 0} modules · {selectedCourse.totalVideos || 0} videos · {selectedCourse.durationDays} days</Typography>
                         </div>
                         <Stack direction="row" spacing={1} flexWrap="wrap">
-                          <Button variant="outlined" startIcon={<AutoAwesome />} onClick={indexCourseAI} disabled={saving || !selectedCourse.isPublished}>Index AI</Button>\n                          <Button variant="outlined" startIcon={<EditOutlined />} onClick={openEditCourse}>Edit</Button>
+                          <Button variant="outlined" startIcon={<AutoAwesome />} onClick={indexCourseAI} disabled={saving || !selectedCourse.isPublished}>Index AI</Button>
+                          <Button variant="outlined" startIcon={<EditOutlined />} onClick={openEditCourse}>Edit</Button>
                           <Button color="error" variant="outlined" startIcon={<DeleteOutline />} onClick={() => confirmDelete("course", selectedCourse)}>Delete</Button>
                         </Stack>
                       </div>
