@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { useInterviewFlow } from '../context/InterviewFlowContext'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
-import { MOCK_RESULT } from '../data/resultData'
 import { interviewApi } from '../services/interviewApi'
 
 export default function InterviewResultPage() {
