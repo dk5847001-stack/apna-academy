@@ -427,3 +427,13 @@ button { font: inherit; }
 
 .voice-answer-btn.active{border-color:#8b64e8!important;background:#f0ebff!important;color:#6438d4!important;box-shadow:0 0 0 3px rgba(105,63,220,.08)}.icon-room-btn.active{background:#efeaff!important;color:#633bd0!important}.voice-live-transcript{display:flex;align-items:flex-start;gap:7px;margin:8px 16px 0;padding:8px 10px;border:1px solid #ddd4ff;border-radius:10px;background:#f7f4ff;color:#6742c9;font-size:8px;line-height:1.45}.voice-live-transcript svg{font-size:15px;flex:none}.voice-live-transcript span{color:#606a80}.voice-error{margin:7px 16px 0;color:#bd5069;font-size:7px;font-weight:700}
 @media(max-width:650px){.voice-live-transcript{font-size:7px}.voice-answer-btn{padding:8px 9px!important}}
+
+
+/* Phase 8 — production error feedback */
+.room-inline-error { max-width: 1180px; margin: 10px auto 0; padding: 10px 14px; display: flex; align-items: center; gap: 9px; border: 1px solid #ffd7d7; border-radius: 12px; background: #fff7f7; color: #a52d3b; font-size: 12px; box-shadow: 0 8px 22px rgba(165,45,59,.06); }
+.room-inline-error svg { flex: 0 0 auto; font-size: 18px; }
+.room-inline-error span { flex: 1; }
+.room-inline-error button { border: 0; background: transparent; color: #7f2632; font-size: 11px; font-weight: 800; cursor: pointer; }
+.result-error { margin: 14px 0; padding: 12px 14px; border: 1px solid #ffd7d7; border-radius: 12px; background: #fff7f7; color: #9e2d3b; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+.result-error svg { font-size: 17px; flex: 0 0 auto; }
+@media (max-width: 720px) { .room-inline-error { margin: 8px 12px 0; font-size: 11px; } }
