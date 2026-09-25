@@ -15,8 +15,17 @@ import {
 const router = Router();
 router.use(authenticate, requireVerifiedAIUser);
 
-const rateLimiter = createAuthenticatedAIRateLimiter(AI_CONFIG);
-const concurrencyLimiter = createAIConcurrencyLimiter(AI_CONFIG);
+const rateLimiter = createAuthenticatedAIRateLimiter({
+  windowMs: AI_CONFIG.authWindowMs,
+  maxRequests: AI_CONFIG.authWindowRequests,
+  dailyWindowMs: AI_CONFIG.authDailyWindowMs,
+  dailyMaxRequests: AI_CONFIG.authDailyRequests,
+});
+
+const concurrencyLimiter = createAIConcurrencyLimiter({
+  maxPerUser: AI_CONFIG.authMaxConcurrentUser,
+  maxPerIp: AI_CONFIG.authMaxConcurrentIp,
+});
 
 router.post("/courses/:courseId/explain", rateLimiter, concurrencyLimiter, explainTopic);
 router.post("/courses/:courseId/summarize", rateLimiter, concurrencyLimiter, summarizeLesson);
