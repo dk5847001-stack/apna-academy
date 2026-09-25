@@ -284,7 +284,21 @@ function App() {
     }
   };
 
-  const indexCourseAI = async () => {\n    if (!selectedCourse?.id) return;\n    try {\n      setSaving(true);\n      setError("");\n      const data = await indexAdminCourseAIKnowledge(selectedCourse.id);\n      setNotice(`AI knowledge indexed: ${data?.chunksIndexed || 0} chunks.`);\n    } catch (err) {\n      setError(getApiErrorMessage(err, "Unable to index course AI knowledge."));\n    } finally {\n      setSaving(false);\n    }\n  };\n\n  const saveVideo = async () => {
+  const indexCourseAI = async () => {
+    if (!selectedCourse?.id) return;
+    try {
+      setSaving(true);
+      setError("");
+      const data = await indexAdminCourseAIKnowledge(selectedCourse.id);
+      setNotice(`AI knowledge indexed: ${data?.chunksIndexed || 0} chunks.`);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Unable to index course AI knowledge."));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveVideo = async () => {
     if (!activeModuleId) return;
     try {
       setSaving(true);
