@@ -1,32 +1,31 @@
 import mongoose from "mongoose";
+import Course from "../models/Course.js";
 import AIConversation from "../models/AIConversation.js";
 import AIMessage from "../models/AIMessage.js";
 import { AI_CONFIG } from "../config/ai.js";
 import { askAI } from "./ai.service.js";
+import { getActiveCoursePurchase } from "./purchase.service.js";
+import { retrieveCourseKnowledge, buildRagContext } from "./ai.rag.service.js";
 
 const MAX_TITLE_LENGTH = 120;
 const MAX_STORED_MESSAGES = 200;
 const MAX_HISTORY_MESSAGES = 20;
 const MAX_STORED_CONTENT_CHARS = 12000;
 
-const isValidObjectId = (value) => mongoose.isValidObjectId(value);
-
-const assertConversationId = (conversationId) => {
-  if (!isValidObjectId(conversationId)) {
-    const error = new Error("Invalid conversation id.");
+const assertObjectId = (value, name = "id") => {
+  if (!mongoose.isValidObjectId(value)) {
+    const error = new Error(`Invalid ${name}.`);
     error.statusCode = 400;
-    error.code = "AI_INVALID_CONVERSATION_ID";
+    error.code = "AI_RAG_INVALID_ID";
     throw error;
   }
 };
 
-const normalizeTitle = (value) => {
-  const title = String(value || "").replace(/\s+/g, " ").trim();
-  return title.slice(0, MAX_TITLE_LENGTH) || "New AI chat";
-};
+const normalizeTitle = (value) =>
+  String(value || "").replace(/\s+/g, " ").trim().slice(0, MAX_TITLE_LENGTH) || "New AI chat";
 
 const assertUserId = (userId) => {
-  if (!isValidObjectId(userId)) {
+  if (!mongoose.isValidObjectId(userId)) {
     const error = new Error("Authenticated user is required.");
     error.statusCode = 401;
     error.code = "AI_AUTHENTICATION_REQUIRED";
@@ -36,7 +35,7 @@ const assertUserId = (userId) => {
 
 const getOwnedConversation = async (userId, conversationId, { includeArchived = false } = {}) => {
   assertUserId(userId);
-  assertConversationId(conversationId);
+  assertObjectId(conversationId, "conversation id");
 
   const filter = { _id: conversationId, user: userId };
   if (!includeArchived) filter.archivedAt = null;
@@ -52,22 +51,65 @@ const getOwnedConversation = async (userId, conversationId, { includeArchived = 
   return conversation;
 };
 
-export const listConversations = async ({ userId, limit = 30 }) => {
+export const listConversations = async ({ userId, limit = 30, courseId = null }) => {
   assertUserId(userId);
-  const safeLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 30, 1), 50);
 
-  return AIConversation.find({ user: userId, archivedAt: null })
+  const safeLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 30, 1), 50);
+  const filter = { user: userId, archivedAt: null };
+
+  if (courseId) {
+    assertObjectId(courseId, "course id");
+    const purchase = await getActiveCoursePurchase(userId, courseId);
+    if (!purchase) {
+      const error = new Error("Course access is required.");
+      error.statusCode = 403;
+      error.code = "AI_COURSE_ACCESS_REQUIRED";
+      throw error;
+    }
+    filter.course = courseId;
+  }
+
+  return AIConversation.find(filter)
     .sort({ updatedAt: -1 })
     .limit(safeLimit)
-    .select("_id title messageCount lastMessageAt createdAt updatedAt")
+    .select("_id course title messageCount lastMessageAt createdAt updatedAt")
     .lean();
 };
 
-export const createConversation = async ({ userId, title }) => {
+export const createConversation = async ({ userId, title, courseId = null }) => {
   assertUserId(userId);
+
+  let course = null;
+
+  if (courseId) {
+    assertObjectId(courseId, "course id");
+
+    course = await Course.findOne({
+      _id: courseId,
+      isPublished: true,
+    }).lean();
+
+    if (!course) {
+      const error = new Error("Course not found.");
+      error.statusCode = 404;
+      error.code = "AI_RAG_COURSE_NOT_FOUND";
+      throw error;
+    }
+
+    const purchase = await getActiveCoursePurchase(userId, course._id);
+    if (!purchase) {
+      const error = new Error(
+        "Purchase this course to use course-specific AI knowledge."
+      );
+      error.statusCode = 403;
+      error.code = "AI_COURSE_ACCESS_REQUIRED";
+      throw error;
+    }
+  }
 
   return AIConversation.create({
     user: userId,
+    course: course?._id || null,
     title: normalizeTitle(title),
   });
 };
@@ -138,6 +180,28 @@ export const addMessageAndGenerateReply = async ({
   const conversation = await getOwnedConversation(userId, conversationId);
   const userContent = validateUserMessage(content);
 
+  let ragContext = "";
+
+  if (conversation.course) {
+    const purchase = await getActiveCoursePurchase(userId, conversation.course);
+
+    if (!purchase) {
+      const error = new Error(
+        "Your access to this course has ended. Course-specific AI knowledge is unavailable."
+      );
+      error.statusCode = 403;
+      error.code = "AI_COURSE_ACCESS_REVOKED";
+      throw error;
+    }
+
+    const chunks = await retrieveCourseKnowledge({
+      courseId: conversation.course,
+      query: userContent,
+    });
+
+    ragContext = buildRagContext(chunks);
+  }
+
   const currentCount = await AIMessage.countDocuments({
     conversation: conversation._id,
     user: userId,
@@ -166,10 +230,6 @@ export const addMessageAndGenerateReply = async ({
     content: messageContent,
   }));
 
-  /*
-   * Reserve two sequence slots atomically. This prevents two concurrent
-   * requests from selecting the same sequence number for one conversation.
-   */
   const reserved = await AIConversation.findOneAndUpdate(
     {
       _id: conversation._id,
@@ -206,6 +266,7 @@ export const addMessageAndGenerateReply = async ({
       messages: [...history, { role: "user", content: userContent }],
       maxTokens,
       temperature,
+      ragContext,
     });
 
     const assistantContent = String(result.text || "")
@@ -246,7 +307,7 @@ export const addMessageAndGenerateReply = async ({
       },
       { new: true }
     )
-      .select("_id title messageCount lastMessageAt createdAt updatedAt")
+      .select("_id course title messageCount lastMessageAt createdAt updatedAt")
       .lean();
 
     if (!updated) {
