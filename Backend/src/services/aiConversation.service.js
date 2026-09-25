@@ -4,7 +4,10 @@ import AIConversation from "../models/AIConversation.js";
 import AIMessage from "../models/AIMessage.js";
 import { AI_CONFIG } from "../config/ai.js";
 import { askAI } from "./ai.service.js";
-import { getActiveCoursePurchase } from "./purchase.service.js";
+import {
+  requireCourseAIEntitlement,
+  requireConversationCourseAIEntitlement,
+} from "./aiCourseAuthorization.service.js";
 import { retrieveCourseKnowledge, buildRagContext } from "./ai.rag.service.js";
 
 const MAX_TITLE_LENGTH = 120;
@@ -22,7 +25,10 @@ const assertObjectId = (value, name = "id") => {
 };
 
 const normalizeTitle = (value) =>
-  String(value || "").replace(/\s+/g, " ").trim().slice(0, MAX_TITLE_LENGTH) || "New AI chat";
+  String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, MAX_TITLE_LENGTH) || "New AI chat";
 
 const assertUserId = (userId) => {
   if (!mongoose.isValidObjectId(userId)) {
@@ -33,7 +39,11 @@ const assertUserId = (userId) => {
   }
 };
 
-const getOwnedConversation = async (userId, conversationId, { includeArchived = false } = {}) => {
+const getOwnedConversation = async (
+  userId,
+  conversationId,
+  { includeArchived = false } = {}
+) => {
   assertUserId(userId);
   assertObjectId(conversationId, "conversation id");
 
@@ -51,21 +61,22 @@ const getOwnedConversation = async (userId, conversationId, { includeArchived = 
   return conversation;
 };
 
-export const listConversations = async ({ userId, limit = 30, courseId = null }) => {
+export const listConversations = async ({
+  userId,
+  limit = 30,
+  courseId = null,
+}) => {
   assertUserId(userId);
 
-  const safeLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 30, 1), 50);
+  const safeLimit = Math.min(
+    Math.max(Number.parseInt(limit, 10) || 30, 1),
+    50
+  );
   const filter = { user: userId, archivedAt: null };
 
   if (courseId) {
     assertObjectId(courseId, "course id");
-    const purchase = await getActiveCoursePurchase(userId, courseId);
-    if (!purchase) {
-      const error = new Error("Course access is required.");
-      error.statusCode = 403;
-      error.code = "AI_COURSE_ACCESS_REQUIRED";
-      throw error;
-    }
+    await requireCourseAIEntitlement(userId, courseId);
     filter.course = courseId;
   }
 
@@ -76,7 +87,11 @@ export const listConversations = async ({ userId, limit = 30, courseId = null })
     .lean();
 };
 
-export const createConversation = async ({ userId, title, courseId = null }) => {
+export const createConversation = async ({
+  userId,
+  title,
+  courseId = null,
+}) => {
   assertUserId(userId);
 
   let course = null;
@@ -87,22 +102,23 @@ export const createConversation = async ({ userId, title, courseId = null }) => 
     course = await Course.findOne({
       _id: courseId,
       isPublished: true,
-    }).lean();
+    })
+      .select("_id title")
+      .lean();
 
     if (!course) {
-      const error = new Error("Course not found.");
+      const error = new Error("Published course not found.");
       error.statusCode = 404;
-      error.code = "AI_RAG_COURSE_NOT_FOUND";
+      error.code = "AI_COURSE_NOT_FOUND";
       throw error;
     }
 
-    const purchase = await getActiveCoursePurchase(userId, course._id);
-    if (!purchase) {
-      const error = new Error(
-        "Purchase this course to use course-specific AI knowledge."
-      );
-      error.statusCode = 403;
-      error.code = "AI_COURSE_ACCESS_REQUIRED";
+    await requireCourseAIEntitlement(userId, course._id);
+
+    if (!AI_CONFIG.ragEnabled) {
+      const error = new Error("Course-specific AI is currently unavailable.");
+      error.statusCode = 503;
+      error.code = "AI_RAG_DISABLED";
       throw error;
     }
   }
@@ -120,6 +136,11 @@ export const getConversationMessages = async ({
   limit = MAX_STORED_MESSAGES,
 }) => {
   const conversation = await getOwnedConversation(userId, conversationId);
+
+  // A course conversation contains private learning material. Re-check the
+  // entitlement before returning its history, not only before generating AI.
+  await requireConversationCourseAIEntitlement(userId, conversation);
+
   const safeLimit = Math.min(
     Math.max(Number.parseInt(limit, 10) || MAX_STORED_MESSAGES, 1),
     MAX_STORED_MESSAGES
@@ -134,7 +155,15 @@ export const getConversationMessages = async ({
     .lean();
 
   return {
-    conversation: conversation.toObject(),
+    conversation: {
+      _id: conversation._id,
+      course: conversation.course,
+      title: conversation.title,
+      messageCount: conversation.messageCount,
+      lastMessageAt: conversation.lastMessageAt,
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
+    },
     messages: messages.reverse(),
   };
 };
@@ -159,7 +188,11 @@ const validateUserMessage = (content) => {
   return value;
 };
 
-const rollbackReservedMessages = async (conversationId, userId, reservedCount) => {
+const rollbackReservedMessages = async (
+  conversationId,
+  userId,
+  reservedCount
+) => {
   await AIConversation.updateOne(
     {
       _id: conversationId,
@@ -183,21 +216,32 @@ export const addMessageAndGenerateReply = async ({
   let ragContext = "";
 
   if (conversation.course) {
-    const purchase = await getActiveCoursePurchase(userId, conversation.course);
+    const entitlement = await requireCourseAIEntitlement(
+      userId,
+      conversation.course
+    );
 
-    if (!purchase) {
-      const error = new Error(
-        "Your access to this course has ended. Course-specific AI knowledge is unavailable."
-      );
-      error.statusCode = 403;
-      error.code = "AI_COURSE_ACCESS_REVOKED";
+    if (!AI_CONFIG.ragEnabled) {
+      const error = new Error("Course-specific AI is currently unavailable.");
+      error.statusCode = 503;
+      error.code = "AI_RAG_DISABLED";
       throw error;
     }
 
     const chunks = await retrieveCourseKnowledge({
       courseId: conversation.course,
       query: userContent,
+      allowedModuleIds: entitlement.unlockedModuleIds,
     });
+
+    if (!chunks.length) {
+      const error = new Error(
+        "No authorized course knowledge is currently available for this question."
+      );
+      error.statusCode = 503;
+      error.code = "AI_COURSE_KNOWLEDGE_NOT_AVAILABLE";
+      throw error;
+    }
 
     ragContext = buildRagContext(chunks);
   }
@@ -344,11 +388,25 @@ export const addMessageAndGenerateReply = async ({
   }
 };
 
-export const renameConversation = async ({ userId, conversationId, title }) => {
+export const renameConversation = async ({
+  userId,
+  conversationId,
+  title,
+}) => {
   const conversation = await getOwnedConversation(userId, conversationId);
+  await requireConversationCourseAIEntitlement(userId, conversation);
   conversation.title = normalizeTitle(title);
   await conversation.save();
-  return conversation;
+
+  return {
+    _id: conversation._id,
+    course: conversation.course,
+    title: conversation.title,
+    messageCount: conversation.messageCount,
+    lastMessageAt: conversation.lastMessageAt,
+    createdAt: conversation.createdAt,
+    updatedAt: conversation.updatedAt,
+  };
 };
 
 export const archiveConversation = async ({ userId, conversationId }) => {

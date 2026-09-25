@@ -282,11 +282,15 @@ const dotProduct = (a, b) => {
   return score;
 };
 
-const vectorSearch = async (courseId, queryVector) => {
+const vectorSearch = async (courseId, queryVector, allowedModuleIds = []) => {
   const limit = AI_CONFIG.ragTopK;
   const candidates = Math.min(10000, Math.max(limit * 20, 100));
+  const allowedModules = [
+    null,
+    ...allowedModuleIds.map((id) => new mongoose.Types.ObjectId(id)),
+  ];
 
-  const rows = await AIKnowledgeChunk.aggregate([
+  return AIKnowledgeChunk.aggregate([
     {
       $vectorSearch: {
         index: AI_CONFIG.ragVectorIndexName,
@@ -294,40 +298,62 @@ const vectorSearch = async (courseId, queryVector) => {
         queryVector,
         numCandidates: candidates,
         limit,
-        filter: { course: new mongoose.Types.ObjectId(courseId) },
+        filter: {
+          $and: [
+            { course: new mongoose.Types.ObjectId(courseId) },
+            { module: { $in: allowedModules } },
+          ],
+        },
       },
     },
-    { $project: { text: 1, sourceType: 1, sourceTitle: 1, sourceUrl: 1, page: 1, module: 1, video: 1, score: { $meta: "vectorSearchScore" } } },
+    {
+      $project: {
+        text: 1,
+        sourceType: 1,
+        sourceTitle: 1,
+        sourceUrl: 1,
+        page: 1,
+        module: 1,
+        video: 1,
+        score: { $meta: "vectorSearchScore" },
+      },
+    },
   ]);
-
-  return rows;
 };
 
-export const retrieveCourseKnowledge = async ({ courseId, query }) => {
+export const retrieveCourseKnowledge = async ({
+  courseId,
+  query,
+  allowedModuleIds = [],
+}) => {
   assertObjectId(courseId, "course id");
   const normalizedQuery = normalizeText(query);
   if (!normalizedQuery) return [];
+
   const queryVector = (await generateEmbeddings([normalizedQuery], "query"))[0];
 
   if (AI_CONFIG.ragUseVectorSearch) {
     try {
-      return await vectorSearch(courseId, queryVector);
-    } catch (error) {
-      // Keep the feature usable on small/free MongoDB deployments without
-      // Vector Search enabled. Production can turn this on after the index is ready.
-      if (error?.code !== "AI_RAG_VECTOR_SEARCH_UNAVAILABLE") {
-        // Intentionally fall through to exact cosine retrieval.
-      }
+      return await vectorSearch(courseId, queryVector, allowedModuleIds);
+    } catch {
+      // Fall back to exact retrieval when Atlas Vector Search is unavailable.
+      // The same authorization filter is applied below.
     }
   }
 
-  const chunks = await AIKnowledgeChunk.find({ course: courseId })
+  const chunks = await AIKnowledgeChunk.find({
+    course: courseId,
+    module: { $in: [null, ...allowedModuleIds] },
+  })
     .select("text sourceType sourceTitle sourceUrl page module video embedding")
     .limit(10000)
     .lean();
 
   return chunks
-    .map((chunk) => ({ ...chunk, score: dotProduct(queryVector, chunk.embedding || []) }))
+    .map((chunk) => ({
+      ...chunk,
+      score: dotProduct(queryVector, chunk.embedding || []),
+    }))
     .filter((chunk) => Number.isFinite(chunk.score))
     .sort((a, b) => b.score - a.score)
     .slice(0, AI_CONFIG.ragTopK);
