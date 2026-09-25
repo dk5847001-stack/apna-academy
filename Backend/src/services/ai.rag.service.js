@@ -294,7 +294,7 @@ const vectorSearch = async (courseId, queryVector, allowedModuleIds = []) => {
         queryVector,
         numCandidates: candidates,
         limit,
-        filter: {\n          $and: [\n            { course: new mongoose.Types.ObjectId(courseId) },\n            { module: { $in: [null, ...allowedModuleIds.map((id) => new mongoose.Types.ObjectId(id))] } },\n          ],\n        },
+        filter: { $and: [\n          { course: new mongoose.Types.ObjectId(courseId) },\n          { module: { $in: [null, ...allowedModuleIds.map((id) => new mongoose.Types.ObjectId(id))] } },\n        ] },
       },
     },
     { $project: { text: 1, sourceType: 1, sourceTitle: 1, sourceUrl: 1, page: 1, module: 1, video: 1, score: { $meta: "vectorSearchScore" } } },
