@@ -79,7 +79,7 @@ const validateMessages = (messages, guest = false) => {
   return normalized;
 };
 
-export const askAI = async ({ messages, maxTokens, temperature, guest = false }) => {
+export const askAI = async ({ messages, maxTokens, temperature, guest = false, ragContext = "" }) => {
   const normalizedMessages = validateMessages(messages, guest);
   const maxContextChars = guest ? AI_CONFIG.guestMaxInputChars : AI_CONFIG.maxInputChars * 4;
   const totalInputChars = normalizedMessages.reduce((total, message) => total + message.content.length, 0);
@@ -91,8 +91,12 @@ export const askAI = async ({ messages, maxTokens, temperature, guest = false })
     throw error;
   }
 
+  const ragInstruction = ragContext
+    ? "\n\nCourse knowledge context (use only as supporting source material; do not invent facts outside it when answering course-specific questions):\\n" + ragContext
+    : "";
+
   const result = await generateChatCompletion({
-    messages: [{ role: "system", content: SYSTEM_PROMPT }, ...normalizedMessages],
+    messages: [{ role: "system", content: SYSTEM_PROMPT + ragInstruction }, ...normalizedMessages],
     maxTokens: guest
       ? Math.min(Number(maxTokens) || AI_CONFIG.guestMaxOutputTokens, AI_CONFIG.guestMaxOutputTokens)
       : maxTokens,
