@@ -6,6 +6,28 @@ const cleanupExpired = (now) => {
   }
 };
 
+const peek = (key, limit, windowMs, now) => {
+  const existing = buckets.get(key);
+
+  if (!existing || existing.resetAt <= now) {
+    return { allowed: true, remaining: Math.max(0, limit - 1), retryAfterMs: 0 };
+  }
+
+  if (existing.count >= limit) {
+    return {
+      allowed: false,
+      remaining: 0,
+      retryAfterMs: Math.max(0, existing.resetAt - now),
+    };
+  }
+
+  return {
+    allowed: true,
+    remaining: Math.max(0, limit - existing.count - 1),
+    retryAfterMs: 0,
+  };
+};
+
 const consume = (key, limit, windowMs, now) => {
   const existing = buckets.get(key);
 
@@ -45,9 +67,9 @@ export const createAuthenticatedAIRateLimiter = ({
     const ipKey = `ip:${req.aiClientIp || req.ip || "unknown"}`;
     const dailyKey = `daily:${userKey}`;
 
-    const userWindow = consume(userKey, maxRequests, windowMs, now);
-    const ipWindow = consume(ipKey, maxRequests, windowMs, now);
-    const dailyWindow = consume(dailyKey, dailyMaxRequests, dailyWindowMs, now);
+    const userWindow = peek(userKey, maxRequests, windowMs, now);
+    const ipWindow = peek(ipKey, maxRequests, windowMs, now);
+    const dailyWindow = peek(dailyKey, dailyMaxRequests, dailyWindowMs, now);
 
     const failed = [userWindow, ipWindow, dailyWindow].find((result) => !result.allowed);
 
@@ -62,6 +84,10 @@ export const createAuthenticatedAIRateLimiter = ({
         retryAfterSeconds,
       });
     }
+
+    consume(userKey, maxRequests, windowMs, now);
+    consume(ipKey, maxRequests, windowMs, now);
+    consume(dailyKey, dailyMaxRequests, dailyWindowMs, now);
 
     res.set(
       "X-AI-RateLimit-Remaining",
