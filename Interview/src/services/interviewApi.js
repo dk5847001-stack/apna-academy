@@ -1,5 +1,5 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1").replace(/\/$/, "");
-const DEFAULT_TIMEOUT_MS = 35_000;
+const DEFAULT_TIMEOUT_MS = 150_000;
 
 const request = async (path, options = {}) => {
   const controller = new AbortController();
@@ -44,18 +44,19 @@ const request = async (path, options = {}) => {
 };
 
 export async function createInterview(payload) {
-  return request("/interviews/sessions", { method: "POST", body: JSON.stringify(payload) });
+  return request("/interviews/sessions", { method: "POST", body: JSON.stringify(payload), timeoutMs: 150_000 });
 }
 
 export async function submitInterviewAnswer({ sessionId, questionId, answer }) {
   return request(`/interviews/sessions/${encodeURIComponent(sessionId)}/answers`, {
     method: "POST",
     body: JSON.stringify({ questionId, answer }),
+    timeoutMs: 150_000,
   });
 }
 
 export async function completeInterview(sessionId) {
-  return request(`/interviews/sessions/${encodeURIComponent(sessionId)}/complete`, { method: "POST" });
+  return request(`/interviews/sessions/${encodeURIComponent(sessionId)}/complete`, { method: "POST", timeoutMs: 150_000 });
 }
 
 export async function getInterviewResult(sessionId) {
