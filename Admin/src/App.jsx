@@ -45,6 +45,7 @@ import {
   SchoolOutlined,
   VideoLibraryOutlined,
   PeopleOutline,
+  AutoAwesome,
 } from "@mui/icons-material";
 import {
   createAdminCourse,
@@ -59,6 +60,7 @@ import {
   updateAdminCourse,
   updateAdminModule,
   updateAdminVideo,
+  indexAdminCourseAIKnowledge,
 } from "./services/adminCourse.service";
 import { getApiErrorMessage } from "./services/api";
 import Students from "./pages/Students";
@@ -284,6 +286,20 @@ function App() {
     }
   };
 
+  const indexCourseAI = async () => {
+    if (!selectedCourse?.id) return;
+    try {
+      setSaving(true);
+      setError("");
+      const data = await indexAdminCourseAIKnowledge(selectedCourse.id);
+      setNotice(`AI knowledge indexed: ${data?.chunksIndexed || 0} chunks.`);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Unable to index course AI knowledge."));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const saveVideo = async () => {
     if (!activeModuleId) return;
     try {
@@ -455,6 +471,7 @@ function App() {
                           <Typography variant="caption" className="text-slate-400">{selectedCourse.totalModules || 0} modules · {selectedCourse.totalVideos || 0} videos · {selectedCourse.durationDays} days</Typography>
                         </div>
                         <Stack direction="row" spacing={1} flexWrap="wrap">
+                          <Button variant="outlined" startIcon={<AutoAwesome />} onClick={indexCourseAI} disabled={saving || !selectedCourse.isPublished}>Index AI</Button>
                           <Button variant="outlined" startIcon={<EditOutlined />} onClick={openEditCourse}>Edit</Button>
                           <Button color="error" variant="outlined" startIcon={<DeleteOutline />} onClick={() => confirmDelete("course", selectedCourse)}>Delete</Button>
                         </Stack>

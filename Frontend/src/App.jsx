@@ -5,6 +5,7 @@ import AuthNavbarSync from "./components/AuthNavbarSync";
 import PublicSiteEnhancements from "./components/PublicSiteEnhancements";
 import SeoManager from "./components/SeoManager";
 import AppRoutes from "./routes/AppRoutes";
+import AIAssistant from "./components/AIAssistant";
 
 const BLOG_INACTIVE_CLASSES =
   "rounded-lg px-3.5 py-2 text-sm font-semibold no-underline transition-colors duration-200 text-slate-600 hover:bg-slate-50 hover:text-blue-700";
@@ -284,6 +285,7 @@ function AppContent() {
       <AuthNavbarSync />
       <PublicSiteEnhancements />
       <AppRoutes />
+      <AIAssistant />
     </>
   );
 }

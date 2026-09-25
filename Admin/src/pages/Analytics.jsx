@@ -15,6 +15,7 @@ import {
 } from "@mui/icons-material";
 import { getApiErrorMessage } from "../services/api";
 import { getAdminAnalytics } from "../services/adminAnalytics.service";
+import AIUsagePanel from "../components/AIUsagePanel";
 
 const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 const number = (value) => Number(value || 0).toLocaleString("en-IN");
@@ -215,6 +216,7 @@ export default function Analytics() {
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><div className="mb-5"><h2 className="text-lg font-extrabold text-slate-950">Top Courses</h2><p className="text-xs text-slate-500">Highest paid purchase volume in selected period</p></div><div className="space-y-3">{(data?.topCourses || []).map((course, index) => <div key={course.courseId || course.title} className="flex items-center gap-3 rounded-xl border border-slate-100 p-3"><div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-900 text-xs font-black text-white">#{index + 1}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-slate-800">{course.title}</p><p className="text-xs text-slate-400">{number(course.purchases)} purchases</p></div><span className="shrink-0 text-sm font-black text-emerald-600">{money(course.revenue)}</span></div>)}{!data?.topCourses?.length && <EmptyState text="No paid course data in this period." />}</div></section>
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"><div className="mb-5"><h2 className="text-lg font-extrabold text-slate-950">Recent Purchases</h2><p className="text-xs text-slate-500">Latest transactions in selected period</p></div><div className="overflow-x-auto"><table className="w-full min-w-[600px] text-left text-sm"><thead><tr className="border-b border-slate-100 text-xs uppercase tracking-wider text-slate-400"><th className="pb-3 font-bold">Student</th><th className="pb-3 font-bold">Course</th><th className="pb-3 font-bold">Amount</th><th className="pb-3 font-bold">Date</th></tr></thead><tbody>{(data?.recentPurchases || []).map((purchase) => <tr key={purchase.id} className="border-b border-slate-50 last:border-0"><td className="py-3"><div className="flex items-center gap-2"><Avatar sx={{ width: 30, height: 30, fontSize: 12 }}>{purchase.user?.name?.[0] || "S"}</Avatar><div><p className="font-bold text-slate-700">{purchase.user?.name || "Unknown"}</p><p className="text-[10px] text-slate-400">{purchase.user?.email || "—"}</p></div></div></td><td className="max-w-[180px] truncate py-3 font-medium text-slate-600">{purchase.course?.title || "Unknown course"}</td><td className="py-3 font-black text-slate-800">{money(purchase.amount)}</td><td className="py-3 text-xs text-slate-500">{date(purchase.purchasedAt)}</td></tr>)}</tbody></table>{!data?.recentPurchases?.length && <EmptyState text="No purchases in this period." />}</div></section>
         </div>
+        <AIUsagePanel preset={preset} from={custom.from} to={custom.to} />
       </div>
     </div>
   );
