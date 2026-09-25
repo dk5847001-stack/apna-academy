@@ -9,7 +9,7 @@ export const createInterviewController = asyncHandler(async (req, res) => {
 
 export const submitInterviewAnswerController = asyncHandler(async (req, res) => {
   const session = await submitInterviewAnswer({ userId: req.user.userId, sessionId: req.params.sessionId, questionId: req.body?.questionId, answer: req.body?.answer });
-  return res.status(200).json({ success: true, data: { sessionId: session.session._id, evaluation: session.evaluation, completed: session.completed, result: session.completed ? session.session.result : null } });
+  return res.status(200).json({ success: true, data: { sessionId: session.session._id, evaluation: session.evaluation, completed: session.completed, followUpQuestion: session.followUpQuestion, questions: session.session.questions, result: session.completed ? session.session.result : null } });
 });
 
 export const completeInterviewController = asyncHandler(async (req, res) => {
