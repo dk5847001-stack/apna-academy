@@ -17,7 +17,7 @@ export default function InterviewRoomPage() {
   const { setup, session, setSession } = useInterviewFlow()
   const { navigate } = useRouter()
   const { streamRef, camera, microphone, requestMedia, toggleCamera, toggleMicrophone } = useInterviewMedia()
-  const questions = useMemo(() => buildMockQuestions(setup), [setup])
+  const questions = useMemo(() => session?.questions?.length ? session.questions : buildMockQuestions(setup), [session?.questions, setup])
   const [current, setCurrent] = useState(Number(session?.currentQuestion) || 0)
   const [answer, setAnswer] = useState('')
   const [answers, setAnswers] = useState(session?.answers || [])
@@ -56,27 +56,26 @@ export default function InterviewRoomPage() {
   const isAnswered = answers.some((item) => item.questionId === question?.id && item.answer?.trim())
 
   const saveAnswer = async () => {
-    if (!question || !answer.trim() || submitting) return
+    if (!question || !answer.trim() || submitting) return null
     setSubmitting(true)
-    await interviewApi.submitMockAnswer({ questionId: question.id, answer: answer.trim() })
-    setAnswers((list) => list.filter((item) => item.questionId !== question.id).concat({
-      questionId: question.id,
-      answer: answer.trim(),
-      answeredAt: new Date().toISOString(),
-    }))
-    setAnswer('')
-    setSubmitting(false)
+    try {
+      if (!session?.id || String(session.id).startsWith('mock-')) throw new Error('Your AI session is not available. Please restart the interview.')
+      const data = await interviewApi.submitInterviewAnswer({ sessionId: session.id, questionId: question.id, answer: answer.trim() })
+      const saved = { questionId: question.id, answer: answer.trim(), score: data.evaluation?.score, feedback: data.evaluation?.feedback, answeredAt: new Date().toISOString() }
+      const nextAnswers = answers.filter((item) => item.questionId !== question.id).concat(saved)
+      setAnswers(nextAnswers)
+      setSession((value) => ({ ...(value || {}), answers: nextAnswers, result: data.result || value?.result, status: data.completed ? 'completed' : 'in-progress' }))
+      setAnswer('')
+      return data
+    } finally { setSubmitting(false) }
   }
 
   const nextQuestion = async () => {
-    await saveAnswer()
-    if (current < questions.length - 1) {
-      const next = current + 1
-      setCurrent(next)
-      setAnswer(answers.find((item) => item.questionId === questions[next]?.id)?.answer || '')
-    } else {
-      navigate(ROUTES.INTERVIEW_COMPLETE)
-    }
+    const data = answer.trim() ? await saveAnswer() : null
+    if (data?.completed || current >= questions.length - 1) { navigate(ROUTES.INTERVIEW_COMPLETE); return }
+    const next = current + 1
+    setCurrent(next)
+    setAnswer(answers.find((item) => item.questionId === questions[next]?.id)?.answer || '')
   }
 
   const previousQuestion = () => {
