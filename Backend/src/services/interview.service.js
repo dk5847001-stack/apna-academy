@@ -3,14 +3,18 @@ import { buildFinalReport, evaluateAnswer, generateOpeningQuestions } from "./gr
 
 const allowedTypes = new Set(["technical", "dsa", "behavioral"]);
 const allowedDifficulties = new Set(["easy", "medium", "hard"]);
+const MAX_ROLE_CHARS = Math.max(20, Math.min(120, Number(process.env.INTERVIEW_MAX_ROLE_CHARS || 80)));
+const MAX_EXPERIENCE_CHARS = Math.max(20, Math.min(80, Number(process.env.INTERVIEW_MAX_EXPERIENCE_CHARS || 50)));
+const MAX_QUESTIONS = Math.max(1, Math.min(30, Number(process.env.INTERVIEW_MAX_QUESTIONS || 30)));
+const MAX_FOLLOWUPS = Math.max(0, Math.min(10, Number(process.env.INTERVIEW_MAX_FOLLOWUPS || 5)));
 
 const cleanSetup = (input = {}) => {
-  const role = String(input.role || "").trim().slice(0, 80);
+  const role = String(input.role || "").trim().slice(0, MAX_ROLE_CHARS);
   const interviewType = String(input.interviewType || "technical");
-  const experience = String(input.experience || "fresher").trim().slice(0, 50);
+  const experience = String(input.experience || "fresher").trim().slice(0, MAX_EXPERIENCE_CHARS);
   const difficulty = String(input.difficulty || "medium");
   const durationMinutes = Math.min(180, Math.max(5, Number(input.durationMinutes) || 30));
-  const questionCount = Math.min(30, Math.max(1, Number(input.questionCount) || 10));
+  const questionCount = Math.min(MAX_QUESTIONS, Math.max(1, Number(input.questionCount) || 10));
 
   if (role.length < 2) {
     throw Object.assign(new Error("A valid target role is required."), {
@@ -125,7 +129,7 @@ export async function submitInterviewAnswer({ userId, sessionId, questionId, ans
     !question.isFollowUp &&
     evaluation.followUpQuestion &&
     answeredPlannedCount <= session.setup.questionCount &&
-    existingFollowUpCount < 5
+    existingFollowUpCount < MAX_FOLLOWUPS
   ) {
     const followUpId = `${question.id}-followup`;
     const exists = session.questions.some((item) => item.id === followUpId);
