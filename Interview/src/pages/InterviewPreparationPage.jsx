@@ -5,6 +5,7 @@ import { useInterviewMedia } from '../hooks/useInterviewMedia'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
 import { INTERVIEW_TYPES, EXPERIENCE_LEVELS } from '../data/interviewConfig'
+import { interviewApi } from '../services/interviewApi'
 
 export default function InterviewPreparationPage() {
   const { setup, setSession } = useInterviewFlow()
@@ -12,6 +13,8 @@ export default function InterviewPreparationPage() {
   const { streamRef, camera, microphone, error, requestMedia } = useInterviewMedia()
   const videoRef = useRef(null)
   const [checking, setChecking] = useState(false)
+  const [starting, setStarting] = useState(false)
+  const [startError, setStartError] = useState('')
 
   useEffect(() => {
     if (streamRef.current && videoRef.current) videoRef.current.srcObject = streamRef.current
@@ -24,16 +27,17 @@ export default function InterviewPreparationPage() {
     setChecking(false)
   }
 
-  const start = () => {
-    setSession({
-      id: 'mock-' + Date.now(),
-      status: 'in-progress',
-      startedAt: new Date().toISOString(),
-      setup,
-      answers: [],
-      currentQuestion: 0,
-    })
-    navigate(ROUTES.INTERVIEW_ROOM)
+  const start = async () => {
+    if (starting) return
+    setStarting(true)
+    setStartError('')
+    try {
+      const data = await interviewApi.createInterview(setup)
+      setSession({ id: data.sessionId, status: 'in-progress', startedAt: new Date().toISOString(), setup: data.setup, questions: data.questions, answers: [], currentQuestion: 0 })
+      navigate(ROUTES.INTERVIEW_ROOM)
+    } catch (error) {
+      setStartError(error.message || 'Unable to start the AI interview. Please sign in and try again.')
+    } finally { setStarting(false) }
   }
 
   const type = INTERVIEW_TYPES.find((item) => item.value === setup.interviewType)
@@ -60,6 +64,7 @@ export default function InterviewPreparationPage() {
               <div><span className={microphone === 'granted' ? 'status-dot ready' : 'status-dot'} /><strong>Microphone</strong><small>{microphone === 'granted' ? 'Ready' : 'Not checked'}</small></div>
             </div>
             {error ? <p className="prep-error">{error}</p> : null}
+            {startError ? <p className="prep-error">{startError}</p> : null}
             <button className="device-check-btn" type="button" onClick={checkDevices} disabled={checking}><SettingsRounded /> {checking ? 'Checking devices…' : 'Check camera & microphone'}</button>
           </section>
           <aside className="prep-summary-card">
@@ -72,7 +77,7 @@ export default function InterviewPreparationPage() {
               <span><CheckCircleRounded /> You can pause between questions.</span>
               <span><SecurityRounded /> Your browser controls camera access.</span>
             </div>
-            <button className="gradient-btn prep-start-btn" type="button" onClick={start}><span>Start AI Interview</span><ArrowForwardRounded /></button>
+            <button className="gradient-btn prep-start-btn" type="button" onClick={start} disabled={starting}><span>{starting ? 'Creating AI interview…' : 'Start AI Interview'}</span>{starting ? null : <ArrowForwardRounded />}</button>
             <button className="prep-cancel-btn" type="button" onClick={() => navigate(ROUTES.INTERVIEW_SETUP)}>Edit configuration</button>
           </aside>
         </div>
