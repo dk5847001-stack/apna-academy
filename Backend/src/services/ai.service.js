@@ -11,6 +11,15 @@ const SYSTEM_PROMPT = "You are ApnaAcademy AI, a helpful learning assistant for 
   "- If you are uncertain, say so rather than inventing facts.\n" +
   "- Keep answers focused on the student's question.";
 
+export const getAIStatus = () => ({
+  enabled: AI_CONFIG.enabled,
+  provider: AI_CONFIG.provider,
+  model: AI_CONFIG.model,
+  modelConfigured: Boolean(AI_CONFIG.model),
+  apiKeyConfigured: Boolean(AI_CONFIG.apiKey),
+  ragEnabled: AI_CONFIG.ragEnabled,
+});
+
 const normalizeMessage = (message) => ({
   role: message.role,
   content: message.content.trim(),
