@@ -68,7 +68,8 @@ export async function submitInterviewAnswer({ userId, sessionId, questionId, ans
     return source && !source.isFollowUp;
   }).length;
 
-  if (!question.isFollowUp && evaluation.followUpQuestion && answeredPlannedCount <= session.setup.questionCount) {
+  const existingFollowUpCount = session.questions.filter((item) => item.isFollowUp).length;
+  if (!question.isFollowUp && evaluation.followUpQuestion && answeredPlannedCount <= session.setup.questionCount && existingFollowUpCount < 5) {
     const followUpId = question.id + "-followup";
     const exists = session.questions.some((item) => item.id === followUpId);
     if (!exists) {
