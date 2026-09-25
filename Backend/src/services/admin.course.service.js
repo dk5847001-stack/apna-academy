@@ -311,6 +311,7 @@ export const updateAdminCourse = async (courseId, payload = {}) => {
   course.allAccessPrice = Math.max(Number(course.allAccessPrice) || 0, 0);
   course.durationDays = Math.max(Number(course.durationDays) || 1, 1);
   await course.save();
+  await AIKnowledgeChunk.deleteMany({ course: course._id });
   return getAdminCourse(course._id);
 };
 
