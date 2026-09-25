@@ -25,7 +25,7 @@ Prompt text, retrieved course text, submitted source code, AI responses, API key
 
 Student: GET /api/v1/ai/usage/me?preset=30d
 
-Supported presets: 1d, 7d, 30d, 90d, 180d.
+Supported presets: 1d, 7d, 30d, 90d, 180d, 1y.
 
 Admin: GET /api/v1/admin/ai/usage?preset=30d
 
