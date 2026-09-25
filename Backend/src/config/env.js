@@ -61,6 +61,38 @@ export const validateEnv = () => {
     }
   }
 
+  if (process.env.AI_RAG_ENABLED?.trim().toLowerCase() === "true") {
+    const ragVariables = ["NVIDIA_NIM_API_KEY"];
+    const missingRAGVariables = ragVariables.filter(
+      (variable) => !process.env[variable]?.trim()
+    );
+
+    if (missingRAGVariables.length > 0) {
+      throw new Error(
+        `AI RAG is enabled but these variables are missing: ${missingRAGVariables.join(", ")}`
+      );
+    }
+
+    const embeddingBaseUrl =
+      process.env.NVIDIA_EMBEDDING_API_BASE_URL?.trim() ||
+      process.env.NVIDIA_API_BASE_URL?.trim() ||
+      "https://integrate.api.nvidia.com/v1";
+
+    try {
+      const url = new URL(embeddingBaseUrl);
+      if (url.protocol !== "https:") {
+        throw new Error("NVIDIA_EMBEDDING_API_BASE_URL must use HTTPS");
+      }
+    } catch (error) {
+      if (error instanceof TypeError) {
+        throw new Error(
+          "NVIDIA_EMBEDDING_API_BASE_URL must be a valid HTTPS URL"
+        );
+      }
+      throw error;
+    }
+  }
+
   if (process.env.RAZORPAYX_ENABLED?.trim().toLowerCase() === "true") {
     const razorpayXVariables = [
       "RAZORPAYX_KEY_ID",
