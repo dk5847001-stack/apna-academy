@@ -70,13 +70,19 @@ export async function generateOpeningQuestions(setup) {
   const system = commonRules(setup);
   const user = `Create exactly ${setup.questionCount} interview questions. Cover the selected role and interview type. Vary categories and difficulty. Each question should be answerable verbally in 1-3 minutes. JSON schema: {"questions":[{"id":"q1","category":"...","question":"...","hint":"..."}]}`;
   const parsed = parseJson(await callNvidia({ system, user, maxTokens: Math.min(5000, 500 + setup.questionCount * 260) }));
-  if (!parsed?.questions?.length) throw Object.assign(new Error("AI returned an invalid question set."), { statusCode: 502, code: "NVIDIA_INVALID_RESPONSE" });
-  return parsed.questions.slice(0, setup.questionCount).map((item, index) => ({
+  if (!Array.isArray(parsed?.questions) || parsed.questions.length < setup.questionCount) {
+    throw Object.assign(new Error("AI returned an incomplete question set."), { statusCode: 502, code: "NVIDIA_INVALID_RESPONSE" });
+  }
+  const questions = parsed.questions.slice(0, setup.questionCount).map((item, index) => ({
     id: String(item.id || `q${index + 1}`).slice(0, 80),
     category: String(item.category || "Interview").slice(0, 100),
     question: String(item.question || "").trim().slice(0, 2000),
     hint: String(item.hint || "").trim().slice(0, 500),
   })).filter((item) => item.question);
+  if (questions.length !== setup.questionCount) {
+    throw Object.assign(new Error("AI returned invalid interview questions."), { statusCode: 502, code: "NVIDIA_INVALID_RESPONSE" });
+  }
+  return questions;
 }
 
 export async function evaluateAnswer({ setup, question, answer, previousAnswers = [], questionIndex, totalQuestions }) {
