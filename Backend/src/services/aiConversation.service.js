@@ -7,6 +7,7 @@ import { askAI } from "./ai.service.js";
 const MAX_TITLE_LENGTH = 120;
 const MAX_STORED_MESSAGES = 200;
 const MAX_HISTORY_MESSAGES = 20;
+const MAX_STORED_CONTENT_CHARS = 12000;
 
 const isValidObjectId = (value) => mongoose.isValidObjectId(value);
 
@@ -20,7 +21,7 @@ const assertConversationId = (conversationId) => {
 };
 
 const normalizeTitle = (value) => {
-  const title = String(value || "").replace(/\\s+/g, " ").trim();
+  const title = String(value || "").replace(/\s+/g, " ").trim();
   return title.slice(0, MAX_TITLE_LENGTH) || "New AI chat";
 };
 
@@ -136,7 +137,7 @@ export const addMessageAndGenerateReply = async ({ userId, conversationId, conte
       conversation: conversation._id,
       user: userId,
       role: "assistant",
-      content: result.text,
+      content: String(result.text || "").trim().slice(0, MAX_STORED_CONTENT_CHARS),
       sequence: nextSequence + 1,
       model: result.model || "",
     });
