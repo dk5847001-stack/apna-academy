@@ -2,16 +2,77 @@
 @import "tailwindcss";
 
 :root {
+  --aa-primary: #6d35ff;
+  --aa-primary-dark: #4e20c8;
+  --aa-secondary: #147dff;
+  --aa-success: #16a879;
+  --aa-warning: #f6a127;
+  --aa-danger: #ef476f;
+  --aa-ink: #111a3a;
+  --aa-muted: #66708b;
+  --aa-border: #e8eaf4;
+  --aa-surface: #ffffff;
+  --aa-soft: #f7f8ff;
+  --aa-radius-sm: 10px;
+  --aa-radius-md: 16px;
+  --aa-radius-lg: 24px;
+  --aa-shadow-sm: 0 8px 25px rgba(34, 52, 111, 0.05);
+  --aa-shadow-md: 0 18px 45px rgba(64, 50, 147, 0.12);
+
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-  color: #111a3a;
-  background: #ffffff;
+  color: var(--aa-ink);
+  background: var(--aa-surface);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-html { scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; overflow-x: hidden; }
-button, a { -webkit-tap-highlight-color: transparent; }
-::selection { background: rgba(109,53,255,.18); color: #111a3a; }
+html {
+  scroll-behavior: smooth;
+  background: var(--aa-surface);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+  background: var(--aa-surface);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(109, 53, 255, 0.28);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: rgba(109, 53, 255, 0.18);
+  color: var(--aa-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
