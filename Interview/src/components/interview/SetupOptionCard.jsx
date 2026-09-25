@@ -4,7 +4,7 @@ export default function SetupOptionCard({ selected, value, label, description, i
   return (
     <button
       type="button"
-      className={\`setup-option-card \${selected ? 'selected' : ''} \${compact ? 'compact' : ''}\`}
+      className={`setup-option-card ${selected ? 'selected' : ''} ${compact ? 'compact' : ''}`}
       onClick={() => onClick(value)}
       aria-pressed={selected}
     >
