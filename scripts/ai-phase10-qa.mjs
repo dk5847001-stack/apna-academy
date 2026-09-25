@@ -52,6 +52,8 @@ const concurrency = read("Backend/src/middleware/aiConcurrency.middleware.js");
 const routes = read("Backend/src/routes/index.js");
 const conversation = read("Backend/src/services/aiConversation.service.js");
 const authorization = read("Backend/src/services/aiCourseAuthorization.service.js");
+const learningRoutes = read("Backend/src/routes/aiLearning.routes.js");
+const learningService = read("Backend/src/services/aiLearning.service.js");
 const usage = read("Backend/src/services/aiUsage.service.js");
 const usageModel = read("Backend/src/models/AIUsageEvent.js");
 
@@ -70,6 +72,8 @@ assert(/maxConcurrent/.test(concurrency), "AI concurrency protection must exist.
 assert(/router\.use\("\/ai"/.test(routes) && /router\.use\("\/admin\/ai"/.test(routes), "AI and admin AI routes must be registered.");
 assert(/requireCourseAIEntitlement/.test(conversation), "Conversation operations must re-check course entitlement.");
 assert(/requireCourseAIEntitlement/.test(authorization), "Course AI authorization must be centralized.");
+assert(/maxRequests: AI_CONFIG.authWindowRequests/.test(learningRoutes) && /dailyMaxRequests: AI_CONFIG.authDailyRequests/.test(learningRoutes), "Learning routes must map AI config limits to the rate-limiter contract.");
+assert(/String\(question \|\| \"\"\)\.trim\(\)/.test(learningService), "Code review must normalize non-string question input safely.");
 assert(/aggregate/.test(usage), "AI usage analytics must aggregate persisted events.");
 assert(!/prompt|responseText|rawIp|apiKey/i.test(usageModel), "Usage events must not persist prompt/response/API key/raw IP fields.");
 
