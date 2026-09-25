@@ -3,11 +3,12 @@ import { useRouter } from './Router'
 import { ROUTES, routeMeta } from './routes'
 import HomePage from '../pages/HomePage'
 import RoutePlaceholder from '../pages/RoutePlaceholder'
+import InterviewSetupPage from '../pages/InterviewSetupPage'
 
 const pages = {
   [ROUTES.HOME]: HomePage,
   [ROUTES.LOGIN]: RoutePlaceholder,
-  [ROUTES.INTERVIEW_SETUP]: RoutePlaceholder,
+  [ROUTES.INTERVIEW_SETUP]: InterviewSetupPage,
   [ROUTES.INTERVIEW_PREPARATION]: RoutePlaceholder,
   [ROUTES.INTERVIEW_ROOM]: RoutePlaceholder,
   [ROUTES.INTERVIEW_COMPLETE]: RoutePlaceholder,
