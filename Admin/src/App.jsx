@@ -45,6 +45,7 @@ import {
   SchoolOutlined,
   VideoLibraryOutlined,
   PeopleOutline,
+  AutoAwesome,
 } from "@mui/icons-material";
 import {
   createAdminCourse,
@@ -59,6 +60,7 @@ import {
   updateAdminCourse,
   updateAdminModule,
   updateAdminVideo,
+  indexAdminCourseAIKnowledge,
 } from "./services/adminCourse.service";
 import { getApiErrorMessage } from "./services/api";
 import Students from "./pages/Students";
