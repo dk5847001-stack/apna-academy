@@ -1,0 +1,87 @@
+name: ApnaAcademy AI Production QA
+
+on:
+  pull_request:
+    paths:
+      - "Backend/**"
+      - "Frontend/**"
+      - "Course/**"
+      - "Admin/**"
+      - "scripts/ai-phase10-qa.mjs"
+      - "docs/AI_PHASE_*.md"
+      - ".github/workflows/ai-production-qa.yml"
+  push:
+    branches:
+      - main
+      - "feat/ai-phase-*"
+    paths:
+      - "Backend/**"
+      - "Frontend/**"
+      - "Course/**"
+      - "Admin/**"
+      - "scripts/ai-phase10-qa.mjs"
+      - "docs/AI_PHASE_*.md"
+      - ".github/workflows/ai-production-qa.yml"
+
+jobs:
+  backend-ai-qa:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Backend/package-lock.json
+      - run: npm ci
+      - run: node ../scripts/ai-phase10-qa.mjs
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_SITE_URL: https://apnaacademy.me
+
+  course-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Course
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Course/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  admin-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Admin/package-lock.json
+      - run: npm ci
+      - run: npm run build
