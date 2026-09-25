@@ -61,7 +61,10 @@ export default function CourseAIAssistant({ courseId = "", courseTitle = "" }) {
   useEffect(() => {
     if (!open || !courseId) return;
     loadConversations().then((list) => {
-      if (!conversationId && list[0]?._id) return loadMessages(list[0]._id);
+      if (list[0]?._id) return loadMessages(list[0]._id);
+      setConversationId("");
+      setMessages([]);
+      return null;
     }).catch((requestError) => {
       setError(requestError?.response?.data?.message || "Unable to load course AI.");
     });
