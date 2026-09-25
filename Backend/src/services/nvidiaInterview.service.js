@@ -1,7 +1,7 @@
 const NVIDIA_BASE_URL = process.env.NVIDIA_API_URL || "https://integrate.api.nvidia.com/v1/chat/completions";
-const NVIDIA_URL = NVIDIA_BASE_URL.replace(/\\/$/, "").endsWith("/v1")
-  ? `${NVIDIA_BASE_URL.replace(/\\/$/, "")}/chat/completions`
-  : NVIDIA_BASE_URL.replace(/\\/$/, "");
+const NVIDIA_URL = NVIDIA_BASE_URL.replace(/\/$/, "").endsWith("/v1")
+  ? `${NVIDIA_BASE_URL.replace(/\/$/, "")}/chat/completions`
+  : NVIDIA_BASE_URL.replace(/\/$/, "");
 const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "openai/gpt-oss-20b";
 
 const parseJson = (content) => {
