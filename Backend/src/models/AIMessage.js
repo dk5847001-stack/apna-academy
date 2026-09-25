@@ -23,7 +23,7 @@ const aiMessageSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 6000,
+      maxlength: 12000,
     },
     sequence: {
       type: Number,
