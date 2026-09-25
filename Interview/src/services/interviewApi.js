@@ -1,41 +1,43 @@
-import { DEFAULT_INTERVIEW_SETUP } from '../data/interviewConfig'
-import { MOCK_HISTORY, MOCK_RESULT } from '../data/resultData'
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1").replace(/\/$/, "");
 
-const delay = (ms = 250) => new Promise((resolve) => window.setTimeout(resolve, ms))
-
-export async function createMockInterview(payload = DEFAULT_INTERVIEW_SETUP) {
-  await delay()
-  return {
-    id: `mock-${Date.now()}`,
-    status: 'ready',
-    setup: { ...DEFAULT_INTERVIEW_SETUP, ...payload },
+const request = async (path, options = {}) => {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(payload?.message || "Interview API request failed.");
+    error.status = response.status;
+    error.code = payload?.code;
+    throw error;
   }
+  return payload?.data;
+};
+
+export async function createInterview(payload) {
+  return request("/interviews/sessions", { method: "POST", body: JSON.stringify(payload) });
 }
 
-export async function submitMockAnswer({ questionId, answer }) {
-  await delay(180)
-  return {
-    questionId,
-    answer,
-    status: 'accepted',
-  }
+export async function submitInterviewAnswer({ sessionId, questionId, answer }) {
+  return request(`/interviews/sessions/${encodeURIComponent(sessionId)}/answers`, {
+    method: "POST",
+    body: JSON.stringify({ questionId, answer }),
+  });
 }
 
-export async function getMockInterviewHistory() {
-  await delay()
-  return MOCK_HISTORY
+export async function getInterviewResult(sessionId) {
+  return request(`/interviews/sessions/${encodeURIComponent(sessionId)}/result`);
 }
 
-export async function getMockInterviewResult() {
-  await delay()
-  return {
-    ...MOCK_RESULT,
-  }
+export async function getInterviewHistory() {
+  return request("/interviews/history");
 }
 
 export const interviewApi = {
-  createMockInterview,
-  submitMockAnswer,
-  getMockInterviewResult,
-  getMockInterviewHistory,
-}
+  createInterview,
+  submitInterviewAnswer,
+  getInterviewResult,
+  getInterviewHistory,
+};
