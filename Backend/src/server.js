@@ -49,7 +49,7 @@ const startServer = async () => {
     });
 
     // Bound idle/request lifetime so stalled clients cannot hold connections forever.
-    server.requestTimeout = Number(process.env.REQUEST_TIMEOUT_MS || 150_000);
+    server.requestTimeout = Math.max(150_000, Number(process.env.REQUEST_TIMEOUT_MS || 150_000));
     server.headersTimeout = Number(process.env.HEADERS_TIMEOUT_MS || 35_000);
     server.keepAliveTimeout = Number(process.env.KEEP_ALIVE_TIMEOUT_MS || 5_000);
 
