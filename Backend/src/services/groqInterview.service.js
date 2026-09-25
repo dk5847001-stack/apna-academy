@@ -6,6 +6,10 @@ const INTERVIEW_GROQ_TIMEOUT_MS = Math.max(
   120_000,
   Number(process.env.INTERVIEW_GROQ_TIMEOUT_MS || 120_000)
 );
+const MAX_ANSWER_CHARS = Math.max(
+  1000,
+  Math.min(20000, Number(process.env.INTERVIEW_MAX_ANSWER_CHARS || 10000))
+);
 
 const openingQuestionsSchema = {
   type: "json_schema",
