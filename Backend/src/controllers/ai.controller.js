@@ -3,7 +3,7 @@ import { getNvidiaModels } from "../services/nvidia.service.js";
 
 export const chatWithAI = async (req, res, next) => {
   try {
-    const result = await askAI(req.body || {});
+    const result = await askAI({ ...(req.body || {}), metadata: { userId: req.user?.userId, feature: "chat", audience: "user" } });
     return res.status(200).json({
       success: true,
       message: "AI response generated successfully.",
@@ -16,7 +16,7 @@ export const chatWithAI = async (req, res, next) => {
 
 export const chatWithGuestAI = async (req, res, next) => {
   try {
-    const result = await askAI({ ...(req.body || {}), guest: true });
+    const result = await askAI({ ...(req.body || {}), guest: true, metadata: { feature: "guest-chat", audience: "guest" } });
     return res.status(200).json({
       success: true,
       message: "AI response generated successfully.",

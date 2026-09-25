@@ -158,11 +158,11 @@ const addSourceChunks = (sources, source) => {
   }
 };
 
-const embedInBatches = async (chunks) => {
+const embedInBatches = async (chunks, metadata = {}) => {
   const result = [];
   for (let start = 0; start < chunks.length; start += AI_CONFIG.ragEmbeddingBatchSize) {
     const batch = chunks.slice(start, start + AI_CONFIG.ragEmbeddingBatchSize);
-    const vectors = await generateEmbeddings(batch.map((item) => item.text), "passage");
+    const vectors = await generateEmbeddings(batch.map((item) => item.text), "passage", metadata);
     result.push(...vectors);
   }
   return result;
@@ -250,7 +250,7 @@ export const indexCourseKnowledge = async (courseId) => {
     throw error;
   }
 
-  const vectors = await embedInBatches(sources);
+  const vectors = await embedInBatches(sources, { audience: "admin", courseId });
   const documents = sources.map((source, index) => ({
     ...source,
     chunkIndex: index,
@@ -325,12 +325,13 @@ export const retrieveCourseKnowledge = async ({
   courseId,
   query,
   allowedModuleIds = [],
+  metadata = {},
 }) => {
   assertObjectId(courseId, "course id");
   const normalizedQuery = normalizeText(query);
   if (!normalizedQuery) return [];
 
-  const queryVector = (await generateEmbeddings([normalizedQuery], "query"))[0];
+  const queryVector = (await generateEmbeddings([normalizedQuery], "query", { ...metadata, courseId }))[0];
 
   if (AI_CONFIG.ragUseVectorSearch) {
     try {
