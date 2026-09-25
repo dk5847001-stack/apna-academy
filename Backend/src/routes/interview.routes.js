@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.middleware.js";
-import { createInterviewController, getInterviewHistoryController, getInterviewResultController, submitInterviewAnswerController } from "../controllers/interview.controller.js";
+import { completeInterviewController, createInterviewController, getInterviewHistoryController, getInterviewResultController, submitInterviewAnswerController } from "../controllers/interview.controller.js";
 import { createRateLimiter } from "../middleware/security.middleware.js";
 
 const router = Router();
@@ -14,6 +14,7 @@ router.use(authenticate);
 router.use(interviewAiLimiter);
 router.post("/sessions", createInterviewController);
 router.post("/sessions/:sessionId/answers", submitInterviewAnswerController);
+router.post("/sessions/:sessionId/complete", completeInterviewController);
 router.get("/sessions/:sessionId/result", getInterviewResultController);
 router.get("/history", getInterviewHistoryController);
 
