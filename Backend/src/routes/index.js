@@ -36,6 +36,7 @@ import adminPromoCodeRoutes from "./admin.promoCode.routes.js";
 import referralRoutes from "./referral.routes.js";
 import referralPayoutDestinationRoutes from "./referralPayoutDestination.routes.js";
 import adminReferralPayoutRoutes from "./admin.referralPayout.routes.js";
+import interviewRoutes from "./interview.routes.js";
 
 const router = Router();
 router.get("/", (req, res) => res.status(200).json({ success: true, message: "ApnaAcademy API v1 is working 🚀" }));
@@ -45,6 +46,7 @@ router.use("/payments", paymentRoutes);
 router.use("/promocodes", promoCodeRoutes);
 router.use("/referrals", referralRoutes);
 router.use("/referrals/payout-destination", referralPayoutDestinationRoutes);
+router.use("/interviews", interviewRoutes);
 router.use("/learning", learningRoutes);
 router.use("/progress", progressRoutes);
 router.use("/videos", videoRoutes);
