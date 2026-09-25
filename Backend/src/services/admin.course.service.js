@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Course from "../models/Course.js";
 import Module from "../models/Module.js";
 import Video from "../models/Video.js";
+import AIKnowledgeChunk from "../models/AIKnowledgeChunk.js";
 
 const ADMIN_COURSE_LIST_PROJECTION = [
   "title",
@@ -326,6 +327,7 @@ export const deleteAdminCourse = async (courseId) => {
     Video.deleteMany({ course: courseId }),
     Module.deleteMany({ course: courseId }),
     Course.deleteOne({ _id: courseId }),
+    AIKnowledgeChunk.deleteMany({ course: courseId }),
   ]);
 
   return { id: courseId };
@@ -390,6 +392,7 @@ export const deleteAdminModule = async (moduleId) => {
   await Promise.all([
     Video.deleteMany({ module: moduleId }),
     Module.deleteOne({ _id: moduleId }),
+    AIKnowledgeChunk.deleteMany({ course: module.course, module: moduleId }),
   ]);
   await recalculateCourseTotals(module.course);
   return { courseId: module.course, id: moduleId };
@@ -482,6 +485,7 @@ export const deleteAdminVideo = async (videoId) => {
   }
 
   await Video.deleteOne({ _id: videoId });
+  await AIKnowledgeChunk.deleteMany({ course: video.course, video: videoId });
   await Promise.all([recalculateModuleTotal(video.module), recalculateCourseTotals(video.course)]);
   return { courseId: video.course, moduleId: video.module, id: videoId };
 };
