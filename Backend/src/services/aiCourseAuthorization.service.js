@@ -43,6 +43,7 @@ export const getCourseAIEntitlement = async (userId, courseId) => {
       purchase: null,
       unlockedModuleIds: [],
       unlockedModuleOrders: [],
+      publishedModuleCount: 0,
     };
   }
 
@@ -81,6 +82,7 @@ export const getCourseAIEntitlement = async (userId, courseId) => {
     purchase,
     unlockedModuleIds,
     unlockedModuleOrders,
+    publishedModuleCount: modules.length,
   };
 };
 
