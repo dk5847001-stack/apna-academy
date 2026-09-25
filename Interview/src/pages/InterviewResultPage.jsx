@@ -27,7 +27,17 @@ export default function InterviewResultPage() {
     return () => { active = false }
   }, [session?.id])
 
-  const result = report || MOCK_RESULT
+  const result = report || {
+    overallScore: 0,
+    technical: 0,
+    communication: 0,
+    confidence: 0,
+    problemSolving: 0,
+    strengths: [],
+    improvements: [],
+    recommendations: [],
+    summary: '',
+  }
   const role = setup.role || 'Software Engineer'
   const metrics = result.metrics || [
     { key: 'technical', label: 'Technical Knowledge', score: result.technical ?? result.overallScore, note: 'Technical reasoning and role fundamentals.' },
@@ -46,7 +56,8 @@ export default function InterviewResultPage() {
         <div className="result-actions"><button className="result-secondary" onClick={() => navigate(ROUTES.INTERVIEW_SETUP)}><ReplayRounded /> Practice again</button><button className="gradient-btn" onClick={() => navigate(ROUTES.HISTORY)}>View history <ArrowForwardRounded /></button></div>
       </header>
       {loading ? <div className="result-loading">Generating your AI performance report…</div> : null}
-      {error ? <div className="result-error">{error}</div> : null}
+      {error ? <div className="result-error" role="alert"><WarningAmberRounded /> {error}</div> : null}
+      {!loading && !report && !error ? <div className="result-error" role="status"><WarningAmberRounded /> This session does not have a generated report yet. Return to the interview and complete at least one answer.</div> : null}
       <section className="result-overview">
         <div className="score-card"><span className="score-label">OVERALL SCORE</span><div className="score-ring" style={{ background: `conic-gradient(#7040eb ${result.overallScore}%, #e8eaf4 0)` }}><div><strong>{result.overallScore}</strong><small>/100</small></div></div><div className="score-grade"><EmojiEventsRounded /> {result.overallScore >= 85 ? 'Excellent' : result.overallScore >= 70 ? 'Strong' : 'Developing'} performance</div><p>AI-generated score from this interview session</p></div>
         <div className="result-metrics"><div className="metrics-head"><div><span>Performance breakdown</span><small>AI-generated estimates based on your answers</small></div><InsightsRounded /></div>{metrics.map((metric) => <div className="metric-row" key={metric.key}><div className="metric-title"><strong>{metric.label}</strong><span>{metric.score}%</span></div><div className="metric-track"><i style={{ width: metric.score + '%' }} /></div><small>{metric.note}</small></div>)}</div>
