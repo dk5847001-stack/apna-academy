@@ -14,7 +14,6 @@ import {
   MicNoneRounded,
   PlayArrowRounded,
   PsychologyRounded,
-  RocketLaunchRounded,
   SchoolRounded,
   StarRounded,
   TrackChangesRounded,
