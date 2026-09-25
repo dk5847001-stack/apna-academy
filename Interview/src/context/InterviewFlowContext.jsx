@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { DEFAULT_INTERVIEW_SETUP } from '../data/interviewConfig'
 import { readSession, writeSession } from '../utils/storage'
 
@@ -8,30 +8,30 @@ export function InterviewFlowProvider({ children }) {
   const [setup, setSetupState] = useState(() => readSession('setup', DEFAULT_INTERVIEW_SETUP))
   const [session, setSessionState] = useState(() => readSession('session', null))
 
-  const setSetup = (next) => {
+  const setSetup = useCallback((next) => {
     setSetupState((current) => {
       const value = typeof next === 'function' ? next(current) : { ...current, ...next }
       writeSession('setup', value)
       return value
     })
-  }
+  }, [])
 
-  const setSession = (next) => {
+  const setSession = useCallback((next) => {
     setSessionState((current) => {
       const value = typeof next === 'function' ? next(current) : next
       writeSession('session', value)
       return value
     })
-  }
+  }, [])
 
-  const resetInterview = () => {
+  const resetInterview = useCallback(() => {
     setSessionState(null)
     writeSession('session', null)
-  }
+  }, [])
 
   const value = useMemo(
     () => ({ setup, setSetup, session, setSession, resetInterview }),
-    [setup, session],
+    [setup, session, setSetup, setSession, resetInterview],
   )
 
   return <InterviewFlowContext.Provider value={value}>{children}</InterviewFlowContext.Provider>
