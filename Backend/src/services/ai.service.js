@@ -23,7 +23,30 @@ const validateMessages = (messages) => {
     throw error;
   }
 
-  const normalized = messages.map(normalizeMessage);
+  if (messages.length > 20) {
+    const error = new Error("A maximum of 20 conversation messages is supported.");
+    error.statusCode = 413;
+    error.code = "AI_TOO_MANY_MESSAGES";
+    throw error;
+  }
+
+  const normalized = messages.map((message) => {
+    if (!message || typeof message !== "object") {
+      const error = new Error("Each message must be an object.");
+      error.statusCode = 400;
+      error.code = "AI_INVALID_MESSAGE";
+      throw error;
+    }
+
+    if (typeof message.content !== "string") {
+      const error = new Error("Each message content must be a string.");
+      error.statusCode = 400;
+      error.code = "AI_INVALID_MESSAGE_CONTENT";
+      throw error;
+    }
+
+    return normalizeMessage(message);
+  });
 
   for (const message of normalized) {
     if (!["user", "assistant"].includes(message.role)) {
