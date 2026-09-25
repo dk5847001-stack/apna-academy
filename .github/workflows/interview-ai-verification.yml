@@ -1,0 +1,51 @@
+name: Interview AI Verification
+
+on:
+  pull_request:
+    paths:
+      - "Backend/src/services/groqInterview.service.js"
+      - "Backend/src/services/interview.service.js"
+      - "Backend/src/controllers/interview.controller.js"
+      - "Backend/src/middleware/security.middleware.js"
+      - "Backend/.env.example"
+      - ".github/workflows/interview-ai-verification.yml"
+  push:
+    branches:
+      - "feature/interview-groq-ai-phase-4"
+
+jobs:
+  syntax-and-install:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: Backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Interview AI JavaScript syntax
+        run: |
+          node --check src/services/groqInterview.service.js
+          node --check src/services/interview.service.js
+          node --check src/controllers/interview.controller.js
+          node --check src/middleware/security.middleware.js
+
+      - name: Validate Interview environment template
+        run: |
+          test -n "INTERVIEW_GROQ_API_URL"
+          grep -q "^INTERVIEW_GROQ_MODEL=" .env.example
+          grep -q "^INTERVIEW_GROQ_TIMEOUT_MS=" .env.example
+          grep -q "^INTERVIEW_MAX_ANSWER_CHARS=" .env.example
+          grep -q "^INTERVIEW_MAX_QUESTIONS=" .env.example
+          grep -q "^INTERVIEW_MAX_FOLLOWUPS=" .env.example
