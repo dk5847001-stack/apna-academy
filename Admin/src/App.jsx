@@ -284,7 +284,7 @@ function App() {
     }
   };
 
-  const saveVideo = async () => {
+  const indexCourseAI = async () => {\n    if (!selectedCourse?.id) return;\n    try {\n      setSaving(true);\n      setError("");\n      const data = await indexAdminCourseAIKnowledge(selectedCourse.id);\n      setNotice(`AI knowledge indexed: ${data?.chunksIndexed || 0} chunks.`);\n    } catch (err) {\n      setError(getApiErrorMessage(err, "Unable to index course AI knowledge."));\n    } finally {\n      setSaving(false);\n    }\n  };\n\n  const saveVideo = async () => {
     if (!activeModuleId) return;
     try {
       setSaving(true);
@@ -455,7 +455,7 @@ function App() {
                           <Typography variant="caption" className="text-slate-400">{selectedCourse.totalModules || 0} modules · {selectedCourse.totalVideos || 0} videos · {selectedCourse.durationDays} days</Typography>
                         </div>
                         <Stack direction="row" spacing={1} flexWrap="wrap">
-                          <Button variant="outlined" startIcon={<EditOutlined />} onClick={openEditCourse}>Edit</Button>
+                          <Button variant="outlined" startIcon={<AutoAwesome />} onClick={indexCourseAI} disabled={saving || !selectedCourse.isPublished}>Index AI</Button>\n                          <Button variant="outlined" startIcon={<EditOutlined />} onClick={openEditCourse}>Edit</Button>
                           <Button color="error" variant="outlined" startIcon={<DeleteOutline />} onClick={() => confirmDelete("course", selectedCourse)}>Delete</Button>
                         </Stack>
                       </div>
