@@ -27,6 +27,8 @@ const interviewSessionSchema = new mongoose.Schema({
     category: { type: String, required: true, maxlength: 100 },
     question: { type: String, required: true, maxlength: 2000 },
     hint: { type: String, maxlength: 500, default: "" },
+    isFollowUp: { type: Boolean, default: false },
+    parentQuestionId: { type: String, default: "" },
   }],
   answers: { type: [answerSchema], default: [] },
   status: { type: String, enum: ["active", "completed", "expired"], default: "active", index: true },
