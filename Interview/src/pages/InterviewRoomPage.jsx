@@ -32,6 +32,7 @@ export default function InterviewRoomPage() {
   const finalizingRef = useRef(false)
   const timer = useInterviewTimer(Math.max(60, Number(setup.durationMinutes || 30) * 60), true)
   const voice = useInterviewVoice({ onTranscript: (text) => setAnswer((currentAnswer) => (currentAnswer ? currentAnswer + ' ' : '') + text) })
+  const question = questions[current] || questions[0]
 
   useEffect(() => {
     requestMedia().then((stream) => {
@@ -84,7 +85,6 @@ export default function InterviewRoomPage() {
     setSession((value) => ({ ...(value || {}), currentQuestion: current, answers }))
   }, [current, answers, setSession])
 
-  const question = questions[current] || questions[0]
   const answeredCount = answers.filter((item) => item?.answer?.trim()).length
   const progress = Math.round(((current + 1) / questions.length) * 100)
   const isAnswered = answers.some((item) => item.questionId === question?.id && item.answer?.trim())
