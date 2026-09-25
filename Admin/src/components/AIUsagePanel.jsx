@@ -6,7 +6,7 @@ import { getApiErrorMessage } from "../services/api";
 const number = (value) => Number(value || 0).toLocaleString("en-IN");
 const ms = (value) => Number(value || 0).toFixed(0) + " ms";
 
-export default function AIUsagePanel({ preset = "30d" }) {
+export default function AIUsagePanel({ preset = "30d", from = "", to = "" }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -15,13 +15,13 @@ export default function AIUsagePanel({ preset = "30d" }) {
     try {
       setLoading(true);
       setError("");
-      setData(await getAdminAIUsage({ preset }));
+      setData(await getAdminAIUsage(from && to ? { from, to } : { preset }));
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to load AI usage analytics."));
     } finally {
       setLoading(false);
     }
-  }, [preset]);
+  }, [preset, from, to]);
 
   useEffect(() => { load(); }, [load]);
 
