@@ -201,7 +201,9 @@ export const reviewCode = async ({ userId, courseId, moduleId, videoId, language
   const cleanCode = String(code || "").trim().slice(0, 10000);
   if (!cleanCode) fail(400, "AI_LEARNING_CODE_REQUIRED", "Code is required.");
 
-  const query = question.trim() || "Explain the programming concepts, patterns, and expected implementation relevant to reviewing this code.";
+  const cleanQuestion = String(question || "").trim().slice(0, 2000);
+  const cleanLanguage = String(language || "javascript").trim().slice(0, 50);
+  const query = cleanQuestion || "Explain the programming concepts, patterns, and expected implementation relevant to reviewing this code.";
   const { context } = await getScopedContext({ userId, courseId, moduleId, videoId, query });
 
   return run({
@@ -210,6 +212,6 @@ export const reviewCode = async ({ userId, courseId, moduleId, videoId, language
     temperature: 0.15,
     metadata: { userId, courseId, feature: "code-review", audience: "user" },
     prompt:
-      "Review the student's " + language + " code. Do not execute it. Use the authorized course context only for course-specific expectations.\n\nStudent question: " + (question.trim() || "Review this code and help me improve it.") + "\n\nCode:\n" + cleanCode + "\n\nReturn: correctness observations, bugs/edge cases, complexity when applicable, security/reliability concerns when applicable, and concrete improvement suggestions. Do not rewrite the entire solution unless necessary.",
+      "Review the student's " + cleanLanguage + " code. Do not execute it. Use the authorized course context only for course-specific expectations.\n\nStudent question: " + (cleanQuestion || "Review this code and help me improve it.") + "\n\nCode:\n" + cleanCode + "\n\nReturn: correctness observations, bugs/edge cases, complexity when applicable, security/reliability concerns when applicable, and concrete improvement suggestions. Do not rewrite the entire solution unless necessary.",
   });
 };
