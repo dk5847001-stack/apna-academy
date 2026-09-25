@@ -291,7 +291,7 @@ export default function AIAssistant() {
   return (
     <>
       {open && (
-        <div className="fixed inset-x-3 bottom-20 z-[100] mx-auto flex h-[min(720px,calc(100vh-105px))] w-auto max-w-[430px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl sm:right-6 sm:left-auto sm:w-[430px]">
+        <div className="fixed inset-x-3 bottom-24 z-[1401] mx-auto flex h-[min(720px,calc(100vh-105px))] w-auto max-w-[430px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl sm:right-6 sm:left-auto sm:w-[430px]">
           <div className="flex items-center justify-between bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 px-4 py-4 text-white">
             <div className="min-w-0">
               <div className="font-bold">✦ ApnaAcademy AI</div>
@@ -384,8 +384,9 @@ export default function AIAssistant() {
         </div>
       )}
 
-      <button type="button" onClick={() => setOpen((v) => !v)} className="fixed bottom-4 right-4 z-[99] flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:bg-blue-700" aria-label={open ? "Close ApnaAcademy AI" : "Open ApnaAcademy AI"} aria-expanded={open}>
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-white/10">✦</span><span className="hidden sm:inline">Ask AI</span>
+      <button type="button" onClick={() => setOpen((v) => !v)} className="fixed bottom-6 right-5 z-[1400] flex items-center gap-2 rounded-2xl border border-blue-500/30 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 px-4 py-3 text-sm font-extrabold text-white shadow-[0_14px_36px_rgba(37,99,235,0.32)] ring-4 ring-blue-500/10 transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(37,99,235,0.4)] focus:outline-none focus:ring-4 focus:ring-blue-500/25" aria-label={open ? "Close ApnaAcademy AI" : "Open ApnaAcademy AI"} aria-expanded={open}>
+        <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/15 text-lg shadow-inner">✦</span>
+        <span className="hidden sm:inline">Ask AI</span>
       </button>
     </>
   );
