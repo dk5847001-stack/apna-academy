@@ -7,6 +7,7 @@ const answerSchema = new mongoose.Schema({
   answer: { type: String, required: true, maxlength: 10000 },
   score: { type: Number, min: 0, max: 100, default: null },
   feedback: { type: String, maxlength: 2000, default: "" },
+  spokenResponse: { type: String, maxlength: 450, default: "" },
   strengths: { type: [String], default: [] },
   improvements: { type: [String], default: [] },
   submittedAt: { type: Date, default: Date.now },
