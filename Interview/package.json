@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run seo:generate && npm run seo:validate && vite build",
+    "build": "npm run seo:generate && npm run seo:validate && npm run performance:validate && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
     "seo:generate": "node scripts/generate-seo.mjs",
-    "seo:validate": "node scripts/validate-seo.mjs"
+    "seo:validate": "node scripts/validate-seo.mjs",
+    "performance:validate": "node scripts/validate-performance.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
