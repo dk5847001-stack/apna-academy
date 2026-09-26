@@ -1,0 +1,8 @@
+# ApnaAcademy Interview AI — crawler policy
+# Public SEO content is currently limited to the landing page.
+# Future public interview-question/category URLs can be added without changing this policy.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://interview.apnaacademy.me/sitemap.xml
