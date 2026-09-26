@@ -6,7 +6,7 @@ import { getInterviewQuestionsUrl } from '../src/seo/urlArchitecture.js'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const PUBLIC_DIR = resolve(__dirname, '../public')
-const SITE_ORIGIN = (process.env.VITE_INTERVIEW_URL || 'https://interview.apnaacademy.me').replace(/\\/$/, '')
+const SITE_ORIGIN = (process.env.VITE_INTERVIEW_URL || 'https://interview.apnaacademy.me').replace(/\/$/, '')
 
 const INDEXABLE_PATHS = [
   '/',
