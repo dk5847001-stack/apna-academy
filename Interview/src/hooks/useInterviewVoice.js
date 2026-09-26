@@ -56,7 +56,6 @@ export function useInterviewVoice({
     }
 
     recognition.onend = () => {
-      silenceDetectorRef.current?.stop()
       listeningRef.current = false
       setListening(false)
       setInterimTranscript('')
