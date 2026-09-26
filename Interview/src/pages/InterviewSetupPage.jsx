@@ -13,6 +13,7 @@ import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
 import SetupOptionCard from '../components/interview/SetupOptionCard'
 import SetupProgress from '../components/interview/SetupProgress'
+import CosmicField from '../components/common/CosmicField'
 
 const typeIcons = { technical: CodeRounded, dsa: TerminalRounded, behavioral: GroupsRounded }
 const difficultyColors = { easy: 'green', medium: 'purple', hard: 'orange' }
@@ -51,7 +52,8 @@ export default function InterviewSetupPage() {
   }
 
   return (
-    <main className="setup-page">
+    <main className="setup-page cosmic-setup-page">
+      <CosmicField density="hero" />
       <div className="setup-background setup-background-one" />
       <div className="setup-background setup-background-two" />
       <section className="setup-container">

@@ -5,6 +5,7 @@ import { useInterviewMedia } from '../hooks/useInterviewMedia'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
 import { INTERVIEW_TYPES, EXPERIENCE_LEVELS } from '../data/interviewConfig'
+import CosmicField from '../components/common/CosmicField'
 import { interviewApi } from '../services/interviewApi'
 
 export default function InterviewPreparationPage() {
@@ -44,7 +45,7 @@ export default function InterviewPreparationPage() {
   const experience = EXPERIENCE_LEVELS.find((item) => item.value === setup.experience)
 
   return (
-    <main className="prep-page">
+    <main className="prep-page cosmic-prep-page">\n      <CosmicField density="room" />
       <div className="room-orb room-orb-a" /><div className="room-orb room-orb-b" />
       <section className="prep-shell">
         <button className="room-back-link" type="button" onClick={() => navigate(ROUTES.INTERVIEW_SETUP)}><ArrowBackRounded /> Back to setup</button>
