@@ -39,6 +39,13 @@ body {
   background: var(--aa-surface);
 }
 
+.page-section,
+.stories-section,
+.cta-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 600px;
+}
+
 button,
 a,
 input,
