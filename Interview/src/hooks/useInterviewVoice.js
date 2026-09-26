@@ -8,6 +8,7 @@ const getRecognition = () => {
 
 export function useInterviewVoice({ onTranscript } = {}) {
   const recognitionRef = useRef(null)
+  const speechIdRef = useRef(0)
   const onTranscriptRef = useRef(onTranscript)
   const [supported, setSupported] = useState(false)
   const [listening, setListening] = useState(false)
@@ -70,20 +71,36 @@ export function useInterviewVoice({ onTranscript } = {}) {
     else startListening()
   }, [listening, startListening, stopListening])
 
-  const speak = useCallback((text) => {
-    if (!text || typeof window === 'undefined' || !('speechSynthesis' in window)) return
+  const speak = useCallback((text, { onStart, onEnd, onError } = {}) => {
+    if (!text || typeof window === 'undefined' || !('speechSynthesis' in window)) return false
+    const speechId = speechIdRef.current + 1
+    speechIdRef.current = speechId
     window.speechSynthesis.cancel()
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.rate = 0.96
     utterance.pitch = 1
     utterance.volume = 1
-    utterance.onstart = () => setSpeaking(true)
-    utterance.onend = () => setSpeaking(false)
-    utterance.onerror = () => setSpeaking(false)
+    utterance.onstart = () => {
+      if (speechId !== speechIdRef.current) return
+      setSpeaking(true)
+      onStart?.()
+    }
+    utterance.onend = () => {
+      if (speechId !== speechIdRef.current) return
+      setSpeaking(false)
+      onEnd?.()
+    }
+    utterance.onerror = () => {
+      if (speechId !== speechIdRef.current) return
+      setSpeaking(false)
+      onError?.()
+    }
     window.speechSynthesis.speak(utterance)
+    return true
   }, [])
 
   const stopSpeaking = useCallback(() => {
+    speechIdRef.current += 1
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel()
     setSpeaking(false)
   }, [])
