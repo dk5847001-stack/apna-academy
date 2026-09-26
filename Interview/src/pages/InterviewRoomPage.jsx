@@ -11,6 +11,8 @@ import { useInterviewMedia } from '../hooks/useInterviewMedia'
 import { useInterviewTimer } from '../hooks/useInterviewTimer'
 import { interviewApi } from '../services/interviewApi'
 import { useInterviewVoice } from '../hooks/useInterviewVoice'
+import { useInterviewConversation } from '../hooks/useInterviewConversation'
+import { CONVERSATION_STATES } from '../conversation/conversationState'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
 
@@ -35,6 +37,7 @@ export default function InterviewRoomPage() {
   const finalizingRef = useRef(false)
   const timer = useInterviewTimer(Math.max(60, Number(setup.durationMinutes || 30) * 60), true)
   const voice = useInterviewVoice({ onTranscript: (text) => setAnswer((currentAnswer) => (currentAnswer ? currentAnswer + ' ' : '') + text) })
+  const conversation = useInterviewConversation()
   const question = questions[current] || questions[0]
 
   useEffect(() => {
@@ -59,6 +62,7 @@ export default function InterviewRoomPage() {
     try {
       const data = await interviewApi.completeInterview(session.id)
       setSession((value) => ({ ...(value || {}), result: data.result || null, status: data.status || 'completed' }))
+      conversation.complete()
     } catch (error) {
       if (error?.code === 'INTERVIEW_NOT_FOUND') {
         setRoomError('This interview session is no longer active. Please start a new interview.')
@@ -75,14 +79,31 @@ export default function InterviewRoomPage() {
   }, [timer.remaining])
 
   useEffect(() => {
-    if (paused) { timer.pause(); voice.stopListening(); voice.stopSpeaking() }
-  }, [paused, timer, voice.stopListening, voice.stopSpeaking])
+    if (paused) {
+      timer.pause()
+      voice.stopListening()
+      voice.stopSpeaking()
+      conversation.pause()
+      return
+    }
+    if (conversation.isPaused) conversation.resume(CONVERSATION_STATES.IDLE)
+  }, [paused, timer, voice.stopListening, voice.stopSpeaking, conversation.isPaused, conversation.pause, conversation.resume])
 
   useEffect(() => {
     if (!voiceEnabled || !question?.question || paused) return
-    voice.speak(question.question)
+    conversation.startAiSpeaking()
+    const spoken = voice.speak(question.question, {
+      onEnd: conversation.aiSpeechEnded,
+      onError: () => conversation.setError('AI voice playback failed. You can continue in text mode.'),
+    })
+    if (!spoken) conversation.aiSpeechEnded()
     return () => voice.stopSpeaking()
-  }, [current, voiceEnabled, paused, question?.question, voice.speak, voice.stopSpeaking])
+  }, [current, voiceEnabled, paused, question?.question, voice.speak, voice.stopSpeaking, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
+
+  useEffect(() => {
+    if (voice.listening) conversation.startListening()
+    else if (conversation.isListening) conversation.stopListening()
+  }, [voice.listening, conversation.isListening, conversation.startListening, conversation.stopListening])
 
   useEffect(() => {
     setSession((value) => ({ ...(value || {}), currentQuestion: current, answers }))
@@ -96,6 +117,7 @@ export default function InterviewRoomPage() {
     if (!question || !answer.trim() || submitting) return null
     setSubmitting(true)
     setRoomError('')
+    conversation.startProcessing()
     try {
       if (!session?.id || String(session.id).startsWith('mock-')) throw new Error('Your AI session is not available. Please restart the interview.')
       const cleanAnswer = answer.trim()
@@ -114,9 +136,13 @@ export default function InterviewRoomPage() {
         status: data.completed ? 'completed' : 'in-progress',
       }))
       setAnswer('')
+      conversation.reset()
+      if (data.completed) conversation.complete()
       return data
     } catch (error) {
-      setRoomError(error?.message || 'We could not save your answer. Please try again.')
+      const message = error?.message || 'We could not save your answer. Please try again.'
+      setRoomError(message)
+      conversation.setError(message)
       return null
     } finally { setSubmitting(false) }
   }
@@ -217,7 +243,7 @@ export default function InterviewRoomPage() {
         <section className="room-workspace">
           <div className="room-ai-card">
             <div className="ai-avatar"><AutoAwesomeRounded /></div>
-            <div className="ai-copy"><div><strong>AI Interviewer</strong><span className="ai-speaking"><span /><span /><span /> listening</span></div><p>Take your time. I'm listening to your answer.</p></div>
+            <div className="ai-copy"><div><strong>AI Interviewer</strong><span className={'ai-speaking ai-conversation-state ' + conversation.status}><span /><span /><span /> {conversation.label}</span></div><p>{conversation.status === CONVERSATION_STATES.AI_SPEAKING ? 'Listen to the question, then answer naturally.' : conversation.status === CONVERSATION_STATES.PROCESSING ? 'I am reviewing your answer.' : conversation.status === CONVERSATION_STATES.AI_RESPONDING ? 'Listen to my feedback and follow-up.' : 'Take your time. I am ready for your answer.'}</p></div>
             <button type="button" className={"icon-room-btn " + (voice.speaking ? "active" : "")} aria-label="Toggle AI interviewer voice" onClick={() => { setVoiceEnabled((value) => !value); if (voice.speaking) voice.stopSpeaking(); else voice.speak(question?.question) }}><VolumeUpRounded /></button>
           </div>
 
