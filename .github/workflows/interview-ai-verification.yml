@@ -73,7 +73,7 @@ jobs:
           cache-dependency-path: Interview/package-lock.json
 
       - name: Install Interview dependencies
-        run: npm ci
+        run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: Run Interview conversation and voice tests
         run: npm run test:interview
