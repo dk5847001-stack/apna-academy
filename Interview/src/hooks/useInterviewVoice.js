@@ -33,6 +33,7 @@ export function useInterviewVoice({
       onSilence: () => {
         const recognition = recognitionRef.current
         try { recognition?.stop() } catch {}
+        listeningRef.current = false
         setListening(false)
         setInterimTranscript('')
         onSilenceRef.current?.()
