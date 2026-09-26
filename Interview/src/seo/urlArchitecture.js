@@ -1,24 +1,12 @@
 import { ROUTES } from '../routes/routes'
+import { getInterviewSeoTopics } from '../data/interviewSeoContent'
 
 export const SEO_URLS = {
   INTERVIEW_QUESTIONS: ROUTES.INTERVIEW_QUESTIONS,
   INTERVIEW_QUESTIONS_TOPIC: '/interview-questions/:topic',
 }
 
-export const INTERVIEW_TOPICS = [
-  'software-engineer',
-  'frontend-developer',
-  'backend-developer',
-  'full-stack-developer',
-  'react',
-  'javascript',
-  'nodejs',
-  'java',
-  'python',
-  'dsa',
-  'behavioral',
-  'hr',
-]
+export const INTERVIEW_TOPICS = Object.freeze(getInterviewSeoTopics())
 
 const TOPIC_PATTERN = /^\/interview-questions\/([a-z0-9]+(?:-[a-z0-9]+)*)$/
 
