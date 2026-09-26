@@ -43,6 +43,9 @@ export default function InterviewRoomPage() {
   const voiceEnabledRef = useRef(voiceEnabled)
   const interviewCompletedRef = useRef(interviewCompleted)
   const sessionStatusRef = useRef(session?.status)
+  const submittingRef = useRef(submitting)
+  const microphoneRef = useRef(microphone)
+  const voiceSupportedRef = useRef(false)
   const saveAnswerRef = useRef(null)
   const timer = useInterviewTimer(Math.max(60, Number(setup.durationMinutes || 30) * 60), true)
   const voice = useInterviewVoice({
@@ -63,6 +66,9 @@ export default function InterviewRoomPage() {
   voiceEnabledRef.current = voiceEnabled
   interviewCompletedRef.current = interviewCompleted
   sessionStatusRef.current = session?.status
+  submittingRef.current = submitting
+  microphoneRef.current = microphone
+  voiceSupportedRef.current = voice.supported
 
   useEffect(() => {
     requestMedia().then((stream) => {
@@ -119,9 +125,9 @@ export default function InterviewRoomPage() {
     const currentAnswers = answersRef.current
     if (
       !voiceEnabledRef.current ||
-      !voice.supported ||
+      !voiceSupportedRef.current ||
       pausedRef.current ||
-      submitting ||
+      submittingRef.current ||
       interviewCompletedRef.current ||
       sessionStatusRef.current === 'completed' ||
       !currentQuestion?.id ||
@@ -132,11 +138,11 @@ export default function InterviewRoomPage() {
       (item) => item.questionId === currentQuestion.id && item.answer?.trim()
     )
     if (alreadyAnswered || autoVoiceTurnRef.current) return false
-    if (microphone === 'denied' || microphone === 'unsupported') return false
+    if (microphoneRef.current === 'denied' || microphoneRef.current === 'unsupported') return false
 
     autoVoiceTurnRef.current = true
     return voice.startListening()
-  }, [microphone, submitting, voice.startListening, voice.supported])
+  }, [voice.startListening])
 
   useEffect(() => {
     if (!voiceEnabled || !question?.question || paused) return
@@ -159,7 +165,7 @@ export default function InterviewRoomPage() {
       voice.stopListening()
       if (conversation.isAiSpeaking) conversation.aiSpeechEnded()
     }
-  }, [current, voiceEnabled, paused, question?.question, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError, conversation.isAiSpeaking])
+  }, [current, voiceEnabled, paused, question?.question, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
 
   useEffect(() => {
     if (voice.listening) conversation.startListening()
