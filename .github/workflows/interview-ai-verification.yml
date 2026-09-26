@@ -9,6 +9,7 @@ on:
       - "Backend/src/middleware/security.middleware.js"
       - "Backend/.env.example"
       - ".github/workflows/interview-ai-verification.yml"
+      - "Interview/**"
   push:
     branches:
       - "feature/interview-groq-ai-phase-4"
@@ -52,3 +53,30 @@ jobs:
           grep -q "^INTERVIEW_MAX_ANSWER_CHARS=" .env.example
           grep -q "^INTERVIEW_MAX_QUESTIONS=" .env.example
           grep -q "^INTERVIEW_MAX_FOLLOWUPS=" .env.example
+
+
+  frontend-interview-verification:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Interview
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: Interview/package-lock.json
+
+      - name: Install Interview dependencies
+        run: npm ci
+
+      - name: Run Interview conversation and voice tests
+        run: npm run test:interview
+
+      - name: Build Interview app
+        run: npm run build
