@@ -19,6 +19,7 @@ const getManualChunk = (id) => {
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  base: '/',
   build: {
     target: 'es2022',
     cssCodeSplit: true,
