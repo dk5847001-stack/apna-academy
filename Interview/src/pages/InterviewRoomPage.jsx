@@ -199,7 +199,7 @@ export default function InterviewRoomPage() {
       voice.stopListening()
       conversation.aiSpeechEnded()
     }
-  }, [current, voiceEnabled, paused, question?.id, question?.question, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.reset, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
+  }, [current, paused, question?.id, question?.question, voiceEnabled, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.reset, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
 
   useEffect(() => {
     if (voice.listening) conversation.startListening()
@@ -440,20 +440,7 @@ export default function InterviewRoomPage() {
                 voiceTurnIdRef.current += 1
                 setVoiceEnabled((value) => !value)
                 voice.stopSpeaking()
-                if (voiceEnabledRef.current === false && question?.question) {
-                  conversation.startAiSpeaking()
-                  voice.speak(question.question, {
-                    onEnd: () => {
-                      conversation.aiSpeechEnded()
-                      startVoiceCapture()
-                    },
-                    onError: () => {
-                      conversation.setError('AI voice playback failed. You can continue in text mode.')
-                      conversation.aiSpeechEnded()
-                      startVoiceCapture()
-                    },
-                  })
-                } else {
+                if (voiceEnabledRef.current) {
                   autoVoiceTurnRef.current = false
                   voice.stopListening()
                   conversation.reset()
