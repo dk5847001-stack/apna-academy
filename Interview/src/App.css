@@ -1538,6 +1538,38 @@ button { font: inherit; }
   background: rgba(105, 139, 207, .11);
 }
 
+.cosmic-setup-page .summary-stats {
+  margin: 0 17px;
+  border: 1px solid rgba(112, 153, 231, .16);
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(20, 38, 78, .72), rgba(8, 18, 42, .82));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .035),
+    0 12px 35px rgba(0, 0, 0, .14);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.cosmic-setup-page .summary-stats > div {
+  background: rgba(255, 255, 255, .012);
+  border-right-color: rgba(105, 139, 207, .13);
+}
+
+.cosmic-setup-page .summary-stats > div:hover {
+  background: linear-gradient(145deg, rgba(55, 132, 255, .09), rgba(125, 78, 255, .07));
+}
+
+.cosmic-setup-page .summary-stats small {
+  color: #7489ad;
+}
+
+.cosmic-setup-page .summary-stats strong {
+  color: #eef5ff;
+  text-shadow: 0 0 16px rgba(92, 157, 255, .10);
+}
+
 .cosmic-setup-page .summary-stats > div {
   border-right-color: rgba(105, 139, 207, .10);
 }
