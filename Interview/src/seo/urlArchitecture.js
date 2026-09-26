@@ -1,5 +1,5 @@
-import { ROUTES } from '../routes/routes'
-import { getInterviewSeoTopics } from '../data/interviewSeoContent'
+import { ROUTES } from '../routes/routes.js'
+import { getInterviewSeoTopics } from '../data/interviewSeoContent.js'
 
 export const SEO_URLS = {
   INTERVIEW_QUESTIONS: ROUTES.INTERVIEW_QUESTIONS,
