@@ -1235,3 +1235,421 @@ button { font: inherit; }
   .site-header .gradient-btn.small,
   .gradient-btn { transition: none !important; }
 }
+
+
+/* =========================================================
+   COSMIC INTERVIEW SETUP
+   Visual-only enhancement. Setup state/validation unchanged.
+   ========================================================= */
+
+.cosmic-setup-page {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100vh - 106px);
+  overflow: hidden;
+  color: #eef4ff;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(55, 94, 214, .18), transparent 30%),
+    radial-gradient(circle at 8% 55%, rgba(35, 154, 255, .09), transparent 25%),
+    radial-gradient(circle at 92% 68%, rgba(128, 75, 255, .10), transparent 27%),
+    #020713;
+}
+
+.cosmic-setup-page > .cosmic-field {
+  position: fixed;
+  inset: 106px 0 0;
+  z-index: -1;
+  opacity: .88;
+}
+
+.cosmic-setup-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(104, 148, 255, .022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(104, 148, 255, .022) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(circle at 50% 35%, black, transparent 82%);
+}
+
+.cosmic-setup-page .setup-container {
+  position: relative;
+  z-index: 2;
+  width: min(1240px, calc(100% - 32px));
+  padding: 26px 16px 72px;
+}
+
+.cosmic-setup-page .setup-back-link {
+  color: #8fa1c3;
+  border-color: rgba(116, 150, 215, .15);
+  background: rgba(255, 255, 255, .025);
+  border-radius: 12px;
+  backdrop-filter: blur(14px);
+  transition: .2s ease;
+}
+
+.cosmic-setup-page .setup-back-link:hover {
+  color: #e9f2ff;
+  border-color: rgba(93, 164, 255, .30);
+  background: rgba(74, 126, 255, .08);
+  transform: translateX(-2px);
+}
+
+.cosmic-setup-page .setup-heading {
+  max-width: 760px;
+  margin: 28px auto 34px;
+  text-align: center;
+}
+
+.cosmic-setup-page .setup-eyebrow {
+  color: #9fddff;
+  background: rgba(66, 142, 255, .075);
+  border-color: rgba(91, 170, 255, .20);
+  box-shadow: 0 0 35px rgba(48, 126, 255, .08) inset;
+}
+
+.cosmic-setup-page .setup-heading h1 {
+  color: #f5f8ff;
+  text-shadow: 0 0 55px rgba(74, 113, 255, .14);
+}
+
+.cosmic-setup-page .setup-heading h1 span {
+  color: transparent;
+  background: linear-gradient(100deg, #5ecbff, #8665ff 55%, #c079ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.cosmic-setup-page .setup-heading p {
+  color: #91a2c3;
+}
+
+.cosmic-setup-page .setup-layout {
+  align-items: start;
+  gap: 24px;
+}
+
+.cosmic-setup-page .setup-form {
+  display: grid;
+  gap: 15px;
+}
+
+.cosmic-setup-page .setup-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(112, 148, 219, .14);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(9, 19, 43, .84), rgba(4, 10, 25, .72));
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, .20),
+    0 0 0 1px rgba(98, 140, 255, .025) inset;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.cosmic-setup-page .setup-panel::before {
+  content: '';
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -100px;
+  top: -110px;
+  border-radius: 50%;
+  background: rgba(80, 114, 255, .12);
+  filter: blur(35px);
+  pointer-events: none;
+}
+
+.cosmic-setup-page .setup-panel-heading h2 {
+  color: #edf3ff;
+}
+
+.cosmic-setup-page .setup-panel-heading p {
+  color: #7183a6;
+}
+
+.cosmic-setup-page .setup-step-badge {
+  color: #a9d9ff;
+  background: linear-gradient(135deg, rgba(53, 139, 255, .17), rgba(124, 82, 255, .17));
+  border-color: rgba(93, 157, 255, .20);
+  box-shadow: 0 0 22px rgba(67, 124, 255, .10);
+}
+
+.cosmic-setup-page .setup-required {
+  color: #75c6ff;
+  background: rgba(57, 141, 255, .07);
+  border-color: rgba(75, 151, 255, .16);
+}
+
+.cosmic-setup-page .setup-field-label,
+.cosmic-setup-page .setup-subheading {
+  color: #8294b5;
+}
+
+.cosmic-setup-page .setup-input-wrap {
+  border-color: rgba(111, 147, 215, .16);
+  background: rgba(2, 8, 21, .58);
+  box-shadow: inset 0 0 30px rgba(57, 94, 180, .035);
+}
+
+.cosmic-setup-page .setup-input-wrap:focus-within {
+  border-color: rgba(79, 158, 255, .48);
+  box-shadow:
+    0 0 0 3px rgba(54, 126, 255, .08),
+    0 0 35px rgba(45, 126, 255, .08);
+}
+
+.cosmic-setup-page .setup-input-wrap svg {
+  color: #69baff;
+}
+
+.cosmic-setup-page .setup-input-wrap input {
+  color: #edf4ff;
+}
+
+.cosmic-setup-page .setup-input-wrap input::placeholder {
+  color: #586a8b;
+}
+
+.cosmic-setup-page .setup-input-count {
+  color: #637594;
+}
+
+.cosmic-setup-page .role-chips button,
+.cosmic-setup-page .difficulty-option,
+.cosmic-setup-page .duration-option,
+.cosmic-setup-page .question-count-row button {
+  border-color: rgba(108, 143, 210, .14);
+  background: rgba(255, 255, 255, .018);
+  color: #aebdd5;
+  transition: .2s ease;
+}
+
+.cosmic-setup-page .role-chips button:hover,
+.cosmic-setup-page .role-chips button.active,
+.cosmic-setup-page .difficulty-option:hover,
+.cosmic-setup-page .difficulty-option.selected,
+.cosmic-setup-page .duration-option:hover,
+.cosmic-setup-page .duration-option.selected,
+.cosmic-setup-page .question-count-row button:hover,
+.cosmic-setup-page .question-count-row button.selected {
+  color: #f2f7ff;
+  border-color: rgba(83, 157, 255, .35);
+  background: linear-gradient(105deg, rgba(43, 126, 255, .13), rgba(121, 76, 255, .11));
+  box-shadow: 0 0 28px rgba(60, 111, 255, .07);
+  transform: translateY(-1px);
+}
+
+.cosmic-setup-page .setup-option-card {
+  border-color: rgba(108, 143, 210, .14);
+  background: rgba(255, 255, 255, .018);
+  color: #aebdd5;
+  transition: .22s ease;
+}
+
+.cosmic-setup-page .setup-option-card:hover,
+.cosmic-setup-page .setup-option-card.selected {
+  border-color: rgba(83, 157, 255, .34);
+  background: linear-gradient(145deg, rgba(43, 126, 255, .12), rgba(121, 76, 255, .10));
+  color: #f3f7ff;
+  box-shadow: 0 15px 40px rgba(21, 61, 139, .16), 0 0 30px rgba(67, 113, 255, .06);
+}
+
+.cosmic-setup-page .setup-option-card svg {
+  color: #69baff;
+}
+
+.cosmic-setup-page .setup-selection-note {
+  color: #9aacc9;
+  border-color: rgba(86, 154, 255, .13);
+  background: rgba(64, 128, 255, .045);
+}
+
+.cosmic-setup-page .setup-selection-note svg {
+  color: #6fc7ff;
+}
+
+.cosmic-setup-page .difficulty-dot {
+  box-shadow: 0 0 12px currentColor;
+}
+
+.cosmic-setup-page .summary-card {
+  position: sticky;
+  top: 126px;
+  overflow: hidden;
+  border: 1px solid rgba(120, 157, 232, .18);
+  border-radius: 23px;
+  background:
+    radial-gradient(circle at 90% 8%, rgba(111, 76, 255, .16), transparent 32%),
+    linear-gradient(145deg, rgba(10, 22, 50, .93), rgba(4, 10, 25, .86));
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, .30),
+    0 0 55px rgba(54, 94, 255, .07);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.cosmic-setup-page .summary-label {
+  color: #7890b8;
+  letter-spacing: 1.5px;
+}
+
+.cosmic-setup-page .summary-live {
+  color: #69ddb5;
+  background: rgba(38, 199, 150, .07);
+  border-color: rgba(50, 204, 157, .15);
+}
+
+.cosmic-setup-page .summary-live > span {
+  box-shadow: 0 0 10px rgba(72, 231, 177, .8);
+}
+
+.cosmic-setup-page .summary-role {
+  border-color: rgba(109, 145, 214, .12);
+}
+
+.cosmic-setup-page .summary-role-icon {
+  color: #8ccfff;
+  background: linear-gradient(135deg, rgba(52, 139, 255, .18), rgba(133, 78, 255, .18));
+  border-color: rgba(93, 157, 255, .18);
+  box-shadow: 0 0 28px rgba(74, 116, 255, .12);
+}
+
+.cosmic-setup-page .summary-role small,
+.cosmic-setup-page .summary-stats small {
+  color: #7183a5;
+}
+
+.cosmic-setup-page .summary-role strong,
+.cosmic-setup-page .summary-type strong,
+.cosmic-setup-page .summary-stats strong {
+  color: #edf4ff;
+}
+
+.cosmic-setup-page .summary-type span {
+  color: #7f92b4;
+}
+
+.cosmic-setup-page .summary-divider {
+  background: rgba(105, 139, 207, .11);
+}
+
+.cosmic-setup-page .summary-stats > div {
+  border-right-color: rgba(105, 139, 207, .10);
+}
+
+.cosmic-setup-page .summary-note {
+  border-color: rgba(88, 153, 255, .13);
+  background: linear-gradient(105deg, rgba(50, 126, 255, .075), rgba(120, 75, 255, .06));
+}
+
+.cosmic-setup-page .summary-note svg {
+  color: #6ec7ff;
+}
+
+.cosmic-setup-page .summary-note p {
+  color: #91a4c5;
+}
+
+.cosmic-setup-page .summary-checks {
+  color: #7184a6;
+}
+
+.cosmic-setup-page .summary-checks svg {
+  color: #6dc4ff;
+}
+
+.cosmic-setup-page .setup-help-card {
+  border-color: rgba(108, 143, 210, .13);
+  background: rgba(7, 15, 34, .66);
+  color: #dce7fa;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(18px);
+}
+
+.cosmic-setup-page .help-icon {
+  color: #7bcaff;
+  background: rgba(62, 135, 255, .09);
+  border-color: rgba(91, 161, 255, .15);
+}
+
+.cosmic-setup-page .setup-help-card p {
+  color: #7789aa;
+}
+
+.cosmic-setup-page .setup-help-card button {
+  color: #77c7ff;
+  background: rgba(64, 132, 255, .08);
+  border-color: rgba(75, 151, 255, .16);
+}
+
+.cosmic-setup-page .setup-trust {
+  color: #6f82a4;
+}
+
+.cosmic-setup-page .setup-trust svg {
+  color: #6cc6ff;
+}
+
+.cosmic-setup-page .setup-reset-btn {
+  color: #8395b5;
+  border-color: rgba(108, 143, 210, .14);
+  background: rgba(255, 255, 255, .018);
+}
+
+.cosmic-setup-page .setup-reset-btn:hover {
+  color: #e7efff;
+  border-color: rgba(100, 151, 255, .30);
+  background: rgba(70, 125, 255, .07);
+}
+
+.cosmic-setup-page .setup-continue-btn {
+  background: linear-gradient(105deg, #287fff, #704cff 72%, #9d57ff);
+  box-shadow: 0 14px 38px rgba(66, 89, 255, .25);
+}
+
+.cosmic-setup-page .setup-continue-btn:hover {
+  box-shadow: 0 18px 48px rgba(73, 91, 255, .35);
+}
+
+.cosmic-setup-page .setup-error {
+  color: #ff9eaf;
+}
+
+@media (max-width: 980px) {
+  .cosmic-setup-page .setup-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cosmic-setup-page .summary-card {
+    position: relative;
+    top: auto;
+  }
+}
+
+@media (max-width: 650px) {
+  .cosmic-setup-page > .cosmic-field {
+    inset: 97px 0 0;
+  }
+
+  .cosmic-setup-page .setup-container {
+    width: calc(100% - 22px);
+    padding: 18px 8px 50px;
+  }
+
+  .cosmic-setup-page .setup-heading {
+    margin-top: 22px;
+  }
+
+  .cosmic-setup-page .setup-panel {
+    border-radius: 17px;
+  }
+
+  .cosmic-setup-page .setup-panel-heading {
+    gap: 10px;
+  }
+}
