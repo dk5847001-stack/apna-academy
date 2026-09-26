@@ -60,12 +60,6 @@ export default function Footer() {
               <span>info@apnaacademy.me</span>
               <ArrowForwardRounded />
             </a>
-
-            <div className="footer-socials">
-              <a href="https://github.com/dk5847001-stack/apna-academy" target="_blank" rel="noreferrer" aria-label="GitHub">GH</a>
-              <a href="https://www.linkedin.com/in/dilkhush-kumar-43a426372" target="_blank" rel="noreferrer" aria-label="LinkedIn">in</a>
-              <a href="https://apnaacademy.me" aria-label="ApnaAcademy">AA</a>
-            </div>
           </section>
         </div>
 
