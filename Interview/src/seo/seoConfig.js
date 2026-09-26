@@ -90,7 +90,6 @@ export function getSeoConfig(pathname = '/') {
   const path = normalizePath(pathname)
   const topic = getInterviewTopicFromPath(path)
   const topicLabel = topic ? getInterviewTopicLabel(topic) : ''
-  const dynamicTopicPage = Boolean(topic)
   const interviewQuestionsPage = path === '/interview-questions'
   const dynamicPage = isInterviewQuestionsPath(path)
     ? interviewQuestionsPage
