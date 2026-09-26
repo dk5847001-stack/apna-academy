@@ -22,7 +22,7 @@ export default defineConfig({
   build: {
     target: 'es2022',
     cssCodeSplit: true,
-    cssMinify: 'esbuild',
+    cssMinify: 'lightningcss',
     sourcemap: false,
     reportCompressedSize: true,
     chunkSizeWarningLimit: 500,
