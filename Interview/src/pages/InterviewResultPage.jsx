@@ -23,7 +23,7 @@ export default function InterviewResultPage() {
   const { setup, session, setSession } = useInterviewFlow()
   const { navigate } = useRouter()
   const selectedId = readPersistent('selectedInterviewSessionId', '')
-  const sessionId = session?.id || session?._id || selectedId
+  const sessionId = selectedId || session?.id || session?._id
   const [report, setReport] = useState(session?.result || null)
   const [resultSession, setResultSession] = useState(session || null)
   const [loading, setLoading] = useState(Boolean(sessionId))
