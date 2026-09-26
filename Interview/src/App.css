@@ -3058,3 +3058,27 @@ button { font: inherit; }
   .cosmic-history-row::before,
   .cosmic-history-row .history-open { transition: none; }
 }
+
+/* HISTORY WHITE-SURFACE OVERRIDE — keep the entire archive immersive */
+.cosmic-history-page,
+.cosmic-history-page.history-page {
+  background: #020714 !important;
+  background-color: #020714 !important;
+}
+.cosmic-history-page .history-table-card,
+.cosmic-history-page .history-insights > div {
+  background-color: rgba(3, 11, 28, .82) !important;
+}
+.cosmic-history-page .history-toolbar,
+.cosmic-history-page .history-list-head {
+  background-color: rgba(2, 9, 23, .42) !important;
+}
+.cosmic-history-page .history-search {
+  background-color: rgba(3, 12, 29, .68) !important;
+}
+.cosmic-history-page .history-toolbar > button {
+  background-color: rgba(9, 24, 53, .65) !important;
+}
+.cosmic-history-page .history-empty {
+  background-color: rgba(2, 9, 22, .30) !important;
+}
