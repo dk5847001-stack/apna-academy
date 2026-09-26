@@ -2280,3 +2280,366 @@ button { font: inherit; }
   .cosmic-footer .footer-brand p::before { display: none; }
   .cosmic-footer .footer-bottom { flex-wrap: wrap; }
 }
+
+
+/* =========================================================
+   COSMIC FOOTER V3 — ANIMATED STARFIELD + GLASS PANEL
+   ========================================================= */
+.cosmic-footer-v2 {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 44px clamp(16px, 4vw, 56px) 34px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 18% 35%, rgba(25,106,255,.10), transparent 26%),
+    radial-gradient(circle at 82% 30%, rgba(116,59,255,.10), transparent 28%),
+    linear-gradient(180deg, #020715 0%, #03091b 100%);
+}
+.cosmic-footer-v2 > .cosmic-field {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  opacity: .92;
+}
+.cosmic-footer-v2::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(61,107,255,.16), transparent 38%),
+    radial-gradient(ellipse at 50% 100%, rgba(104,61,255,.12), transparent 42%);
+}
+.cosmic-footer-v2::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #318fff 25%, #8b55ff 52%, #319fff 75%, transparent);
+  box-shadow: 0 0 25px rgba(64,128,255,.55);
+}
+.cosmic-footer-v2 .cosmic-footer-panel {
+  position: relative;
+  width: min(1320px, 100%);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(83,145,255,.27);
+  border-radius: 27px;
+  background:
+    linear-gradient(135deg, rgba(5,16,43,.72), rgba(3,10,28,.64)),
+    rgba(4,12,30,.58);
+  box-shadow:
+    0 30px 90px rgba(0,0,0,.38),
+    0 0 0 1px rgba(255,255,255,.018) inset,
+    0 0 70px rgba(44,102,255,.08);
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+}
+.cosmic-footer-v2 .cosmic-footer-panel::before,
+.cosmic-footer-v2 .cosmic-footer-panel::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+.cosmic-footer-v2 .cosmic-footer-panel::before {
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(39,142,255,.14), transparent 28%),
+    radial-gradient(circle at 100% 100%, rgba(143,71,255,.14), transparent 30%);
+}
+.cosmic-footer-v2 .cosmic-footer-panel::after {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #268fff, #6455ff 42%, #b755ff 68%, #319fff);
+  box-shadow: 0 0 30px rgba(82,106,255,.6);
+}
+.cosmic-footer-v2 .footer-v2-main,
+.cosmic-footer-v2 .footer-v2-bottom {
+  position: relative;
+  z-index: 1;
+}
+.cosmic-footer-v2 .footer-v2-main {
+  display: grid;
+  grid-template-columns: 1.35fr .8fr .9fr 1.2fr;
+  gap: 34px;
+  padding: 42px 42px 36px;
+}
+.cosmic-footer-v2 .footer-v2-brand .brand {
+  display: inline-flex;
+  margin-bottom: 18px;
+}
+.cosmic-footer-v2 .footer-v2-brand > strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #dce9ff;
+  font-size: 12px;
+  letter-spacing: .15px;
+}
+.cosmic-footer-v2 .footer-v2-brand > p {
+  max-width: 315px;
+  margin: 0;
+  color: #778bad;
+  font-size: 9px;
+  line-height: 1.75;
+}
+.cosmic-footer-v2 .footer-lab-button {
+  width: min(270px,100%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 21px;
+  padding: 9px 11px;
+  border: 1px solid rgba(56,204,177,.18);
+  border-radius: 15px;
+  color: #bfe9df;
+  background: linear-gradient(135deg, rgba(10,112,105,.18), rgba(31,75,190,.16));
+  box-shadow: inset 0 0 25px rgba(26,172,160,.04);
+  cursor: pointer;
+  text-align: left;
+  transition: .25s ease;
+}
+.cosmic-footer-v2 .footer-lab-button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(64,226,194,.38);
+  box-shadow: 0 12px 30px rgba(0,110,190,.15), inset 0 0 30px rgba(26,172,160,.06);
+}
+.cosmic-footer-v2 .footer-lab-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(135deg,#16dcae,#327eff);
+  box-shadow: 0 0 20px rgba(41,211,184,.22);
+}
+.cosmic-footer-v2 .footer-lab-icon svg { font-size: 16px; }
+.cosmic-footer-v2 .footer-lab-button > span:nth-child(2) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.cosmic-footer-v2 .footer-lab-button strong { color: #dffbf5; font-size: 9px; }
+.cosmic-footer-v2 .footer-lab-button small { margin-top: 2px; color: #62cdbb; font-size: 7px; }
+.cosmic-footer-v2 .footer-lab-button > svg { font-size: 17px; color: #8bcfff; }
+.cosmic-footer-v2 .footer-v2-column h3,
+.cosmic-footer-v2 .footer-v2-connected h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 3px 0 16px;
+  color: #8fd3ff;
+  font-size: 10px;
+  font-weight: 900;
+}
+.cosmic-footer-v2 .footer-v2-column h3 svg,
+.cosmic-footer-v2 .footer-v2-connected h3 svg { font-size: 16px; filter: drop-shadow(0 0 8px rgba(62,160,255,.35)); }
+.cosmic-footer-v2 .footer-v2-column a {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  gap: 4px;
+  margin: 0 0 11px;
+  color: #9eafd0;
+  font-size: 9px;
+  text-decoration: none;
+  transition: .2s ease;
+}
+.cosmic-footer-v2 .footer-v2-column a:hover {
+  color: #edf5ff;
+  transform: translateX(3px);
+}
+.cosmic-footer-v2 .footer-v2-column a svg { font-size: 12px; }
+.cosmic-footer-v2 .footer-v2-connected {
+  padding: 18px;
+  border: 1px solid rgba(79,135,231,.20);
+  border-radius: 19px;
+  background: linear-gradient(145deg, rgba(18,37,85,.50), rgba(7,16,40,.58));
+  box-shadow: inset 0 0 35px rgba(57,91,188,.05);
+  backdrop-filter: blur(14px);
+}
+.cosmic-footer-v2 .footer-v2-connected > p {
+  margin: 0 0 16px;
+  color: #8193b5;
+  font-size: 8px;
+  line-height: 1.65;
+}
+.cosmic-footer-v2 .footer-mail-button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 39px;
+  padding: 5px 6px 5px 10px;
+  border: 1px solid rgba(63,144,255,.28);
+  border-radius: 12px;
+  color: #8198bd;
+  background: rgba(2,10,26,.60);
+  text-decoration: none;
+}
+.cosmic-footer-v2 .footer-mail-button svg:first-child { color: #70caff; font-size: 16px; }
+.cosmic-footer-v2 .footer-mail-button span { flex: 1; font-size: 8px; }
+.cosmic-footer-v2 .footer-mail-button svg:last-child {
+  width: 29px;
+  height: 29px;
+  padding: 6px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  color: #fff;
+  background: linear-gradient(135deg,#378dff,#8452ff);
+  box-shadow: 0 0 20px rgba(81,99,255,.35);
+}
+.cosmic-footer-v2 .footer-socials {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.cosmic-footer-v2 .footer-socials a {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(77,139,230,.20);
+  border-radius: 50%;
+  color: #a9c9f5;
+  background: rgba(34,73,150,.18);
+  font-size: 8px;
+  font-weight: 900;
+  text-decoration: none;
+  transition: .2s ease;
+}
+.cosmic-footer-v2 .footer-socials a:hover {
+  color: #fff;
+  border-color: rgba(101,181,255,.55);
+  background: rgba(57,126,255,.22);
+  box-shadow: 0 0 20px rgba(64,139,255,.20);
+  transform: translateY(-2px);
+}
+.cosmic-footer-v2 .footer-v2-bottom {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 18px;
+  padding: 17px 42px;
+  border-top: 1px solid rgba(96,143,226,.13);
+  background: rgba(1,7,19,.25);
+}
+.cosmic-footer-v2 .footer-address {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6f83a7;
+  font-size: 8px;
+}
+.cosmic-footer-v2 .footer-address-icon {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(78,141,238,.17);
+  border-radius: 50%;
+  color: #65b9ff;
+  background: rgba(36,107,210,.12);
+}
+.cosmic-footer-v2 .footer-address-icon svg { font-size: 13px; }
+.cosmic-footer-v2 .footer-v2-bottom > small {
+  color: #657a9e;
+  font-size: 7px;
+  white-space: nowrap;
+}
+.cosmic-footer-v2 .footer-bottom-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+}
+.cosmic-footer-v2 .footer-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid rgba(61,203,178,.17);
+  border-radius: 999px;
+  color: #8ed7c8;
+  background: rgba(25,135,120,.07);
+  font-size: 7px;
+}
+.cosmic-footer-v2 .footer-live > span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #35e0ac;
+  box-shadow: 0 0 10px rgba(53,224,172,.65);
+}
+.cosmic-footer-v2 .footer-top-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  color: #a6c8f5;
+  background: transparent;
+  font-size: 7px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.cosmic-footer-v2 .footer-top-button svg {
+  width: 30px;
+  height: 30px;
+  padding: 7px;
+  border: 1px solid rgba(81,147,246,.24);
+  border-radius: 50%;
+  color: #dcecff;
+  background: linear-gradient(145deg, rgba(51,130,255,.23), rgba(107,68,255,.22));
+  box-shadow: 0 0 22px rgba(60,120,255,.15);
+  transition: .2s ease;
+}
+.cosmic-footer-v2 .footer-top-button:hover svg {
+  transform: translateY(-3px);
+  box-shadow: 0 0 30px rgba(78,130,255,.30);
+}
+@media (max-width: 980px) {
+  .cosmic-footer-v2 .footer-v2-main {
+    grid-template-columns: 1.2fr 1fr 1fr;
+  }
+  .cosmic-footer-v2 .footer-v2-connected { grid-column: 1 / -1; }
+}
+@media (max-width: 700px) {
+  .cosmic-footer-v2 { padding: 28px 12px 20px; }
+  .cosmic-footer-v2 .cosmic-footer-panel { border-radius: 20px; }
+  .cosmic-footer-v2 .footer-v2-main {
+    grid-template-columns: 1fr 1fr;
+    gap: 25px 18px;
+    padding: 27px 20px 25px;
+  }
+  .cosmic-footer-v2 .footer-v2-brand { grid-column: 1 / -1; }
+  .cosmic-footer-v2 .footer-v2-connected { grid-column: 1 / -1; }
+  .cosmic-footer-v2 .footer-v2-bottom {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    padding: 15px 20px 18px;
+  }
+  .cosmic-footer-v2 .footer-bottom-actions { width: 100%; justify-content: space-between; }
+}
+@media (max-width: 430px) {
+  .cosmic-footer-v2 .footer-v2-main { grid-template-columns: 1fr; }
+  .cosmic-footer-v2 .footer-v2-brand,
+  .cosmic-footer-v2 .footer-v2-connected { grid-column: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-footer-v2 .footer-lab-button,
+  .cosmic-footer-v2 .footer-socials a,
+  .cosmic-footer-v2 .footer-top-button svg,
+  .cosmic-footer-v2 .footer-v2-column a { transition: none; }
+}
