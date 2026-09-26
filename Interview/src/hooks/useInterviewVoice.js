@@ -14,6 +14,7 @@ export function useInterviewVoice({
 } = {}) {
   const recognitionRef = useRef(null)
   const speechIdRef = useRef(0)
+  const listeningRef = useRef(false)
   const onTranscriptRef = useRef(onTranscript)
   const onSilenceRef = useRef(onSilence)
   const silenceDetectorRef = useRef(null)
@@ -48,18 +49,21 @@ export function useInterviewVoice({
 
     recognition.onstart = () => {
       silenceDetectorRef.current?.start()
+      listeningRef.current = true
       setListening(true)
       setVoiceError('')
     }
 
     recognition.onend = () => {
       silenceDetectorRef.current?.stop()
+      listeningRef.current = false
       setListening(false)
       setInterimTranscript('')
     }
 
     recognition.onerror = (event) => {
       silenceDetectorRef.current?.stop()
+      listeningRef.current = false
       setListening(false)
       if (event.error !== 'aborted') {
         setVoiceError(
@@ -103,7 +107,7 @@ export function useInterviewVoice({
   }, [silenceTimeoutMs])
 
   const startListening = useCallback(() => {
-    if (!recognitionRef.current || listening) return false
+    if (!recognitionRef.current || listeningRef.current) return false
     setVoiceError('')
     try {
       recognitionRef.current.start()
@@ -111,12 +115,13 @@ export function useInterviewVoice({
     } catch {
       return false
     }
-  }, [listening])
+  }, [])
 
   const stopListening = useCallback(() => {
     silenceDetectorRef.current?.stop()
     if (!recognitionRef.current) return
     try { recognitionRef.current.stop() } catch {}
+    listeningRef.current = false
     setListening(false)
     setInterimTranscript('')
   }, [])
