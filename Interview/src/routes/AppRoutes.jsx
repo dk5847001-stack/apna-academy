@@ -10,10 +10,12 @@ import InterviewCompletePage from '../pages/InterviewCompletePage'
 import InterviewResultPage from '../pages/InterviewResultPage'
 import InterviewHistoryPage from '../pages/InterviewHistoryPage'
 import InterviewLoginPage from '../pages/InterviewLoginPage'
+import InterviewSignupPage from '../pages/InterviewSignupPage'
 
 const pages = {
   [ROUTES.HOME]: HomePage,
   [ROUTES.LOGIN]: InterviewLoginPage,
+  [ROUTES.SIGNUP]: InterviewSignupPage,
   [ROUTES.INTERVIEW_SETUP]: InterviewSetupPage,
   [ROUTES.INTERVIEW_PREPARATION]: InterviewPreparationPage,
   [ROUTES.INTERVIEW_ROOM]: InterviewRoomPage,
