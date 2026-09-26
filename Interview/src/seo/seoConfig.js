@@ -13,7 +13,7 @@ export const SEO_DEFAULTS = {
   locale: 'en_IN',
   language: 'en-IN',
   type: 'website',
-  image: 'https://apnaacademy.me/favicon.png',
+  image: 'https://interview.apnaacademy.me/favicon.png',
   imageAlt: 'ApnaAcademy Interview AI',
 }
 
