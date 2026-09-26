@@ -113,6 +113,7 @@ export async function submitInterviewAnswer({ userId, sessionId, questionId, ans
     answer: cleanAnswer,
     score: evaluation.score,
     feedback: evaluation.feedback,
+    spokenResponse: evaluation.spokenResponse,
     strengths: evaluation.strengths,
     improvements: evaluation.improvements,
   });
