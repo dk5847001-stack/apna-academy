@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createVoiceSilenceDetector, DEFAULT_VOICE_SILENCE_MS } from '../voice/silenceDetection'
 
 const getRecognition = () => {
   if (typeof window === 'undefined') return null
@@ -6,10 +7,16 @@ const getRecognition = () => {
   return Recognition ? new Recognition() : null
 }
 
-export function useInterviewVoice({ onTranscript } = {}) {
+export function useInterviewVoice({
+  onTranscript,
+  onSilence,
+  silenceTimeoutMs = DEFAULT_VOICE_SILENCE_MS,
+} = {}) {
   const recognitionRef = useRef(null)
   const speechIdRef = useRef(0)
   const onTranscriptRef = useRef(onTranscript)
+  const onSilenceRef = useRef(onSilence)
+  const silenceDetectorRef = useRef(null)
   const [supported, setSupported] = useState(false)
   const [listening, setListening] = useState(false)
   const [speaking, setSpeaking] = useState(false)
@@ -17,49 +24,97 @@ export function useInterviewVoice({ onTranscript } = {}) {
   const [voiceError, setVoiceError] = useState('')
 
   useEffect(() => { onTranscriptRef.current = onTranscript }, [onTranscript])
+  useEffect(() => { onSilenceRef.current = onSilence }, [onSilence])
 
   useEffect(() => {
+    silenceDetectorRef.current = createVoiceSilenceDetector({
+      silenceMs: silenceTimeoutMs,
+      onSilence: () => {
+        const recognition = recognitionRef.current
+        try { recognition?.stop() } catch {}
+        setListening(false)
+        setInterimTranscript('')
+        onSilenceRef.current?.()
+      },
+    })
+
     const recognition = getRecognition()
-    if (!recognition) return
+    if (!recognition) return () => silenceDetectorRef.current?.stop()
+
     setSupported(true)
     recognition.continuous = true
     recognition.interimResults = true
     recognition.lang = 'en-IN'
-    recognition.onstart = () => { setListening(true); setVoiceError('') }
-    recognition.onend = () => setListening(false)
-    recognition.onerror = (event) => {
-      setListening(false)
-      if (event.error !== 'aborted') setVoiceError(event.error === 'not-allowed' ? 'Microphone permission is required for voice answers.' : 'Voice recognition stopped. You can continue typing.')
+
+    recognition.onstart = () => {
+      silenceDetectorRef.current?.start()
+      setListening(true)
+      setVoiceError('')
     }
+
+    recognition.onend = () => {
+      silenceDetectorRef.current?.stop()
+      setListening(false)
+      setInterimTranscript('')
+    }
+
+    recognition.onerror = (event) => {
+      silenceDetectorRef.current?.stop()
+      setListening(false)
+      if (event.error !== 'aborted') {
+        setVoiceError(
+          event.error === 'not-allowed'
+            ? 'Microphone permission is required for voice answers.'
+            : 'Voice recognition stopped. You can continue typing.'
+        )
+      }
+    }
+
     recognition.onresult = (event) => {
       let finalText = ''
       let interim = ''
+
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
         const text = event.results[index][0]?.transcript || ''
         if (event.results[index].isFinal) finalText += text + ' '
         else interim += text
       }
+
       setInterimTranscript(interim)
       if (finalText.trim()) onTranscriptRef.current?.(finalText.trim())
+
+      if (finalText.trim() || interim.trim()) {
+        silenceDetectorRef.current?.signalSpeech()
+      }
     }
+
     recognitionRef.current = recognition
+
     return () => {
+      silenceDetectorRef.current?.stop()
       recognition.onresult = null
+      recognition.onstart = null
       recognition.onend = null
       recognition.onerror = null
       try { recognition.stop() } catch {}
       recognitionRef.current = null
       if ('speechSynthesis' in window) window.speechSynthesis.cancel()
     }
-  }, [])
+  }, [silenceTimeoutMs])
 
   const startListening = useCallback(() => {
-    if (!recognitionRef.current || listening) return
+    if (!recognitionRef.current || listening) return false
     setVoiceError('')
-    try { recognitionRef.current.start() } catch {}
+    try {
+      recognitionRef.current.start()
+      return true
+    } catch {
+      return false
+    }
   }, [listening])
 
   const stopListening = useCallback(() => {
+    silenceDetectorRef.current?.stop()
     if (!recognitionRef.current) return
     try { recognitionRef.current.stop() } catch {}
     setListening(false)
@@ -67,8 +122,11 @@ export function useInterviewVoice({ onTranscript } = {}) {
   }, [])
 
   const toggleListening = useCallback(() => {
-    if (listening) stopListening()
-    else startListening()
+    if (listening) {
+      stopListening()
+      return false
+    }
+    return startListening()
   }, [listening, startListening, stopListening])
 
   const speak = useCallback((text, { onStart, onEnd, onError } = {}) => {
@@ -105,5 +163,17 @@ export function useInterviewVoice({ onTranscript } = {}) {
     setSpeaking(false)
   }, [])
 
-  return { supported, listening, speaking, interimTranscript, voiceError, startListening, stopListening, toggleListening, speak, stopSpeaking }
+  return {
+    supported,
+    listening,
+    speaking,
+    interimTranscript,
+    voiceError,
+    silenceTimeoutMs,
+    startListening,
+    stopListening,
+    toggleListening,
+    speak,
+    stopSpeaking,
+  }
 }
