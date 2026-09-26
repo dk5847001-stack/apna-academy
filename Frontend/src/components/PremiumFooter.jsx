@@ -14,7 +14,7 @@ import {
   School,
   Settings,
 } from "@mui/icons-material";
-import { ADMIN_URL, API_BASE_URL, COURSE_URL, DASHBOARD_URL, DSA_URL } from "../constants/config";
+import { ADMIN_URL, API_BASE_URL, COURSE_URL, DASHBOARD_URL, DSA_URL, INTERVIEW_URL } from "../constants/config";
 
 const SOCIAL_LINKS = [
   { label: "Instagram", href: "https://www.instagram.com/dilkhush_10star?stkn=MXVubXJtbHdtODA0aA==", icon: Instagram },
@@ -300,7 +300,30 @@ export default function PremiumFooter() {
               <AppCard icon={Dashboard} title="Student Dashboard" description="Profile & progress" onClick={() => goTo(DASHBOARD_URL)} />
               <AppCard icon={MenuBook} title="Learning App" description="Courses & lessons" onClick={() => goTo(COURSE_URL)} accent="violet" />
               <AppCard icon={School} title="DSA Practice" description="Practice & challenges" accent="slate" onClick={() => goTo(DSA_URL)} />
+              <AppCard icon={Explore} title="Professional AI Interview" description="Practice with adaptive AI interviews" onClick={() => goTo(INTERVIEW_URL)} />
               {isAdmin && <AppCard icon={Settings} title="Admin Portal" description="Administration" accent="slate" onClick={() => goTo(ADMIN_URL)} />}
+            </div>
+          </div>
+        </div>
+
+        <div className="relative mx-auto mt-10 max-w-[1120px]">
+          <div className="rounded-[22px] border border-blue-100 bg-white/80 p-5 shadow-[0_18px_50px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-600">Get in touch</p>
+                <p className="mt-1 text-[15px] font-extrabold text-slate-900">We’re here to help you learn and grow.</p>
+                <p className="mt-1 text-[12px] text-slate-500">For general enquiries, partnerships or platform support, reach us directly.</p>
+              </div>
+              <div className="grid shrink-0 gap-2 sm:min-w-[330px]">
+                <a href="mailto:info@apnaacademy.me" className="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 text-sm font-bold text-slate-700 no-underline transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+                  <Email fontSize="small" />
+                  info@apnaacademy.me
+                </a>
+                <a href="mailto:support@apnaacademy.me" className="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 text-sm font-bold text-slate-700 no-underline transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+                  <Email fontSize="small" />
+                  support@apnaacademy.me
+                </a>
+              </div>
             </div>
           </div>
         </div>
