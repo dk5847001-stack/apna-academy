@@ -28,6 +28,9 @@ export default function InterviewRoomPage() {
   const [showQuestionList, setShowQuestionList] = useState(false)
   const [voiceEnabled, setVoiceEnabled] = useState(true)
   const [roomError, setRoomError] = useState('')
+  const [lastEvaluation, setLastEvaluation] = useState(null)
+  const [evaluationQuestionId, setEvaluationQuestionId] = useState('')
+  const [interviewCompleted, setInterviewCompleted] = useState(false)
   const videoRef = useRef(null)
   const finalizingRef = useRef(false)
   const timer = useInterviewTimer(Math.max(60, Number(setup.durationMinutes || 30) * 60), true)
@@ -97,8 +100,11 @@ export default function InterviewRoomPage() {
       if (!session?.id || String(session.id).startsWith('mock-')) throw new Error('Your AI session is not available. Please restart the interview.')
       const cleanAnswer = answer.trim()
       const data = await interviewApi.submitInterviewAnswer({ sessionId: session.id, questionId: question.id, answer: cleanAnswer })
-      const saved = { questionId: question.id, answer: cleanAnswer, score: data.evaluation?.score, feedback: data.evaluation?.feedback, answeredAt: new Date().toISOString() }
+      const saved = { questionId: question.id, answer: cleanAnswer, score: data.evaluation?.score, feedback: data.evaluation?.feedback, strengths: data.evaluation?.strengths, improvements: data.evaluation?.improvements, answeredAt: new Date().toISOString() }
       const nextAnswers = answers.filter((item) => item.questionId !== question.id).concat(saved)
+      setLastEvaluation(data.evaluation || null)
+      setEvaluationQuestionId(question.id)
+      setInterviewCompleted(Boolean(data.completed))
       setAnswers(nextAnswers)
       setSession((value) => ({
         ...(value || {}),
@@ -116,6 +122,11 @@ export default function InterviewRoomPage() {
   }
 
   const nextQuestion = async () => {
+    if (interviewCompleted || session?.status === 'completed') {
+      navigate(ROUTES.INTERVIEW_COMPLETE)
+      return
+    }
+
     const hadDraft = Boolean(answer.trim())
     const data = hadDraft ? await saveAnswer() : null
     if (hadDraft && !data) return
@@ -125,14 +136,20 @@ export default function InterviewRoomPage() {
     }
 
     const responseQuestions = Array.isArray(data?.questions) ? data.questions : questions
-    const nextId = data?.nextQuestion?.id || responseQuestions[current + 1]?.id || questions[current + 1]?.id
+    const nextId = data?.nextQuestion?.id || responseQuestions
+      .slice(current + 1)
+      .find((item) => !answers.some((saved) => saved.questionId === item.id && saved.answer?.trim()))?.id
+      || responseQuestions.find((item) => !answers.some((saved) => saved.questionId === item.id && saved.answer?.trim()))?.id
+
     const nextIndex = responseQuestions.findIndex((item) => item.id === nextId)
 
     if (nextIndex < 0) {
-      setRoomError('There is no unanswered question available. You can finish the interview.')
+      await finalizeSession()
       return
     }
 
+    setLastEvaluation(null)
+    setEvaluationQuestionId('')
     setCurrent(nextIndex)
     setAnswer(answers.find((item) => item.questionId === nextId)?.answer || '')
   }
@@ -140,11 +157,15 @@ export default function InterviewRoomPage() {
   const previousQuestion = () => {
     const previous = current - 1
     if (previous < 0) return
+    setLastEvaluation(null)
+    setEvaluationQuestionId('')
     setCurrent(previous)
     setAnswer(answers.find((item) => item.questionId === questions[previous]?.id)?.answer || '')
   }
 
   const selectQuestion = (index) => {
+    setLastEvaluation(null)
+    setEvaluationQuestionId('')
     setCurrent(index)
     setAnswer(answers.find((item) => item.questionId === questions[index]?.id)?.answer || '')
     setShowQuestionList(false)
@@ -203,6 +224,23 @@ export default function InterviewRoomPage() {
             <div className="question-hint"><ChatRounded /><div><strong>Think about</strong><span>{question?.hint}</span></div></div>
           </div>
 
+          {lastEvaluation && evaluationQuestionId === question?.id ? (
+            <div className="answer-feedback-card" role="status">
+              <div className="answer-feedback-head">
+                <div>
+                  <span>AI ANSWER FEEDBACK</span>
+                  <strong>{Number(lastEvaluation.score) >= 70 ? 'Strong answer' : Number(lastEvaluation.score) >= 50 ? 'Partially correct' : 'Needs improvement'}</strong>
+                </div>
+                <div className="answer-feedback-score">{Math.round(Number(lastEvaluation.score) || 0)}<small>/100</small></div>
+              </div>
+              <p>{lastEvaluation.feedback || 'Your answer was evaluated successfully.'}</p>
+              <div className="answer-feedback-grid">
+                <div><b>Strengths</b>{(lastEvaluation.strengths || []).slice(0, 3).map((item) => <span key={item}>✓ {item}</span>)}</div>
+                <div><b>Improve</b>{(lastEvaluation.improvements || []).slice(0, 3).map((item) => <span key={item}>→ {item}</span>)}</div>
+              </div>
+            </div>
+          ) : null}
+
           <div className="answer-card">
             <div className="answer-head">
               <div><span>Your response</span><small>{voice.supported ? "Speak naturally or type your answer." : "Voice input is not supported in this browser; text input is available."}</small></div>
@@ -224,7 +262,7 @@ export default function InterviewRoomPage() {
           <div className="room-navigation">
             <button type="button" className="room-nav-secondary" disabled={current === 0} onClick={previousQuestion}><ChevronLeftRounded /> Previous</button>
             <div className="room-nav-center"><span>{current + 1} of {questions.length}</span><button type="button" onClick={() => setShowQuestionList(!showQuestionList)}>Questions</button></div>
-            <button type="button" className="room-nav-primary" onClick={nextQuestion}>{current === questions.length - 1 ? 'Finish interview' : 'Next question'} <ChevronRightRounded /></button>
+            <button type="button" className="room-nav-primary" onClick={nextQuestion}>{interviewCompleted || session?.status === 'completed' ? 'View results' : current === questions.length - 1 ? 'Finish interview' : 'Next question'} <ChevronRightRounded /></button>
           </div>
         </section>
 
