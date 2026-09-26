@@ -62,6 +62,8 @@ const requiredBuildSteps = [
   'npm run performance:validate',
   'npm run seo:final',
   'vite build',
+  'npm run seo:static',
+  'npm run seo:static:validate',
 ]
 for (const step of requiredBuildSteps) {
   if (!files.package.includes(step)) {
@@ -92,4 +94,4 @@ if (errors.length) {
   process.exit(1)
 }
 
-console.log(`Final SEO validation passed: ${sitemapUrls.length} sitemap URLs, protected routes excluded, root metadata present.`)
+console.log(`Final SEO validation passed: ${sitemapUrls.length} sitemap URLs, protected routes excluded, root metadata present, static SEO build stage configured.`)
