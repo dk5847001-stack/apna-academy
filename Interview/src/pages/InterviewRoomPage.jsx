@@ -146,6 +146,15 @@ export default function InterviewRoomPage() {
   }, [voice.startListening])
 
   useEffect(() => {
+    if (voiceEnabled) return
+    voiceTurnIdRef.current += 1
+    autoVoiceTurnRef.current = false
+    voice.stopSpeaking()
+    voice.stopListening()
+    conversation.reset()
+  }, [voiceEnabled, voice.stopSpeaking, voice.stopListening, conversation.reset])
+
+  useEffect(() => {
     if (!voiceEnabled || !question?.question || paused) return
 
     if (autoListenQuestionIdRef.current === question.id) {
@@ -199,7 +208,7 @@ export default function InterviewRoomPage() {
       voice.stopListening()
       conversation.aiSpeechEnded()
     }
-  }, [current, paused, question?.id, question?.question, voiceEnabled, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.reset, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
+  }, [current, paused, question?.id, question?.question, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.reset, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
 
   useEffect(() => {
     if (voice.listening) conversation.startListening()
