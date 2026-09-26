@@ -67,6 +67,8 @@ export default function InterviewRoomPage() {
     if (paused) { timer.pause(); voice.stopListening(); voice.stopSpeaking() }
   }, [paused, timer, voice.stopListening, voice.stopSpeaking])
 
+  const question = questions[current] || questions[0]
+
   useEffect(() => {
     if (!voiceEnabled || !question?.question || paused) return
     voice.speak(question.question)
@@ -76,8 +78,6 @@ export default function InterviewRoomPage() {
   useEffect(() => {
     setSession((value) => ({ ...(value || {}), currentQuestion: current, answers }))
   }, [current, answers, setSession])
-
-  const question = questions[current] || questions[0]
   const answeredCount = answers.filter((item) => item?.answer?.trim()).length
   const progress = Math.round(((current + 1) / questions.length) * 100)
   const isAnswered = answers.some((item) => item.questionId === question?.id && item.answer?.trim())
