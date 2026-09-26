@@ -39,6 +39,7 @@ const evaluationPayload = {
   feedback: "The answer is technically sound and relevant.",
   strengths: ["Correct explanation"],
   improvements: ["Add a concrete example"],
+  spokenResponse: "Good explanation. You correctly identified the event loop's role; now let's probe how you would diagnose blocking.",
   followUpQuestion: "How would you debug event-loop blocking?",
   nextCategory: "Node.js",
 };
@@ -106,6 +107,8 @@ test("answer evaluation is generated and normalized", async () => {
   });
 
   assert.equal(evaluation.score, 85);
+  assert.equal(evaluation.spokenResponse, evaluationPayload.spokenResponse);
+  assert.equal(evaluation.spokenResponse.length <= 450, true);
   assert.equal(evaluation.followUpQuestion.length > 0, true);
 });
 
