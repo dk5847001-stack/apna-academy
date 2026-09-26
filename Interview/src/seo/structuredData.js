@@ -11,7 +11,7 @@ const createOrganization = () => ({
   '@id': SEO_ORIGIN + '/#organization',
   name: 'ApnaAcademy',
   url: 'https://apnaacademy.me/',
-  logo: 'https://apnaacademy.me/favicon.png',
+  logo: 'https://interview.apnaacademy.me/favicon.png',
 })
 
 const createWebSite = () => ({
