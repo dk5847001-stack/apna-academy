@@ -56,8 +56,17 @@ if (!files.schema.includes('WebSite')) errors.push('WebSite structured data miss
 if (!files.appRoutes.includes('<SEO path={path} />')) errors.push('SEO component is not mounted at route level.')
 if (!files.seo.includes('applyStructuredData(config)')) errors.push('Structured data is not applied by SEO component.')
 if (!files.architecture.includes('getInterviewSeoTopics')) errors.push('Topic URL architecture is not content-driven.')
-if (!files.package.includes('"build": "npm run seo:generate && npm run seo:validate && npm run performance:validate && vite build"')) {
-  errors.push('Production build is missing the complete SEO/performance validation gate.')
+const requiredBuildSteps = [
+  'npm run seo:generate',
+  'npm run seo:validate',
+  'npm run performance:validate',
+  'npm run seo:final',
+  'vite build',
+]
+for (const step of requiredBuildSteps) {
+  if (!files.package.includes(step)) {
+    errors.push(`Production build is missing validation step: ${step}`)
+  }
 }
 
 for (const path of protectedPaths) {
