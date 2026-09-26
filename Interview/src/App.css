@@ -3511,3 +3511,113 @@ button { font: inherit; }
   position: relative;
   z-index: 1;
 }
+
+
+/* =========================================================
+   GLASSMORPHIC CONTENT SURFACES
+   Cards stay readable over the animated cosmic field while
+   removing flat white surfaces.
+   ========================================================= */
+.app-shell-content .glass-card,
+.app-shell-content .feature-card,
+.app-shell-content .step-card,
+.app-shell-content .testimonial-card,
+.app-shell-content .stats-strip,
+.app-shell-content .question-bubble,
+.app-shell-content .mock-interviewer {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.48), rgba(245,248,255,.24)) !important;
+  border-color: rgba(255,255,255,.62) !important;
+  box-shadow:
+    0 18px 55px rgba(54,67,130,.10),
+    inset 0 1px 0 rgba(255,255,255,.72),
+    inset 0 -1px 0 rgba(113,129,188,.08) !important;
+  backdrop-filter: blur(22px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(135%) !important;
+}
+
+.app-shell-content .feature-card:hover,
+.app-shell-content .testimonial-card:hover,
+.app-shell-content .step-card:hover {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.60), rgba(244,247,255,.32)) !important;
+  box-shadow:
+    0 22px 60px rgba(54,67,130,.14),
+    inset 0 1px 0 rgba(255,255,255,.82) !important;
+}
+
+.app-shell-content .stats-strip {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.52), rgba(241,246,255,.28)) !important;
+}
+
+.app-shell-content main .bg-white:not(.white-btn),
+.app-shell-content main .bg-white\/95 {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.52), rgba(244,247,255,.26)) !important;
+  border-color: rgba(255,255,255,.64) !important;
+  box-shadow:
+    0 20px 65px rgba(54,67,130,.11),
+    inset 0 1px 0 rgba(255,255,255,.78) !important;
+  backdrop-filter: blur(22px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(140%) !important;
+}
+
+.app-shell-content main .bg-slate-50 {
+  background: transparent !important;
+}
+
+.app-shell-content .feature-card h3,
+.app-shell-content .feature-card p,
+.app-shell-content .step-card h3,
+.app-shell-content .step-card p,
+.app-shell-content .testimonial-card p,
+.app-shell-content .testimonial-person b,
+.app-shell-content .testimonial-person small,
+.app-shell-content .stat-item b,
+.app-shell-content .stat-item small {
+  position: relative;
+  z-index: 1;
+}
+
+.app-shell-content .feature-card p,
+.app-shell-content .step-card p,
+.app-shell-content .testimonial-card p,
+.app-shell-content .testimonial-person small,
+.app-shell-content .stat-item small {
+  color: #52617f;
+}
+
+.app-shell-content .section-heading h2,
+.app-shell-content .proof-copy h2,
+.app-shell-content .feature-card h3,
+.app-shell-content .step-card h3,
+.app-shell-content .testimonial-person b,
+.app-shell-content .stat-item b {
+  color: #101936;
+}
+
+@media (max-width: 900px) {
+  .app-shell-content .glass-card,
+  .app-shell-content .feature-card,
+  .app-shell-content .step-card,
+  .app-shell-content .testimonial-card,
+  .app-shell-content main .bg-white:not(.white-btn),
+  .app-shell-content main .bg-white\/95 {
+    backdrop-filter: blur(18px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(130%) !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .app-shell-content .glass-card,
+  .app-shell-content .feature-card,
+  .app-shell-content .step-card,
+  .app-shell-content .testimonial-card,
+  .app-shell-content main .bg-white:not(.white-btn),
+  .app-shell-content main .bg-white\/95 {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(248,250,255,.92) !important;
+  }
+}
