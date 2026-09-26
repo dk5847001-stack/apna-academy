@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowForwardRounded, AutoAwesomeRounded, LockRounded, MailOutlineRounded, ShieldRounded, BoltRounded } from '@mui/icons-material'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
@@ -13,10 +13,11 @@ export default function InterviewLoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  if (!authLoading && user) {
-    navigate(ROUTES.INTERVIEW_SETUP, { replace: true })
-    return null
-  }
+  useEffect(() => {
+    if (!authLoading && user) navigate(ROUTES.INTERVIEW_SETUP, { replace: true })
+  }, [authLoading, user, navigate])
+
+  if (!authLoading && user) return null
 
   const submit = async (event) => {
     event.preventDefault()
