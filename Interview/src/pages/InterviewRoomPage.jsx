@@ -136,10 +136,13 @@ export default function InterviewRoomPage() {
     }
 
     const responseQuestions = Array.isArray(data?.questions) ? data.questions : questions
+    const effectiveAnswers = hadDraft
+      ? answers.concat({ questionId: question?.id, answer: 'saved' })
+      : answers
     const nextId = data?.nextQuestion?.id || responseQuestions
       .slice(current + 1)
-      .find((item) => !answers.some((saved) => saved.questionId === item.id && saved.answer?.trim()))?.id
-      || responseQuestions.find((item) => !answers.some((saved) => saved.questionId === item.id && saved.answer?.trim()))?.id
+      .find((item) => !effectiveAnswers.some((saved) => saved.questionId === item.id && saved.answer?.trim()))?.id
+      || responseQuestions.find((item) => !effectiveAnswers.some((saved) => saved.questionId === item.id && saved.answer?.trim()))?.id
 
     const nextIndex = responseQuestions.findIndex((item) => item.id === nextId)
 
