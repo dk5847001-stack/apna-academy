@@ -20,7 +20,7 @@ export default function InterviewQuestionsPage({ routePath }) {
   const questions = content ? content.questions : []
 
   return (
-    <main className="min-h-[70vh] bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
+    <main className="interview-questions-page min-h-[70vh] px-4 py-12 sm:px-6 lg:px-8">
       <section className="mx-auto max-w-6xl">
         <header className="rounded-[2rem] border border-violet-100 bg-white/95 p-8 shadow-[0_25px_80px_rgba(55,45,150,0.10)] backdrop-blur-xl sm:p-12">
           <span className="inline-flex items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 py-2 text-xs font-bold text-violet-700"><AutoAwesome fontSize="small" /> ApnaAcademy Interview AI</span>
