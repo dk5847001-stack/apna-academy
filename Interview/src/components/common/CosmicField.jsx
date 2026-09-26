@@ -190,6 +190,7 @@ export default function CosmicField({ density = 'hero' }) {
     createParticles()
     resize()
     observer.observe(canvas)
+    draw(0)
     window.addEventListener('resize', resize)
     document.addEventListener('visibilitychange', onVisibility)
 
