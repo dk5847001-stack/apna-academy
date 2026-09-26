@@ -1,6 +1,7 @@
 import { ROUTES } from '../routes/routes'
 import { isIndexableRoute } from './routePolicy'
 import { getInterviewTopicFromPath, getInterviewTopicLabel, isInterviewQuestionsPath } from './urlArchitecture'
+import { getInterviewSeoContent } from '../data/interviewSeoContent'
 
 export const SEO_ORIGIN = (
   import.meta.env.VITE_INTERVIEW_URL || 'https://interview.apnaacademy.me'
