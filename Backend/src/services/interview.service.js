@@ -1,5 +1,6 @@
 import InterviewSession from "../models/InterviewSession.js";
 import { buildFinalReport, evaluateAnswer, generateOpeningQuestions } from "./groqInterview.service.js";
+import { buildInterviewAnalytics } from "./interviewAnalytics.service.js";
 
 const allowedTypes = new Set(["technical", "dsa", "behavioral"]);
 const allowedDifficulties = new Set(["easy", "medium", "hard"]);
@@ -171,6 +172,7 @@ export async function submitInterviewAnswer({ userId, sessionId, questionId, ans
       setup: session.setup,
       answers: session.answers.map(toPlain),
     });
+    session.analytics = buildInterviewAnalytics(session.answers.map(toPlain), session.questions.map(toPlain), session.setup);
   }
 
   await session.save();
@@ -245,6 +247,7 @@ export async function completeInterview({ userId, sessionId }) {
     setup: session.setup,
     answers: session.answers.map(toPlain),
   });
+  session.analytics = buildInterviewAnalytics(session.answers.map(toPlain), session.questions.map(toPlain), session.setup);
 
   await session.save();
   return session;
