@@ -97,7 +97,10 @@ export default function InterviewRoomPage() {
       onError: () => conversation.setError('AI voice playback failed. You can continue in text mode.'),
     })
     if (!spoken) conversation.aiSpeechEnded()
-    return () => voice.stopSpeaking()
+    return () => {
+      voice.stopSpeaking()
+      if (conversation.isAiSpeaking) conversation.aiSpeechEnded()
+    }
   }, [current, voiceEnabled, paused, question?.question, voice.speak, voice.stopSpeaking, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
 
   useEffect(() => {
