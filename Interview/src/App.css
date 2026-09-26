@@ -585,3 +585,33 @@ button { font: inherit; }
 @media (max-width: 650px) {
   .ai-conversation-message p { font-size: 8px; }
 }
+
+
+/* Phase 5: real result/history states */
+.history-result-count{font-size:.78rem;color:#697386;font-weight:700;margin-left:auto}
+.history-open{display:inline-flex;align-items:center;justify-content:center}
+.history-empty .gradient-btn{margin-top:14px}
+.history-error-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-weight:800;background:#fff0f0;color:#c24141}
+.result-error{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.result-error button{border:0;background:transparent;color:#7040eb;font-weight:800;cursor:pointer}
+.result-summary-card{margin:24px 0;padding:24px;border:1px solid #e8eaf4;border-radius:20px;background:rgba(255,255,255,.8);box-shadow:0 12px 30px rgba(35,32,72,.06)}
+.result-summary-card>span,.result-answers .recommend-head>div>span{font-size:.72rem;letter-spacing:.12em;font-weight:800;color:#7040eb}
+.result-summary-card p{margin:10px 0 0;color:#4f5668;line-height:1.7}
+.result-answers{margin-top:24px}
+.answer-review-list{display:grid;gap:14px;margin-top:18px}
+.answer-review-card{padding:22px;border:1px solid #e8eaf4;border-radius:18px;background:#fff}
+.answer-review-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.answer-review-top span{font-size:.7rem;letter-spacing:.1em;font-weight:800;color:#73798b}
+.answer-review-top strong{font-size:.9rem;color:#7040eb}
+.answer-review-card h3{margin:10px 0;font-size:1.05rem;color:#202536;line-height:1.5}
+.answer-review-text,.answer-review-feedback,.answer-review-spoken{margin:10px 0;color:#565d70;line-height:1.65;white-space:pre-wrap}
+.answer-review-feedback strong,.answer-review-spoken strong{color:#292e3e}
+.answer-review-spoken{padding:12px 14px;border-radius:12px;background:#f7f5ff}
+.answer-review-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.answer-review-tags span{padding:6px 9px;border-radius:999px;background:#f1f2f7;color:#5c6374;font-size:.72rem}
+.result-empty-detail{padding:24px;border:1px dashed #d9dce8;border-radius:16px;color:#747b8d;text-align:center;margin-top:18px}
+@media (max-width:700px){
+  .history-result-count{display:none}
+  .result-summary-card,.answer-review-card{padding:16px}
+  .answer-review-top{align-items:flex-start}
+}
