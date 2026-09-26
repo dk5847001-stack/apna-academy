@@ -1,7 +1,7 @@
 export const DEFAULT_VOICE_SILENCE_MS = 2200
 
 export function createVoiceSilenceDetector({ silenceMs = DEFAULT_VOICE_SILENCE_MS, onSilence } = {}) {
-  const delay = Math.max(50, Number(silenceMs) || DEFAULT_VOICE_SILENCE_MS)
+  const delay = Math.max(10, Number(silenceMs) || DEFAULT_VOICE_SILENCE_MS)
   let timer = null
   let active = false
 
