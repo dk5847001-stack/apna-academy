@@ -103,7 +103,7 @@ function HomePage() {
             <div className="trust-row">
               <div className="avatar-stack">
                 {['1500648767791-00dcc994a43e', '1494790108377-be9c29b29330', '1507003211169-0a1dd7228f2d', '1535713875002-d1d0cf377fde'].map((id) => (
-                  <img key={id} src={`https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=80&q=75`} alt="" />
+                  <img key={id} src={`https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=80&q=75`} alt="" width="40" height="40" decoding="async" />
                 ))}
               </div>
               <div className="stars"><StarRounded /><StarRounded /><StarRounded /><StarRounded /><StarRounded /></div>
@@ -232,7 +232,7 @@ function HomePage() {
               <article className={`testimonial-card ${item === currentTestimonial ? 'selected' : ''}`} key={item.name}>
                 <p>“{item.quote}”</p>
                 <div className="testimonial-person">
-                  <img src={item.image} alt="" />
+                  <img src={item.image} alt="" width="56" height="56" loading="lazy" decoding="async" />
                   <div><b>{item.name}</b><small>{item.role}</small><span className="gold-stars">★★★★★</span></div>
                   <strong className="company-mark">{item.mark}</strong>
                 </div>
