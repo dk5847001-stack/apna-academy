@@ -37,7 +37,7 @@ export default function InterviewRoomPage() {
   const finalizingRef = useRef(false)
   const autoVoiceTurnRef = useRef(false)
   const answerRef = useRef(answer)
-  const questionRef = useRef(question)
+  const questionRef = useRef(null)
   const answersRef = useRef(answers)
   const pausedRef = useRef(paused)
   const voiceEnabledRef = useRef(voiceEnabled)
@@ -45,7 +45,6 @@ export default function InterviewRoomPage() {
   const sessionStatusRef = useRef(session?.status)
   const submittingRef = useRef(submitting)
   const microphoneRef = useRef(microphone)
-  const voiceSupportedRef = useRef(false)
   const saveAnswerRef = useRef(null)
   const timer = useInterviewTimer(Math.max(60, Number(setup.durationMinutes || 30) * 60), true)
   const voice = useInterviewVoice({
@@ -68,7 +67,6 @@ export default function InterviewRoomPage() {
   sessionStatusRef.current = session?.status
   submittingRef.current = submitting
   microphoneRef.current = microphone
-  voiceSupportedRef.current = voice.supported
 
   useEffect(() => {
     requestMedia().then((stream) => {
@@ -125,7 +123,6 @@ export default function InterviewRoomPage() {
     const currentAnswers = answersRef.current
     if (
       !voiceEnabledRef.current ||
-      !voiceSupportedRef.current ||
       pausedRef.current ||
       submittingRef.current ||
       interviewCompletedRef.current ||
@@ -163,7 +160,7 @@ export default function InterviewRoomPage() {
       voice.stopSpeaking()
       autoVoiceTurnRef.current = false
       voice.stopListening()
-      if (conversation.isAiSpeaking) conversation.aiSpeechEnded()
+      conversation.aiSpeechEnded()
     }
   }, [current, voiceEnabled, paused, question?.question, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
 
