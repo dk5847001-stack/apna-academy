@@ -47,6 +47,8 @@ export default function InterviewRoomPage() {
   const submittingRef = useRef(submitting)
   const microphoneRef = useRef(microphone)
   const saveAnswerRef = useRef(null)
+  const autoListenQuestionIdRef = useRef('')
+  const voiceTurnIdRef = useRef(0)
   const timer = useInterviewTimer(Math.max(60, Number(setup.durationMinutes || 30) * 60), true)
   const voice = useInterviewVoice({
     onTranscript: (text) => setAnswer((currentAnswer) => (currentAnswer ? currentAnswer + ' ' : '') + text),
@@ -144,26 +146,59 @@ export default function InterviewRoomPage() {
 
   useEffect(() => {
     if (!voiceEnabled || !question?.question || paused) return
+
+    if (autoListenQuestionIdRef.current === question.id) {
+      autoListenQuestionIdRef.current = ''
+      conversation.reset()
+      const listenTimer = window.setTimeout(() => {
+        if (!pausedRef.current && !interviewCompletedRef.current && sessionStatusRef.current !== 'completed') {
+          startVoiceCapture()
+        }
+      }, 0)
+
+      return () => {
+        window.clearTimeout(listenTimer)
+        voice.stopSpeaking()
+        autoVoiceTurnRef.current = false
+        voice.stopListening()
+      }
+    }
+
+    const speechTurnId = voiceTurnIdRef.current + 1
+    voiceTurnIdRef.current = speechTurnId
     conversation.startAiSpeaking()
+
     const handleSpeechEnd = () => {
+      if (speechTurnId !== voiceTurnIdRef.current) return
       conversation.aiSpeechEnded()
       startVoiceCapture()
     }
+
+    const handleSpeechError = () => {
+      if (speechTurnId !== voiceTurnIdRef.current) return
+      conversation.setError('AI voice playback failed. You can continue in text mode.')
+      conversation.aiSpeechEnded()
+      startVoiceCapture()
+    }
+
     const spoken = voice.speak(question.question, {
       onEnd: handleSpeechEnd,
-      onError: () => conversation.setError('AI voice playback failed. You can continue in text mode.'),
+      onError: handleSpeechError,
     })
+
     if (!spoken) {
       conversation.aiSpeechEnded()
       startVoiceCapture()
     }
+
     return () => {
+      voiceTurnIdRef.current += 1
       voice.stopSpeaking()
       autoVoiceTurnRef.current = false
       voice.stopListening()
       conversation.aiSpeechEnded()
     }
-  }, [current, voiceEnabled, paused, question?.question, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
+  }, [current, voiceEnabled, paused, question?.id, question?.question, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.reset, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
 
   useEffect(() => {
     if (voice.listening) conversation.startListening()
@@ -204,8 +239,67 @@ export default function InterviewRoomPage() {
         status: data.completed ? 'completed' : 'in-progress',
       }))
       setAnswer('')
-      conversation.reset()
-      if (data.completed) conversation.complete()
+
+      const responseMessage = String(data.aiResponse?.message || data.evaluation?.spokenResponse || '').trim()
+      const nextQuestionId = data.nextQuestion?.id || ''
+      const nextIndex = nextQuestionId
+        ? (data.questions || questions).findIndex((item) => item.id === nextQuestionId)
+        : -1
+
+      const advanceAfterResponse = () => {
+        if (data.completed) {
+          conversation.complete()
+          navigate(ROUTES.INTERVIEW_COMPLETE)
+          return
+        }
+
+        if (nextIndex < 0) {
+          conversation.aiResponseEnded()
+          return
+        }
+
+        const next = (data.questions || questions)[nextIndex]
+        setLastEvaluation(null)
+        setAiConversationMessage('')
+        setEvaluationQuestionId('')
+        setAnswer('')
+
+        if (next?.isFollowUp) {
+          autoListenQuestionIdRef.current = next.id
+          conversation.aiResponseEnded()
+        } else {
+          conversation.aiResponseEnded()
+        }
+
+        setCurrent(nextIndex)
+      }
+
+      if (!responseMessage) {
+        advanceAfterResponse()
+      } else {
+        const responseTurnId = voiceTurnIdRef.current + 1
+        voiceTurnIdRef.current = responseTurnId
+        voice.stopListening()
+        autoVoiceTurnRef.current = false
+        conversation.startAiResponding()
+
+        const spokenResponse = voice.speak(responseMessage, {
+          onEnd: () => {
+            if (responseTurnId !== voiceTurnIdRef.current) return
+            advanceAfterResponse()
+          },
+          onError: () => {
+            if (responseTurnId !== voiceTurnIdRef.current) return
+            conversation.setError('AI feedback voice playback failed. Continuing the interview.')
+            advanceAfterResponse()
+          },
+        })
+
+        if (!spokenResponse) {
+          advanceAfterResponse()
+        }
+      }
+
       return data
     } catch (error) {
       const message = error?.message || 'We could not save your answer. Please try again.'
@@ -247,6 +341,9 @@ export default function InterviewRoomPage() {
       return
     }
 
+    voiceTurnIdRef.current += 1
+    voice.stopSpeaking()
+    autoListenQuestionIdRef.current = ''
     setLastEvaluation(null)
     setAiConversationMessage('')
     setEvaluationQuestionId('')
@@ -255,8 +352,11 @@ export default function InterviewRoomPage() {
   }
 
   const previousQuestion = () => {
+    voiceTurnIdRef.current += 1
+    autoListenQuestionIdRef.current = ''
     autoVoiceTurnRef.current = false
     voice.stopListening()
+    voice.stopSpeaking()
     const previous = current - 1
     if (previous < 0) return
     setLastEvaluation(null)
@@ -267,8 +367,11 @@ export default function InterviewRoomPage() {
   }
 
   const selectQuestion = (index) => {
+    voiceTurnIdRef.current += 1
+    autoListenQuestionIdRef.current = ''
     autoVoiceTurnRef.current = false
     voice.stopListening()
+    voice.stopSpeaking()
     setLastEvaluation(null)
     setAiConversationMessage('')
     setEvaluationQuestionId('')
@@ -279,6 +382,8 @@ export default function InterviewRoomPage() {
 
   const endInterview = async () => {
     timer.pause()
+    voiceTurnIdRef.current += 1
+    autoListenQuestionIdRef.current = ''
     autoVoiceTurnRef.current = false
     voice.stopListening()
     voice.stopSpeaking()
@@ -322,7 +427,34 @@ export default function InterviewRoomPage() {
           <div className="room-ai-card">
             <div className="ai-avatar"><AutoAwesomeRounded /></div>
             <div className="ai-copy"><div><strong>AI Interviewer</strong><span className={'ai-speaking ai-conversation-state ' + conversation.status}><span /><span /><span /> {conversation.label}</span></div><p>{conversation.status === CONVERSATION_STATES.AI_SPEAKING ? 'Listen to the question, then answer naturally.' : conversation.status === CONVERSATION_STATES.PROCESSING ? 'I am reviewing your answer.' : conversation.status === CONVERSATION_STATES.AI_RESPONDING ? 'Listen to my feedback and follow-up.' : 'Take your time. I am ready for your answer.'}</p></div>
-            <button type="button" className={"icon-room-btn " + (voice.speaking ? "active" : "")} aria-label="Toggle AI interviewer voice" onClick={() => { setVoiceEnabled((value) => !value); if (voice.speaking) voice.stopSpeaking(); else voice.speak(question?.question) }}><VolumeUpRounded /></button>
+            <button
+              type="button"
+              className={"icon-room-btn " + (voice.speaking ? "active" : "")}
+              aria-label={voiceEnabled ? "Turn off AI interviewer voice" : "Turn on AI interviewer voice"}
+              onClick={() => {
+                voiceTurnIdRef.current += 1
+                setVoiceEnabled((value) => !value)
+                voice.stopSpeaking()
+                if (voiceEnabledRef.current === false && question?.question) {
+                  conversation.startAiSpeaking()
+                  voice.speak(question.question, {
+                    onEnd: () => {
+                      conversation.aiSpeechEnded()
+                      startVoiceCapture()
+                    },
+                    onError: () => {
+                      conversation.setError('AI voice playback failed. You can continue in text mode.')
+                      conversation.aiSpeechEnded()
+                      startVoiceCapture()
+                    },
+                  })
+                } else {
+                  autoVoiceTurnRef.current = false
+                  voice.stopListening()
+                  conversation.reset()
+                }
+              }}
+            ><VolumeUpRounded /></button>
           </div>
 
           <div className="question-card">
