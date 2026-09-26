@@ -78,7 +78,7 @@ export function conversationReducer(state, action) {
     case CONVERSATION_EVENTS.RESUME:
       return {
         ...state,
-        status: state.resumeTo || CONVERSATION_STATES.IDLE,
+        status: action.status || state.resumeTo || CONVERSATION_STATES.IDLE,
         resumeTo: null,
         error: '',
       }
