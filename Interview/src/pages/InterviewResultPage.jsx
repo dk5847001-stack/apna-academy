@@ -5,6 +5,7 @@ import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
 import { interviewApi } from '../services/interviewApi'
 import { readPersistent, removePersistent } from '../utils/storage'
+import { clampScore } from '../utils/resultAnalytics'
 
 const emptyResult = {
   overallScore: 0,
@@ -17,8 +18,6 @@ const emptyResult = {
   recommendations: [],
   summary: '',
 }
-
-const clampScore = (value) => Math.max(0, Math.min(100, Number(value) || 0))
 
 export default function InterviewResultPage() {
   const { setup, session, setSession } = useInterviewFlow()
