@@ -13,6 +13,7 @@ import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
 import SetupOptionCard from '../components/interview/SetupOptionCard'
 import SetupProgress from '../components/interview/SetupProgress'
+import { removePersistent } from '../utils/storage'
 
 const typeIcons = { technical: CodeRounded, dsa: TerminalRounded, behavioral: GroupsRounded }
 const difficultyColors = { easy: 'green', medium: 'purple', hard: 'orange' }
@@ -41,6 +42,7 @@ export default function InterviewSetupPage() {
       document.getElementById(Object.keys(nextErrors)[0])?.focus()
       return
     }
+    removePersistent('selectedInterviewSessionId')
     navigate(ROUTES.INTERVIEW_PREPARATION)
   }
 
