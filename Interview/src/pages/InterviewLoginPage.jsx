@@ -2,26 +2,34 @@ import { useState } from 'react'
 import { ArrowForwardRounded, AutoAwesomeRounded, LockRounded, MailOutlineRounded, ShieldRounded, BoltRounded } from '@mui/icons-material'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
+import { useAuth } from '../context/AuthContext'
 import CosmicField from '../components/common/CosmicField'
-
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '')
 
 export default function InterviewLoginPage() {
   const { navigate } = useRouter()
+  const { login, user, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  if (!authLoading && user) {
+    navigate(ROUTES.INTERVIEW_SETUP, { replace: true })
+    return null
+  }
+
   const submit = async (event) => {
     event.preventDefault()
-    setLoading(true); setError('')
+    setLoading(true)
+    setError('')
     try {
-      const response = await fetch(API_BASE + '/auth/login', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) })
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(data.message || 'Login failed.')
-      navigate(ROUTES.INTERVIEW_SETUP)
-    } catch (err) { setError(err.message) } finally { setLoading(false) }
+      await login({ email: email.trim().toLowerCase(), password })
+      navigate(ROUTES.INTERVIEW_SETUP, { replace: true })
+    } catch (err) {
+      setError(err.message || 'Login failed.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -59,6 +67,7 @@ export default function InterviewLoginPage() {
             <button className="gradient-btn login-submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'} {!loading && <ArrowForwardRounded />}</button>
           </form>
 
+          <div className="login-register-link">New to ApnaAcademy? <button type="button" onClick={() => navigate(ROUTES.SIGNUP)}>Create an account</button></div>
           <button className="login-home" onClick={()=>navigate(ROUTES.HOME)}>Back to Interview AI</button>
           <div className="login-secure-note"><ShieldRounded /> Secure account authentication</div>
         </section>
