@@ -100,6 +100,24 @@ export default function InterviewResultPage() {
 
         <section className="result-summary-card"><span>AI SUMMARY</span><p>{result.summary || 'No summary was returned for this session.'}</p></section>
 
+
+        <section className="result-analytics-card">
+          <div className="recommend-head"><div><span>PERFORMANCE INTELLIGENCE</span><h2>Evidence from this session.</h2><p>These metrics are calculated from your saved answers and question structure.</p></div><InsightsRounded /></div>
+          <div className="analytics-grid">
+            <div><small>Completion</small><strong>{resultSession?.analytics?.completionRate ?? 0}%</strong><span>{resultSession?.analytics?.answeredCount ?? answers.length} answers recorded</span></div>
+            <div><small>Average answer score</small><strong>{clampScore(resultSession?.analytics?.averageAnswerScore)} / 100</strong><span>Across evaluated answers</span></div>
+            <div><small>Consistency</small><strong>{clampScore(resultSession?.analytics?.consistencyScore)} / 100</strong><span>Based on answer-score spread</span></div>
+            <div><small>Follow-ups</small><strong>{resultSession?.analytics?.followUpCount ?? 0}</strong><span>Adaptive questions answered</span></div>
+          </div>
+          <div className="analytics-focus">
+            <div><small>Strongest category</small><strong>{resultSession?.analytics?.strongestCategory || 'Not available'}</strong></div>
+            <div><small>Focus category</small><strong>{resultSession?.analytics?.focusCategory || 'Not available'}</strong></div>
+            <div><small>Average answer length</small><strong>{resultSession?.analytics?.averageAnswerLength ?? 0} chars</strong></div>
+          </div>
+          {Array.isArray(resultSession?.analytics?.categoryScores) && resultSession.analytics.categoryScores.length ? (
+            <div className="category-score-list">{resultSession.analytics.categoryScores.map((item) => <div className="category-score-row" key={item.category}><div><strong>{item.category}</strong><small>{item.answerCount} answer{item.answerCount === 1 ? '' : 's'}</small></div><span>{clampScore(item.score)}</span><i><b style={{ width: clampScore(item.score) + '%' }} /></i></div>)}</div>
+          ) : null}
+        </section>
         <section className="result-two-col">
           <div className="insight-panel"><div className="panel-heading"><span className="panel-icon positive"><TrendingUpRounded /></span><div><h2>What you did well</h2><p>Strengths identified from your answers.</p></div></div><div className="insight-list">{(result.strengths || []).map((item) => <div key={item}><CheckCircleRounded /><span>{item}</span></div>)}</div></div>
           <div className="insight-panel"><div className="panel-heading"><span className="panel-icon improve"><WarningAmberRounded /></span><div><h2>Where to improve</h2><p>Actionable areas from this interview.</p></div></div><div className="insight-list">{(result.improvements || []).map((item) => <div key={item}><WarningAmberRounded /><span>{item}</span></div>)}</div></div>
