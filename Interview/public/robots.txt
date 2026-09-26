@@ -1,0 +1,8 @@
+# ApnaAcademy Interview AI — crawler policy
+# Only public, content-rich routes are included in the sitemap.
+# Authenticated interview/session routes are intentionally excluded from the sitemap.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://interview.apnaacademy.me/sitemap.xml

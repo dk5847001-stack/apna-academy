@@ -61,12 +61,12 @@ const createMeta = ({ path, title, description, type = 'website', indexable = tr
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${canonical}" />
-    <meta property="og:image" content="https://apnaacademy.me/favicon.png" />
+    <meta property="og:image" content="${SITE_ORIGIN}/favicon.png" />
     <meta property="og:image:alt" content="ApnaAcademy Interview AI" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(title)}" />
     <meta name="twitter:description" content="${escapeHtml(description)}" />
-    <meta name="twitter:image" content="https://apnaacademy.me/favicon.png" />
+    <meta name="twitter:image" content="${SITE_ORIGIN}/favicon.png" />
     <title>${escapeHtml(title)}</title>`,
   }
 }
@@ -76,7 +76,7 @@ const organization = {
   '@id': `${SITE_ORIGIN}/#organization`,
   name: 'ApnaAcademy',
   url: 'https://apnaacademy.me/',
-  logo: 'https://apnaacademy.me/favicon.png',
+  logo: `${SITE_ORIGIN}/favicon.png`,
 }
 
 const buildSchema = ({ path, title, description, type, topic }) => {

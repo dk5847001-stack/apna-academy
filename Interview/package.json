@@ -5,9 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run seo:generate && npm run seo:validate && npm run performance:validate && npm run seo:final && vite build && npm run seo:static && npm run seo:static:validate",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seo:generate": "node scripts/generate-seo.mjs",
+    "seo:validate": "node scripts/validate-seo.mjs",
+    "performance:validate": "node scripts/validate-performance.mjs",
+    "seo:final": "node scripts/validate-final-seo.mjs",
+    "seo:static": "node scripts/generate-static-seo.mjs",
+    "seo:static:validate": "node scripts/validate-static-seo.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
