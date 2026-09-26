@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useRouter } from './Router'
 import { ROUTES, routeMeta } from './routes'
+import { getRobotsContent } from '../seo/routePolicy'
 import HomePage from '../pages/HomePage'
 import RoutePlaceholder from '../pages/RoutePlaceholder'
 import InterviewSetupPage from '../pages/InterviewSetupPage'
@@ -25,6 +26,16 @@ const pages = {
   [ROUTES.DEMO]: RoutePlaceholder,
 }
 
+const getOrCreateMeta = (name) => {
+  let element = document.querySelector(`meta[name="${name}"]`)
+  if (!element) {
+    element = document.createElement('meta')
+    element.setAttribute('name', name)
+    document.head.appendChild(element)
+  }
+  return element
+}
+
 export default function AppRoutes() {
   const { path } = useRouter()
   const Page = pages[path] || RoutePlaceholder
@@ -35,9 +46,9 @@ export default function AppRoutes() {
 
   useEffect(() => {
     document.title = meta.title
-    const description = document.querySelector('meta[name="description"]')
-    if (description) description.setAttribute('content', meta.description)
-  }, [meta])
+    getOrCreateMeta('description').setAttribute('content', meta.description)
+    getOrCreateMeta('robots').setAttribute('content', getRobotsContent(path))
+  }, [meta, path])
 
   return <Page routePath={path} />
 }
