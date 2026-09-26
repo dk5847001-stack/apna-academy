@@ -76,7 +76,7 @@ const organization = {
   '@id': `${SITE_ORIGIN}/#organization`,
   name: 'ApnaAcademy',
   url: 'https://apnaacademy.me/',
-  logo: '${SITE_ORIGIN}/favicon.png',
+  logo: `${SITE_ORIGIN}/favicon.png`,
 }
 
 const buildSchema = ({ path, title, description, type, topic }) => {
