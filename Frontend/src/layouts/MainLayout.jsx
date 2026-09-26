@@ -51,6 +51,7 @@ import {
   DASHBOARD_URL,
   ADMIN_URL,
   DSA_URL,
+  INTERVIEW_URL,
 } from "../constants/config";
 
 /* ============================================================
@@ -292,6 +293,12 @@ export default function MainLayout() {
     closeMoreMenu();
     closeMobileMenu();
     window.location.href = DSA_URL;
+  };
+
+  const handleInterviewApp = () => {
+    closeMoreMenu();
+    closeMobileMenu();
+    window.location.href = INTERVIEW_URL;
   };
 
   const handlePricing = () => {
@@ -583,6 +590,10 @@ export default function MainLayout() {
           <ListItemIcon><School fontSize="small" /></ListItemIcon>
           DSA Practice
         </MenuItem>
+        <MenuItem onClick={handleInterviewApp}>
+          <ListItemIcon><SupportAgent fontSize="small" /></ListItemIcon>
+          AI Interview
+        </MenuItem>
       </Menu>
 
       <Menu
@@ -622,6 +633,10 @@ export default function MainLayout() {
             <ListItemButton onClick={handleDsaApp}>
               <ListItemIcon><School fontSize="small" /></ListItemIcon>
               <ListItemText primary="DSA Practice" />
+            </ListItemButton>
+            <ListItemButton onClick={handleInterviewApp}>
+              <ListItemIcon><SupportAgent fontSize="small" /></ListItemIcon>
+              <ListItemText primary="AI Interview" />
             </ListItemButton>
             <ListItemButton onClick={handleSupport}>
               <ListItemIcon><SupportAgent fontSize="small" /></ListItemIcon>
@@ -775,6 +790,11 @@ export default function MainLayout() {
               <button type="button" onClick={handleDsaApp} className="group mt-2 flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-violet-700 shadow-sm"><School fontSize="small" /></span>
                 <span><span className="block text-sm font-bold text-slate-800">DSA Practice</span><span className="block text-[11px] text-slate-500">Practice & challenges</span></span>
+              </button>
+
+              <button type="button" onClick={handleInterviewApp} className="group mt-2 flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-blue-700 shadow-sm"><SupportAgent fontSize="small" /></span>
+                <span><span className="block text-sm font-bold text-slate-800">AI Interview</span><span className="block text-[11px] text-slate-500">Practice with adaptive AI</span></span>
               </button>
 
               <button type="button" onClick={handleAdminApp} className="group mt-2 flex w-full items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-100">
