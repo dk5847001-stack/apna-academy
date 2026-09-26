@@ -359,7 +359,7 @@ export default function InterviewRoomPage() {
                 <button
                   type="button"
                   className={"voice-answer-btn " + (voice.listening ? "active" : "")}
-                  disabled={submitting || !voice.supported}
+                  disabled={submitting || !voice.supported || conversation.isAiSpeaking || paused}
                   onClick={async () => {
                     if (voice.listening) {
                       autoVoiceTurnRef.current = false
