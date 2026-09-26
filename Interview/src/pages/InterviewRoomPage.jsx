@@ -13,6 +13,7 @@ import { interviewApi } from '../services/interviewApi'
 import { useInterviewVoice } from '../hooks/useInterviewVoice'
 import { useInterviewConversation } from '../hooks/useInterviewConversation'
 import { CONVERSATION_STATES } from '../conversation/conversationState'
+import { VOICE_RESPONSE_ACTIONS, resolveVoiceResponseAction } from '../voice/voiceResponseFlow'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
 
@@ -247,30 +248,34 @@ export default function InterviewRoomPage() {
         : -1
 
       const advanceAfterResponse = () => {
-        if (data.completed) {
+        const next = nextIndex >= 0 ? (data.questions || questions)[nextIndex] : null
+        const action = resolveVoiceResponseAction({
+          completed: Boolean(data.completed),
+          nextQuestionId: next?.id || '',
+          nextQuestionIsFollowUp: Boolean(next?.isFollowUp),
+        })
+
+        if (action === VOICE_RESPONSE_ACTIONS.COMPLETE) {
           conversation.complete()
           navigate(ROUTES.INTERVIEW_COMPLETE)
           return
         }
 
-        if (nextIndex < 0) {
+        if (action === VOICE_RESPONSE_ACTIONS.WAIT) {
           conversation.aiResponseEnded()
           return
         }
 
-        const next = (data.questions || questions)[nextIndex]
         setLastEvaluation(null)
         setAiConversationMessage('')
         setEvaluationQuestionId('')
         setAnswer('')
 
-        if (next?.isFollowUp) {
+        if (action === VOICE_RESPONSE_ACTIONS.LISTEN_FOLLOW_UP) {
           autoListenQuestionIdRef.current = next.id
-          conversation.aiResponseEnded()
-        } else {
-          conversation.aiResponseEnded()
         }
 
+        conversation.aiResponseEnded()
         setCurrent(nextIndex)
       }
 
