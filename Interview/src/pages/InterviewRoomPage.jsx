@@ -13,6 +13,7 @@ import { interviewApi } from '../services/interviewApi'
 import { useInterviewVoice } from '../hooks/useInterviewVoice'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
+import CosmicField from '../components/common/CosmicField'
 
 export default function InterviewRoomPage() {
   const { setup, session, setSession } = useInterviewFlow()
@@ -139,7 +140,7 @@ export default function InterviewRoomPage() {
   }
 
   return (
-    <main className="interview-room">
+    <main className="interview-room cosmic-room"><CosmicField density="room" />
       <header className="room-topbar">
         <button className="room-brand" type="button" onClick={() => setShowEnd(true)}>
           <span className="room-brand-mark"><AutoAwesomeRounded /></span>
