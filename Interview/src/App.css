@@ -3476,3 +3476,38 @@ button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .signup-back,.site-header .signup-nav-btn,.site-header .logout-btn { transition:none; }
 }
+
+
+/* =========================================================
+   Global cosmic surface
+   Keeps existing text/card colors while replacing flat
+   white page surfaces with the animated star/fiber field.
+   ========================================================= */
+.hero-section,
+.setup-page,
+.prep-page,
+.complete-page,
+.result-page,
+.history-page,
+.interview-room,
+.interview-questions-page {
+  background: transparent !important;
+}
+
+.interview-questions-page {
+  position: relative;
+  min-height: 70vh;
+}
+
+.interview-questions-page > section,
+.interview-questions-page > section > * {
+  position: relative;
+  z-index: 1;
+}
+
+.app-shell .feature-grid,
+.app-shell .testimonial-grid,
+.app-shell .page-section {
+  position: relative;
+  z-index: 1;
+}
