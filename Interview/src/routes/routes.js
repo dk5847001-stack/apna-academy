@@ -1,6 +1,7 @@
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
+  SIGNUP: '/signup',
   INTERVIEW_SETUP: '/interview/setup',
   INTERVIEW_PREPARATION: '/interview/preparation',
   INTERVIEW_ROOM: '/interview/room',
@@ -14,6 +15,10 @@ export const routeMeta = {
   [ROUTES.HOME]: {
     title: 'ApnaAcademy Interview AI — Practice Today, Get Hired Tomorrow',
     description: 'Practice realistic interviews with AI-powered questions, feedback and personalized preparation.',
+  },
+  [ROUTES.SIGNUP]: {
+    title: 'Sign Up | ApnaAcademy Interview AI',
+    description: 'Create your ApnaAcademy Interview AI account and start practicing.',
   },
   [ROUTES.LOGIN]: {
     title: 'Login | ApnaAcademy Interview AI',
