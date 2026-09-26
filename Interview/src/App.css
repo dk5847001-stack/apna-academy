@@ -437,3 +437,84 @@ button { font: inherit; }
 .result-error { margin: 14px 0; padding: 12px 14px; border: 1px solid #ffd7d7; border-radius: 12px; background: #fff7f7; color: #9e2d3b; font-size: 12px; display: flex; align-items: center; gap: 8px; }
 .result-error svg { font-size: 17px; flex: 0 0 auto; }
 @media (max-width: 720px) { .room-inline-error { margin: 8px 12px 0; font-size: 11px; } }
+
+
+/* Interview answer evaluation */
+.answer-feedback-card {
+  border: 1px solid #e5e0ff;
+  border-radius: 15px;
+  padding: 13px 14px;
+  background: linear-gradient(135deg, #fbf9ff 0%, #f8fbff 100%);
+  box-shadow: 0 8px 24px rgba(74, 55, 160, .06);
+}
+.answer-feedback-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.answer-feedback-head > div:first-child span,
+.answer-feedback-head > div:first-child strong {
+  display: block;
+}
+.answer-feedback-head > div:first-child span {
+  color: #7557d9;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .9px;
+}
+.answer-feedback-head > div:first-child strong {
+  margin-top: 4px;
+  color: #26304d;
+  font-size: 12px;
+  font-weight: 900;
+}
+.answer-feedback-score {
+  min-width: 58px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  border-radius: 11px;
+  background: linear-gradient(135deg,#7139eb,#3e72ed);
+  font-size: 16px;
+  font-weight: 900;
+}
+.answer-feedback-score small {
+  margin-left: 2px;
+  font-size: 7px;
+  font-weight: 700;
+  opacity: .85;
+}
+.answer-feedback-card > p {
+  margin: 9px 0 0;
+  color: #5f6980;
+  font-size: 8px;
+  line-height: 1.55;
+}
+.answer-feedback-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 10px;
+}
+.answer-feedback-grid > div {
+  display: grid;
+  gap: 4px;
+  padding: 8px 9px;
+  border: 1px solid #eceef5;
+  border-radius: 10px;
+  background: rgba(255,255,255,.75);
+}
+.answer-feedback-grid b {
+  color: #3d4661;
+  font-size: 7px;
+}
+.answer-feedback-grid span {
+  color: #70798d;
+  font-size: 7px;
+  line-height: 1.4;
+}
+@media (max-width: 720px) {
+  .answer-feedback-grid { grid-template-columns: 1fr; }
+}
