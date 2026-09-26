@@ -52,8 +52,8 @@ export function useInterviewConversation() {
     dispatch({ type: CONVERSATION_EVENTS.PAUSE })
   }, [])
 
-  const resume = useCallback(() => {
-    dispatch({ type: CONVERSATION_EVENTS.RESUME })
+  const resume = useCallback((status) => {
+    dispatch({ type: CONVERSATION_EVENTS.RESUME, status })
   }, [])
 
   const complete = useCallback(() => {
