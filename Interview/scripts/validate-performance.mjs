@@ -20,7 +20,7 @@ const checks = [
   ['Google Fonts uses preconnect', indexHtml.includes('rel="preconnect" href="https://fonts.googleapis.com"')],
   ['Google Fonts uses a stylesheet link', indexHtml.includes('fonts.googleapis.com/css2')],
   ["Google Fonts is not imported from CSS", !css.includes("@import url('https://fonts.googleapis.com')")],
-  ['Routes use React lazy loading', routes.includes("lazy(() => import('../pages/"))],
+  ["Routes use React lazy loading", routes.includes("lazy(() => import('../pages/")],
   ['Cosmic canvas pauses outside viewport', cosmic.includes('IntersectionObserver')],
   ['Cosmic canvas pauses when document is hidden', cosmic.includes('document.hidden')],
   ['Landing images have async decoding', home.includes('decoding="async"')],
