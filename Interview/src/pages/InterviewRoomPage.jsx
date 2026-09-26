@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AccessTimeRounded, ArrowBackRounded, AutoAwesomeRounded, ChatRounded, CheckCircleRounded,
   ChevronLeftRounded, ChevronRightRounded, CloseRounded, ExpandRounded, KeyboardVoiceRounded,
@@ -35,10 +35,34 @@ export default function InterviewRoomPage() {
   const [interviewCompleted, setInterviewCompleted] = useState(false)
   const videoRef = useRef(null)
   const finalizingRef = useRef(false)
+  const autoVoiceTurnRef = useRef(false)
+  const answerRef = useRef(answer)
+  const questionRef = useRef(question)
+  const answersRef = useRef(answers)
+  const pausedRef = useRef(paused)
+  const voiceEnabledRef = useRef(voiceEnabled)
+  const interviewCompletedRef = useRef(interviewCompleted)
+  const sessionStatusRef = useRef(session?.status)
+  const saveAnswerRef = useRef(null)
   const timer = useInterviewTimer(Math.max(60, Number(setup.durationMinutes || 30) * 60), true)
-  const voice = useInterviewVoice({ onTranscript: (text) => setAnswer((currentAnswer) => (currentAnswer ? currentAnswer + ' ' : '') + text) })
+  const voice = useInterviewVoice({
+    onTranscript: (text) => setAnswer((currentAnswer) => (currentAnswer ? currentAnswer + ' ' : '') + text),
+    onSilence: () => {
+      if (!autoVoiceTurnRef.current || pausedRef.current || interviewCompletedRef.current || sessionStatusRef.current === 'completed') return
+      autoVoiceTurnRef.current = false
+      saveAnswerRef.current?.()
+    },
+  })
   const conversation = useInterviewConversation()
   const question = questions[current] || questions[0]
+
+  answerRef.current = answer
+  questionRef.current = question
+  answersRef.current = answers
+  pausedRef.current = paused
+  voiceEnabledRef.current = voiceEnabled
+  interviewCompletedRef.current = interviewCompleted
+  sessionStatusRef.current = session?.status
 
   useEffect(() => {
     requestMedia().then((stream) => {
@@ -81,6 +105,7 @@ export default function InterviewRoomPage() {
   useEffect(() => {
     if (paused) {
       timer.pause()
+      autoVoiceTurnRef.current = false
       voice.stopListening()
       voice.stopSpeaking()
       conversation.pause()
@@ -89,19 +114,52 @@ export default function InterviewRoomPage() {
     if (conversation.isPaused) conversation.resume(CONVERSATION_STATES.IDLE)
   }, [paused, timer, voice.stopListening, voice.stopSpeaking, conversation.isPaused, conversation.pause, conversation.resume])
 
+  const startVoiceCapture = useCallback(() => {
+    const currentQuestion = questionRef.current
+    const currentAnswers = answersRef.current
+    if (
+      !voiceEnabledRef.current ||
+      !voice.supported ||
+      pausedRef.current ||
+      submitting ||
+      interviewCompletedRef.current ||
+      sessionStatusRef.current === 'completed' ||
+      !currentQuestion?.id ||
+      answerRef.current.trim()
+    ) return false
+
+    const alreadyAnswered = currentAnswers.some(
+      (item) => item.questionId === currentQuestion.id && item.answer?.trim()
+    )
+    if (alreadyAnswered || autoVoiceTurnRef.current) return false
+    if (microphone === 'denied' || microphone === 'unsupported') return false
+
+    autoVoiceTurnRef.current = true
+    return voice.startListening()
+  }, [microphone, submitting, voice.startListening, voice.supported])
+
   useEffect(() => {
     if (!voiceEnabled || !question?.question || paused) return
     conversation.startAiSpeaking()
+    const handleSpeechEnd = () => {
+      conversation.aiSpeechEnded()
+      startVoiceCapture()
+    }
     const spoken = voice.speak(question.question, {
-      onEnd: conversation.aiSpeechEnded,
+      onEnd: handleSpeechEnd,
       onError: () => conversation.setError('AI voice playback failed. You can continue in text mode.'),
     })
-    if (!spoken) conversation.aiSpeechEnded()
+    if (!spoken) {
+      conversation.aiSpeechEnded()
+      startVoiceCapture()
+    }
     return () => {
       voice.stopSpeaking()
+      autoVoiceTurnRef.current = false
+      voice.stopListening()
       if (conversation.isAiSpeaking) conversation.aiSpeechEnded()
     }
-  }, [current, voiceEnabled, paused, question?.question, voice.speak, voice.stopSpeaking, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
+  }, [current, voiceEnabled, paused, question?.question, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError, conversation.isAiSpeaking])
 
   useEffect(() => {
     if (voice.listening) conversation.startListening()
@@ -120,6 +178,8 @@ export default function InterviewRoomPage() {
     if (!question || !answer.trim() || submitting) return null
     setSubmitting(true)
     setRoomError('')
+    autoVoiceTurnRef.current = false
+    voice.stopListening()
     conversation.startProcessing()
     try {
       if (!session?.id || String(session.id).startsWith('mock-')) throw new Error('Your AI session is not available. Please restart the interview.')
@@ -149,6 +209,8 @@ export default function InterviewRoomPage() {
       return null
     } finally { setSubmitting(false) }
   }
+
+  saveAnswerRef.current = saveAnswer
 
   const nextQuestion = async () => {
     if (interviewCompleted || session?.status === 'completed') {
@@ -187,6 +249,8 @@ export default function InterviewRoomPage() {
   }
 
   const previousQuestion = () => {
+    autoVoiceTurnRef.current = false
+    voice.stopListening()
     const previous = current - 1
     if (previous < 0) return
     setLastEvaluation(null)
@@ -196,6 +260,8 @@ export default function InterviewRoomPage() {
   }
 
   const selectQuestion = (index) => {
+    autoVoiceTurnRef.current = false
+    voice.stopListening()
     setLastEvaluation(null)
     setEvaluationQuestionId('')
     setCurrent(index)
@@ -205,6 +271,7 @@ export default function InterviewRoomPage() {
 
   const endInterview = async () => {
     timer.pause()
+    autoVoiceTurnRef.current = false
     voice.stopListening()
     voice.stopSpeaking()
     await finalizeSession()
@@ -280,12 +347,30 @@ export default function InterviewRoomPage() {
             </div>
             <textarea value={answer} onChange={(event) => setAnswer(event.target.value)} placeholder={voice.supported ? "Speak your answer or type it here…" : "Type your answer here…"} maxLength={5000} />
             {voice.interimTranscript ? <div className="voice-live-transcript"><KeyboardVoiceRounded /> Listening: <span>{voice.interimTranscript}</span></div> : null}
+            {voice.listening ? <div className="voice-auto-hint">Voice answer will submit automatically after {Math.round(voice.silenceTimeoutMs / 100) / 10}s of silence.</div> : null}
             {voice.voiceError ? <div className="voice-error">{voice.voiceError}</div> : null}
             <div className="answer-toolbar">
               <span>{answer.length}/5000</span>
               <div>
                 <button type="button" className={'room-control mic ' + (microphone === 'granted' ? 'on' : '')} onClick={() => { toggleMicrophone(); if (voice.listening) voice.stopListening(); else voice.startListening() }} title="Toggle microphone">{microphone === 'granted' ? <MicRounded /> : <MicOffRounded />}</button>
-                <button type="button" className={"voice-answer-btn " + (voice.listening ? "active" : "")} onClick={() => { if (microphone !== "granted") requestMedia(); voice.toggleListening() }}><KeyboardVoiceRounded /> {voice.listening ? "Stop speaking" : "Answer by voice"}</button>
+                <button
+                  type="button"
+                  className={"voice-answer-btn " + (voice.listening ? "active" : "")}
+                  disabled={submitting || !voice.supported}
+                  onClick={async () => {
+                    if (voice.listening) {
+                      autoVoiceTurnRef.current = false
+                      voice.stopListening()
+                      return
+                    }
+                    if (microphone !== 'granted') {
+                      const stream = await requestMedia()
+                      if (!stream) return
+                    }
+                    autoVoiceTurnRef.current = true
+                    voice.startListening()
+                  }}
+                ><KeyboardVoiceRounded /> {voice.listening ? "Stop listening" : "Answer by voice"}</button>
                 <button type="button" className="submit-answer-btn" onClick={saveAnswer} disabled={!answer.trim() || submitting}>{submitting ? 'Saving…' : 'Save answer'} <SendRounded /></button>
               </div>
             </div>
