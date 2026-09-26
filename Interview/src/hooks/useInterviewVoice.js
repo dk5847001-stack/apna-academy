@@ -88,7 +88,7 @@ export function useInterviewVoice({
       setInterimTranscript(interim)
       if (finalText.trim()) onTranscriptRef.current?.(finalText.trim())
 
-      if (finalText.trim() || interim.trim()) {
+      if (finalText.trim()) {
         silenceDetectorRef.current?.signalSpeech()
       }
     }
