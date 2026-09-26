@@ -4,16 +4,7 @@ import { ROUTES } from '../routes/routes'
 import { useEffect, useMemo, useState } from 'react'
 import { interviewApi } from '../services/interviewApi'
 import { writePersistent } from '../utils/storage'
-
-const mapHistoryItem = (item) => ({
-  id: String(item._id || item.id || ''),
-  role: item.setup?.role || 'Interview',
-  type: item.setup?.interviewType || 'Technical',
-  score: Number(item.result?.overallScore ?? 0),
-  date: item.completedAt ? new Date(item.completedAt).toLocaleDateString() : 'Not completed',
-  duration: item.setup?.durationMinutes ? item.setup.durationMinutes + ' min' : '—',
-  status: item.status || 'completed',
-})
+import { calculateAverageScore, calculateBestScore, mapHistoryItem } from '../utils/resultAnalytics'
 
 export default function InterviewHistoryPage() {
   const { navigate } = useRouter()
@@ -32,8 +23,8 @@ export default function InterviewHistoryPage() {
   }, [])
 
   const filtered = useMemo(() => history.filter((item) => (item.role + ' ' + item.type).toLowerCase().includes(query.toLowerCase().trim())), [history, query])
-  const average = history.length ? Math.round(history.reduce((sum, item) => sum + item.score, 0) / history.length) : 0
-  const best = history.length ? Math.max(...history.map((item) => item.score)) : 0
+  const average = calculateAverageScore(history)
+  const best = calculateBestScore(history)
   const openResult = (sessionId) => { writePersistent('selectedInterviewSessionId', sessionId); navigate(ROUTES.INTERVIEW_RESULT) }
 
   return <main className="history-page"><section className="history-shell">
