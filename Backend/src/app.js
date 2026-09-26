@@ -78,6 +78,13 @@ const defaultLocalOrigins = [
   "http://localhost:5176",
 ];
 
+// Production browser origin for the dedicated AI Interview application.
+// Keep this explicit so the deployed Interview app can authenticate even
+// when CORS_ALLOWED_ORIGINS has not yet been populated on the API service.
+const defaultProductionOrigins = [
+  "https://interview.apnaacademy.me",
+];
+
 const configuredOrigins = [
   ...(process.env.CORS_ALLOWED_ORIGINS || "")
     .split(",")
@@ -92,6 +99,7 @@ const configuredOrigins = [
 const allowedOrigins = [
   ...new Set([
     ...defaultLocalOrigins,
+    ...defaultProductionOrigins,
     ...configuredOrigins,
   ]),
 ];
