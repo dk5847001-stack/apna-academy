@@ -4,4 +4,20 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    target: 'es2022',
+    cssCodeSplit: true,
+    cssMinify: 'lightningcss',
+    sourcemap: false,
+    reportCompressedSize: true,
+    chunkSizeWarningLimit: 500,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          mui: ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+        },
+      },
+    },
+  },
 })
