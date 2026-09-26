@@ -1,18 +1,20 @@
+import { lazy, Suspense } from 'react'
 import SEO from '../components/seo/SEO'
 import { useRouter } from './Router'
 import { ROUTES } from './routes'
 import { isInterviewQuestionsPath } from '../seo/urlArchitecture'
-import HomePage from '../pages/HomePage'
-import InterviewQuestionsPage from '../pages/InterviewQuestionsPage'
-import RoutePlaceholder from '../pages/RoutePlaceholder'
-import InterviewSetupPage from '../pages/InterviewSetupPage'
-import InterviewPreparationPage from '../pages/InterviewPreparationPage'
-import InterviewRoomPage from '../pages/InterviewRoomPage'
-import InterviewCompletePage from '../pages/InterviewCompletePage'
-import InterviewResultPage from '../pages/InterviewResultPage'
-import InterviewHistoryPage from '../pages/InterviewHistoryPage'
-import InterviewLoginPage from '../pages/InterviewLoginPage'
-import InterviewSignupPage from '../pages/InterviewSignupPage'
+
+const HomePage = lazy(() => import('../pages/HomePage'))
+const InterviewQuestionsPage = lazy(() => import('../pages/InterviewQuestionsPage'))
+const RoutePlaceholder = lazy(() => import('../pages/RoutePlaceholder'))
+const InterviewSetupPage = lazy(() => import('../pages/InterviewSetupPage'))
+const InterviewPreparationPage = lazy(() => import('../pages/InterviewPreparationPage'))
+const InterviewRoomPage = lazy(() => import('../pages/InterviewRoomPage'))
+const InterviewCompletePage = lazy(() => import('../pages/InterviewCompletePage'))
+const InterviewResultPage = lazy(() => import('../pages/InterviewResultPage'))
+const InterviewHistoryPage = lazy(() => import('../pages/InterviewHistoryPage'))
+const InterviewLoginPage = lazy(() => import('../pages/InterviewLoginPage'))
+const InterviewSignupPage = lazy(() => import('../pages/InterviewSignupPage'))
 
 const pages = {
   [ROUTES.HOME]: HomePage,
@@ -28,6 +30,15 @@ const pages = {
   [ROUTES.DEMO]: RoutePlaceholder,
 }
 
+function RouteFallback() {
+  return (
+    <div className="route-loading" role="status" aria-live="polite">
+      <span className="route-loading-dot" />
+      <span>Loading experience…</span>
+    </div>
+  )
+}
+
 export default function AppRoutes() {
   const { path } = useRouter()
   const Page = pages[path] || (isInterviewQuestionsPath(path) ? InterviewQuestionsPage : RoutePlaceholder)
@@ -35,7 +46,9 @@ export default function AppRoutes() {
   return (
     <>
       <SEO path={path} />
-      <Page routePath={path} />
+      <Suspense fallback={<RouteFallback />}>
+        <Page routePath={path} />
+      </Suspense>
     </>
   )
 }
