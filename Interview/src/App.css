@@ -518,3 +518,19 @@ button { font: inherit; }
 @media (max-width: 720px) {
   .answer-feedback-grid { grid-template-columns: 1fr; }
 }
+
+/* Phase 2 — automatic voice answer feedback */
+.voice-auto-hint {
+  margin: 7px 16px 0;
+  color: #6d5ab7;
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.voice-answer-btn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+@media (max-width: 650px) {
+  .voice-auto-hint { font-size: 6.5px; }
+}
