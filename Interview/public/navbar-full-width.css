@@ -1,0 +1,31 @@
+/* Interview navbar full-width layout override */
+.site-header .header-inner {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding-left: clamp(20px, 3.2vw, 52px) !important;
+  padding-right: clamp(20px, 3.2vw, 52px) !important;
+}
+
+.site-header .desktop-nav {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.site-header .header-actions {
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .site-header .header-inner {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .site-header .header-inner {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
