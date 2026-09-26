@@ -27,6 +27,11 @@ export const submitInterviewAnswerController = asyncHandler(async (req, res) => 
     data: {
       sessionId: result.session._id,
       evaluation: result.evaluation,
+      aiResponse: {
+        message: result.evaluation.spokenResponse,
+        followUpQuestion: result.evaluation.followUpQuestion,
+        nextCategory: result.evaluation.nextCategory,
+      },
       completed: result.completed,
       followUpQuestion: result.followUpQuestion,
       nextQuestion: result.nextQuestion,

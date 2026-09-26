@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:conversation": "node --test tests/conversationState.test.js",
+    "test:voice": "node --test tests/silenceDetection.test.js",
+    "test:interview": "node --test tests/conversationState.test.js tests/silenceDetection.test.js tests/voiceResponseFlow.test.js tests/resultAnalytics.test.js",
+    "test:voice-response": "node --test tests/voiceResponseFlow.test.js",
+    "test:results": "node --test tests/resultAnalytics.test.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
