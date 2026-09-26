@@ -26,3 +26,8 @@ export const ADMIN_URL =
 export const DSA_URL =
   import.meta.env.VITE_DSA_URL ||
   "https://dsa.apnaacademy.me";
+
+// Separate AI Interview React App
+export const INTERVIEW_URL =
+  import.meta.env.VITE_INTERVIEW_URL ||
+  "https://interview.apnaacademy.me";
