@@ -31,6 +31,7 @@ export default function InterviewRoomPage() {
   const [voiceEnabled, setVoiceEnabled] = useState(true)
   const [roomError, setRoomError] = useState('')
   const [lastEvaluation, setLastEvaluation] = useState(null)
+  const [aiConversationMessage, setAiConversationMessage] = useState('')
   const [evaluationQuestionId, setEvaluationQuestionId] = useState('')
   const [interviewCompleted, setInterviewCompleted] = useState(false)
   const videoRef = useRef(null)
@@ -191,6 +192,7 @@ export default function InterviewRoomPage() {
       const saved = { questionId: question.id, answer: cleanAnswer, score: data.evaluation?.score, feedback: data.evaluation?.feedback, strengths: data.evaluation?.strengths, improvements: data.evaluation?.improvements, answeredAt: new Date().toISOString() }
       const nextAnswers = answers.filter((item) => item.questionId !== question.id).concat(saved)
       setLastEvaluation(data.evaluation || null)
+      setAiConversationMessage(String(data.aiResponse?.message || data.evaluation?.spokenResponse || '').trim())
       setEvaluationQuestionId(question.id)
       setInterviewCompleted(Boolean(data.completed))
       setAnswers(nextAnswers)
@@ -246,6 +248,7 @@ export default function InterviewRoomPage() {
     }
 
     setLastEvaluation(null)
+    setAiConversationMessage('')
     setEvaluationQuestionId('')
     setCurrent(nextIndex)
     setAnswer(answers.find((item) => item.questionId === nextId)?.answer || '')
@@ -257,6 +260,7 @@ export default function InterviewRoomPage() {
     const previous = current - 1
     if (previous < 0) return
     setLastEvaluation(null)
+    setAiConversationMessage('')
     setEvaluationQuestionId('')
     setCurrent(previous)
     setAnswer(answers.find((item) => item.questionId === questions[previous]?.id)?.answer || '')
@@ -266,6 +270,7 @@ export default function InterviewRoomPage() {
     autoVoiceTurnRef.current = false
     voice.stopListening()
     setLastEvaluation(null)
+    setAiConversationMessage('')
     setEvaluationQuestionId('')
     setCurrent(index)
     setAnswer(answers.find((item) => item.questionId === questions[index]?.id)?.answer || '')
@@ -325,6 +330,16 @@ export default function InterviewRoomPage() {
             <h1>{question?.question}</h1>
             <div className="question-hint"><ChatRounded /><div><strong>Think about</strong><span>{question?.hint}</span></div></div>
           </div>
+
+          {aiConversationMessage && evaluationQuestionId === question?.id ? (
+            <div className="ai-conversation-message" role="status" aria-live="polite">
+              <div className="ai-conversation-message-head">
+                <span className="ai-avatar-mini"><AutoAwesomeRounded /></span>
+                <div><strong>AI Interviewer</strong><small>Conversational feedback</small></div>
+              </div>
+              <p>{aiConversationMessage}</p>
+            </div>
+          ) : null}
 
           {lastEvaluation && evaluationQuestionId === question?.id ? (
             <div className="answer-feedback-card" role="status">
