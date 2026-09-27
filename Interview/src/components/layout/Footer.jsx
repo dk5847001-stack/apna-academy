@@ -1,7 +1,6 @@
 import { ArrowForwardRounded, AutoAwesomeRounded, ArrowUpwardRounded, BoltRounded, GridViewRounded, HeadsetMicRounded, MailOutlineRounded } from '@mui/icons-material'
 import { useRouter } from '../../routes/Router'
 import { ROUTES } from '../../routes/routes'
-import CosmicField from '../common/CosmicField'
 import Logo from '../brand/Logo'
 
 const APPS = {
