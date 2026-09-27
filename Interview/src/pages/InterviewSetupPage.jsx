@@ -19,7 +19,6 @@ import {
   INTERVIEW_DURATIONS,
   INTERVIEW_TYPES,
   EXPERIENCE_LEVELS,
-  DEFAULT_INTERVIEW_SETUP,
   validateInterviewSetup,
 } from '../data/interviewConfig'
 import { useInterviewFlow } from '../context/InterviewFlowContext'
@@ -145,12 +144,6 @@ export default function InterviewSetupPage() {
       return
     }
     navigate(ROUTES.INTERVIEW_PREPARATION)
-  }
-
-  const reset = () => {
-    setSetup(DEFAULT_INTERVIEW_SETUP)
-    setErrors({})
-    setTouched(false)
   }
 
   const changeDuration = (direction) => {
@@ -332,7 +325,6 @@ export default function InterviewSetupPage() {
             </section>
 
             <div className="setup-ref-actions">
-              <button type="button" className="setup-ref-reset" onClick={reset}>Reset</button>
               <button type="submit" className="setup-ref-continue">Continue to Preparation <ArrowForwardRounded /></button>
             </div>
           </form>
@@ -348,10 +340,6 @@ export default function InterviewSetupPage() {
                 <strong>Big dreams!</strong>
                 <i>↙</i>
               </div>
-            </div>
-            <div className="setup-ref-side-note">
-              <span><CheckCircleRounded /></span>
-              <div><strong>Almost there</strong><p>Your selections are saved automatically.</p></div>
             </div>
           </aside>
         </div>
