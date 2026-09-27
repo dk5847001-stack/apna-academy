@@ -4457,3 +4457,102 @@ button { font: inherit; }
     color: #e8f3ff !important;
   }
 }
+
+
+/* =========================================================
+   SIGNUP v5 — MULTI-SPECTRUM COSMIC CANVAS
+   One continuous transparent canvas. Color comes only from
+   layered atmospheric light behind the content.
+   ========================================================= */
+.cosmic-signup-page {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse 70% 65% at 8% 12%, rgba(18, 108, 255, .28), transparent 68%),
+    radial-gradient(ellipse 55% 58% at 86% 16%, rgba(0, 221, 255, .20), transparent 66%),
+    radial-gradient(ellipse 58% 65% at 52% 44%, rgba(70, 64, 184, .16), transparent 70%),
+    radial-gradient(ellipse 55% 58% at 18% 88%, rgba(0, 199, 255, .13), transparent 68%),
+    radial-gradient(ellipse 58% 62% at 90% 86%, rgba(91, 40, 226, .23), transparent 70%),
+    linear-gradient(135deg, #020817 0%, #06132d 24%, #031a31 47%, #07102a 70%, #020817 100%) !important;
+  position: relative;
+}
+
+/* Slow-moving color atmosphere. It never sits on top of content. */
+.cosmic-signup-page::before,
+.cosmic-signup-page::after {
+  content: '';
+  position: absolute;
+  inset: -22%;
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.cosmic-signup-page::before {
+  background:
+    radial-gradient(ellipse 30% 24% at 18% 24%, rgba(24, 111, 255, .28), transparent 72%),
+    radial-gradient(ellipse 26% 22% at 78% 22%, rgba(0, 235, 255, .22), transparent 72%),
+    radial-gradient(ellipse 31% 27% at 74% 78%, rgba(108, 57, 255, .24), transparent 72%),
+    radial-gradient(ellipse 25% 23% at 28% 76%, rgba(0, 180, 255, .16), transparent 72%);
+  filter: blur(48px) saturate(135%);
+  animation: signup-spectrum-drift 20s ease-in-out infinite alternate;
+}
+
+.cosmic-signup-page::after {
+  background:
+    radial-gradient(circle at 43% 16%, rgba(126, 235, 255, .10), transparent 18%),
+    radial-gradient(circle at 58% 74%, rgba(87, 103, 255, .12), transparent 20%),
+    linear-gradient(112deg, transparent 18%, rgba(0, 221, 255, .035) 48%, transparent 66%);
+  filter: blur(24px);
+  animation: signup-spectrum-pulse 12s ease-in-out infinite alternate;
+}
+
+@keyframes signup-spectrum-drift {
+  0% { transform: translate3d(-2%, -1%, 0) scale(1); }
+  50% { transform: translate3d(2%, 1.5%, 0) scale(1.045); }
+  100% { transform: translate3d(-1%, 2%, 0) scale(1.02); }
+}
+
+@keyframes signup-spectrum-pulse {
+  0% { opacity: .55; transform: scale(.98) rotate(-1deg); }
+  100% { opacity: 1; transform: scale(1.04) rotate(1deg); }
+}
+
+/* Add depth around the existing star/fiber layer without a panel. */
+.cosmic-signup-page .canvas-glow {
+  opacity: .88;
+  mix-blend-mode: screen;
+  filter: saturate(125%) contrast(105%);
+}
+
+/* A few very soft cyan/blue light pools behind the two content zones. */
+.cosmic-signup-page .signup-story::after,
+.cosmic-signup-page .signup-card::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: .16;
+}
+
+.cosmic-signup-page .signup-story::after {
+  left: -100px;
+  top: 18%;
+  background: #087fff;
+}
+
+.cosmic-signup-page .signup-card::after {
+  right: -110px;
+  bottom: 2%;
+  background: #00d9ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-signup-page::before,
+  .cosmic-signup-page::after {
+    animation: none;
+  }
+}
