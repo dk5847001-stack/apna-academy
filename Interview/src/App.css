@@ -6363,3 +6363,125 @@
     border-radius: 21px;
   }
 }
+
+
+/* =========================================================
+   INTERVIEW QUESTIONS — NAVY / CYAN LIGHT
+   ========================================================= */
+.interview-questions-page {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100svh - 72px);
+  overflow: hidden;
+  color: #eaf8ff;
+  background:
+    radial-gradient(ellipse 70% 54% at 50% 4%, rgba(61, 203, 255, .20), transparent 68%),
+    radial-gradient(ellipse 48% 64% at 2% 46%, rgba(27, 132, 214, .18), transparent 72%),
+    radial-gradient(ellipse 50% 60% at 98% 70%, rgba(69, 104, 219, .14), transparent 74%),
+    linear-gradient(180deg, #0a2037 0%, #071b31 48%, #06162a 100%) !important;
+}
+
+.interview-questions-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 17% 18%, rgba(105, 225, 255, .11) 0 1px, transparent 2px),
+    radial-gradient(circle at 83% 24%, rgba(112, 198, 255, .10) 0 1px, transparent 2px),
+    radial-gradient(circle at 45% 82%, rgba(73, 213, 255, .08) 0 1px, transparent 2px);
+  background-size: 149px 149px, 181px 181px, 137px 137px;
+}
+
+.interview-questions-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(2, 12, 27, .18), transparent 18%, transparent 82%, rgba(2, 12, 27, .18)),
+    linear-gradient(180deg, rgba(4, 20, 39, .04), transparent 24%, transparent 76%, rgba(2, 10, 23, .16));
+}
+
+.interview-questions-page > .mx-auto {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  border-color: rgba(126, 220, 255, .17) !important;
+  background: rgba(4, 24, 43, .18) !important;
+  box-shadow: 0 30px 90px rgba(0, 8, 24, .28) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.interview-questions-page .bg-violet-50 {
+  border: 1px solid rgba(105, 222, 255, .20);
+  background: rgba(51, 190, 235, .055) !important;
+  color: #9beaff !important;
+}
+
+.interview-questions-page h1 {
+  color: #f4fcff !important;
+  text-shadow: 0 5px 32px rgba(0, 0, 0, .42);
+}
+
+.interview-questions-page .text-slate-600 {
+  color: #b5cedd !important;
+}
+
+.interview-questions-page .bg-slate-100 {
+  border: 1px solid rgba(120, 194, 225, .15);
+  background: rgba(8, 36, 57, .34) !important;
+  color: #b9d8e8 !important;
+}
+
+.interview-questions-page .gradient-btn {
+  box-shadow: 0 14px 35px rgba(0, 175, 255, .12);
+}
+
+.interview-questions-page .outline-btn {
+  border-color: rgba(116, 218, 255, .28) !important;
+  background: rgba(8, 31, 51, .24) !important;
+  color: #9ce9ff !important;
+}
+
+.interview-questions-page .outline-btn:hover {
+  border-color: rgba(116, 218, 255, .48) !important;
+  background: rgba(37, 129, 165, .12) !important;
+}
+
+.interview-questions-page .border-slate-200,
+.interview-questions-page .border-violet-100 {
+  border-color: rgba(126, 220, 255, .15) !important;
+}
+
+.interview-questions-page .bg-white {
+  background: rgba(5, 27, 46, .25) !important;
+  box-shadow: 0 16px 44px rgba(0, 8, 24, .18) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.interview-questions-page .text-violet-600 {
+  color: #6fe1ff !important;
+}
+
+.interview-questions-page .text-slate-900 {
+  color: #eaf8ff !important;
+}
+
+.interview-questions-page .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(126, 220, 255, .10) !important;
+}
+
+.interview-questions-page .hover\:shadow-lg:hover {
+  box-shadow: 0 20px 55px rgba(0, 8, 24, .28) !important;
+}
+
+@media (max-width: 640px) {
+  .interview-questions-page > .mx-auto {
+    border-radius: 1.35rem !important;
+  }
+}
