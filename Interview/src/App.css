@@ -4163,3 +4163,185 @@ button { font: inherit; }
     margin-bottom: 28px;
   }
 }
+
+
+/* =========================================================
+   SIGNUP v3 — TRUE ZERO-CARD / ZERO-FILL CANVAS
+   The page canvas owns the visual background. Every content
+   surface stays transparent; hierarchy comes from typography,
+   spacing, cyan rules, glow and micro-interactions only.
+   ========================================================= */
+.cosmic-signup-page,
+.cosmic-signup-page * {
+  box-sizing: border-box;
+}
+
+.cosmic-signup-page .signup-experience,
+.cosmic-signup-page .signup-story,
+.cosmic-signup-page .signup-card,
+.cosmic-signup-page .signup-brand,
+.cosmic-signup-page .login-story-points,
+.cosmic-signup-page .login-story-points > div,
+.cosmic-signup-page .signup-form,
+.cosmic-signup-page .signup-input,
+.cosmic-signup-page .signup-resend {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Remove every decorative fill from content elements. */
+.cosmic-signup-page .login-story-badge,
+.cosmic-signup-page .signup-brand > span,
+.cosmic-signup-page .login-story-points > div > span,
+.cosmic-signup-page .room-eyebrow,
+.cosmic-signup-page .auth-error,
+.cosmic-signup-page .auth-success,
+.cosmic-signup-page .signup-secure-note {
+  background: transparent !important;
+}
+
+/* The form is an editorial vertical composition, not a card. */
+.cosmic-signup-page .signup-card {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding-left: clamp(20px, 4vw, 58px);
+  position: relative;
+}
+
+.cosmic-signup-page .signup-card::before,
+.cosmic-signup-page .signup-card::after {
+  display: none !important;
+}
+
+/* One precise cyan guide line creates structure without a box. */
+.cosmic-signup-page .signup-card {
+  border-left: 1px solid rgba(75, 214, 255, .20) !important;
+}
+
+.cosmic-signup-page .signup-brand > span {
+  border: 1px solid rgba(83, 220, 255, .55) !important;
+  color: #8cecff !important;
+}
+
+.cosmic-signup-page .login-story-badge,
+.cosmic-signup-page .room-eyebrow {
+  border: 0 !important;
+  padding: 0 !important;
+  color: #6fe3ff !important;
+  letter-spacing: .14em;
+  text-shadow: 0 0 18px rgba(68, 207, 255, .30);
+}
+
+/* Transparent inputs: only a luminous baseline indicates focus. */
+.cosmic-signup-page .signup-input {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(126, 161, 211, .20) !important;
+  border-radius: 0 !important;
+}
+
+.cosmic-signup-page .signup-input:hover {
+  border-bottom-color: rgba(87, 218, 255, .55) !important;
+}
+
+.cosmic-signup-page .signup-input:focus-within {
+  border-bottom-color: #53ddff !important;
+  box-shadow: 0 8px 25px -20px rgba(67, 215, 255, .9) !important;
+}
+
+.cosmic-signup-page .signup-input input,
+.cosmic-signup-page .signup-input input:focus {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* CTA is transparent too: premium outline + kinetic glow. */
+.cosmic-signup-page .signup-submit {
+  background: transparent !important;
+  border: 1px solid rgba(77, 217, 255, .62) !important;
+  color: #e9fbff !important;
+  box-shadow:
+    0 0 0 1px rgba(77, 217, 255, .04),
+    0 0 28px rgba(43, 192, 255, .10) !important;
+}
+
+.cosmic-signup-page .signup-submit:hover:not(:disabled) {
+  background: rgba(70, 207, 255, .055) !important;
+  border-color: #72e6ff !important;
+  box-shadow:
+    0 0 0 1px rgba(114, 230, 255, .08),
+    0 0 38px rgba(43, 192, 255, .20) !important;
+}
+
+.cosmic-signup-page .signup-submit:disabled {
+  background: transparent !important;
+  opacity: .48;
+}
+
+/* Status messages are typography + rule only, never boxes. */
+.cosmic-signup-page .auth-error,
+.cosmic-signup-page .auth-success {
+  border: 0 !important;
+  border-left: 2px solid currentColor !important;
+  border-radius: 0 !important;
+  padding: 8px 12px !important;
+  background: transparent !important;
+}
+
+.cosmic-signup-page .auth-error {
+  color: #ff9eb4 !important;
+}
+
+.cosmic-signup-page .auth-success {
+  color: #8ff4d1 !important;
+}
+
+/* Benefit icons are outlines only. */
+.cosmic-signup-page .login-story-points > div > span {
+  border: 1px solid rgba(78, 214, 255, .38) !important;
+  color: #69e1ff !important;
+  border-radius: 50%;
+}
+
+/* OTP resend becomes a clean editorial rule. */
+.cosmic-signup-page .signup-resend {
+  border-top: 1px solid rgba(126, 161, 211, .16) !important;
+  border-bottom: 1px solid rgba(126, 161, 211, .16) !important;
+  border-radius: 0 !important;
+}
+
+/* All buttons/links remain transparent unless they are the global
+   navigation; signup itself uses text, underline and outline only. */
+.cosmic-signup-page button,
+.cosmic-signup-page a {
+  background-color: transparent;
+}
+
+.cosmic-signup-page .signup-back,
+.cosmic-signup-page .signup-otp-back,
+.cosmic-signup-page .signup-switch button,
+.cosmic-signup-page .signup-resend button {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.cosmic-signup-page .signup-switch {
+  padding-top: 4px;
+}
+
+.cosmic-signup-page .signup-switch button,
+.cosmic-signup-page .signup-resend button {
+  text-decoration: underline;
+  text-decoration-color: rgba(111, 224, 255, .35);
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 900px) {
+  .cosmic-signup-page .signup-card {
+    border-left: 0 !important;
+    border-top: 1px solid rgba(75, 214, 255, .18) !important;
+    padding: 34px 0 0 !important;
+  }
+}
