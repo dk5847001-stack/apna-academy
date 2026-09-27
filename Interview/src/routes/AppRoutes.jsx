@@ -13,6 +13,7 @@ const InterviewRoomPage = lazy(() => import('../pages/InterviewRoomPage'))
 const InterviewCompletePage = lazy(() => import('../pages/InterviewCompletePage'))
 const InterviewResultPage = lazy(() => import('../pages/InterviewResultPage'))
 const InterviewHistoryPage = lazy(() => import('../pages/InterviewHistoryPage'))
+const InterviewDemoPage = lazy(() => import('../pages/InterviewDemoPage'))
 const InterviewLoginPage = lazy(() => import('../pages/InterviewLoginPage'))
 const InterviewSignupPage = lazy(() => import('../pages/InterviewSignupPage'))
 
@@ -27,7 +28,7 @@ const pages = {
   [ROUTES.INTERVIEW_COMPLETE]: InterviewCompletePage,
   [ROUTES.INTERVIEW_RESULT]: InterviewResultPage,
   [ROUTES.HISTORY]: InterviewHistoryPage,
-  [ROUTES.DEMO]: RoutePlaceholder,
+  [ROUTES.DEMO]: InterviewDemoPage,
 }
 
 function RouteFallback() {
