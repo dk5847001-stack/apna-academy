@@ -1,5 +1,21 @@
 import { useEffect, useRef } from 'react'
 
+const PARTICLE_SEEDS = {
+  hero: 1729,
+  nav: 2718,
+  room: 3141,
+}
+
+const hash = (value) => {
+  let x = value >>> 0
+  x ^= x << 13
+  x ^= x >>> 17
+  x ^= x << 5
+  return (x >>> 0) / 4294967296
+}
+
+const random = (seed, index, salt = 0) => hash((seed + index * 374761393 + salt * 668265263) >>> 0)
+
 export default function CosmicField({ density = 'hero' }) {
   const canvasRef = useRef(null)
 
@@ -15,6 +31,7 @@ export default function CosmicField({ density = 'hero' }) {
     const compactViewport = window.matchMedia('(max-width: 767px)')
     const isNav = density === 'nav'
     const isRoom = density === 'room'
+    const seed = PARTICLE_SEEDS[density] ?? PARTICLE_SEEDS.hero
 
     const getCounts = () => {
       const mobileFactor = compactViewport.matches ? 0.52 : 1
@@ -39,39 +56,41 @@ export default function CosmicField({ density = 'hero' }) {
     const createParticles = () => {
       counts = getCounts()
       stars = Array.from({ length: counts.stars }, (_, index) => ({
-        x: Math.random(),
-        y: Math.random(),
-        r: 0.45 + Math.random() * (isNav ? 1.1 : 1.55),
-        phase: Math.random() * Math.PI * 2,
-        speed: 0.9 + Math.random() * 2.4,
-        twinkle: 0.25 + Math.random() * 0.7,
+        x: random(seed, index, 1),
+        y: random(seed, index, 2),
+        r: 0.45 + random(seed, index, 3) * (isNav ? 1.1 : 1.55),
+        phase: random(seed, index, 4) * Math.PI * 2,
+        speed: 0.9 + random(seed, index, 5) * 2.4,
+        twinkle: 0.25 + random(seed, index, 6) * 0.7,
         blue: index % 3 !== 0,
       }))
-      shootingStars = Array.from({ length: counts.shootingStars }, () => ({
-        x: Math.random(),
-        y: Math.random() * 0.75,
-        speed: 0.55 + Math.random() * 0.9,
-        length: 35 + Math.random() * 85,
-        delay: Math.random() * 5000,
-        phase: Math.random() * 10000,
+      shootingStars = Array.from({ length: counts.shootingStars }, (_, index) => ({
+        x: random(seed, index, 11),
+        y: random(seed, index, 12) * 0.75,
+        speed: 0.55 + random(seed, index, 13) * 0.9,
+        length: 35 + random(seed, index, 14) * 85,
+        delay: random(seed, index, 15) * 5000,
+        phase: random(seed, index, 16) * 10000,
       }))
 
       if (isRoom) {
-        galaxyStars = Array.from({ length: compactViewport.matches ? 70 : 135 }, () => ({
-          radius: Math.pow(Math.random(), 0.72),
-          angle: Math.random() * Math.PI * 2,
-          size: 0.35 + Math.random() * 1.15,
-          arm: Math.random() < 0.72 ? 0 : 1,
-          phase: Math.random() * Math.PI * 2,
-          brightness: 0.25 + Math.random() * 0.75,
+        const galaxyCount = compactViewport.matches ? 70 : 135
+        const asteroidCount = compactViewport.matches ? 18 : 34
+        galaxyStars = Array.from({ length: galaxyCount }, (_, index) => ({
+          radius: Math.pow(random(seed, index, 21), 0.72),
+          angle: random(seed, index, 22) * Math.PI * 2,
+          size: 0.35 + random(seed, index, 23) * 1.15,
+          arm: random(seed, index, 24) < 0.72 ? 0 : 1,
+          phase: random(seed, index, 25) * Math.PI * 2,
+          brightness: 0.25 + random(seed, index, 26) * 0.75,
         }))
-        asteroids = Array.from({ length: compactViewport.matches ? 18 : 34 }, () => ({
-          x: Math.random(),
-          y: 0.46 + Math.random() * 0.5,
-          size: 2 + Math.random() * 7,
-          rotation: Math.random() * Math.PI * 2,
-          drift: 0.12 + Math.random() * 0.32,
-          phase: Math.random() * Math.PI * 2,
+        asteroids = Array.from({ length: asteroidCount }, (_, index) => ({
+          x: random(seed, index, 31),
+          y: 0.46 + random(seed, index, 32) * 0.5,
+          size: 2 + random(seed, index, 33) * 7,
+          rotation: random(seed, index, 34) * Math.PI * 2,
+          drift: 0.12 + random(seed, index, 35) * 0.32,
+          phase: random(seed, index, 36) * Math.PI * 2,
         }))
       }
     }
@@ -85,11 +104,15 @@ export default function CosmicField({ density = 'hero' }) {
 
     const resize = () => {
       const ratio = Math.min(window.devicePixelRatio || 1, compactViewport.matches ? 1.15 : 1.5)
-      width = canvas.clientWidth
-      height = canvas.clientHeight
+      const nextWidth = canvas.clientWidth
+      const nextHeight = canvas.clientHeight
+      const dimensionsChanged = nextWidth !== width || nextHeight !== height
+      width = nextWidth
+      height = nextHeight
       canvas.width = Math.max(1, Math.floor(width * ratio))
       canvas.height = Math.max(1, Math.floor(height * ratio))
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+      if (!dimensionsChanged && stars.length) return
       createParticles()
     }
 
@@ -310,7 +333,6 @@ export default function CosmicField({ density = 'hero' }) {
       }
     }, { threshold: 0.01 })
 
-    createParticles()
     resize()
     observer.observe(canvas)
     draw(0)
