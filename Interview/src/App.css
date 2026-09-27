@@ -5548,3 +5548,58 @@
     animation: none;
   }
 }
+
+
+/* =========================================================
+   HOME PAGE — NAVY / CYAN LIGHT CINEMATIC BACKGROUND v3
+   Background only: transparent content surfaces preserved.
+   ========================================================= */
+.home-page {
+  background:
+    radial-gradient(ellipse 72% 52% at 52% 2%, rgba(56, 191, 255, .22), transparent 68%),
+    radial-gradient(ellipse 58% 62% at 4% 34%, rgba(18, 126, 205, .20), transparent 72%),
+    radial-gradient(ellipse 54% 62% at 96% 48%, rgba(55, 91, 210, .17), transparent 74%),
+    radial-gradient(ellipse 70% 44% at 50% 100%, rgba(13, 103, 166, .20), transparent 76%),
+    linear-gradient(180deg, #0a2037 0%, #071a30 42%, #06162a 100%) !important;
+}
+
+.home-page::before {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(91, 221, 255, .14) 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 24%, rgba(112, 194, 255, .12) 0 1px, transparent 2px),
+    radial-gradient(circle at 43% 76%, rgba(67, 214, 255, .11) 0 1px, transparent 2px),
+    repeating-linear-gradient(118deg, transparent 0 44px, rgba(106, 205, 255, .018) 45px, transparent 46px);
+}
+
+.home-page::after {
+  background:
+    linear-gradient(90deg, rgba(2, 12, 27, .18), transparent 16%, transparent 84%, rgba(2, 12, 27, .18)),
+    linear-gradient(180deg, rgba(3, 17, 35, .08), transparent 18%, transparent 82%, rgba(2, 10, 23, .24));
+}
+
+.home-page .hero-section {
+  background: transparent !important;
+}
+
+.home-page .hero-section > .cosmic-field {
+  opacity: .82;
+  filter: saturate(112%) contrast(106%);
+}
+
+.home-page .hero-orb-one {
+  background: radial-gradient(circle, rgba(80, 205, 255, .25), rgba(80, 205, 255, 0) 70%) !important;
+}
+
+.home-page .hero-orb-two {
+  background: radial-gradient(circle, rgba(43, 159, 255, .20), rgba(43, 159, 255, 0) 70%) !important;
+}
+
+.home-page .stats-strip {
+  border-top-color: rgba(116, 220, 255, .18) !important;
+  border-bottom-color: rgba(116, 220, 255, .18) !important;
+}
+
+.home-page .proof-section,
+.home-page .cta-section {
+  border-color: rgba(116, 220, 255, .14) !important;
+}
