@@ -13,7 +13,6 @@ import { ROUTES } from '../../routes/routes'
 import { useRouter } from '../../routes/Router'
 import { useAuth } from '../../context/AuthContext'
 import Logo from '../brand/Logo'
-import CosmicField from '../common/CosmicField'
 
 const APP_LINKS = [
   { label: 'ApnaAcademy', href: 'https://apnaacademy.me', description: 'Learning platform' },
@@ -56,11 +55,7 @@ export default function InterviewHeader() {
   }
 
   return (
-    <header className="site-header">
-      <div className="header-cosmic-layer" aria-hidden="true">
-        <CosmicField density="nav" />
-      </div>
-
+    <header className="site-header site-header-ref">
       <div className="announcement-bar">
         <div className="announcement-inner">
           <span className="announcement-badge"><AutoAwesomeRounded /> AI Interview Lab</span>
