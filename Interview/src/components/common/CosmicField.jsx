@@ -27,7 +27,6 @@ export default function CosmicField({ density = 'hero' }) {
     if (!ctx) return undefined
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const coarsePointer = window.matchMedia('(pointer: coarse)')
     const compactViewport = window.matchMedia('(max-width: 767px)')
     const isNav = density === 'nav'
     const isRoom = density === 'room'
