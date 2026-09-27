@@ -4556,3 +4556,119 @@ button { font: inherit; }
     animation: none;
   }
 }
+
+
+/* =========================================================
+   SIGNUP v6 — CINEMATIC AURORA / PREMIUM ATMOSPHERE
+   Background-only enhancement. Content remains completely
+   transparent; no cards, panels or surface fills are added.
+   ========================================================= */
+.cosmic-signup-page {
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 82% 70% at 5% 8%, rgba(20, 91, 255, .30), transparent 64%),
+    radial-gradient(ellipse 68% 64% at 96% 5%, rgba(0, 229, 255, .20), transparent 62%),
+    radial-gradient(ellipse 58% 55% at 50% 18%, rgba(34, 126, 255, .08), transparent 68%),
+    radial-gradient(ellipse 62% 70% at 88% 72%, rgba(116, 54, 255, .25), transparent 66%),
+    radial-gradient(ellipse 58% 62% at 10% 82%, rgba(0, 190, 255, .16), transparent 68%),
+    radial-gradient(ellipse 52% 48% at 52% 52%, rgba(7, 31, 67, .88), transparent 78%),
+    linear-gradient(135deg, #010611 0%, #031127 25%, #041a31 48%, #070e28 73%, #020612 100%) !important;
+}
+
+/* Atmospheric color ribbons + premium vignette. */
+.cosmic-signup-page::before {
+  inset: -28%;
+  background:
+    conic-gradient(
+      from 205deg at 22% 38%,
+      transparent 0deg,
+      rgba(19, 108, 255, .17) 35deg,
+      rgba(0, 225, 255, .13) 68deg,
+      transparent 112deg,
+      transparent 210deg,
+      rgba(111, 56, 255, .16) 250deg,
+      transparent 305deg
+    ),
+    radial-gradient(ellipse 34% 15% at 21% 37%, rgba(42, 179, 255, .18), transparent 72%),
+    radial-gradient(ellipse 38% 16% at 78% 63%, rgba(104, 71, 255, .18), transparent 72%),
+    radial-gradient(ellipse 24% 13% at 59% 12%, rgba(112, 224, 255, .11), transparent 74%);
+  filter: blur(54px) saturate(145%);
+  animation: signup-aurora-drift 26s cubic-bezier(.45,0,.25,1) infinite alternate;
+}
+
+.cosmic-signup-page::after {
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at center, transparent 28%, rgba(0, 3, 12, .08) 58%, rgba(0, 2, 10, .48) 100%),
+    repeating-linear-gradient(
+      118deg,
+      rgba(255,255,255,.010) 0,
+      rgba(255,255,255,.010) 1px,
+      transparent 1px,
+      transparent 7px
+    );
+  filter: none;
+  opacity: 1;
+  pointer-events: none;
+}
+
+/* Keep the real page content above the atmospheric vignette. */
+.cosmic-signup-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes signup-aurora-drift {
+  0% {
+    transform: translate3d(-2%, 1%, 0) rotate(-1deg) scale(1);
+    opacity: .78;
+  }
+  50% {
+    transform: translate3d(2%, -1.5%, 0) rotate(1deg) scale(1.035);
+    opacity: .98;
+  }
+  100% {
+    transform: translate3d(-1%, 2%, 0) rotate(-.5deg) scale(1.02);
+    opacity: .86;
+  }
+}
+
+/* Refined light pools: broader, softer and less "blob-like". */
+.cosmic-signup-page .signup-story::after,
+.cosmic-signup-page .signup-card::after {
+  width: 430px;
+  height: 300px;
+  border-radius: 50%;
+  filter: blur(105px);
+  opacity: .11;
+}
+
+.cosmic-signup-page .signup-story::after {
+  left: -170px;
+  top: 10%;
+  background: radial-gradient(ellipse, rgba(0, 154, 255, .85), transparent 70%);
+  transform: rotate(-18deg);
+}
+
+.cosmic-signup-page .signup-card::after {
+  right: -180px;
+  bottom: 5%;
+  background: radial-gradient(ellipse, rgba(44, 221, 255, .72), transparent 70%);
+  transform: rotate(18deg);
+}
+
+/* The existing particle/fiber layer becomes a subtle star field,
+   never a competing foreground effect. */
+.cosmic-signup-page .canvas-glow {
+  opacity: .72;
+  mix-blend-mode: screen;
+  filter: saturate(118%) contrast(102%);
+}
+
+/* Reduced-motion users still receive the full visual treatment. */
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-signup-page::before {
+    animation: none;
+  }
+}
