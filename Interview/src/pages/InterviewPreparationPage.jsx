@@ -40,7 +40,7 @@ function ProgressRail() {
   return (
     <div className="prep-ref-progress" aria-label="Interview progress">
       {steps.map((step, index) => (
-        <div className={`prep-ref-progress-item ${index === 1 ? 'is-active' : index < 1 ? 'is-complete' : ''`} key={step}>
+        <div className={'prep-ref-progress-item ' + (index === 1 ? 'is-active' : index < 1 ? 'is-complete' : '')} key={step}>
           <span className="prep-ref-progress-number">{index < 1 ? <CheckCircleRounded /> : index + 1}</span>
           <span className="prep-ref-progress-line" aria-hidden="true" />
           <small>{step}</small>
