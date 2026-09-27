@@ -25,7 +25,7 @@ import {
 import { useInterviewFlow } from '../context/InterviewFlowContext'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
-import './interview-setup-reference.css'
+import '../styles/interview-setup-reference.css'
 
 const typePresentation = {
   technical: {
