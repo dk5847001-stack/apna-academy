@@ -6726,3 +6726,179 @@
     -webkit-backdrop-filter: blur(12px);
   }
 }
+
+
+/* =========================================================
+   INTERVIEW PREPARATION — NAVY / CYAN LIGHT CINEMATIC
+   ========================================================= */
+.cosmic-prep-page {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100svh - 72px);
+  overflow: hidden;
+  color: #eaf8ff;
+  background:
+    radial-gradient(ellipse 68% 50% at 50% 2%, rgba(60, 205, 255, .21), transparent 68%),
+    radial-gradient(ellipse 48% 64% at 4% 44%, rgba(27, 132, 214, .18), transparent 72%),
+    radial-gradient(ellipse 48% 62% at 96% 70%, rgba(68, 103, 218, .14), transparent 74%),
+    linear-gradient(180deg, #0a2037 0%, #071b31 50%, #06162a 100%) !important;
+}
+
+.cosmic-prep-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 16% 17%, rgba(105, 225, 255, .11) 0 1px, transparent 2px),
+    radial-gradient(circle at 84% 24%, rgba(112, 198, 255, .09) 0 1px, transparent 2px),
+    radial-gradient(circle at 48% 86%, rgba(73, 213, 255, .08) 0 1px, transparent 2px);
+  background-size: 149px 149px, 181px 181px, 137px 137px;
+}
+
+.cosmic-prep-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(2, 12, 27, .18), transparent 18%, transparent 82%, rgba(2, 12, 27, .18));
+}
+
+.prep-page {
+  position: relative;
+}
+
+.prep-shell {
+  position: relative;
+  z-index: 2;
+}
+
+.room-back-link {
+  color: #83d9ee !important;
+}
+
+.prep-heading {
+  color: #f4fcff !important;
+  text-shadow: 0 5px 30px rgba(0, 0, 0, .42);
+}
+
+.cosmic-prep-page .room-eyebrow {
+  border-color: rgba(108, 222, 255, .25) !important;
+  background: rgba(53, 190, 235, .055) !important;
+  color: #9ceaff !important;
+}
+
+.prep-grid {
+  align-items: stretch;
+}
+
+.prep-device-card,
+.prep-summary-card,
+.prep-tip {
+  border-color: rgba(126, 220, 255, .16) !important;
+  background: rgba(4, 24, 43, .18) !important;
+  box-shadow: 0 26px 75px rgba(0, 8, 24, .24) !important;
+  backdrop-filter: blur(17px);
+  -webkit-backdrop-filter: blur(17px);
+}
+
+.prep-device-card {
+  overflow: hidden;
+}
+
+.prep-video,
+.prep-camera-empty {
+  border-color: rgba(112, 207, 238, .16) !important;
+  background: rgba(2, 15, 29, .38) !important;
+}
+
+.prep-camera-empty {
+  color: #8eb4c8 !important;
+}
+
+.prep-preview-badge,
+.prep-device-status {
+  border-color: rgba(104, 222, 255, .22) !important;
+  background: rgba(39, 171, 211, .08) !important;
+  color: #9ceaff !important;
+  box-shadow: 0 0 24px rgba(0, 193, 255, .07);
+}
+
+.prep-error {
+  border-color: rgba(255, 105, 130, .24) !important;
+  background: rgba(255, 77, 108, .05) !important;
+  color: #ffb5c4 !important;
+}
+
+.device-check-btn,
+.prep-cancel-btn {
+  border-color: rgba(116, 218, 255, .24) !important;
+  background: rgba(8, 31, 51, .24) !important;
+  color: #9de8fb !important;
+}
+
+.device-check-btn:hover,
+.prep-cancel-btn:hover {
+  border-color: rgba(116, 218, 255, .46) !important;
+  background: rgba(37, 129, 165, .12) !important;
+}
+
+.prep-summary-card .room-card-label {
+  color: #7ea1b8 !important;
+}
+
+.prep-summary-pills span {
+  border-color: rgba(106, 222, 255, .18) !important;
+  background: rgba(44, 178, 219, .055) !important;
+  color: #a7d9e9 !important;
+}
+
+.prep-stat-grid {
+  border-color: rgba(126, 220, 255, .11) !important;
+}
+
+.prep-stat-grid > div {
+  border-color: rgba(126, 220, 255, .10) !important;
+}
+
+.prep-stat-grid strong {
+  color: #effaff !important;
+}
+
+.prep-stat-grid span {
+  color: #809fb5 !important;
+}
+
+.prep-rules {
+  color: #abc6d5 !important;
+}
+
+.prep-rules li::marker {
+  color: #65dfff;
+}
+
+.prep-start-btn {
+  box-shadow: 0 16px 38px rgba(0, 181, 255, .13) !important;
+}
+
+.prep-tip {
+  color: #a9c5d5 !important;
+}
+
+.room-orb-a,
+.room-orb-b {
+  opacity: .34;
+  background: rgba(48, 198, 255, .12) !important;
+  box-shadow: 0 0 100px rgba(0, 190, 255, .08);
+}
+
+@media (max-width: 760px) {
+  .prep-device-card,
+  .prep-summary-card,
+  .prep-tip {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
