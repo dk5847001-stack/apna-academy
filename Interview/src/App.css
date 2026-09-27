@@ -6689,3 +6689,202 @@ button { font: inherit; }
     scroll-behavior: auto !important;
   }
 }
+
+
+/* =========================================================
+   INTERVIEW ROOM — CINEMATIC TRANSPARENT COMMAND CENTER
+   Visual-only overrides. Interview/voice/media/session logic untouched.
+   ========================================================= */
+
+.cosmic-room {
+  position: relative !important;
+  isolation: isolate;
+  min-height: 100svh !important;
+  overflow: hidden !important;
+  color: #f3fbff !important;
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 0%, rgba(0,125,255,.15), transparent 72%),
+    radial-gradient(ellipse 35% 65% at 0% 50%, rgba(0,210,255,.08), transparent 75%),
+    radial-gradient(ellipse 35% 65% at 100% 50%, rgba(125,55,255,.09), transparent 75%),
+    #01040a !important;
+}
+.cosmic-room > .cosmic-field { position:absolute !important; inset:0 !important; width:100% !important; height:100% !important; z-index:0 !important; pointer-events:none; opacity:1 !important; mix-blend-mode:screen; }
+.cosmic-room .room-topbar,
+.cosmic-room .room-main,
+.cosmic-room .room-progress-bar,
+.cosmic-room .room-inline-error { position:relative; z-index:3; }
+
+.cosmic-room .room-topbar {
+  min-height:74px; padding:12px 22px;
+  background:rgba(1,4,10,.45) !important;
+  border-bottom:1px solid rgba(119,220,255,.18) !important;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.cosmic-room .room-brand { background:transparent !important; color:#fff !important; }
+.cosmic-room .room-brand-mark { background:transparent !important; border:1px solid rgba(111,220,255,.3); color:#72e4ff !important; box-shadow:none !important; }
+.cosmic-room .room-brand strong { color:#f8fdff !important; }
+.cosmic-room .room-brand small,.cosmic-room .room-role { color:#8fa7bd !important; }
+.cosmic-room .live-pill { background:transparent !important; border:1px solid rgba(82,226,170,.28) !important; color:#8cf0c4 !important; box-shadow:none !important; }
+.cosmic-room .room-timer { background:transparent !important; border:1px solid rgba(123,216,246,.2) !important; box-shadow:none !important; color:#eafaff !important; }
+.cosmic-room .room-timer small { color:#7990a8 !important; }
+
+.cosmic-room .room-progress-bar { background:rgba(125,210,240,.08) !important; }
+.cosmic-room .room-progress-bar span { background:linear-gradient(90deg,#16d9ff,#477cff,#8b4cff) !important; box-shadow:0 0 16px rgba(45,180,255,.4); }
+
+.cosmic-room .room-main {
+  display:grid !important;
+  grid-template-columns:240px minmax(0,1fr) 250px !important;
+  gap:18px !important;
+  width:min(1500px,calc(100% - 30px));
+  margin:18px auto 0;
+  padding-bottom:25px;
+}
+.cosmic-room .room-sidebar,
+.cosmic-room .room-workspace,
+.cosmic-room .room-camera-panel {
+  background:transparent !important;
+  background-image:none !important;
+  border:1px solid rgba(119,220,255,.19) !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  border-radius:22px;
+}
+.cosmic-room .room-sidebar { padding:15px; }
+.cosmic-room .room-sidebar-head span,
+.cosmic-room .room-sidebar-head strong { color:#b8ccdd !important; }
+.cosmic-room .room-sidebar-head button { background:transparent !important; color:#8bdfff !important; }
+.cosmic-room .room-progress-ring { background:transparent !important; box-shadow:none !important; border-color:rgba(105,220,255,.25) !important; }
+.cosmic-room .room-progress-ring strong { color:#fff !important; }
+.cosmic-room .room-progress-ring small { color:#7f98b0 !important; }
+.cosmic-room .room-question-list button {
+  background:transparent !important;
+  border:1px solid transparent !important;
+  color:#dbeeff !important;
+  box-shadow:none !important;
+}
+.cosmic-room .room-question-list button:hover { border-color:rgba(111,220,255,.18) !important; }
+.cosmic-room .room-question-list button.active { background:transparent !important; border-color:rgba(95,220,255,.42) !important; box-shadow:0 0 24px rgba(0,180,255,.07) !important; }
+.cosmic-room .room-question-list button > span { background:transparent !important; border:1px solid rgba(114,216,255,.18); color:#91ddf7 !important; }
+.cosmic-room .room-question-list button strong { color:#eaf8ff !important; }
+.cosmic-room .room-question-list button small { color:#708aa3 !important; }
+
+.cosmic-room .room-workspace { padding:18px; border:0 !important; }
+.cosmic-room .room-ai-card,
+.cosmic-room .question-card,
+.cosmic-room .answer-card,
+.cosmic-room .ai-conversation-message,
+.cosmic-room .answer-feedback-card {
+  background:transparent !important;
+  background-image:none !important;
+  border:1px solid rgba(119,220,255,.20) !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+.cosmic-room .room-ai-card { border-radius:18px !important; }
+.cosmic-room .ai-avatar,.cosmic-room .ai-avatar-mini { background:transparent !important; border:1px solid rgba(111,220,255,.28); color:#6fe3ff !important; box-shadow:none !important; }
+.cosmic-room .ai-copy strong { color:#f5fcff !important; }
+.cosmic-room .ai-copy p { color:#879eb5 !important; }
+.cosmic-room .ai-speaking { color:#77ddff !important; }
+
+.cosmic-room .question-card { margin-top:14px; border-radius:22px !important; }
+.cosmic-room .question-meta span { background:transparent !important; border:1px solid rgba(112,218,255,.18); color:#78dcfa !important; }
+.cosmic-room .question-card h1 { color:#fff !important; text-shadow:0 3px 30px rgba(0,0,0,.85); }
+.cosmic-room .question-hint { background:transparent !important; border-top:1px solid rgba(118,210,240,.12) !important; color:#a9bfd1 !important; }
+.cosmic-room .question-hint svg { color:#69ddff !important; }
+
+.cosmic-room .ai-conversation-message,
+.cosmic-room .answer-feedback-card,
+.cosmic-room .answer-card { border-radius:20px !important; margin-top:14px; }
+.cosmic-room .answer-feedback-score { background:transparent !important; border:1px solid rgba(96,220,255,.24); color:#7de5ff !important; }
+.cosmic-room .answer-feedback-grid > div { background:transparent !important; border:1px solid rgba(119,210,240,.12); }
+.cosmic-room .answer-feedback-card span,
+.cosmic-room .answer-feedback-card small { color:#91a8bd !important; }
+.cosmic-room .answer-feedback-card strong,
+.cosmic-room .answer-feedback-card b { color:#effaff !important; }
+
+.cosmic-room .answer-card textarea {
+  background:transparent !important;
+  color:#f5fbff !important;
+  border:1px solid rgba(119,220,255,.18) !important;
+  box-shadow:none !important;
+}
+.cosmic-room .answer-card textarea::placeholder { color:#637b92 !important; }
+.cosmic-room .answer-head span,.cosmic-room .answer-head small,.cosmic-room .answer-toolbar > span { color:#8ba3b8 !important; }
+.cosmic-room .answer-status { background:transparent !important; border:1px solid rgba(118,210,240,.17); color:#8ea6ba !important; }
+.cosmic-room .room-control,
+.cosmic-room .voice-answer-btn,
+.cosmic-room .room-nav-secondary,
+.cosmic-room .room-nav-center button,
+.cosmic-room .pause-btn,
+.cosmic-room .end-btn {
+  background:transparent !important;
+  box-shadow:none !important;
+  border:1px solid rgba(119,220,255,.22) !important;
+  color:#dff7ff !important;
+}
+.cosmic-room .room-control.on { border-color:rgba(84,226,174,.35) !important; color:#82efc4 !important; }
+.cosmic-room .voice-answer-btn.active { border-color:rgba(111,220,255,.5) !important; color:#76e2ff !important; }
+.cosmic-room .submit-answer-btn,
+.cosmic-room .room-nav-primary {
+  background:linear-gradient(135deg,#08c8f4,#386cff 58%,#8048f3) !important;
+  color:#fff !important; border:1px solid rgba(175,238,255,.28) !important;
+  box-shadow:0 10px 28px rgba(0,110,255,.2) !important;
+}
+.cosmic-room .room-nav { border-top-color:rgba(119,210,240,.12) !important; }
+
+.cosmic-room .room-camera-panel { padding:14px; }
+.cosmic-room .camera-heading span { color:#dff5ff !important; }
+.cosmic-room .camera-heading button { background:transparent !important; color:#82dff8 !important; }
+.cosmic-room .camera-preview { border:1px solid rgba(119,220,255,.18) !important; background:transparent !important; box-shadow:none !important; }
+.cosmic-room .camera-preview video { background:transparent !important; }
+.cosmic-room .camera-live { background:transparent !important; border:1px solid rgba(119,220,255,.2); color:#dff7ff !important; }
+.cosmic-room .camera-controls button { background:transparent !important; border:1px solid rgba(119,220,255,.22) !important; color:#dff7ff !important; }
+.cosmic-room .camera-controls button.off { color:#ff9ba8 !important; }
+.cosmic-room .camera-note { color:#7f9ab1 !important; }
+.cosmic-room .camera-note svg { color:#65dfae !important; }
+.cosmic-room .pause-btn { width:100%; margin-top:14px; }
+.cosmic-room .end-btn { width:100%; margin-top:9px; border-color:rgba(255,120,135,.24) !important; color:#ffadb8 !important; }
+
+.cosmic-room .pause-overlay,
+.cosmic-room .end-overlay { background:rgba(0,2,8,.72) !important; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+.cosmic-room .pause-modal,
+.cosmic-room .end-modal {
+  background:rgba(2,7,16,.32) !important;
+  border:1px solid rgba(119,220,255,.28) !important;
+  box-shadow:0 25px 80px rgba(0,0,0,.6) !important;
+  backdrop-filter:blur(18px);
+}
+.cosmic-room .pause-modal h2,.cosmic-room .end-modal h2 { color:#fff !important; }
+.cosmic-room .pause-modal p,.cosmic-room .end-modal p { color:#9db3c8 !important; }
+.cosmic-room .pause-modal-icon,.cosmic-room .warning-icon { background:transparent !important; border:1px solid rgba(119,220,255,.25); color:#70e0ff !important; }
+.cosmic-room .end-close { background:transparent !important; color:#8da7bc !important; }
+
+.cosmic-room .room-inline-error { background:transparent !important; border:1px solid rgba(255,125,140,.28) !important; color:#ffb0ba !important; box-shadow:none !important; }
+.cosmic-room .room-inline-error button { background:transparent !important; color:#ffced5 !important; }
+
+@media (max-width:1100px) {
+  .cosmic-room .room-main { grid-template-columns:210px minmax(0,1fr) !important; }
+  .cosmic-room .room-camera-panel { grid-column:1 / -1; display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; }
+  .cosmic-room .camera-preview { min-height:190px; }
+  .cosmic-room .camera-preview video { min-height:190px; }
+  .cosmic-room .camera-heading { grid-column:1 / -1; }
+}
+@media (max-width:760px) {
+  .cosmic-room .room-topbar { padding:10px 12px; }
+  .cosmic-room .room-role { display:none !important; }
+  .cosmic-room .room-main { grid-template-columns:1fr !important; width:calc(100% - 18px); margin-top:10px; }
+  .cosmic-room .room-sidebar { order:2; }
+  .cosmic-room .room-workspace { order:1; padding:10px; }
+  .cosmic-room .room-camera-panel { order:3; display:block; }
+  .cosmic-room .room-question-list { max-height:260px; overflow:auto; }
+  .cosmic-room .room-sidebar:not(.mobile-open) .room-question-list { display:none; }
+  .cosmic-room .question-card h1 { font-size:1.65rem !important; }
+  .cosmic-room .answer-toolbar { gap:8px; align-items:flex-start; }
+  .cosmic-room .answer-toolbar > div { flex-wrap:wrap; justify-content:flex-end; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .cosmic-room * { scroll-behavior:auto !important; transition-duration:0.01ms !important; animation-duration:0.01ms !important; }
+}
