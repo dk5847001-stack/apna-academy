@@ -15,7 +15,6 @@ import {
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
 import { useAuth } from '../context/AuthContext'
-import CosmicField from '../components/common/CosmicField'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '')
 
@@ -193,16 +192,14 @@ export default function InterviewSignupPage() {
 
   if (authLoading || user) {
     return (
-      <main className="cosmic-auth-page cosmic-signup-page">
-        <CosmicField density="room" />
+      <main className="cosmic-auth-page signup-page-ref">
         <div className="auth-loading">Checking your account…</div>
       </main>
     )
   }
 
   return (
-    <main className="cosmic-auth-page cosmic-signup-page">
-      <CosmicField density="room" />
+    <main className="cosmic-auth-page signup-page-ref">
       <div className="signup-glow signup-glow-a" />
       <div className="signup-glow signup-glow-b" />
 
