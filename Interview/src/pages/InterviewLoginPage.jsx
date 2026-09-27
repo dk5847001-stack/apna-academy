@@ -3,7 +3,6 @@ import { ArrowForwardRounded, AutoAwesomeRounded, LockRounded, MailOutlineRounde
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
 import { useAuth } from '../context/AuthContext'
-import CosmicField from '../components/common/CosmicField'
 
 export default function InterviewLoginPage() {
   const { navigate } = useRouter()
@@ -34,8 +33,7 @@ export default function InterviewLoginPage() {
   }
 
   return (
-    <main className="interview-login-page cosmic-login-page">
-      <CosmicField density="room" />
+    <main className="interview-login-page login-page-ref">
       <div className="login-glow login-glow-a" />
       <div className="login-glow login-glow-b" />
 
