@@ -167,392 +167,253 @@ export default function InterviewRoomPage() {
         }
       }, 0)
 
-      return () => {
-        window.clearTimeout(listenTimer)
-        voice.stopSpeaking()
-        autoVoiceTurnRef.current = false
-        voice.stopListening()
-      }
-    }
+      return (
+    <main className="interview-room cosmic-room room-simple">
+      <CosmicField density="room" />
 
-    const speechTurnId = voiceTurnIdRef.current + 1
-    voiceTurnIdRef.current = speechTurnId
-    conversation.startAiSpeaking()
-
-    const handleSpeechEnd = () => {
-      if (speechTurnId !== voiceTurnIdRef.current) return
-      conversation.aiSpeechEnded()
-      startVoiceCapture()
-    }
-
-    const handleSpeechError = () => {
-      if (speechTurnId !== voiceTurnIdRef.current) return
-      conversation.setError('AI voice playback failed. You can continue in text mode.')
-      conversation.aiSpeechEnded()
-      startVoiceCapture()
-    }
-
-    const spoken = voice.speak(question.question, {
-      onEnd: handleSpeechEnd,
-      onError: handleSpeechError,
-    })
-
-    if (!spoken) {
-      conversation.aiSpeechEnded()
-      startVoiceCapture()
-    }
-
-    return () => {
-      voiceTurnIdRef.current += 1
-      voice.stopSpeaking()
-      autoVoiceTurnRef.current = false
-      voice.stopListening()
-      conversation.aiSpeechEnded()
-    }
-  }, [current, paused, question?.id, question?.question, voice.speak, voice.stopSpeaking, voice.stopListening, startVoiceCapture, conversation.reset, conversation.startAiSpeaking, conversation.aiSpeechEnded, conversation.setError])
-
-  useEffect(() => {
-    if (voice.listening) conversation.startListening()
-    else if (conversation.isListening) conversation.stopListening()
-  }, [voice.listening, conversation.isListening, conversation.startListening, conversation.stopListening])
-
-  useEffect(() => {
-    setSession((value) => ({ ...(value || {}), currentQuestion: current, answers }))
-  }, [current, answers, setSession])
-
-  const answeredCount = answers.filter((item) => item?.answer?.trim()).length
-  const progress = Math.round(((current + 1) / questions.length) * 100)
-  const isAnswered = answers.some((item) => item.questionId === question?.id && item.answer?.trim())
-
-  const saveAnswer = async () => {
-    if (!question || !answer.trim() || submitting) return null
-    setSubmitting(true)
-    setRoomError('')
-    autoVoiceTurnRef.current = false
-    voice.stopListening()
-    conversation.startProcessing()
-    try {
-      if (!session?.id || String(session.id).startsWith('mock-')) throw new Error('Your AI session is not available. Please restart the interview.')
-      const cleanAnswer = answer.trim()
-      const data = await interviewApi.submitInterviewAnswer({ sessionId: session.id, questionId: question.id, answer: cleanAnswer })
-      const saved = { questionId: question.id, answer: cleanAnswer, score: data.evaluation?.score, feedback: data.evaluation?.feedback, strengths: data.evaluation?.strengths, improvements: data.evaluation?.improvements, answeredAt: new Date().toISOString() }
-      const nextAnswers = answers.filter((item) => item.questionId !== question.id).concat(saved)
-      setLastEvaluation(data.evaluation || null)
-      setAiConversationMessage(String(data.aiResponse?.message || data.evaluation?.spokenResponse || '').trim())
-      setEvaluationQuestionId(question.id)
-      setInterviewCompleted(Boolean(data.completed))
-      setAnswers(nextAnswers)
-      setSession((value) => ({
-        ...(value || {}),
-        answers: nextAnswers,
-        questions: data.questions || value?.questions,
-        result: data.result || value?.result,
-        status: data.completed ? 'completed' : 'in-progress',
-      }))
-      setAnswer('')
-
-      const responseMessage = String(data.aiResponse?.message || data.evaluation?.spokenResponse || '').trim()
-      const nextQuestionId = data.nextQuestion?.id || ''
-      const nextIndex = nextQuestionId
-        ? (data.questions || questions).findIndex((item) => item.id === nextQuestionId)
-        : -1
-
-      const advanceAfterResponse = () => {
-        const next = nextIndex >= 0 ? (data.questions || questions)[nextIndex] : null
-        const action = resolveVoiceResponseAction({
-          completed: Boolean(data.completed),
-          nextQuestionId: next?.id || '',
-          nextQuestionIsFollowUp: Boolean(next?.isFollowUp),
-        })
-
-        if (action === VOICE_RESPONSE_ACTIONS.COMPLETE) {
-          conversation.complete()
-          navigate(ROUTES.INTERVIEW_COMPLETE)
-          return
-        }
-
-        if (action === VOICE_RESPONSE_ACTIONS.WAIT) {
-          conversation.aiResponseEnded()
-          return
-        }
-
-        setLastEvaluation(null)
-        setAiConversationMessage('')
-        setEvaluationQuestionId('')
-        setAnswer('')
-
-        if (action === VOICE_RESPONSE_ACTIONS.LISTEN_FOLLOW_UP) {
-          autoListenQuestionIdRef.current = next.id
-        }
-
-        conversation.aiResponseEnded()
-        setCurrent(nextIndex)
-      }
-
-      if (!responseMessage) {
-        advanceAfterResponse()
-      } else {
-        const responseTurnId = voiceTurnIdRef.current + 1
-        voiceTurnIdRef.current = responseTurnId
-        voice.stopListening()
-        autoVoiceTurnRef.current = false
-        conversation.startAiResponding()
-
-        const spokenResponse = voice.speak(responseMessage, {
-          onEnd: () => {
-            if (responseTurnId !== voiceTurnIdRef.current) return
-            advanceAfterResponse()
-          },
-          onError: () => {
-            if (responseTurnId !== voiceTurnIdRef.current) return
-            conversation.setError('AI feedback voice playback failed. Continuing the interview.')
-            advanceAfterResponse()
-          },
-        })
-
-        if (!spokenResponse) {
-          advanceAfterResponse()
-        }
-      }
-
-      return data
-    } catch (error) {
-      const message = error?.message || 'We could not save your answer. Please try again.'
-      setRoomError(message)
-      conversation.setError(message)
-      return null
-    } finally { setSubmitting(false) }
-  }
-
-  saveAnswerRef.current = saveAnswer
-
-  const nextQuestion = async () => {
-    if (interviewCompleted || session?.status === 'completed') {
-      navigate(ROUTES.INTERVIEW_COMPLETE)
-      return
-    }
-
-    const hadDraft = Boolean(answer.trim())
-    const data = hadDraft ? await saveAnswer() : null
-    if (hadDraft && !data) return
-    if (data?.completed) {
-      navigate(ROUTES.INTERVIEW_COMPLETE)
-      return
-    }
-
-    const responseQuestions = Array.isArray(data?.questions) ? data.questions : questions
-    const effectiveAnswers = hadDraft
-      ? answers.concat({ questionId: question?.id, answer: 'saved' })
-      : answers
-    const nextId = data?.nextQuestion?.id || responseQuestions
-      .slice(current + 1)
-      .find((item) => !effectiveAnswers.some((saved) => saved.questionId === item.id && saved.answer?.trim()))?.id
-      || responseQuestions.find((item) => !effectiveAnswers.some((saved) => saved.questionId === item.id && saved.answer?.trim()))?.id
-
-    const nextIndex = responseQuestions.findIndex((item) => item.id === nextId)
-
-    if (nextIndex < 0) {
-      await finalizeSession()
-      return
-    }
-
-    voiceTurnIdRef.current += 1
-    voice.stopSpeaking()
-    autoListenQuestionIdRef.current = ''
-    setLastEvaluation(null)
-    setAiConversationMessage('')
-    setEvaluationQuestionId('')
-    setCurrent(nextIndex)
-    setAnswer(answers.find((item) => item.questionId === nextId)?.answer || '')
-  }
-
-  const previousQuestion = () => {
-    voiceTurnIdRef.current += 1
-    autoListenQuestionIdRef.current = ''
-    autoVoiceTurnRef.current = false
-    voice.stopListening()
-    voice.stopSpeaking()
-    const previous = current - 1
-    if (previous < 0) return
-    setLastEvaluation(null)
-    setAiConversationMessage('')
-    setEvaluationQuestionId('')
-    setCurrent(previous)
-    setAnswer(answers.find((item) => item.questionId === questions[previous]?.id)?.answer || '')
-  }
-
-  const selectQuestion = (index) => {
-    voiceTurnIdRef.current += 1
-    autoListenQuestionIdRef.current = ''
-    autoVoiceTurnRef.current = false
-    voice.stopListening()
-    voice.stopSpeaking()
-    setLastEvaluation(null)
-    setAiConversationMessage('')
-    setEvaluationQuestionId('')
-    setCurrent(index)
-    setAnswer(answers.find((item) => item.questionId === questions[index]?.id)?.answer || '')
-    setShowQuestionList(false)
-  }
-
-  const endInterview = async () => {
-    timer.pause()
-    voiceTurnIdRef.current += 1
-    autoListenQuestionIdRef.current = ''
-    autoVoiceTurnRef.current = false
-    voice.stopListening()
-    voice.stopSpeaking()
-    await finalizeSession()
-  }
-
-  return (
-    <main className="interview-room cosmic-room"><CosmicField density="room" />
-      <header className="room-topbar">
-        <button className="room-brand" type="button" onClick={() => setShowEnd(true)}>
-          <span className="room-brand-mark"><AutoAwesomeRounded /></span>
-          <span><strong>ApnaAcademy</strong><small>Interview AI</small></span>
+      <header className="room-simple-header">
+        <button type="button" className="room-simple-brand" onClick={() => setShowEnd(true)}>
+          <span className="room-simple-logo"><AutoAwesomeRounded /></span>
+          <span><strong>ApnaAcademy</strong><small>AI Interview</small></span>
         </button>
-        <div className="room-top-center"><span className="live-pill"><span /> LIVE INTERVIEW</span><span className="room-role">{setup.role || 'AI Interview'}</span></div>
-        <div className={'room-timer ' + (timer.remaining < 60 ? 'danger' : '')}><AccessTimeRounded /><strong>{timer.formatted}</strong><small>remaining</small></div>
+
+        <div className="room-simple-progress">
+          <span>Question {current + 1} of {questions.length}</span>
+          <div><i style={{ width: progress + '%' }} /></div>
+          <small>{answeredCount} answered</small>
+        </div>
+
+        <div className="room-simple-time">
+          <AccessTimeRounded />
+          <span>{timer.formatted}</span>
+          <small>left</small>
+        </div>
       </header>
 
-      <div className="room-progress-bar"><span style={{ width: progress + '%' }} /></div>
-      {roomError ? <div className="room-inline-error" role="alert"><WarningAmberRounded /> <span>{roomError}</span><button type="button" onClick={() => setRoomError('')}>Dismiss</button></div> : null}
+      {roomError ? (
+        <div className="room-simple-error" role="alert">
+          <WarningAmberRounded />
+          <span>{roomError}</span>
+          <button type="button" onClick={() => setRoomError('')}>Dismiss</button>
+        </div>
+      ) : null}
 
-      <section className="room-main">
-        <aside className={'room-sidebar ' + (showQuestionList ? 'mobile-open' : '')}>
-          <div className="room-sidebar-head">
-            <div><span>INTERVIEW PLAN</span><strong>{answeredCount}/{questions.length} answered</strong></div>
-            <button type="button" onClick={() => setShowQuestionList(!showQuestionList)} aria-label="Toggle question list"><MoreHorizRounded /></button>
+      <section className="room-simple-content">
+        <div className="room-simple-step">
+          <span className="room-simple-step-number">01</span>
+          <div>
+            <strong>Listen to the question</strong>
+            <small>The AI interviewer will ask you a question. Read it below or listen to the voice.</small>
           </div>
-          <div className="room-progress-ring" style={{ '--room-progress': progress + '%' }}><div><strong>{progress}%</strong><small>progress</small></div></div>
-          <div className="room-question-list">
-            {questions.map((item, index) => {
-              const answered = answers.some((a) => a.questionId === item.id && a.answer?.trim())
-              return (
-                <button type="button" key={item.id} className={(index === current ? 'active ' : '') + (answered ? 'answered' : '')} onClick={() => selectQuestion(index)}>
-                  <span>{index + 1}</span><div><strong>{item.category}</strong><small>{answered ? 'Answered' : 'Not answered'}</small></div>{answered ? <CheckCircleRounded /> : null}
-                </button>
-              )
-            })}
-          </div>
-        </aside>
+          <button
+            type="button"
+            className={'room-simple-voice-toggle ' + (voiceEnabled ? 'on' : '')}
+            onClick={() => {
+              voiceTurnIdRef.current += 1
+              setVoiceEnabled((value) => !value)
+              voice.stopSpeaking()
+              if (voiceEnabledRef.current) {
+                autoVoiceTurnRef.current = false
+                voice.stopListening()
+                conversation.reset()
+              }
+            }}
+          >
+            <VolumeUpRounded />
+            {voiceEnabled ? 'Voice on' : 'Voice off'}
+          </button>
+        </div>
 
-        <section className="room-workspace">
-          <div className="room-ai-card">
-            <div className="ai-avatar"><AutoAwesomeRounded /></div>
-            <div className="ai-copy"><div><strong>AI Interviewer</strong><span className={'ai-speaking ai-conversation-state ' + conversation.status}><span /><span /><span /> {conversation.label}</span></div><p>{conversation.status === CONVERSATION_STATES.AI_SPEAKING ? 'Listen to the question, then answer naturally.' : conversation.status === CONVERSATION_STATES.PROCESSING ? 'I am reviewing your answer.' : conversation.status === CONVERSATION_STATES.AI_RESPONDING ? 'Listen to my feedback and follow-up.' : 'Take your time. I am ready for your answer.'}</p></div>
+        <article className="room-simple-question">
+          <div className="room-simple-question-top">
+            <span>{question?.category || 'Interview question'}</span>
+            <b>{String(current + 1).padStart(2, '0')}</b>
+          </div>
+          <h1>{question?.question || 'Loading your interview question…'}</h1>
+          {question?.hint ? (
+            <div className="room-simple-hint">
+              <ChatRounded />
+              <div><strong>Need a starting point?</strong><span>{question.hint}</span></div>
+            </div>
+          ) : null}
+          <div className="room-simple-ai-status">
+            <span className={'room-simple-status-dot ' + conversation.status} />
+            <strong>AI Interviewer</strong>
+            <span>{conversation.label}</span>
+          </div>
+        </article>
+
+        <div className="room-simple-step room-simple-step-answer">
+          <span className="room-simple-step-number">02</span>
+          <div>
+            <strong>Give your answer</strong>
+            <small>There is no perfect answer. Explain your thinking clearly and use an example when you can.</small>
+          </div>
+        </div>
+
+        {aiConversationMessage && evaluationQuestionId === question?.id ? (
+          <div className="room-simple-feedback room-simple-ai-message" role="status" aria-live="polite">
+            <div><AutoAwesomeRounded /><strong>AI feedback</strong></div>
+            <p>{aiConversationMessage}</p>
+          </div>
+        ) : null}
+
+        {lastEvaluation && evaluationQuestionId === question?.id ? (
+          <div className="room-simple-feedback" role="status">
+            <div className="room-simple-feedback-head">
+              <div><strong>Your answer was reviewed</strong><span>{lastEvaluation.feedback || 'Evaluation completed.'}</span></div>
+              <b>{Math.round(Number(lastEvaluation.score) || 0)}<small>/100</small></b>
+            </div>
+            <div className="room-simple-feedback-grid">
+              <div><strong>What went well</strong>{(lastEvaluation.strengths || []).slice(0, 2).map((item) => <span key={item}>✓ {item}</span>)}</div>
+              <div><strong>Try next time</strong>{(lastEvaluation.improvements || []).slice(0, 2).map((item) => <span key={item}>→ {item}</span>)}</div>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="room-simple-answer">
+          <div className="room-simple-answer-head">
+            <div>
+              <strong>Your answer</strong>
+              <span>{voice.supported ? 'Type your answer or use the microphone.' : 'Type your answer below.'}</span>
+            </div>
+            <span>{answer.length}/5000</span>
+          </div>
+
+          <textarea
+            value={answer}
+            onChange={(event) => setAnswer(event.target.value)}
+            placeholder={voice.supported ? 'Start typing your answer here…' : 'Type your answer here…'}
+            maxLength={5000}
+          />
+
+          {voice.interimTranscript ? (
+            <div className="room-simple-listening"><KeyboardVoiceRounded /> Listening: <span>{voice.interimTranscript}</span></div>
+          ) : null}
+          {voice.listening ? (
+            <div className="room-simple-listening-hint">Keep speaking. Your voice answer will be submitted after a short pause.</div>
+          ) : null}
+          {voice.voiceError ? <div className="room-simple-voice-error">{voice.voiceError}</div> : null}
+
+          <div className="room-simple-answer-actions">
             <button
               type="button"
-              className={"icon-room-btn " + (voice.speaking ? "active" : "")}
-              aria-label={voiceEnabled ? "Turn off AI interviewer voice" : "Turn on AI interviewer voice"}
+              className={'room-simple-mic ' + (microphone === 'granted' ? 'active' : '')}
               onClick={() => {
-                voiceTurnIdRef.current += 1
-                setVoiceEnabled((value) => !value)
-                voice.stopSpeaking()
-                if (voiceEnabledRef.current) {
+                toggleMicrophone()
+                if (voice.listening) voice.stopListening()
+                else voice.startListening()
+              }}
+              title="Toggle microphone"
+            >
+              {microphone === 'granted' ? <MicRounded /> : <MicOffRounded />}
+            </button>
+
+            <button
+              type="button"
+              className={'room-simple-speak ' + (voice.listening ? 'active' : '')}
+              disabled={submitting || !voice.supported || conversation.isAiSpeaking || paused}
+              onClick={async () => {
+                if (voice.listening) {
                   autoVoiceTurnRef.current = false
                   voice.stopListening()
-                  conversation.reset()
+                  return
                 }
+                if (microphone !== 'granted') {
+                  const stream = await requestMedia()
+                  if (!stream) return
+                }
+                autoVoiceTurnRef.current = true
+                voice.startListening()
               }}
-            ><VolumeUpRounded /></button>
+            >
+              <KeyboardVoiceRounded />
+              {voice.listening ? 'Stop listening' : 'Answer by voice'}
+            </button>
+
+            <button
+              type="button"
+              className="room-simple-save"
+              onClick={saveAnswer}
+              disabled={!answer.trim() || submitting}
+            >
+              {submitting ? 'Saving answer…' : 'Save answer'}
+              <SendRounded />
+            </button>
           </div>
+        </div>
 
-          <div className="question-card">
-            <div className="question-meta"><span>QUESTION {String(current + 1).padStart(2, '0')}</span><span>{question?.category}</span></div>
-            <h1>{question?.question}</h1>
-            <div className="question-hint"><ChatRounded /><div><strong>Think about</strong><span>{question?.hint}</span></div></div>
-          </div>
+        <div className="room-simple-navigation">
+          <button type="button" disabled={current === 0 || submitting} onClick={previousQuestion}>
+            <ChevronLeftRounded /> Previous
+          </button>
+          <span>Step {current + 1} / {questions.length}</span>
+          <button type="button" onClick={nextQuestion} disabled={submitting}>
+            {interviewCompleted || session?.status === 'completed'
+              ? 'View results'
+              : current === questions.length - 1
+                ? 'Finish interview'
+                : 'Next question'}
+            <ChevronRightRounded />
+          </button>
+        </div>
 
-          {aiConversationMessage && evaluationQuestionId === question?.id ? (
-            <div className="ai-conversation-message" role="status" aria-live="polite">
-              <div className="ai-conversation-message-head">
-                <span className="ai-avatar-mini"><AutoAwesomeRounded /></span>
-                <div><strong>AI Interviewer</strong><small>Conversational feedback</small></div>
-              </div>
-              <p>{aiConversationMessage}</p>
+        <div className="room-simple-tools">
+          <div className="room-simple-camera">
+            <div className="room-simple-camera-head">
+              <div><strong>Your camera</strong><span>Only you can see this preview.</span></div>
+              <span className={camera === 'granted' ? 'ready' : ''}>{camera === 'granted' ? 'Ready' : 'Off'}</span>
             </div>
-          ) : null}
-
-          {lastEvaluation && evaluationQuestionId === question?.id ? (
-            <div className="answer-feedback-card" role="status">
-              <div className="answer-feedback-head">
-                <div>
-                  <span>AI ANSWER FEEDBACK</span>
-                  <strong>{Number(lastEvaluation.score) >= 70 ? 'Strong answer' : Number(lastEvaluation.score) >= 50 ? 'Partially correct' : 'Needs improvement'}</strong>
-                </div>
-                <div className="answer-feedback-score">{Math.round(Number(lastEvaluation.score) || 0)}<small>/100</small></div>
-              </div>
-              <p>{lastEvaluation.feedback || 'Your answer was evaluated successfully.'}</p>
-              <div className="answer-feedback-grid">
-                <div><b>Strengths</b>{(lastEvaluation.strengths || []).slice(0, 3).map((item) => <span key={item}>✓ {item}</span>)}</div>
-                <div><b>Improve</b>{(lastEvaluation.improvements || []).slice(0, 3).map((item) => <span key={item}>→ {item}</span>)}</div>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="answer-card">
-            <div className="answer-head">
-              <div><span>Your response</span><small>{voice.supported ? "Speak naturally or type your answer." : "Voice input is not supported in this browser; text input is available."}</small></div>
-              <span className={'answer-status ' + (answer.trim() ? 'has-answer' : '')}>{answer.trim() ? 'Draft ready' : isAnswered ? 'Previously answered' : 'Waiting for answer'}</span>
-            </div>
-            <textarea value={answer} onChange={(event) => setAnswer(event.target.value)} placeholder={voice.supported ? "Speak your answer or type it here…" : "Type your answer here…"} maxLength={5000} />
-            {voice.interimTranscript ? <div className="voice-live-transcript"><KeyboardVoiceRounded /> Listening: <span>{voice.interimTranscript}</span></div> : null}
-            {voice.listening ? <div className="voice-auto-hint">Voice answer will submit automatically after {Math.round(voice.silenceTimeoutMs / 100) / 10}s of silence.</div> : null}
-            {voice.voiceError ? <div className="voice-error">{voice.voiceError}</div> : null}
-            <div className="answer-toolbar">
-              <span>{answer.length}/5000</span>
-              <div>
-                <button type="button" className={'room-control mic ' + (microphone === 'granted' ? 'on' : '')} onClick={() => { toggleMicrophone(); if (voice.listening) voice.stopListening(); else voice.startListening() }} title="Toggle microphone">{microphone === 'granted' ? <MicRounded /> : <MicOffRounded />}</button>
-                <button
-                  type="button"
-                  className={"voice-answer-btn " + (voice.listening ? "active" : "")}
-                  disabled={submitting || !voice.supported || conversation.isAiSpeaking || paused}
-                  onClick={async () => {
-                    if (voice.listening) {
-                      autoVoiceTurnRef.current = false
-                      voice.stopListening()
-                      return
-                    }
-                    if (microphone !== 'granted') {
-                      const stream = await requestMedia()
-                      if (!stream) return
-                    }
-                    autoVoiceTurnRef.current = true
-                    voice.startListening()
-                  }}
-                ><KeyboardVoiceRounded /> {voice.listening ? "Stop listening" : "Answer by voice"}</button>
-                <button type="button" className="submit-answer-btn" onClick={saveAnswer} disabled={!answer.trim() || submitting}>{submitting ? 'Saving…' : 'Save answer'} <SendRounded /></button>
+            <div className="room-simple-camera-preview">
+              {camera === 'granted'
+                ? <video ref={videoRef} autoPlay muted playsInline />
+                : <div><VideocamOffRounded /><span>Camera is off</span><button type="button" onClick={() => requestMedia()}>Turn on camera</button></div>}
+              <div className="room-simple-camera-controls">
+                <button type="button" onClick={toggleMicrophone}>{microphone === 'granted' ? <MicRounded /> : <MicOffRounded />}</button>
+                <button type="button" onClick={toggleCamera}>{camera === 'granted' ? <VideocamRounded /> : <VideocamOffRounded />}</button>
               </div>
             </div>
           </div>
 
-          <div className="room-navigation">
-            <button type="button" className="room-nav-secondary" disabled={current === 0} onClick={previousQuestion}><ChevronLeftRounded /> Previous</button>
-            <div className="room-nav-center"><span>{current + 1} of {questions.length}</span><button type="button" onClick={() => setShowQuestionList(!showQuestionList)}>Questions</button></div>
-            <button type="button" className="room-nav-primary" onClick={nextQuestion}>{interviewCompleted || session?.status === 'completed' ? 'View results' : current === questions.length - 1 ? 'Finish interview' : 'Next question'} <ChevronRightRounded /></button>
+          <div className="room-simple-session-card">
+            <strong>Take your time</strong>
+            <p>You can pause the interview whenever you need a short break. Your saved answers stay in this session.</p>
+            <button type="button" onClick={() => setPaused(!paused)}>
+              {paused ? <PlayArrowRounded /> : <PauseRounded />}
+              {paused ? 'Resume interview' : 'Pause interview'}
+            </button>
+            <button type="button" className="danger" onClick={() => setShowEnd(true)}>
+              <StopCircleRounded /> End interview
+            </button>
           </div>
-        </section>
-
-        <aside className="room-camera-panel">
-          <div className="camera-heading"><span>Your camera</span><button type="button" aria-label="Camera details"><ExpandRounded /></button></div>
-          <div className="camera-preview">
-            {camera === 'granted' ? <video ref={videoRef} autoPlay muted playsInline /> : <div className="camera-off"><VideocamOffRounded /><span>Camera is off</span><button type="button" onClick={() => requestMedia()}>Turn on</button></div>}
-            <span className="camera-live"><span /> You</span>
-            <div className="camera-controls"><button type="button" onClick={toggleMicrophone} className={microphone === 'granted' ? '' : 'off'}>{microphone === 'granted' ? <MicRounded /> : <MicOffRounded />}</button><button type="button" onClick={toggleCamera} className={camera === 'granted' ? '' : 'off'}>{camera === 'granted' ? <VideocamRounded /> : <VideocamOffRounded />}</button></div>
-          </div>
-          <div className="camera-note"><CheckCircleRounded /> Camera preview stays on this device.</div>
-          <button type="button" className="pause-btn" onClick={() => setPaused(!paused)}>{paused ? <PlayArrowRounded /> : <PauseRounded />}{paused ? 'Resume interview' : 'Pause interview'}</button>
-          <button type="button" className="end-btn" onClick={() => setShowEnd(true)}><StopCircleRounded /> End interview</button>
-        </aside>
+        </div>
       </section>
 
-      {paused ? <div className="pause-overlay"><div className="pause-modal"><span className="pause-modal-icon"><PauseRounded /></span><h2>Interview paused</h2><p>Your timer is paused. Resume when you're ready to continue.</p><button type="button" className="gradient-btn" onClick={() => setPaused(false)}><PlayArrowRounded /> Resume interview</button></div></div> : null}
+      {paused ? (
+        <div className="room-simple-overlay">
+          <div className="room-simple-modal">
+            <span><PauseRounded /></span>
+            <h2>Interview paused</h2>
+            <p>Your timer is paused. Continue when you are ready.</p>
+            <button type="button" onClick={() => setPaused(false)}><PlayArrowRounded /> Resume interview</button>
+          </div>
+        </div>
+      ) : null}
 
-      {showEnd ? <div className="end-overlay" role="dialog" aria-modal="true" aria-labelledby="end-title"><div className="end-modal"><button className="end-close" type="button" onClick={() => setShowEnd(false)} aria-label="Close"><CloseRounded /></button><span className="warning-icon"><WarningAmberRounded /></span><h2 id="end-title">End this interview?</h2><p>Your saved answers will remain in this session, but you won't be able to continue after ending the interview.</p><div><button type="button" className="cancel-end" onClick={() => setShowEnd(false)}>Keep practicing</button><button type="button" className="confirm-end" onClick={endInterview}>End interview</button></div></div></div> : null}
-
-      <button className="room-mobile-back" type="button" onClick={() => setShowEnd(true)} aria-label="Exit interview"><ArrowBackRounded /></button>
+      {showEnd ? (
+        <div className="room-simple-overlay" role="dialog" aria-modal="true" aria-labelledby="end-title">
+          <div className="room-simple-modal">
+            <button className="room-simple-close" type="button" onClick={() => setShowEnd(false)} aria-label="Close"><CloseRounded /></button>
+            <span className="warning"><WarningAmberRounded /></span>
+            <h2 id="end-title">End this interview?</h2>
+            <p>Your saved answers will stay in this session. You can review your progress before leaving.</p>
+            <div className="room-simple-modal-actions">
+              <button type="button" onClick={() => setShowEnd(false)}>Continue interview</button>
+              <button type="button" className="danger" onClick={endInterview}>End interview</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   )
 }
