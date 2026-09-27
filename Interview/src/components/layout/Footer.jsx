@@ -17,8 +17,6 @@ export default function Footer() {
 
   return (
     <footer className="footer cosmic-footer cosmic-footer-v2">
-      <CosmicField density="nav" />
-
       <div className="cosmic-footer-panel">
         <div className="footer-v2-main">
           <section className="footer-v2-brand">
