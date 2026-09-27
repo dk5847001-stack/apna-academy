@@ -6072,3 +6072,176 @@ button { font: inherit; }
     animation: none;
   }
 }
+
+
+/* =========================================================
+   INTERVIEW QUESTIONS — CINEMATIC COSMIC / TRANSPARENT UI
+   Visual-only: question/SEO/navigation logic untouched.
+   ========================================================= */
+
+.interview-questions-page {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100svh - 72px);
+  color: #f4fbff !important;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 8%, rgba(0, 115, 255, .16), transparent 72%),
+    radial-gradient(ellipse 45% 60% at 5% 55%, rgba(0, 205, 255, .09), transparent 75%),
+    radial-gradient(ellipse 45% 60% at 95% 55%, rgba(119, 55, 255, .11), transparent 75%),
+    #01040a !important;
+}
+
+.interview-questions-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(83, 216, 255, .12) 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 36%, rgba(146, 99, 255, .10) 0 1px, transparent 2px),
+    radial-gradient(circle at 44% 78%, rgba(0, 173, 255, .07) 0 1px, transparent 2px);
+  background-size: 150px 150px, 190px 190px, 230px 230px;
+  opacity: .72;
+}
+
+.interview-questions-page > section {
+  position: relative;
+  z-index: 2;
+}
+
+/* Hero/header: transparent with a premium border only. */
+.interview-questions-page > section > header {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 1px solid rgba(111, 220, 255, .25) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.interview-questions-page header > span {
+  background: transparent !important;
+  color: #8feaff !important;
+  border-color: rgba(105, 220, 255, .30) !important;
+  box-shadow: 0 0 26px rgba(0, 190, 255, .08);
+}
+
+.interview-questions-page h1,
+.interview-questions-page h2,
+.interview-questions-page h3,
+.interview-questions-page p {
+  text-shadow: 0 2px 22px rgba(0, 0, 0, .72);
+}
+
+.interview-questions-page h1,
+.interview-questions-page h2 {
+  color: #ffffff !important;
+}
+
+.interview-questions-page header > p,
+.interview-questions-page section > div > p {
+  color: #bdd0e3 !important;
+}
+
+/* Skill chips stay open on the cosmic background. */
+.interview-questions-page header .mt-6 > span {
+  background: transparent !important;
+  color: #9edff5 !important;
+  border: 1px solid rgba(103, 216, 255, .18);
+}
+
+/* Question/topic surfaces: transparent, border-only. */
+.interview-questions-page article,
+.interview-questions-page section button.rounded-2xl,
+.interview-questions-page > section > section[aria-labelledby="faq-heading"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: rgba(126, 220, 255, .22) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: border-color .22s ease, transform .22s ease, box-shadow .22s ease;
+}
+
+.interview-questions-page article:hover,
+.interview-questions-page section button.rounded-2xl:hover {
+  border-color: rgba(103, 225, 255, .52) !important;
+  box-shadow: 0 0 28px rgba(0, 180, 255, .08) !important;
+  transform: translateY(-2px);
+}
+
+.interview-questions-page article span {
+  background: transparent !important;
+  color: #70ddff !important;
+  border: 1px solid rgba(105, 220, 255, .18);
+}
+
+.interview-questions-page article h3,
+.interview-questions-page section button.rounded-2xl h3 {
+  color: #f5fbff !important;
+}
+
+.interview-questions-page article .text-violet-600,
+.interview-questions-page section button.rounded-2xl .text-violet-600 {
+  color: #75ddff !important;
+}
+
+/* FAQ separators remain subtle lines rather than filled rows. */
+.interview-questions-page [aria-labelledby="faq-heading"] .divide-y > * {
+  border-color: rgba(125, 207, 239, .14) !important;
+}
+
+.interview-questions-page details summary {
+  color: #eff9ff !important;
+}
+
+.interview-questions-page details p {
+  color: #a9bfd4 !important;
+}
+
+/* Buttons are actions, so they may retain intentional fills. */
+.interview-questions-page .gradient-btn {
+  background: linear-gradient(135deg, #08c5f5, #2865ff 55%, #783ff1) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(171, 236, 255, .30) !important;
+  box-shadow: 0 12px 32px rgba(0, 120, 255, .20) !important;
+}
+
+.interview-questions-page .outline-btn {
+  background: transparent !important;
+  color: #e9faff !important;
+  border: 1px solid rgba(139, 222, 255, .36) !important;
+  box-shadow: none !important;
+}
+
+.interview-questions-page .gradient-btn:hover,
+.interview-questions-page .outline-btn:hover {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .interview-questions-page {
+    padding-top: 28px !important;
+    padding-bottom: 34px !important;
+  }
+
+  .interview-questions-page > section > header {
+    border-radius: 22px !important;
+  }
+
+  .interview-questions-page article,
+  .interview-questions-page section button.rounded-2xl,
+  .interview-questions-page > section > section[aria-labelledby="faq-heading"] {
+    border-radius: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interview-questions-page article,
+  .interview-questions-page section button.rounded-2xl {
+    transition: none;
+  }
+}
