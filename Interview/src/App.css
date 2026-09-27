@@ -6485,3 +6485,244 @@
     border-radius: 1.35rem !important;
   }
 }
+
+
+/* =========================================================
+   INTERVIEW SETUP — NAVY / CYAN LIGHT CINEMATIC
+   ========================================================= */
+.cosmic-setup-page {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100svh - 72px);
+  overflow: hidden;
+  color: #eaf8ff;
+  background:
+    radial-gradient(ellipse 70% 48% at 50% 0%, rgba(60, 205, 255, .21), transparent 68%),
+    radial-gradient(ellipse 48% 62% at 0% 38%, rgba(27, 132, 214, .17), transparent 72%),
+    radial-gradient(ellipse 46% 62% at 100% 76%, rgba(68, 103, 218, .14), transparent 74%),
+    linear-gradient(180deg, #0a2037 0%, #071b31 50%, #06162a 100%) !important;
+}
+
+.cosmic-setup-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 16% 17%, rgba(105, 225, 255, .11) 0 1px, transparent 2px),
+    radial-gradient(circle at 84% 27%, rgba(112, 198, 255, .09) 0 1px, transparent 2px),
+    radial-gradient(circle at 50% 88%, rgba(73, 213, 255, .08) 0 1px, transparent 2px);
+  background-size: 149px 149px, 181px 181px, 137px 137px;
+}
+
+.cosmic-setup-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(2, 12, 27, .18), transparent 18%, transparent 82%, rgba(2, 12, 27, .18));
+}
+
+.setup-background {
+  opacity: .42;
+  mix-blend-mode: screen;
+}
+
+.setup-background-one,
+.setup-background-two {
+  background: rgba(48, 198, 255, .10) !important;
+  box-shadow: 0 0 100px rgba(0, 190, 255, .08);
+}
+
+.setup-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+.setup-back-link {
+  color: #83d9ee !important;
+  transition: color .2s ease, transform .2s ease;
+}
+
+.setup-back-link:hover {
+  color: #6fe5ff !important;
+  transform: translateX(-2px);
+}
+
+.setup-heading {
+  color: #f3fbff !important;
+  text-shadow: 0 5px 30px rgba(0, 0, 0, .40);
+}
+
+.setup-eyebrow,
+.setup-step-badge {
+  border-color: rgba(108, 222, 255, .25) !important;
+  background: rgba(53, 190, 235, .055) !important;
+  color: #9ceaff !important;
+}
+
+.setup-layout {
+  align-items: start;
+}
+
+.setup-form,
+.setup-summary,
+.setup-help-card {
+  border-color: rgba(126, 220, 255, .16) !important;
+  background: rgba(4, 24, 43, .18) !important;
+  box-shadow: 0 26px 75px rgba(0, 8, 24, .24) !important;
+  backdrop-filter: blur(17px);
+  -webkit-backdrop-filter: blur(17px);
+}
+
+.setup-panel {
+  border-color: rgba(126, 220, 255, .14) !important;
+  background: rgba(5, 27, 46, .20) !important;
+  box-shadow: none !important;
+}
+
+.setup-panel-heading,
+.setup-heading-group,
+.setup-subheading,
+.question-heading {
+  color: #edfaff !important;
+}
+
+.setup-field-label,
+.setup-required {
+  color: #b9d5e4 !important;
+}
+
+.setup-input-count {
+  color: #80dff5 !important;
+}
+
+.setup-error {
+  border-color: rgba(255, 105, 130, .24) !important;
+  background: rgba(255, 77, 108, .05) !important;
+  color: #ffb5c4 !important;
+}
+
+.role-chips button,
+.setup-option-grid button,
+.difficulty-grid button,
+.duration-grid button {
+  border-color: rgba(120, 194, 225, .17) !important;
+  background: rgba(6, 31, 50, .28) !important;
+  color: #b9d7e7 !important;
+  box-shadow: none !important;
+}
+
+.role-chips button:hover,
+.setup-option-grid button:hover,
+.difficulty-grid button:hover,
+.duration-grid button:hover {
+  border-color: rgba(91, 219, 255, .38) !important;
+  background: rgba(29, 118, 151, .12) !important;
+}
+
+.role-chips button[aria-pressed="true"],
+.setup-option-grid button[aria-pressed="true"],
+.difficulty-grid button[aria-pressed="true"],
+.duration-grid button[aria-pressed="true"],
+.role-chips .selected,
+.setup-option-grid .selected,
+.difficulty-grid .selected,
+.duration-grid .selected {
+  border-color: rgba(82, 220, 255, .56) !important;
+  background: rgba(37, 166, 204, .13) !important;
+  color: #dff9ff !important;
+  box-shadow: 0 0 0 1px rgba(82, 220, 255, .10), 0 12px 32px rgba(0, 180, 255, .08) !important;
+}
+
+.difficulty-dot {
+  box-shadow: 0 0 14px rgba(71, 215, 255, .18);
+}
+
+.setup-selection-note {
+  border-color: rgba(111, 218, 255, .12) !important;
+  background: rgba(25, 125, 155, .07) !important;
+  color: #9fc8da !important;
+}
+
+.setup-form-actions {
+  border-color: rgba(126, 220, 255, .12) !important;
+}
+
+.setup-reset-btn {
+  border-color: rgba(116, 218, 255, .24) !important;
+  background: rgba(8, 31, 51, .24) !important;
+  color: #9de8fb !important;
+}
+
+.setup-continue-btn {
+  box-shadow: 0 16px 38px rgba(0, 181, 255, .13) !important;
+}
+
+.summary-card {
+  border-color: rgba(126, 220, 255, .13) !important;
+  background: rgba(5, 27, 46, .23) !important;
+  box-shadow: none !important;
+}
+
+.summary-label {
+  color: #7ea1b8 !important;
+}
+
+.summary-live {
+  border-color: rgba(67, 230, 177, .22) !important;
+  background: rgba(41, 211, 155, .045) !important;
+  color: #9ef2d3 !important;
+}
+
+.summary-role {
+  color: #effaff !important;
+}
+
+.summary-role-icon,
+.help-icon {
+  border-color: rgba(106, 222, 255, .22) !important;
+  background: rgba(57, 193, 239, .05) !important;
+  color: #6fe1ff !important;
+}
+
+.summary-divider {
+  background: rgba(126, 220, 255, .11) !important;
+}
+
+.summary-type,
+.summary-stats {
+  color: #b2cedd !important;
+}
+
+.summary-note {
+  border-color: rgba(106, 222, 255, .13) !important;
+  background: rgba(44, 178, 219, .045) !important;
+  color: #9bc7d9 !important;
+}
+
+.summary-checks {
+  color: #b8d2df !important;
+}
+
+.setup-help-card {
+  color: #a9c5d5 !important;
+}
+
+.setup-trust {
+  border-color: rgba(126, 220, 255, .11) !important;
+  color: #7898ad !important;
+}
+
+@media (max-width: 760px) {
+  .setup-form,
+  .setup-summary,
+  .setup-help-card {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
