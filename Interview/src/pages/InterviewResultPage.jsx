@@ -46,7 +46,7 @@ export default function InterviewResultPage() {
   ]
   const recommendations = (result.recommendations || []).map((item) => typeof item === 'string' ? { title: item, meta: 'Personalized learning topic', type: 'practice' } : item)
 
-  return <main className="result-page">
+  return <main className="result-page result-page-ref">
     <div className="result-bg-orb orb-a" /><div className="result-bg-orb orb-b" />
     <section className="result-shell">
       <button className="result-back" onClick={() => navigate(ROUTES.HOME)}><ArrowBackRounded /> Back to dashboard</button>
