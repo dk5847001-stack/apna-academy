@@ -1,0 +1,287 @@
+undefined
+
+/* =========================================================
+   INTERVIEW COMPLETE — CINEMATIC TRANSPARENT FINISH
+   Visual-only page treatment. Completion/result navigation logic untouched.
+   ========================================================= */
+
+.complete-page {
+  position: relative !important;
+  isolation: isolate;
+  min-height: calc(100svh - 1px) !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 72px 20px 56px !important;
+  color: #f4fbff !important;
+  background:
+    radial-gradient(ellipse 55% 48% at 50% 35%, rgba(0, 150, 255, .13), transparent 72%),
+    radial-gradient(ellipse 38% 60% at 10% 75%, rgba(0, 218, 255, .07), transparent 72%),
+    radial-gradient(ellipse 38% 60% at 90% 25%, rgba(125, 55, 255, .09), transparent 72%),
+    #01040a !important;
+}
+
+.complete-page::before,
+.complete-page::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+.complete-page::before {
+  width: 460px;
+  height: 460px;
+  left: -180px;
+  top: 12%;
+  background: radial-gradient(circle, rgba(0, 200, 255, .10), transparent 68%);
+}
+
+.complete-page::after {
+  width: 520px;
+  height: 520px;
+  right: -220px;
+  bottom: -170px;
+  background: radial-gradient(circle, rgba(115, 60, 255, .11), transparent 70%);
+}
+
+.complete-page .room-orb {
+  position: absolute !important;
+  z-index: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background: transparent !important;
+  border: 1px solid rgba(104, 219, 255, .12);
+  box-shadow: 0 0 70px rgba(0, 180, 255, .05);
+}
+
+.complete-page .room-orb-a {
+  width: 170px;
+  height: 170px;
+  left: 9%;
+  top: 15%;
+}
+
+.complete-page .room-orb-b {
+  width: 110px;
+  height: 110px;
+  right: 12%;
+  top: 20%;
+  border-color: rgba(145, 99, 255, .14);
+}
+
+.complete-page .complete-card {
+  position: relative;
+  z-index: 3;
+  width: min(760px, 100%);
+  padding: 48px clamp(24px, 5vw, 64px) 44px;
+  text-align: center;
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid rgba(119, 220, 255, .24) !important;
+  border-radius: 32px;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.complete-page .complete-icon {
+  width: 82px;
+  height: 82px;
+  margin: 0 auto 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(82, 226, 174, .35);
+  border-radius: 50%;
+  background: transparent !important;
+  color: #6eeab5;
+  box-shadow: 0 0 38px rgba(44, 224, 153, .10);
+}
+
+.complete-page .complete-icon svg {
+  font-size: 44px;
+  filter: drop-shadow(0 0 16px rgba(74, 232, 180, .25));
+}
+
+.complete-page .room-eyebrow {
+  display: inline-block;
+  color: #7fe5ff !important;
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .18em;
+  text-shadow: 0 0 20px rgba(0, 205, 255, .24);
+}
+
+.complete-page h1 {
+  max-width: 650px;
+  margin: 15px auto 12px;
+  color: #ffffff !important;
+  font-size: clamp(2.25rem, 5vw, 4.2rem);
+  line-height: 1.02;
+  letter-spacing: -.055em;
+  text-shadow: 0 4px 38px rgba(0, 0, 0, .86);
+}
+
+.complete-page .complete-card > p {
+  max-width: 570px;
+  margin: 0 auto;
+  color: #a9c0d3 !important;
+  font-size: .9rem;
+  line-height: 1.75;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .7);
+}
+
+.complete-page .complete-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 32px auto 0;
+  border-top: 1px solid rgba(119, 210, 240, .14);
+  border-bottom: 1px solid rgba(119, 210, 240, .14);
+}
+
+.complete-page .complete-stats > div {
+  min-width: 0;
+  padding: 18px 12px;
+  border-right: 1px solid rgba(119, 210, 240, .14);
+}
+
+.complete-page .complete-stats > div:last-child {
+  border-right: 0;
+}
+
+.complete-page .complete-stats small {
+  display: block;
+  color: #718aa1;
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.complete-page .complete-stats strong {
+  display: block;
+  margin-top: 6px;
+  overflow: hidden;
+  color: #effaff;
+  font-size: .92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.complete-page .complete-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 11px;
+  margin-top: 30px;
+}
+
+.complete-page .complete-actions .gradient-btn {
+  min-height: 50px;
+  padding-inline: 22px;
+}
+
+.complete-page .secondary-complete-btn {
+  min-height: 50px;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(119, 220, 255, .24);
+  border-radius: 25px;
+  background: transparent !important;
+  color: #d9f4ff;
+  font-size: .78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.complete-page .secondary-complete-btn:hover {
+  border-color: rgba(111, 225, 255, .55);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.complete-page .secondary-complete-btn svg {
+  font-size: 17px;
+}
+
+@media (max-width: 700px) {
+  .complete-page {
+    min-height: 100svh !important;
+    padding: 42px 14px 34px !important;
+  }
+
+  .complete-page .complete-card {
+    padding: 36px 18px 28px;
+    border-radius: 24px;
+  }
+
+  .complete-page h1 {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
+  .complete-page .complete-card > p {
+    font-size: .82rem;
+    line-height: 1.65;
+  }
+
+  .complete-page .complete-stats {
+    margin-top: 25px;
+  }
+
+  .complete-page .complete-stats > div {
+    padding: 14px 7px;
+  }
+
+  .complete-page .complete-stats strong {
+    font-size: .78rem;
+  }
+
+  .complete-page .complete-actions {
+    flex-direction: column;
+  }
+
+  .complete-page .complete-actions .gradient-btn,
+  .complete-page .secondary-complete-btn {
+    width: 100%;
+  }
+
+  .complete-page .room-orb-a {
+    left: -70px;
+  }
+
+  .complete-page .room-orb-b {
+    right: -45px;
+  }
+}
+
+@media (max-width: 430px) {
+  .complete-page .complete-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .complete-page .complete-icon svg {
+    font-size: 38px;
+  }
+
+  .complete-page .complete-stats small {
+    font-size: .58rem;
+  }
+
+  .complete-page .complete-stats strong {
+    font-size: .68rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .complete-page * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
