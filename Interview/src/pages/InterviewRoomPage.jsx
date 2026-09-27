@@ -16,7 +16,6 @@ import { CONVERSATION_STATES } from '../conversation/conversationState'
 import { VOICE_RESPONSE_ACTIONS, resolveVoiceResponseAction } from '../voice/voiceResponseFlow'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
-import CosmicField from '../components/common/CosmicField'
 
 export default function InterviewRoomPage() {
   const { setup, session, setSession } = useInterviewFlow()
@@ -169,8 +168,6 @@ export default function InterviewRoomPage() {
 
       return (
     <main className="interview-room cosmic-room room-simple">
-      <CosmicField density="room" />
-
       <div className="room-ref-sessionbar">
         <div className="room-ref-session-title">
           <span className="room-ref-live-dot" />
