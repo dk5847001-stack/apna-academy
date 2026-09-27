@@ -171,24 +171,18 @@ export default function InterviewRoomPage() {
     <main className="interview-room cosmic-room room-simple">
       <CosmicField density="room" />
 
-      <header className="room-simple-header">
-        <button type="button" className="room-simple-brand" onClick={() => setShowEnd(true)}>
-          <span className="room-simple-logo"><AutoAwesomeRounded /></span>
-          <span><strong>ApnaAcademy</strong><small>AI Interview</small></span>
-        </button>
-
-        <div className="room-simple-progress">
+      <div className="room-ref-sessionbar">
+        <div className="room-ref-session-title">
+          <span className="room-ref-live-dot" />
+          <div><strong>AI Interview in progress</strong><small>Stay natural — your answers are saved automatically.</small></div>
+        </div>
+        <div className="room-ref-progress">
           <span>Question {current + 1} of {questions.length}</span>
           <div><i style={{ width: progress + '%' }} /></div>
           <small>{answeredCount} answered</small>
         </div>
-
-        <div className="room-simple-time">
-          <AccessTimeRounded />
-          <span>{timer.formatted}</span>
-          <small>left</small>
-        </div>
-      </header>
+        <div className="room-ref-time"><AccessTimeRounded /><strong>{timer.formatted}</strong><small>left</small></div>
+      </div>
 
       {roomError ? (
         <div className="room-simple-error" role="alert">
