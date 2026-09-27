@@ -123,116 +123,6 @@ export default function CosmicField({ density = 'hero' }) {
       ctx.restore()
     }
 
-    const drawPlanet = (cx, cy, radius, hue, rotation = 0, ring = false) => {
-      ctx.save()
-      ctx.translate(cx, cy)
-
-      const atmosphere = ctx.createRadialGradient(
-        -radius * 0.2, -radius * 0.28, radius * 0.15,
-        0, 0, radius * 1.35,
-      )
-      atmosphere.addColorStop(0, hue === 'cyan' ? 'rgba(118, 239, 255, .48)' : 'rgba(170, 112, 255, .42)')
-      atmosphere.addColorStop(.48, hue === 'cyan' ? 'rgba(0, 174, 255, .16)' : 'rgba(93, 63, 255, .16)')
-      atmosphere.addColorStop(1, 'rgba(0, 0, 0, 0)')
-      ctx.fillStyle = atmosphere
-      ctx.beginPath()
-      ctx.arc(0, 0, radius * 1.42, 0, Math.PI * 2)
-      ctx.fill()
-
-      if (ring) {
-        ctx.save()
-        ctx.rotate(rotation)
-        const ringGradient = ctx.createLinearGradient(-radius * 1.9, 0, radius * 1.9, 0)
-        ringGradient.addColorStop(0, 'rgba(0, 210, 255, 0)')
-        ringGradient.addColorStop(.22, 'rgba(65, 202, 255, .18)')
-        ringGradient.addColorStop(.45, 'rgba(214, 133, 255, .82)')
-        ringGradient.addColorStop(.56, 'rgba(75, 223, 255, .48)')
-        ringGradient.addColorStop(.8, 'rgba(89, 105, 255, .18)')
-        ringGradient.addColorStop(1, 'rgba(0, 210, 255, 0)')
-        ctx.strokeStyle = ringGradient
-        ctx.lineWidth = Math.max(2, radius * .075)
-        ctx.beginPath()
-        ctx.ellipse(0, radius * .08, radius * 1.82, radius * .48, 0, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.restore()
-      }
-
-      const sphere = ctx.createRadialGradient(
-        -radius * .35, -radius * .42, radius * .08,
-        radius * .1, radius * .12, radius * 1.08,
-      )
-      if (hue === 'cyan') {
-        sphere.addColorStop(0, '#baf9ff')
-        sphere.addColorStop(.18, '#38d9ff')
-        sphere.addColorStop(.52, '#1262c7')
-        sphere.addColorStop(.82, '#071b4f')
-        sphere.addColorStop(1, '#01040d')
-      } else {
-        sphere.addColorStop(0, '#ead5ff')
-        sphere.addColorStop(.2, '#8d5cff')
-        sphere.addColorStop(.5, '#3c247f')
-        sphere.addColorStop(.82, '#110b2c')
-        sphere.addColorStop(1, '#01030a')
-      }
-      ctx.fillStyle = sphere
-      ctx.shadowBlur = radius * .7
-      ctx.shadowColor = hue === 'cyan' ? 'rgba(0, 204, 255, .28)' : 'rgba(130, 71, 255, .30)'
-      ctx.beginPath()
-      ctx.arc(0, 0, radius, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.shadowBlur = 0
-
-      ctx.globalCompositeOperation = 'screen'
-      ctx.fillStyle = 'rgba(255,255,255,.16)'
-      ctx.beginPath()
-      ctx.ellipse(-radius * .36, -radius * .43, radius * .2, radius * .12, -.55, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.globalCompositeOperation = 'source-over'
-      ctx.strokeStyle = 'rgba(164, 237, 255, .18)'
-      ctx.lineWidth = Math.max(.6, radius * .018)
-      ctx.beginPath()
-      ctx.arc(0, 0, radius * .97, -2.3, -.35)
-      ctx.stroke()
-
-      if (ring) {
-        ctx.save()
-        ctx.rotate(rotation)
-        ctx.strokeStyle = 'rgba(8, 14, 43, .68)'
-        ctx.lineWidth = Math.max(2, radius * .05)
-        ctx.beginPath()
-        ctx.ellipse(0, radius * .08, radius * 1.82, radius * .48, 0, Math.PI * .05, Math.PI * .95)
-        ctx.stroke()
-        ctx.restore()
-      }
-
-      ctx.restore()
-    }
-
-    const drawRainbow = (time) => {
-      const cx = width * .87 + pointerX * 22
-      const cy = height * .93 + pointerY * 14
-      const radius = Math.min(width, height) * .56
-      ctx.save()
-      ctx.translate(cx, cy)
-      ctx.rotate(-.23 + Math.sin(time * .00008) * .015)
-      ctx.globalCompositeOperation = 'screen'
-      const colors = ['#ff4d9d', '#ff9f43', '#ffe66d', '#52f2a6', '#45d9ff', '#5b72ff', '#b56bff']
-      colors.forEach((color, index) => {
-        ctx.strokeStyle = color
-        ctx.globalAlpha = .12
-        ctx.lineWidth = 3.5
-        ctx.shadowBlur = 18
-        ctx.shadowColor = color
-        ctx.beginPath()
-        ctx.arc(0, 0, radius + index * 7, Math.PI * 1.05, Math.PI * 1.72)
-        ctx.stroke()
-      })
-      ctx.restore()
-      ctx.globalAlpha = 1
-      ctx.shadowBlur = 0
-    }
-
     const drawGalaxy = (time) => {
       const gx = width * .54 + pointerX * 30
       const gy = height * .17 + pointerY * 18
@@ -308,14 +198,7 @@ export default function CosmicField({ density = 'hero' }) {
     const drawDeepSpace = (time) => {
       if (!isRoom) return
       drawGalaxy(time)
-      drawRainbow(time)
       drawAsteroids(time)
-
-      const parallaxX = pointerX * 24
-      const parallaxY = pointerY * 16
-      drawPlanet(width * .11 + parallaxX, height * .30 + parallaxY, Math.min(width, height) * .115, 'cyan', time * .00008, false)
-      drawPlanet(width * .88 + parallaxX * .55, height * .25 + parallaxY * .45, Math.min(width, height) * .13, 'violet', -time * .00006, true)
-      drawPlanet(width * .48 - parallaxX * .3, height * .78 - parallaxY * .2, Math.min(width, height) * .065, 'violet', time * .0001, false)
 
       const horizon = ctx.createLinearGradient(0, height * .72, width, height)
       horizon.addColorStop(0, 'rgba(26, 104, 255, 0)')
