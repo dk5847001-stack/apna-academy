@@ -5550,3 +5550,86 @@ button { font: inherit; }
     animation: none;
   }
 }
+
+
+/* HOME — hard transparent-surface pass: borders only, no card fills */
+.home-page .feature-card,
+.home-page .step-card,
+.home-page .testimonial-card,
+.home-page .ai-card,
+.home-page .live-card,
+.home-page .progress-card,
+.home-page .feedback-card,
+.home-page .mock-interview,
+.home-page .mock-feedback,
+.home-page .question-bubble,
+.home-page .cta-inner,
+.home-page .stat-item,
+.home-page .practice-note {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Remove inherited decorative fills/pseudo-panels from cards. */
+.home-page .feature-card::before,
+.home-page .feature-card::after,
+.home-page .step-card::before,
+.home-page .step-card::after,
+.home-page .testimonial-card::before,
+.home-page .testimonial-card::after,
+.home-page .ai-card::before,
+.home-page .ai-card::after,
+.home-page .live-card::before,
+.home-page .live-card::after,
+.home-page .progress-card::before,
+.home-page .progress-card::after,
+.home-page .feedback-card::before,
+.home-page .feedback-card::after,
+.home-page .mock-interview::before,
+.home-page .mock-interview::after,
+.home-page .mock-feedback::before,
+.home-page .mock-feedback::after,
+.home-page .cta-inner::before,
+.home-page .cta-inner::after {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Only borders are allowed to define content surfaces. */
+.home-page .feature-card,
+.home-page .step-card,
+.home-page .testimonial-card,
+.home-page .ai-card,
+.home-page .live-card,
+.home-page .progress-card,
+.home-page .feedback-card,
+.home-page .mock-interview,
+.home-page .mock-feedback {
+  border: 1px solid rgba(132, 220, 255, .24) !important;
+}
+
+/* Testimonial cards become border-only floating blocks. */
+.home-page .testimonial-card {
+  border-color: rgba(132, 220, 255, .20) !important;
+}
+
+/* Keep functional controls visually filled; these are actions, not content cards. */
+.home-page .gradient-btn,
+.home-page .white-btn {
+  background-image: linear-gradient(135deg, #09bff5, #2864ff 55%, #7b3ff2) !important;
+}
+.home-page .white-btn {
+  background: #f4fbff !important;
+  background-image: none !important;
+}
+.home-page .outline-btn,
+.home-page .testimonial-stage > .MuiIconButton-root {
+  background: transparent !important;
+  background-image: none !important;
+}
