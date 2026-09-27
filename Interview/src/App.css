@@ -10,7 +10,7 @@
 
 * { box-sizing: border-box; }
 button { font: inherit; }
-.app-shell { color: var(--ink); background: #fff; min-height: 100vh; }
+.app-shell { color: var(--ink); background: transparent; min-height: 100vh; }
 .site-header { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.88); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(226,230,243,.65); }
 .header-inner { max-width: 1140px; height: 72px; margin: auto; padding: 0 22px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .brand { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; min-width: 184px; }
