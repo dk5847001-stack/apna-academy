@@ -4345,3 +4345,115 @@ button { font: inherit; }
     padding: 34px 0 0 !important;
   }
 }
+
+
+/* =========================================================
+   SIGNUP v4 — HIGH-CONTRAST COSMIC TYPOGRAPHY
+   Dark cosmic canvas -> bright neutral/cyan content.
+   No content backgrounds are introduced.
+   ========================================================= */
+.cosmic-signup-page .signup-story h1,
+.cosmic-signup-page .signup-card h2,
+.cosmic-signup-page .signup-brand strong,
+.cosmic-signup-page .login-story-points strong {
+  color: #ffffff !important;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .42);
+}
+
+.cosmic-signup-page .signup-story > p,
+.cosmic-signup-page .signup-card > p,
+.cosmic-signup-page .login-story-points small,
+.cosmic-signup-page .signup-switch,
+.cosmic-signup-page .signup-secure-note,
+.cosmic-signup-page .signup-resend span {
+  color: #d9e8f7 !important;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, .45);
+}
+
+.cosmic-signup-page .signup-back,
+.cosmic-signup-page .signup-otp-back {
+  color: #c7d9eb !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .45);
+}
+
+.cosmic-signup-page .login-story-badge,
+.cosmic-signup-page .room-eyebrow,
+.cosmic-signup-page .signup-brand small {
+  color: #67e8ff !important;
+  text-shadow: 0 0 18px rgba(70, 220, 255, .38);
+}
+
+.cosmic-signup-page .signup-input > svg,
+.cosmic-signup-page .login-story-points > div > span,
+.cosmic-signup-page .signup-brand > span {
+  color: #72eaff !important;
+  filter: drop-shadow(0 0 9px rgba(73, 220, 255, .30));
+}
+
+.cosmic-signup-page .signup-form label {
+  color: #b9d0e8 !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .4);
+}
+
+.cosmic-signup-page .signup-input input,
+.cosmic-signup-page .signup-input input:focus {
+  color: #ffffff !important;
+  caret-color: #68e6ff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .35);
+}
+
+.cosmic-signup-page .signup-input input::placeholder {
+  color: #91aac5 !important;
+  opacity: 1;
+}
+
+.cosmic-signup-page .signup-input button {
+  color: #a9c7df !important;
+}
+
+.cosmic-signup-page .signup-input button:hover {
+  color: #72eaff !important;
+}
+
+.cosmic-signup-page .signup-switch button,
+.cosmic-signup-page .signup-resend button {
+  color: #68e4ff !important;
+  text-shadow: 0 0 14px rgba(65, 216, 255, .24);
+}
+
+.cosmic-signup-page .signup-submit {
+  color: #f5fdff !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .45);
+}
+
+.cosmic-signup-page .signup-otp-input input {
+  color: #ffffff !important;
+  text-shadow: 0 0 18px rgba(110, 231, 255, .16);
+}
+
+.cosmic-signup-page .auth-error {
+  color: #ffb7c7 !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .4);
+}
+
+.cosmic-signup-page .auth-success {
+  color: #9ff7da !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .4);
+}
+
+@media (prefers-contrast: more) {
+  .cosmic-signup-page .signup-story > p,
+  .cosmic-signup-page .signup-card > p,
+  .cosmic-signup-page .login-story-points small,
+  .cosmic-signup-page .signup-switch,
+  .cosmic-signup-page .signup-secure-note,
+  .cosmic-signup-page .signup-resend span {
+    color: #f1f7ff !important;
+  }
+
+  .cosmic-signup-page .signup-form label,
+  .cosmic-signup-page .signup-back,
+  .cosmic-signup-page .signup-otp-back {
+    color: #e8f3ff !important;
+  }
+}
