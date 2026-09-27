@@ -6,9 +6,7 @@ import { ROUTES } from '../../routes/routes'
 
 export default function AppShell({ children }) {
   const { path } = useRouter()
-  const isSetupReferencePage = path === ROUTES.INTERVIEW_SETUP
-  const isPreparationReferencePage = path === ROUTES.INTERVIEW_PREPARATION
-  const isCleanInterviewShell = isSetupReferencePage || isPreparationReferencePage
+  const isCleanInterviewShell = false
 
   return (
     <div className="app-shell min-h-screen w-full text-slate-900">
@@ -18,7 +16,7 @@ export default function AppShell({ children }) {
         </div>
       ) : null}
       <div className="app-shell-content">
-        {!isCleanInterviewShell ? <InterviewHeader /> : null}
+        <InterviewHeader />
         {children}
         {!isCleanInterviewShell ? <Footer /> : null}
       </div>
