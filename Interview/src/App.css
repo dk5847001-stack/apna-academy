@@ -9134,3 +9134,110 @@
   .history-page-ref .history-insights{grid-template-columns:1fr}
   .history-page-ref .history-insights>div:last-child{grid-column:auto}
 }
+
+
+/* Home page — light orange family final rebuild */
+.home-page-ref{
+  background:#fffaf4;
+  color:#20364f;
+}
+.home-page-ref .hero-section{
+  background:
+    radial-gradient(circle at 78% 10%,rgba(255,190,117,.22),transparent 28%),
+    radial-gradient(circle at 8% 74%,rgba(255,169,91,.11),transparent 25%),
+    linear-gradient(180deg,#fffaf4 0%,#fffdf9 72%,#fffaf3 100%);
+}
+.home-page-ref .hero-grid{min-height:640px}
+.home-page-ref .hero-copy h1{color:#20364f}
+.home-page-ref .hero-copy h1 span{
+  background:linear-gradient(90deg,#ef8a36,#ff6b16);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.home-page-ref .eyebrow,.home-page-ref .section-pill{
+  color:#c9691d;
+  background:#fff3e6;
+  border-color:#ffd7b5;
+}
+.home-page-ref .hero-subtitle{color:#718095}
+.home-page-ref .hero-art .art-halo{
+  background:radial-gradient(circle at 52% 48%,rgba(255,188,112,.30),rgba(255,231,205,.22) 43%,transparent 72%);
+}
+.home-page-ref .hero-person{
+  border:1px solid rgba(255,213,177,.72);
+  box-shadow:0 28px 70px rgba(126,82,42,.11);
+}
+.home-page-ref .ai-card,
+.home-page-ref .live-card,
+.home-page-ref .progress-card,
+.home-page-ref .feedback-card{
+  border-color:#f0ddcb;
+  box-shadow:0 16px 38px rgba(91,66,43,.10),inset 0 0 25px rgba(255,255,255,.82);
+}
+.home-page-ref .card-title svg,
+.home-page-ref .practice-note svg,
+.home-page-ref .up-arrow{color:#df711c}
+.home-page-ref .wave-bars i{background:linear-gradient(#ff9b4c,#ff6b16)}
+.home-page-ref .stats-strip{
+  border-color:#eadfd4;
+  background:rgba(255,255,255,.94);
+}
+.home-page-ref .stat-icon{
+  color:#df711c;
+  background:#fff1e2;
+  box-shadow:none;
+}
+.home-page-ref .stat-item{border-color:#eee4da}
+.home-page-ref .feature-card,
+.home-page-ref .step-card,
+.home-page-ref .testimonial-card{
+  border-color:#eadfd4;
+  background:#fff;
+  box-shadow:0 10px 28px rgba(80,63,46,.045);
+}
+.home-page-ref .feature-card:hover{
+  border-color:#ffd0a5;
+  box-shadow:0 18px 40px rgba(118,76,39,.08);
+}
+.home-page-ref .feature-icon,
+.home-page-ref .step-icon{
+  color:#df711c;
+  background:#fff1e2;
+}
+.home-page-ref .step-number{
+  color:#df711c;
+  background:#fff0df;
+  box-shadow:none;
+}
+.home-page-ref .step-0,.home-page-ref .step-1,.home-page-ref .step-2,.home-page-ref .step-3{
+  background:#fff0df;
+}
+.home-page-ref .step-arrow{color:#d9b28f}
+.home-page-ref .proof-section{
+  background:linear-gradient(135deg,#fff7ee,#fffdf9);
+  border:1px solid #f0dfce;
+  box-shadow:0 18px 48px rgba(91,66,43,.055);
+}
+.home-page-ref .mock-interview{
+  border-color:#ead7c4;
+  box-shadow:0 22px 50px rgba(91,66,43,.11);
+}
+.home-page-ref .proof-copy h2 span{color:#df711c}
+.home-page-ref .proof-copy li svg{color:#df711c}
+.home-page-ref .testimonial-card.selected{
+  border-color:#ffc48f;
+  box-shadow:0 16px 34px rgba(255,118,22,.09);
+}
+.home-page-ref .company-mark{color:#df711c}
+.home-page-ref .cta-inner{
+  border-color:#ffd1aa;
+  background:linear-gradient(135deg,#fff0df,#fff8ef);
+  box-shadow:0 18px 45px rgba(255,118,22,.08);
+}
+@media(max-width:680px){
+  .home-page-ref .hero-section{min-height:auto}
+  .home-page-ref .hero-grid{min-height:auto}
+  .home-page-ref .hero-copy h1{font-size:42px;line-height:1.02}
+  .home-page-ref .hero-buttons{flex-direction:column}
+  .home-page-ref .gradient-btn,.home-page-ref .outline-btn{width:100%}
+  .home-page-ref .hero-art{transform:scale(.78);margin-bottom:-82px}
+}
