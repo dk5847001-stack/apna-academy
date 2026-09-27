@@ -2,14 +2,14 @@ import { createTheme } from '@mui/material/styles'
 
 const theme = createTheme({
   palette: {
-    mode: 'light',
+    mode: 'dark',
     primary: { main: '#6d35ff', light: '#8b62ff', dark: '#4e20c8' },
     secondary: { main: '#147dff', light: '#52a0ff', dark: '#0759bf' },
     success: { main: '#16a879' },
     warning: { main: '#f6a127' },
     error: { main: '#ef476f' },
-    background: { default: '#ffffff', paper: '#ffffff' },
-    text: { primary: '#111a3a', secondary: '#66708b' },
+    background: { default: '#01040b', paper: 'transparent' },
+    text: { primary: '#f4f8ff', secondary: '#9aacc4' },
   },
   typography: {
     fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif',
@@ -35,7 +35,7 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         '*, *::before, *::after': { boxSizing: 'border-box' },
-        body: { backgroundColor: '#ffffff' },
+        body: { backgroundColor: '#01040b', color: '#f4f8ff' },
       },
     },
   },
