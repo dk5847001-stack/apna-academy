@@ -5146,3 +5146,407 @@ button { font: inherit; }
   .complete-card { padding: 42px 22px !important; border-radius: 24px !important; }
   .interview-questions-page { padding-inline: 14px !important; }
 }
+
+
+/* =========================================================
+   HOME PAGE — TRANSPARENT CONTENT / CINEMATIC BACKGROUND v2
+   Visual-only override. Keeps HomePage logic unchanged.
+   ========================================================= */
+
+.home-page {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  color: #f8fbff;
+  background:
+    radial-gradient(ellipse 68% 52% at 50% 4%, rgba(0, 110, 255, .20), transparent 70%),
+    radial-gradient(ellipse 48% 58% at 8% 34%, rgba(0, 214, 255, .11), transparent 72%),
+    radial-gradient(ellipse 48% 62% at 94% 58%, rgba(118, 63, 255, .14), transparent 74%),
+    radial-gradient(ellipse 62% 42% at 50% 100%, rgba(0, 87, 190, .12), transparent 76%),
+    linear-gradient(180deg, #01040b 0%, #020713 38%, #01040b 100%) !important;
+}
+
+.home-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 22% 16%, rgba(0, 194, 255, .10) 0 1px, transparent 2px),
+    radial-gradient(circle at 74% 28%, rgba(139, 92, 246, .10) 0 1px, transparent 2px),
+    radial-gradient(circle at 42% 72%, rgba(0, 224, 255, .08) 0 1px, transparent 2px),
+    repeating-linear-gradient(118deg, transparent 0 44px, rgba(70, 170, 255, .012) 45px, transparent 46px);
+  background-size: 131px 131px, 167px 167px, 149px 149px, auto;
+  animation: home-space-drift 38s linear infinite;
+}
+
+.home-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.30), transparent 16%, transparent 84%, rgba(0,0,0,.30)),
+    linear-gradient(180deg, rgba(0,0,0,.08), transparent 18%, transparent 82%, rgba(0,0,0,.34));
+}
+
+@keyframes home-space-drift {
+  from { transform: translate3d(-.5%, -.35%, 0); }
+  to { transform: translate3d(.5%, .35%, 0); }
+}
+
+/* The home background is the only page/content surface. */
+.home-page,
+.home-page section,
+.home-page article,
+.home-page .hero-section,
+.home-page .stats-strip,
+.home-page .page-section,
+.home-page .features-section,
+.home-page .steps-section,
+.home-page .proof-section,
+.home-page .stories-section,
+.home-page .cta-section,
+.home-page .feature-card,
+.home-page .step-card,
+.home-page .testimonial-card,
+.home-page .mock-interview,
+.home-page .mock-feedback,
+.home-page .ai-card,
+.home-page .live-card,
+.home-page .progress-card,
+.home-page .feedback-card,
+.home-page .cta-inner,
+.home-page .stat-item {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Remove card chrome without removing visual hierarchy. */
+.home-page .glass-card,
+.home-page .feature-card,
+.home-page .step-card,
+.home-page .testimonial-card,
+.home-page .mock-feedback {
+  border-color: transparent !important;
+}
+
+/* Hero: let the cinematic page background remain visible. */
+.home-page .hero-section {
+  position: relative;
+  min-height: min(900px, 100svh);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.home-page .hero-section > .cosmic-field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  opacity: .94;
+  mix-blend-mode: screen;
+  filter: saturate(125%) contrast(112%);
+  pointer-events: none;
+}
+
+.home-page .hero-orb {
+  opacity: .34 !important;
+  filter: blur(90px) saturate(145%);
+  mix-blend-mode: screen;
+}
+
+.home-page .hero-grid {
+  position: relative;
+  z-index: 3;
+}
+
+.home-page .hero-copy,
+.home-page .hero-art,
+.home-page .proof-copy,
+.home-page .section-heading,
+.home-page .testimonial-stage,
+.home-page .cta-inner {
+  color: #f8fbff;
+}
+
+.home-page .eyebrow,
+.home-page .section-pill {
+  color: #9deaff !important;
+  background: transparent !important;
+  border-color: rgba(80, 210, 255, .36) !important;
+  box-shadow: 0 0 24px rgba(0, 190, 255, .10) !important;
+  text-shadow: 0 0 18px rgba(72, 211, 255, .30);
+}
+
+.home-page h1,
+.home-page h2,
+.home-page h3,
+.home-page .hero-subtitle,
+.home-page .section-heading p,
+.home-page .proof-copy p,
+.home-page .testimonial-card p,
+.home-page .testimonial-person b,
+.home-page .testimonial-person small,
+.home-page .step-card p,
+.home-page .feature-card p,
+.home-page .cta-inner p {
+  color: #f7fbff !important;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, .68);
+}
+
+.home-page h1 {
+  text-shadow:
+    0 2px 34px rgba(0,0,0,.80),
+    0 0 38px rgba(0, 143, 255, .12);
+}
+
+.home-page h1 span,
+.home-page .proof-copy h2 span {
+  color: #66dcff !important;
+  text-shadow:
+    0 0 24px rgba(0, 207, 255, .32),
+    0 2px 26px rgba(0,0,0,.72);
+}
+
+.home-page .hero-subtitle,
+.home-page .section-heading p,
+.home-page .proof-copy p,
+.home-page .cta-inner p,
+.home-page .feature-card p,
+.home-page .step-card p,
+.home-page .testimonial-person small {
+  color: #c9d9ec !important;
+}
+
+.home-page .trust-row,
+.home-page .trust-row span,
+.home-page .trust-row b {
+  color: #eaf5ff !important;
+}
+
+.home-page .stars,
+.home-page .gold-stars {
+  color: #7ce7ff !important;
+  filter: drop-shadow(0 0 9px rgba(0, 205, 255, .35));
+}
+
+/* Hero visual elements: transparent, readable, softly outlined. */
+.home-page .ai-card,
+.home-page .live-card,
+.home-page .progress-card,
+.home-page .feedback-card {
+  border: 1px solid rgba(133, 218, 255, .18) !important;
+}
+
+.home-page .card-title,
+.home-page .ai-card p,
+.home-page .live-label,
+.home-page .progress-card b,
+.home-page .feedback-card b,
+.home-page .feedback-row span,
+.home-page .feedback-row strong {
+  color: #f4fbff !important;
+  text-shadow: 0 2px 14px rgba(0,0,0,.75);
+}
+
+.home-page .practice-note {
+  color: #d8f7ff !important;
+  text-shadow: 0 2px 20px rgba(0,0,0,.8);
+}
+
+.home-page .practice-note em {
+  color: #67dcff !important;
+}
+
+/* Stats remain open on the background; use only typography/icon glow. */
+.home-page .stats-strip {
+  position: relative;
+  z-index: 3;
+  border-top: 1px solid rgba(126, 218, 255, .14) !important;
+  border-bottom: 1px solid rgba(126, 218, 255, .14) !important;
+}
+
+.home-page .stat-item {
+  color: #f7fbff !important;
+}
+
+.home-page .stat-item b {
+  color: #ffffff !important;
+  text-shadow: 0 2px 16px rgba(0,0,0,.7);
+}
+
+.home-page .stat-item small {
+  color: #a9c0d7 !important;
+}
+
+/* Features / steps / testimonials: no panels, only luminous iconography. */
+.home-page .feature-icon,
+.home-page .step-icon,
+.home-page .step-number,
+.home-page .progress-icon {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: 0 0 28px rgba(0, 196, 255, .12);
+  color: #75e4ff !important;
+}
+
+.home-page .feature-card h3,
+.home-page .step-card h3 {
+  color: #f8fcff !important;
+  text-shadow: 0 2px 18px rgba(0,0,0,.78);
+}
+
+.home-page .step-number {
+  color: #72ddff !important;
+  text-shadow: 0 0 20px rgba(0, 210, 255, .30);
+}
+
+.home-page .step-arrow {
+  color: rgba(112, 221, 255, .68) !important;
+  filter: drop-shadow(0 0 12px rgba(0, 202, 255, .22));
+}
+
+.home-page .proof-section {
+  border-top: 1px solid rgba(126, 218, 255, .10);
+}
+
+.home-page .mock-interview {
+  border: 1px solid rgba(111, 218, 255, .16) !important;
+}
+
+.home-page .mock-top,
+.home-page .mock-interviewer,
+.home-page .question-bubble,
+.home-page .mock-feedback,
+.home-page .mock-controls {
+  color: #f2fbff !important;
+}
+
+.home-page .question-bubble {
+  border-color: rgba(108, 220, 255, .20) !important;
+}
+
+.home-page .mock-feedback {
+  border-color: rgba(108, 220, 255, .18) !important;
+}
+
+.home-page .proof-copy li {
+  color: #dcecff !important;
+  text-shadow: 0 2px 14px rgba(0,0,0,.72);
+}
+
+.home-page .proof-copy li svg {
+  color: #6ee2ff !important;
+  filter: drop-shadow(0 0 9px rgba(0, 211, 255, .28));
+}
+
+/* Testimonials are floating text, not cards. */
+.home-page .testimonial-card {
+  border: 0 !important;
+  padding: 1.25rem 1.4rem !important;
+  transition: transform .28s ease, opacity .28s ease;
+}
+
+.home-page .testimonial-card:not(.selected) {
+  opacity: .76;
+}
+
+.home-page .testimonial-card.selected {
+  opacity: 1;
+  transform: translateY(-4px);
+}
+
+.home-page .testimonial-card p {
+  color: #e8f6ff !important;
+}
+
+.home-page .testimonial-stage > .MuiIconButton-root {
+  color: #dff8ff !important;
+  border: 1px solid rgba(114, 220, 255, .22) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.home-page .company-mark {
+  color: #7be5ff !important;
+  text-shadow: 0 0 16px rgba(0, 207, 255, .28);
+}
+
+/* CTA stays transparent; only the action button may carry a fill. */
+.home-page .cta-section {
+  border-top: 1px solid rgba(126, 218, 255, .12);
+}
+
+.home-page .cta-inner {
+  border: 0 !important;
+}
+
+.home-page .cta-inner h2 {
+  color: #ffffff !important;
+  text-shadow: 0 3px 26px rgba(0,0,0,.8);
+}
+
+.home-page .cta-art span {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: #6de2ff !important;
+  box-shadow: 0 0 30px rgba(0, 205, 255, .15);
+}
+
+/* Keep buttons readable while content surfaces remain transparent. */
+.home-page .gradient-btn {
+  background: linear-gradient(135deg, #09bff5, #2864ff 55%, #7b3ff2) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(170, 235, 255, .32) !important;
+  box-shadow: 0 12px 34px rgba(0, 116, 255, .24) !important;
+}
+
+.home-page .outline-btn {
+  background: transparent !important;
+  color: #effaff !important;
+  border: 1px solid rgba(150, 224, 255, .42) !important;
+  box-shadow: none !important;
+}
+
+.home-page .white-btn {
+  background: #f4fbff !important;
+  color: #06101c !important;
+  border: 1px solid rgba(255,255,255,.7) !important;
+}
+
+@media (max-width: 900px) {
+  .home-page .hero-section {
+    min-height: auto;
+  }
+
+  .home-page .hero-section > .cosmic-field {
+    opacity: .82;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-page::before {
+    animation-duration: 55s;
+  }
+
+  .home-page .hero-section > .cosmic-field {
+    opacity: .70;
+  }
+
+  .home-page .testimonial-card:not(.selected) {
+    opacity: .62;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page::before {
+    animation: none;
+  }
+}
