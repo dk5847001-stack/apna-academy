@@ -5633,3 +5633,442 @@ button { font: inherit; }
   background: transparent !important;
   background-image: none !important;
 }
+
+
+/* =========================================================
+   LOGIN PAGE — CINEMATIC TRANSPARENT AUTH EXPERIENCE
+   Visual-only. Existing auth/navigation logic untouched.
+   ========================================================= */
+
+.cosmic-login-page {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow: hidden;
+  color: #f7fbff;
+  background:
+    radial-gradient(ellipse 60% 48% at 50% 12%, rgba(0, 108, 255, .20), transparent 72%),
+    radial-gradient(ellipse 42% 58% at 8% 52%, rgba(0, 205, 255, .11), transparent 75%),
+    radial-gradient(ellipse 44% 60% at 92% 58%, rgba(126, 64, 255, .15), transparent 76%),
+    #01040b !important;
+}
+
+.cosmic-login-page > .cosmic-field {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 0 !important;
+  opacity: 1 !important;
+  mix-blend-mode: screen;
+  filter: saturate(125%) contrast(112%);
+  pointer-events: none;
+}
+
+.cosmic-login-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0,0,4,.38), transparent 22%, transparent 78%, rgba(0,0,4,.38)),
+    linear-gradient(180deg, rgba(0,0,4,.12), transparent 24%, transparent 76%, rgba(0,0,4,.42));
+}
+
+.cosmic-login-page::after {
+  content: "";
+  position: absolute;
+  inset: -10%;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 24%, rgba(0,211,255,.06) 0 1px, transparent 2px),
+    radial-gradient(circle at 78% 32%, rgba(148,92,255,.07) 0 1px, transparent 2px),
+    repeating-linear-gradient(116deg, transparent 0 42px, rgba(76,186,255,.012) 43px, transparent 44px);
+  background-size: 127px 127px, 151px 151px, auto;
+  mix-blend-mode: screen;
+  animation: login-space-drift 36s linear infinite;
+}
+
+@keyframes login-space-drift {
+  from { transform: translate3d(-.6%, -.35%, 0); }
+  to { transform: translate3d(.6%, .35%, 0); }
+}
+
+.cosmic-login-page .login-glow {
+  z-index: 1;
+  mix-blend-mode: screen;
+  filter: blur(90px) saturate(150%);
+  opacity: .55;
+}
+
+.cosmic-login-page .login-glow-a {
+  background: radial-gradient(circle, rgba(0, 183, 255, .28), transparent 68%);
+}
+
+.cosmic-login-page .login-glow-b {
+  background: radial-gradient(circle, rgba(132, 58, 255, .25), transparent 68%);
+}
+
+.cosmic-login-page .login-experience {
+  position: relative;
+  z-index: 4;
+  min-height: 100svh;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 72px 0 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 460px);
+  gap: clamp(48px, 8vw, 112px);
+  align-items: center;
+}
+
+.cosmic-login-page .login-story {
+  max-width: 650px;
+}
+
+.cosmic-login-page .login-story-badge,
+.cosmic-login-page .room-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #9cecff !important;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  text-shadow: 0 0 20px rgba(0, 207, 255, .28);
+}
+
+.cosmic-login-page .login-story-badge {
+  border: 1px solid rgba(91, 214, 255, .28);
+  border-radius: 999px;
+  padding: 9px 13px;
+  background: transparent !important;
+}
+
+.cosmic-login-page .login-story h1 {
+  margin: 22px 0 18px;
+  max-width: 680px;
+  color: #ffffff !important;
+  font-size: clamp(3rem, 5.2vw, 5.3rem);
+  line-height: .98;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+  text-shadow: 0 4px 42px rgba(0,0,0,.82);
+}
+
+.cosmic-login-page .login-story > p {
+  max-width: 590px;
+  color: #c8d9eb !important;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  text-shadow: 0 2px 22px rgba(0,0,0,.75);
+}
+
+.cosmic-login-page .login-story-points {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 34px;
+}
+
+.cosmic-login-page .login-story-points > div {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  background: transparent !important;
+}
+
+.cosmic-login-page .login-story-points > div > span {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: grid;
+  place-items: center;
+  color: #70e1ff;
+  border: 1px solid rgba(112, 225, 255, .25);
+  border-radius: 12px;
+  background: transparent !important;
+  box-shadow: 0 0 24px rgba(0, 190, 255, .10);
+}
+
+.cosmic-login-page .login-story-points strong {
+  display: block;
+  color: #f6fbff !important;
+  font-size: .94rem;
+  text-shadow: 0 2px 16px rgba(0,0,0,.78);
+}
+
+.cosmic-login-page .login-story-points small {
+  display: block;
+  margin-top: 5px;
+  color: #91a9c3 !important;
+  line-height: 1.5;
+}
+
+.cosmic-login-page .login-story-link,
+.cosmic-login-page .login-home,
+.cosmic-login-page .login-register-link button {
+  background: transparent !important;
+  border: 0;
+  color: #9eeaff !important;
+  cursor: pointer;
+  text-shadow: 0 0 16px rgba(0, 205, 255, .20);
+}
+
+.cosmic-login-page .login-story-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 32px;
+  padding: 0;
+  font-weight: 750;
+}
+
+.cosmic-login-page .interview-login-card {
+  width: 100%;
+  padding: 8px 0;
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid rgba(129, 220, 255, .28) !important;
+  border-radius: 28px;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.cosmic-login-page .interview-login-card::before,
+.cosmic-login-page .interview-login-card::after {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.cosmic-login-page .login-brand,
+.cosmic-login-page .room-eyebrow,
+.cosmic-login-page .interview-login-card > h2,
+.cosmic-login-page .interview-login-card > p,
+.cosmic-login-page .interview-login-card form,
+.cosmic-login-page .login-register-link,
+.cosmic-login-page .login-home,
+.cosmic-login-page .login-secure-note {
+  margin-left: 34px;
+  margin-right: 34px;
+}
+
+.cosmic-login-page .login-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 28px;
+  margin-bottom: 25px;
+  color: #f7fcff;
+}
+
+.cosmic-login-page .login-brand > span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: #6ee2ff;
+  border: 1px solid rgba(110, 226, 255, .25);
+  border-radius: 11px;
+  background: transparent !important;
+}
+
+.cosmic-login-page .login-brand strong {
+  font-size: .98rem;
+}
+
+.cosmic-login-page .login-brand small {
+  color: #6f89a7;
+  margin-left: -4px;
+}
+
+.cosmic-login-page .interview-login-card > h2 {
+  margin-top: 13px;
+  color: #ffffff !important;
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  line-height: 1.08;
+  letter-spacing: -.035em;
+  text-shadow: 0 3px 25px rgba(0,0,0,.82);
+}
+
+.cosmic-login-page .interview-login-card > p {
+  margin-top: 10px;
+  color: #aebfd2 !important;
+  line-height: 1.65;
+}
+
+.cosmic-login-page .interview-login-card form {
+  margin-top: 27px;
+}
+
+.cosmic-login-page .interview-login-card form label {
+  display: block;
+  margin: 17px 0 8px;
+  color: #dcecff !important;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.cosmic-login-page .login-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 14px;
+  background: transparent !important;
+  border: 1px solid rgba(128, 207, 239, .25) !important;
+  border-radius: 14px;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.cosmic-login-page .login-input:focus-within {
+  border-color: rgba(77, 211, 255, .72) !important;
+  box-shadow: 0 0 0 3px rgba(0, 190, 255, .08), 0 0 28px rgba(0, 190, 255, .10) !important;
+}
+
+.cosmic-login-page .login-input svg {
+  flex: 0 0 auto;
+  color: #69dfff !important;
+  filter: drop-shadow(0 0 8px rgba(0, 210, 255, .20));
+}
+
+.cosmic-login-page .login-input input {
+  width: 100%;
+  min-width: 0;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: #f6fbff !important;
+  font-size: .94rem;
+}
+
+.cosmic-login-page .login-input input::placeholder {
+  color: #617893 !important;
+}
+
+.cosmic-login-page .prep-error {
+  margin-top: 12px;
+  padding: 10px 0;
+  background: transparent !important;
+  border: 0 !important;
+  color: #ff9cad !important;
+  text-shadow: 0 2px 12px rgba(0,0,0,.7);
+}
+
+.cosmic-login-page .login-submit {
+  width: 100%;
+  min-height: 53px;
+  margin-top: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.cosmic-login-page .login-register-link {
+  margin-top: 22px;
+  color: #8fa7bf !important;
+  text-align: center;
+}
+
+.cosmic-login-page .login-register-link button {
+  padding: 0;
+  font-weight: 750;
+}
+
+.cosmic-login-page .login-home {
+  display: block;
+  margin-top: 18px;
+  margin-bottom: 18px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: .82rem;
+}
+
+.cosmic-login-page .login-secure-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 15px 0 22px;
+  border-top: 1px solid rgba(128, 207, 239, .12);
+  color: #7289a2 !important;
+  font-size: .74rem;
+}
+
+.cosmic-login-page .login-secure-note svg {
+  color: #67dfff !important;
+}
+
+@media (max-width: 900px) {
+  .cosmic-login-page .login-experience {
+    width: min(640px, calc(100% - 34px));
+    padding: 50px 0 40px;
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+
+  .cosmic-login-page .login-story {
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .cosmic-login-page .login-story h1 {
+    font-size: clamp(2.6rem, 9vw, 4.2rem);
+  }
+
+  .cosmic-login-page .login-story > p {
+    margin-inline: auto;
+  }
+
+  .cosmic-login-page .login-story-points {
+    text-align: left;
+  }
+
+  .cosmic-login-page .login-story-link {
+    margin-top: 25px;
+  }
+}
+
+@media (max-width: 560px) {
+  .cosmic-login-page .login-experience {
+    width: min(100% - 24px, 480px);
+    padding: 34px 0 28px;
+  }
+
+  .cosmic-login-page .login-story-points {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .cosmic-login-page .interview-login-card {
+    border-radius: 22px;
+  }
+
+  .cosmic-login-page .login-brand,
+  .cosmic-login-page .room-eyebrow,
+  .cosmic-login-page .interview-login-card > h2,
+  .cosmic-login-page .interview-login-card > p,
+  .cosmic-login-page .interview-login-card form,
+  .cosmic-login-page .login-register-link,
+  .cosmic-login-page .login-home,
+  .cosmic-login-page .login-secure-note {
+    margin-left: 22px;
+    margin-right: 22px;
+  }
+
+  .cosmic-login-page .login-story h1 {
+    font-size: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-login-page::after {
+    animation: none;
+  }
+}
