@@ -52,7 +52,7 @@ function ProgressRail() {
 
 function StatusRow({ icon, label, ready, permission }) {
   return (
-    <div className={`prep-ref-status-row ${ready ? 'is-ready' : ''}`}>
+    <div className={'prep-ref-status-row ' + (ready ? 'is-ready' : '')}>
       <span className="prep-ref-status-icon">{icon}</span>
       <div>
         <strong>{label}</strong>
@@ -149,7 +149,7 @@ export default function InterviewPreparationPage() {
                     <p>Allow access so the AI interviewer can see and hear you during the practice.</p>
                   </div>
                 </div>
-                <span className={`prep-ref-check-pill ${devicesReady ? 'is-ready' : ''}`}>
+                <span className={'prep-ref-check-pill ' + (devicesReady ? 'is-ready' : '')}>
                   {devicesReady ? <CheckCircleRounded /> : <WarningAmberRounded />}
                   {devicesReady ? 'Ready' : 'Check'}
                 </span>
