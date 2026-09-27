@@ -23,7 +23,6 @@ import {
 import '../App.css'
 import { useRouter } from '../routes/Router'
 import { ROUTES } from '../routes/routes'
-import CosmicField from '../components/common/CosmicField'
 
 const testimonials = [
   {
@@ -81,9 +80,8 @@ function HomePage() {
   const goTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
   return (
-    <main className="home-page min-h-screen w-full">
+    <main className="home-page home-page-ref min-h-screen w-full">
       <section id="home" className="hero-section">
-        <CosmicField density="hero" />
         <div className="hero-orb hero-orb-one" />
         <div className="hero-orb hero-orb-two" />
         <div className="hero-grid">
