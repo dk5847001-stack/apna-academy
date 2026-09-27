@@ -142,3 +142,130 @@ textarea:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+
+/* =========================================================
+   GLOBAL PREMIUM CURSOR
+   Desktop/fine-pointer only; touch and reduced-motion users
+   keep the native browser cursor/interaction model.
+   ========================================================= */
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  html,
+  body,
+  body * {
+    cursor: none !important;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="url"],
+  input[type="tel"],
+  input[type="number"],
+  textarea {
+    cursor: text !important;
+  }
+
+  .global-cursor-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .global-cursor-ring,
+  .global-cursor-dot {
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: block;
+    pointer-events: none;
+    will-change: transform, width, height, opacity, border-color, background, box-shadow;
+  }
+
+  .global-cursor-ring {
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(95, 190, 255, .72);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(31, 160, 255, .06), transparent 62%);
+    box-shadow:
+      0 0 0 1px rgba(111, 79, 255, .10),
+      0 0 18px rgba(0, 174, 255, .16),
+      inset 0 0 16px rgba(93, 92, 255, .05);
+    transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
+    transition:
+      width .24s cubic-bezier(.22, 1, .36, 1),
+      height .24s cubic-bezier(.22, 1, .36, 1),
+      border-color .2s ease,
+      background .2s ease,
+      box-shadow .2s ease;
+  }
+
+  .global-cursor-dot {
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
+    margin-top: -3px;
+    border-radius: 50%;
+    background: #dff8ff;
+    box-shadow:
+      0 0 7px rgba(89, 213, 255, .95),
+      0 0 18px rgba(43, 128, 255, .65);
+    transform: translate3d(-100px, -100px, 0);
+    transition:
+      width .18s ease,
+      height .18s ease,
+      margin .18s ease,
+      background .18s ease,
+      box-shadow .18s ease;
+  }
+
+  .global-cursor-layer.is-interactive .global-cursor-ring {
+    width: 52px;
+    height: 52px;
+    border-color: rgba(112, 103, 255, .88);
+    background:
+      radial-gradient(circle, rgba(71, 194, 255, .12), rgba(104, 75, 255, .04) 48%, transparent 72%);
+    box-shadow:
+      0 0 0 1px rgba(0, 206, 255, .08),
+      0 0 28px rgba(52, 154, 255, .25),
+      0 0 55px rgba(119, 65, 255, .12),
+      inset 0 0 18px rgba(0, 202, 255, .07);
+  }
+
+  .global-cursor-layer.is-interactive .global-cursor-dot {
+    width: 9px;
+    height: 9px;
+    margin-left: -4.5px;
+    margin-top: -4.5px;
+    background: #ffffff;
+    box-shadow:
+      0 0 9px rgba(140, 235, 255, 1),
+      0 0 24px rgba(66, 152, 255, .85);
+  }
+
+  .global-cursor-layer.is-pressed .global-cursor-ring {
+    width: 42px;
+    height: 42px;
+    border-color: rgba(0, 225, 255, .98);
+    box-shadow:
+      0 0 0 5px rgba(0, 190, 255, .07),
+      0 0 34px rgba(0, 181, 255, .32);
+  }
+
+  .global-cursor-layer.is-pressed .global-cursor-dot {
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    margin-top: -2px;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: none !important;
+  }
+}
