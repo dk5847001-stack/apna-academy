@@ -20,21 +20,6 @@ import { INTERVIEW_TYPES, EXPERIENCE_LEVELS } from '../data/interviewConfig'
 import { interviewApi } from '../services/interviewApi'
 import '../styles/interview-preparation-reference.css'
 
-function Brand({ navigate }) {
-  return (
-    <header className="prep-ref-header">
-      <button type="button" className="prep-ref-brand" onClick={() => navigate(ROUTES.HOME)} aria-label="Back to ApnaAcademy">
-        <span className="prep-ref-brand-mark">A</span>
-        <strong>ApnaAcademy</strong>
-        <span>Interview AI</span>
-      </button>
-      <button type="button" className="prep-ref-help" onClick={() => window.location.assign('mailto:support@apnaacademy.me')}>
-        <HeadsetMicRounded /> Need Help?
-      </button>
-    </header>
-  )
-}
-
 function ProgressRail() {
   const steps = ['Profile', 'Prepare', 'Interview', 'Results']
   return (
@@ -112,7 +97,6 @@ export default function InterviewPreparationPage() {
 
   return (
     <main className="prep-ref-page">
-      <Brand navigate={navigate} />
       <div className="prep-ref-ambient prep-ref-ambient-top" aria-hidden="true" />
       <div className="prep-ref-ambient prep-ref-ambient-bottom" aria-hidden="true" />
 
