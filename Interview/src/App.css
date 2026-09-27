@@ -8960,3 +8960,17 @@
 .cosmic-footer-v2 .footer-v2-connected{border-color:#eadfd2;background:linear-gradient(145deg,#fffaf4,#fff);box-shadow:none}.cosmic-footer-v2 .footer-v2-connected>p{color:#7d8a99}.cosmic-footer-v2 .footer-mail-button{border-color:#eadfd2;color:#68788b;background:#fcfaf6}.cosmic-footer-v2 .footer-mail-button svg:first-child{color:#df711c}.cosmic-footer-v2 .footer-mail-button svg:last-child{color:#fff;background:linear-gradient(135deg,#ff9a4a,#ff6710);box-shadow:none}
 .cosmic-footer-v2 .footer-v2-bottom{border-top-color:#eee5db;background:rgba(255,250,243,.72)}.cosmic-footer-v2 .footer-address{color:#7d8a99}.cosmic-footer-v2 .footer-address-icon{border-color:#ffd8b5;color:#df711c;background:#fff5ea}.cosmic-footer-v2 .footer-v2-bottom>small{color:#8b938e}.cosmic-footer-v2 .footer-live{border-color:#dce9df;color:#4d8a63;background:#f5fbf4}.cosmic-footer-v2 .footer-live>span{background:#35a76a;box-shadow:none}.cosmic-footer-v2 .footer-top-button{color:#7d8a99}.cosmic-footer-v2 .footer-top-button svg{border-color:#ffd8b5;color:#df711c;background:#fff5ea;box-shadow:none}
 @media(max-width:700px){.cosmic-footer-v2{padding:24px 10px 16px}.cosmic-footer-v2 .footer-v2-main{padding:22px 16px 20px;gap:20px 14px}.cosmic-footer-v2 .footer-v2-bottom{padding:14px 16px 16px}}
+
+
+/* Navbar interaction contrast fix */
+.site-header-ref .nav-link{color:#53677e!important;background:transparent!important;opacity:1!important;-webkit-text-fill-color:#53677e!important}
+.site-header-ref .nav-link:hover,.site-header-ref .nav-link:focus-visible{color:#df711c!important;background:#fff5ea!important;-webkit-text-fill-color:#df711c!important}
+.site-header-ref .nav-link.active{color:#df711c!important;background:#fff0df!important;-webkit-text-fill-color:#df711c!important}
+.site-header-ref .nav-link svg{color:currentColor!important;fill:currentColor!important}
+.site-header-ref .nav-popover button,.site-header-ref .nav-popover a{color:#29415f!important;background:transparent!important;-webkit-text-fill-color:#29415f!important}
+.site-header-ref .nav-popover button:hover,.site-header-ref .nav-popover button:focus-visible,.site-header-ref .nav-popover a:hover,.site-header-ref .nav-popover a:focus-visible{color:#df711c!important;background:#fff7ef!important;-webkit-text-fill-color:#df711c!important}
+.site-header-ref .nav-popover button strong,.site-header-ref .nav-popover a strong{color:inherit!important}.site-header-ref .nav-popover button small,.site-header-ref .nav-popover a small{color:#7d8a99!important;-webkit-text-fill-color:#7d8a99!important}
+.site-header-ref .login-btn{color:#53677e!important;background:transparent!important;-webkit-text-fill-color:#53677e!important}.site-header-ref .login-btn:hover,.site-header-ref .login-btn:focus-visible{color:#df711c!important;-webkit-text-fill-color:#df711c!important}
+.site-header-ref .signup-nav-btn,.site-header-ref .header-start-btn{color:#fff!important;-webkit-text-fill-color:#fff!important}.site-header-ref .signup-nav-btn svg,.site-header-ref .header-start-btn svg{color:#fff!important;fill:#fff!important}
+.site-header-ref .mobile-menu-btn{color:#df711c!important;-webkit-text-fill-color:#df711c!important}
+.site-header-ref button:focus-visible{outline:3px solid rgba(255,118,22,.28);outline-offset:2px}
