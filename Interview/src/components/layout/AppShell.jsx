@@ -1,6 +1,5 @@
 import InterviewHeader from './InterviewHeader'
 import Footer from './Footer'
-import { useRouter } from '../../routes/Router'
 import { ROUTES } from '../../routes/routes'
 
 export default function AppShell({ children }) {
