@@ -31,6 +31,7 @@ import {
   ContactSupport,
   Dashboard,
   DarkMode,
+  Download,
   InfoOutlined,
   LightMode,
   Login,
@@ -57,6 +58,9 @@ import {
 /* ============================================================
    NAVIGATION
 ============================================================ */
+
+const MICROSOFT_STORE_URL =
+  "https://apps.microsoft.com/detail/9N4MKMNT987P?hl=en-in&gl=IN&ocid=pdpshare";
 
 const navItems = [
   {
@@ -339,6 +343,10 @@ export default function MainLayout() {
      SEARCH
   ========================================================== */
 
+  const handleMicrosoftStoreDownload = () => {
+    window.open(MICROSOFT_STORE_URL, "_blank", "noopener,noreferrer");
+  };
+
   const handleSearch = () => {
     closeMobileMenu();
     navigate("/courses");
@@ -363,7 +371,7 @@ export default function MainLayout() {
       >
         <Toolbar
           disableGutters
-          className="mx-auto flex min-h-[68px] w-full max-w-7xl px-4 sm:px-6 lg:px-8"
+          className="flex min-h-[68px] w-full px-4 sm:px-6 lg:px-8 xl:px-10"
         >
           <Link
             to="/"
@@ -448,6 +456,47 @@ export default function MainLayout() {
           </nav>
 
           <div className="ml-auto flex items-center gap-1.5">
+            <Button
+              onClick={handleMicrosoftStoreDownload}
+              variant="outlined"
+              aria-label="Download ApnaAcademy for Windows from Microsoft Store"
+              startIcon={
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  style={{ width: 18, height: 18, display: "block" }}
+                >
+                  <path d="M3 3h8v8H3z" fill="#f25022" />
+                  <path d="M13 3h8v8h-8z" fill="#7fba00" />
+                  <path d="M3 13h8v8H3z" fill="#00a4ef" />
+                  <path d="M13 13h8v8h-8z" fill="#ffb900" />
+                </svg>
+              }
+              endIcon={<Download sx={{ fontSize: 17 }} />}
+              sx={{
+                display: { xs: "none", lg: "inline-flex" },
+                minHeight: 40,
+                px: 1.45,
+                borderRadius: "10px",
+                borderColor: "#bfdbfe",
+                backgroundColor: "#eff6ff",
+                color: "#1d4ed8",
+                textTransform: "none",
+                fontSize: "0.78rem",
+                fontWeight: 800,
+                letterSpacing: "-0.01em",
+                whiteSpace: "nowrap",
+                boxShadow: "none",
+                "&:hover": {
+                  borderColor: "#93c5fd",
+                  backgroundColor: "#dbeafe",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              Download App
+            </Button>
+
             <Tooltip title="Search courses">
               <IconButton
                 onClick={handleSearch}
@@ -625,6 +674,10 @@ export default function MainLayout() {
             <ListItemButton onClick={handleLearningApp}>
               <ListItemIcon><MenuBook fontSize="small" /></ListItemIcon>
               <ListItemText primary="Learning App" />
+            </ListItemButton>
+            <ListItemButton onClick={handleMicrosoftStoreDownload}>
+              <ListItemIcon><Download fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Download Windows App" />
             </ListItemButton>
             <ListItemButton onClick={handlePricing}>
               <ListItemIcon><MenuBook fontSize="small" /></ListItemIcon>
