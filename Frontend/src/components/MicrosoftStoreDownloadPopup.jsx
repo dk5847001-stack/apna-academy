@@ -3,32 +3,14 @@ import { useEffect, useState } from "react";
 const MICROSOFT_STORE_URL =
   "https://apps.microsoft.com/detail/9N4MKMNT987P?hl=en-in&gl=IN&ocid=pdpshare";
 
-function GraduationCapIcon() {
+function ApnaAcademyIcon() {
   return (
-    <svg
-      viewBox="0 0 64 64"
-      aria-hidden="true"
-      className="h-11 w-11 sm:h-12 sm:w-12"
-      fill="none"
-    >
-      <path
-        d="M8 26 32 14l24 12-24 12L8 26Z"
-        fill="currentColor"
-        opacity=".98"
-      />
-      <path
-        d="M18 32v10c8 7 20 9 28 0V32l-14 7-14-7Z"
-        fill="currentColor"
-        opacity=".98"
-      />
-      <path
-        d="M54 27v13"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-      <circle cx="54" cy="42" r="3" fill="currentColor" />
-    </svg>
+    <img
+      src="/favicon.png"
+      alt="ApnaAcademy app icon"
+      className="h-full w-full rounded-[30%] object-cover"
+      draggable="false"
+    />
   );
 }
 
@@ -128,7 +110,7 @@ export default function MicrosoftStoreDownloadPopup() {
               className="absolute left-1/2 top-1/2 h-[135px] w-[135px] -translate-x-1/2 -translate-y-1/2 rounded-[58px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 shadow-[0_25px_55px_rgba(37,99,235,0.28)]"
             />
             <div className="relative flex h-[115px] w-[115px] items-center justify-center rounded-[48px] sm:h-[125px] sm:w-[125px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_45px_rgba(37,99,235,0.3)] sm:h-[205px] sm:w-[205px] sm:rounded-[44px]">
-              <GraduationCapIcon />
+              <ApnaAcademyIcon />
             </div>
           </div>
 
