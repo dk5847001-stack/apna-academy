@@ -100,16 +100,8 @@ export default function MicrosoftStoreDownloadPopup() {
         </button>
 
         <div className="grid min-h-0 grid-cols-1 items-center lg:min-h-0 lg:grid-cols-[0.75fr_1.25fr]">
-          <div className="relative flex min-h-[180px] items-center justify-center overflow-hidden bg-white px-8 pt-12 lg:min-h-[350px] lg:px-12 lg:pt-0">
-            <div
-              aria-hidden="true"
-              className="absolute left-1/2 top-1/2 h-[150px] w-[150px] -translate-x-1/2 -translate-y-1/2 rotate-[-10deg] rounded-[76px] bg-gradient-to-br from-blue-50 via-blue-100/80 to-white shadow-[0_20px_50px_rgba(37,99,235,0.08)]"
-            />
-            <div
-              aria-hidden="true"
-              className="absolute left-1/2 top-1/2 h-[135px] w-[135px] -translate-x-1/2 -translate-y-1/2 rounded-[58px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 shadow-[0_25px_55px_rgba(37,99,235,0.28)]"
-            />
-            <div className="relative flex h-[115px] w-[115px] items-center justify-center rounded-[48px] sm:h-[125px] sm:w-[125px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_45px_rgba(37,99,235,0.3)] sm:h-[205px] sm:w-[205px] sm:rounded-[44px]">
+          <div className="relative flex min-h-[150px] items-center justify-center overflow-hidden bg-white px-6 pt-8 lg:min-h-[350px] lg:px-8 lg:pt-0">
+            <div className="relative flex h-[96px] w-[96px] items-center justify-center sm:h-[108px] sm:w-[108px]">
               <ApnaAcademyIcon />
             </div>
           </div>
