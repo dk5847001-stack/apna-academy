@@ -16,6 +16,8 @@ import {
 } from "@mui/icons-material";
 import { ADMIN_URL, API_BASE_URL, COURSE_URL, DASHBOARD_URL, DSA_URL, INTERVIEW_URL } from "../constants/config";
 
+const MICROSOFT_STORE_URL = "https://apps.microsoft.com/detail/9N4MKMNT987P?hl=en-in&gl=IN&ocid=pdpshare";
+
 const SOCIAL_LINKS = [
   { label: "Instagram", href: "https://www.instagram.com/dilkhush_10star?stkn=MXVubXJtbHdtODA0aA==", icon: Instagram },
   { label: "Facebook", href: "https://www.facebook.com/share/1EkezcKBs2/", icon: Facebook },
@@ -68,6 +70,17 @@ function SectionHeading({ type }) {
       </div>
       <span className="ml-1 mt-2 h-0.5 w-8 rounded-full bg-blue-500" />
     </div>
+  );
+}
+
+function MicrosoftStoreLogo() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 shrink-0">
+      <path d="M2 2h9v9H2z" fill="#f25022" />
+      <path d="M13 2h9v9h-9z" fill="#7fba00" />
+      <path d="M2 13h9v9H2z" fill="#00a4ef" />
+      <path d="M13 13h9v9h-9z" fill="#ffb900" />
+    </svg>
   );
 }
 
@@ -234,7 +247,17 @@ export default function PremiumFooter() {
                 <Dashboard fontSize="small" />
                 {isLoggedIn ? "Open Dashboard" : "Get Started"}
               </button>
-            </div>
+            </div>              <a
+                href={MICROSOFT_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Download ApnaAcademy for Windows from Microsoft Store"
+                className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50/90 px-4 py-2.5 text-[13px] font-extrabold text-blue-700 no-underline shadow-[0_10px_24px_rgba(37,99,235,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-blue-100 hover:shadow-[0_14px_28px_rgba(37,99,235,0.12)]"
+              >
+                <MicrosoftStoreLogo />
+                <span>Download Windows App</span>
+                <span className="text-blue-500">↓</span>
+              </a>
 
             <div className="mt-5">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-slate-400">Follow us</p>
