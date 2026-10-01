@@ -8,7 +8,7 @@ function GraduationCapIcon() {
     <svg
       viewBox="0 0 64 64"
       aria-hidden="true"
-      className="h-20 w-20 sm:h-24 sm:w-24"
+      className="h-14 w-14 sm:h-16 sm:w-16"
       fill="none"
     >
       <path
@@ -98,7 +98,7 @@ export default function MicrosoftStoreDownloadPopup() {
         aria-modal="true"
         aria-labelledby="microsoft-store-popup-title"
         aria-describedby="microsoft-store-popup-description"
-        className="relative max-h-[calc(100vh-40px)] w-full max-w-[1220px] overflow-y-auto rounded-[20px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.16)] sm:max-h-[calc(100vh-48px)]"
+        className="relative max-h-[calc(100vh-40px)] w-full max-w-[760px] overflow-y-auto rounded-[20px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.16)] sm:max-h-[calc(100vh-48px)]"
       >
         <button
           type="button"
@@ -117,26 +117,26 @@ export default function MicrosoftStoreDownloadPopup() {
           </svg>
         </button>
 
-        <div className="grid min-h-[680px] grid-cols-1 items-center lg:min-h-[760px] lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative flex min-h-[300px] items-center justify-center overflow-hidden bg-white px-8 pt-12 lg:min-h-[760px] lg:px-12 lg:pt-0">
+        <div className="grid min-h-0 grid-cols-1 items-center lg:min-h-0 lg:grid-cols-[0.82fr_1.18fr]">
+          <div className="relative flex min-h-[220px] items-center justify-center overflow-hidden bg-white px-8 pt-12 lg:min-h-[430px] lg:px-12 lg:pt-0">
             <div
               aria-hidden="true"
-              className="absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rotate-[-10deg] rounded-[76px] bg-gradient-to-br from-blue-50 via-blue-100/80 to-white shadow-[0_20px_50px_rgba(37,99,235,0.08)]"
+              className="absolute left-1/2 top-1/2 h-[190px] w-[190px] -translate-x-1/2 -translate-y-1/2 rotate-[-10deg] rounded-[76px] bg-gradient-to-br from-blue-50 via-blue-100/80 to-white shadow-[0_20px_50px_rgba(37,99,235,0.08)]"
             />
             <div
               aria-hidden="true"
-              className="absolute left-1/2 top-1/2 h-[270px] w-[270px] -translate-x-1/2 -translate-y-1/2 rounded-[58px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 shadow-[0_25px_55px_rgba(37,99,235,0.28)]"
+              className="absolute left-1/2 top-1/2 h-[170px] w-[170px] -translate-x-1/2 -translate-y-1/2 rounded-[58px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 shadow-[0_25px_55px_rgba(37,99,235,0.28)]"
             />
-            <div className="relative flex h-[235px] w-[235px] items-center justify-center rounded-[48px] sm:h-[250px] sm:w-[250px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_45px_rgba(37,99,235,0.3)] sm:h-[205px] sm:w-[205px] sm:rounded-[44px]">
+            <div className="relative flex h-[145px] w-[145px] items-center justify-center rounded-[48px] sm:h-[165px] sm:w-[165px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_45px_rgba(37,99,235,0.3)] sm:h-[205px] sm:w-[205px] sm:rounded-[44px]">
               <GraduationCapIcon />
             </div>
           </div>
 
-          <div className="flex flex-col justify-center px-7 pb-9 pt-4 sm:px-10 lg:px-12 lg:py-12">
+          <div className="flex flex-col justify-center px-6 pb-6 pt-3 sm:px-7 lg:px-8 lg:py-8">
             <div className="max-w-[650px] lg:pt-2">
               <h2
                 id="microsoft-store-popup-title"
-                className="text-4xl font-extrabold leading-[1.04] tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-[58px]"
+                className="text-3xl font-extrabold leading-[1.04] tracking-[-0.045em] text-slate-950 sm:text-4xl lg:text-[42px]"
               >
                 Get ApnaAcademy
                 <span className="block text-blue-600">for Windows</span>
@@ -144,7 +144,7 @@ export default function MicrosoftStoreDownloadPopup() {
 
               <p
                 id="microsoft-store-popup-description"
-                className="mt-6 max-w-[570px] text-base leading-7 text-slate-500 sm:text-lg sm:leading-8"
+                className="mt-4 max-w-[520px] text-sm leading-6 text-slate-500 sm:text-base sm:leading-7"
               >
                 Download the official ApnaAcademy app from Microsoft Store and
                 start your learning journey today.
@@ -154,14 +154,14 @@ export default function MicrosoftStoreDownloadPopup() {
                 href={MICROSOFT_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-8 inline-flex w-full max-w-[500px] items-center justify-center gap-4 rounded-[18px] bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-4 text-left text-white no-underline shadow-[0_14px_30px_rgba(37,99,235,0.24)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(37,99,235,0.3)] focus:outline-none focus:ring-4 focus:ring-blue-200 sm:px-7 sm:py-5"
+                className="mt-6 inline-flex w-full max-w-[430px] items-center justify-center gap-4 rounded-[18px] bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 text-left text-white no-underline shadow-[0_14px_30px_rgba(37,99,235,0.24)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(37,99,235,0.3)] focus:outline-none focus:ring-4 focus:ring-blue-200 sm:px-5 sm:py-4"
               >
                 <MicrosoftStoreIcon />
                 <span className="flex min-w-0 flex-col">
                   <span className="text-sm font-medium leading-5 sm:text-base">
                     Get it from
                   </span>
-                  <span className="text-xl font-bold leading-6 sm:text-2xl">
+                  <span className="text-lg font-bold leading-5 sm:text-xl">
                     Microsoft Store
                   </span>
                 </span>
@@ -182,10 +182,10 @@ export default function MicrosoftStoreDownloadPopup() {
               </a>
             </div>
 
-            <div className="mt-9 grid max-w-[650px] grid-cols-3 border-t border-slate-100 pt-6">
-              <div className="flex items-center justify-center gap-2 border-r border-slate-200 px-2 text-center text-xs font-semibold text-slate-700 sm:gap-3 sm:text-sm">
+            <div className="mt-6 grid max-w-[560px] grid-cols-3 border-t border-slate-100 pt-4">
+              <div className="flex items-center justify-center gap-2 border-r border-slate-200 px-2 text-center text-[11px] font-semibold text-slate-700 sm:gap-3 sm:text-xs">
                 <span className="text-blue-600">
-                  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none">
+                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none">
                     <path
                       d="M12 3 19 6v5c0 4.5-3 7.5-7 10-4-2.5-7-5.5-7-10V6l7-3Z"
                       stroke="currentColor"
