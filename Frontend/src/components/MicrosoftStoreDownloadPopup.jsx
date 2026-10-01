@@ -8,7 +8,7 @@ function GraduationCapIcon() {
     <svg
       viewBox="0 0 64 64"
       aria-hidden="true"
-      className="h-14 w-14 sm:h-16 sm:w-16"
+      className="h-11 w-11 sm:h-12 sm:w-12"
       fill="none"
     >
       <path
@@ -37,7 +37,7 @@ function MicrosoftStoreIcon() {
     <svg
       viewBox="0 0 48 48"
       aria-hidden="true"
-      className="h-10 w-10 shrink-0 sm:h-11 sm:w-11"
+      className="h-6 w-6 shrink-0 sm:h-11 sm:w-11"
     >
       <rect x="7" y="9" width="34" height="32" rx="5" fill="white" />
       <path d="M13 15h9v9h-9z" fill="#f25022" />
@@ -98,13 +98,13 @@ export default function MicrosoftStoreDownloadPopup() {
         aria-modal="true"
         aria-labelledby="microsoft-store-popup-title"
         aria-describedby="microsoft-store-popup-description"
-        className="relative max-h-[calc(100vh-40px)] w-full max-w-[760px] overflow-y-auto rounded-[20px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.16)] sm:max-h-[calc(100vh-48px)]"
+        className="relative max-h-[calc(100vh-40px)] w-full max-w-[600px] overflow-y-auto rounded-[20px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.16)] sm:max-h-[calc(100vh-48px)]"
       >
         <button
           type="button"
           onClick={() => setOpen(false)}
           aria-label="Close Microsoft Store download popup"
-          className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:right-6 sm:top-5"
+          className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:right-4 sm:top-4"
         >
           <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8">
             <path
@@ -117,26 +117,26 @@ export default function MicrosoftStoreDownloadPopup() {
           </svg>
         </button>
 
-        <div className="grid min-h-0 grid-cols-1 items-center lg:min-h-0 lg:grid-cols-[0.82fr_1.18fr]">
-          <div className="relative flex min-h-[220px] items-center justify-center overflow-hidden bg-white px-8 pt-12 lg:min-h-[430px] lg:px-12 lg:pt-0">
+        <div className="grid min-h-0 grid-cols-1 items-center lg:min-h-0 lg:grid-cols-[0.75fr_1.25fr]">
+          <div className="relative flex min-h-[180px] items-center justify-center overflow-hidden bg-white px-8 pt-12 lg:min-h-[350px] lg:px-12 lg:pt-0">
             <div
               aria-hidden="true"
-              className="absolute left-1/2 top-1/2 h-[190px] w-[190px] -translate-x-1/2 -translate-y-1/2 rotate-[-10deg] rounded-[76px] bg-gradient-to-br from-blue-50 via-blue-100/80 to-white shadow-[0_20px_50px_rgba(37,99,235,0.08)]"
+              className="absolute left-1/2 top-1/2 h-[150px] w-[150px] -translate-x-1/2 -translate-y-1/2 rotate-[-10deg] rounded-[76px] bg-gradient-to-br from-blue-50 via-blue-100/80 to-white shadow-[0_20px_50px_rgba(37,99,235,0.08)]"
             />
             <div
               aria-hidden="true"
-              className="absolute left-1/2 top-1/2 h-[170px] w-[170px] -translate-x-1/2 -translate-y-1/2 rounded-[58px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 shadow-[0_25px_55px_rgba(37,99,235,0.28)]"
+              className="absolute left-1/2 top-1/2 h-[135px] w-[135px] -translate-x-1/2 -translate-y-1/2 rounded-[58px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 shadow-[0_25px_55px_rgba(37,99,235,0.28)]"
             />
-            <div className="relative flex h-[145px] w-[145px] items-center justify-center rounded-[48px] sm:h-[165px] sm:w-[165px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_45px_rgba(37,99,235,0.3)] sm:h-[205px] sm:w-[205px] sm:rounded-[44px]">
+            <div className="relative flex h-[115px] w-[115px] items-center justify-center rounded-[48px] sm:h-[125px] sm:w-[125px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_45px_rgba(37,99,235,0.3)] sm:h-[205px] sm:w-[205px] sm:rounded-[44px]">
               <GraduationCapIcon />
             </div>
           </div>
 
-          <div className="flex flex-col justify-center px-6 pb-6 pt-3 sm:px-7 lg:px-8 lg:py-8">
+          <div className="flex flex-col justify-center px-5 pb-5 pt-2 sm:px-6 lg:px-7 lg:py-6">
             <div className="max-w-[650px] lg:pt-2">
               <h2
                 id="microsoft-store-popup-title"
-                className="text-3xl font-extrabold leading-[1.04] tracking-[-0.045em] text-slate-950 sm:text-4xl lg:text-[42px]"
+                className="text-2xl font-extrabold leading-[1.04] tracking-[-0.045em] text-slate-950 sm:text-3xl lg:text-[34px]"
               >
                 Get ApnaAcademy
                 <span className="block text-blue-600">for Windows</span>
@@ -144,7 +144,7 @@ export default function MicrosoftStoreDownloadPopup() {
 
               <p
                 id="microsoft-store-popup-description"
-                className="mt-4 max-w-[520px] text-sm leading-6 text-slate-500 sm:text-base sm:leading-7"
+                className="mt-3 max-w-[460px] text-xs leading-5 text-slate-500 sm:text-sm sm:leading-6"
               >
                 Download the official ApnaAcademy app from Microsoft Store and
                 start your learning journey today.
@@ -154,14 +154,14 @@ export default function MicrosoftStoreDownloadPopup() {
                 href={MICROSOFT_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-6 inline-flex w-full max-w-[430px] items-center justify-center gap-4 rounded-[18px] bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 text-left text-white no-underline shadow-[0_14px_30px_rgba(37,99,235,0.24)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(37,99,235,0.3)] focus:outline-none focus:ring-4 focus:ring-blue-200 sm:px-5 sm:py-4"
+                className="mt-5 inline-flex w-full max-w-[360px] items-center justify-center gap-4 rounded-[18px] bg-gradient-to-r from-blue-600 to-blue-500 px-3 py-2.5 text-left text-white no-underline shadow-[0_14px_30px_rgba(37,99,235,0.24)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(37,99,235,0.3)] focus:outline-none focus:ring-4 focus:ring-blue-200 sm:px-4 sm:py-3"
               >
                 <MicrosoftStoreIcon />
                 <span className="flex min-w-0 flex-col">
                   <span className="text-sm font-medium leading-5 sm:text-base">
                     Get it from
                   </span>
-                  <span className="text-lg font-bold leading-5 sm:text-xl">
+                  <span className="text-base font-bold leading-5 sm:text-lg">
                     Microsoft Store
                   </span>
                 </span>
@@ -182,10 +182,10 @@ export default function MicrosoftStoreDownloadPopup() {
               </a>
             </div>
 
-            <div className="mt-6 grid max-w-[560px] grid-cols-3 border-t border-slate-100 pt-4">
-              <div className="flex items-center justify-center gap-2 border-r border-slate-200 px-2 text-center text-[11px] font-semibold text-slate-700 sm:gap-3 sm:text-xs">
+            <div className="mt-5 grid max-w-[500px] grid-cols-3 border-t border-slate-100 pt-3">
+              <div className="flex items-center justify-center gap-2 border-r border-slate-200 px-2 text-center text-[10px] font-semibold text-slate-700 sm:gap-3 sm:text-[11px]">
                 <span className="text-blue-600">
-                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none">
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
                     <path
                       d="M12 3 19 6v5c0 4.5-3 7.5-7 10-4-2.5-7-5.5-7-10V6l7-3Z"
                       stroke="currentColor"
