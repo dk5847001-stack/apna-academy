@@ -87,7 +87,7 @@ export default function MicrosoftStoreDownloadPopup() {
 
   return (
     <div
-      className="fixed inset-0 z-[1600] flex items-center justify-center bg-slate-100/70 px-4 py-6 backdrop-blur-[4px] sm:px-6"
+      className="fixed inset-0 z-[1600] flex items-center justify-center bg-white/75 px-4 py-5 backdrop-blur-[5px] sm:px-6 sm:py-6"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) setOpen(false);
@@ -98,7 +98,7 @@ export default function MicrosoftStoreDownloadPopup() {
         aria-modal="true"
         aria-labelledby="microsoft-store-popup-title"
         aria-describedby="microsoft-store-popup-description"
-        className="relative w-full max-w-[1220px] overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.16)]"
+        className="relative max-h-[calc(100vh-40px)] w-full max-w-[1220px] overflow-y-auto rounded-[20px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.16)] sm:max-h-[calc(100vh-48px)]"
       >
         <button
           type="button"
@@ -117,23 +117,23 @@ export default function MicrosoftStoreDownloadPopup() {
           </svg>
         </button>
 
-        <div className="grid min-h-[520px] grid-cols-1 items-center lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative flex min-h-[270px] items-center justify-center overflow-hidden bg-white px-8 pt-12 lg:min-h-[520px] lg:px-12 lg:pt-0">
+        <div className="grid min-h-[680px] grid-cols-1 items-center lg:min-h-[760px] lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="relative flex min-h-[300px] items-center justify-center overflow-hidden bg-white px-8 pt-12 lg:min-h-[760px] lg:px-12 lg:pt-0">
             <div
               aria-hidden="true"
-              className="absolute left-1/2 top-1/2 h-[270px] w-[270px] -translate-x-1/2 -translate-y-1/2 rotate-[-10deg] rounded-[76px] bg-gradient-to-br from-blue-50 via-blue-100/80 to-white shadow-[0_20px_50px_rgba(37,99,235,0.08)]"
+              className="absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rotate-[-10deg] rounded-[76px] bg-gradient-to-br from-blue-50 via-blue-100/80 to-white shadow-[0_20px_50px_rgba(37,99,235,0.08)]"
             />
             <div
               aria-hidden="true"
-              className="absolute left-1/2 top-1/2 h-[220px] w-[220px] -translate-x-1/2 -translate-y-1/2 rounded-[48px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 shadow-[0_25px_55px_rgba(37,99,235,0.28)]"
+              className="absolute left-1/2 top-1/2 h-[270px] w-[270px] -translate-x-1/2 -translate-y-1/2 rounded-[58px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 shadow-[0_25px_55px_rgba(37,99,235,0.28)]"
             />
-            <div className="relative flex h-[180px] w-[180px] items-center justify-center rounded-[38px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_45px_rgba(37,99,235,0.3)] sm:h-[205px] sm:w-[205px] sm:rounded-[44px]">
+            <div className="relative flex h-[235px] w-[235px] items-center justify-center rounded-[48px] sm:h-[250px] sm:w-[250px] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_45px_rgba(37,99,235,0.3)] sm:h-[205px] sm:w-[205px] sm:rounded-[44px]">
               <GraduationCapIcon />
             </div>
           </div>
 
           <div className="flex flex-col justify-center px-7 pb-9 pt-4 sm:px-10 lg:px-12 lg:py-12">
-            <div className="max-w-[650px]">
+            <div className="max-w-[650px] lg:pt-2">
               <h2
                 id="microsoft-store-popup-title"
                 className="text-4xl font-extrabold leading-[1.04] tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-[58px]"
