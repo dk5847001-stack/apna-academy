@@ -247,7 +247,7 @@ export default function PremiumFooter() {
                 <Dashboard fontSize="small" />
                 {isLoggedIn ? "Open Dashboard" : "Get Started"}
               </button>
-            </div>              <a
+              <a
                 href={MICROSOFT_STORE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -258,7 +258,7 @@ export default function PremiumFooter() {
                 <span>Download Windows App</span>
                 <span className="text-blue-500">↓</span>
               </a>
-
+            </div>
             <div className="mt-5">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-slate-400">Follow us</p>
               <div className="mt-2.5 flex flex-wrap gap-2">
