@@ -222,21 +222,18 @@ export const startCoursePayment = async ({
         orderData.orderId
       );
 
+      // A Razorpay Order can have multiple payment attempts. A failed
+      // attempt must not settle this checkout session because the customer
+      // can retry and successfully pay with another method.
+      //
       // Safe diagnostics only: no card number, CVV, OTP, token, or other
       // payment credentials are logged.
-      console.error("[ApnaAcademy][Razorpay] Payment failed", diagnostics);
+      console.error("[ApnaAcademy][Razorpay] Payment attempt failed", diagnostics);
 
-      if (purchaseType === "course" && promoCode) {
-        releasePromoReservation(orderData.orderId).catch(() => {});
-      }
-
-      fail({
-        type: "payment",
-        message:
-          diagnostics.description ||
-          "Payment failed. Please try again.",
-        diagnostics,
-      });
+      // Keep the promo reservation until checkout is actually dismissed.
+      // Releasing it here could make a later successful retry inconsistent.
+      // The modal.ondismiss handler releases the reservation when the user
+      // abandons the checkout.
     });
 
     razorpay.open();
