@@ -11,6 +11,7 @@ import apiRoutes from "./routes/index.js";
 import { notFoundMiddleware } from "./middleware/notFound.middleware.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 import referralWebhookRoutes from "./routes/referralWebhook.routes.js";
+import razorpayWebhookRoutes from "./routes/razorpayWebhook.routes.js";
 
 const app = express();
 
@@ -135,6 +136,24 @@ app.use(
   `${API_PREFIX}/referrals/webhooks`,
   referralWebhookRoutes
 );
+
+/*
+|--------------------------------------------------------------------------
+| Razorpay Payment Webhook
+|--------------------------------------------------------------------------
+|
+| This route must receive the exact raw request bytes for HMAC verification.
+| It is intentionally mounted before express.json().
+|--------------------------------------------------------------------------
+*/
+app.use(
+  `${API_PREFIX}/webhooks`,
+  express.raw({
+    type: "application/json",
+    limit: "100kb",
+  }),
+  razorpayWebhookRoutes
+)
 
 /*
 |--------------------------------------------------------------------------
