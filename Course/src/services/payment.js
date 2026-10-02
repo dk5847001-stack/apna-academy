@@ -83,6 +83,21 @@ export const verifyPayment = async ({
   return response.data;
 };
 
+const getRazorpayPaymentFailureDetails = (responseData, fallbackOrderId) => {
+  const error = responseData?.error || {};
+  const metadata = error?.metadata || {};
+
+  return {
+    code: error?.code || null,
+    description: error?.description || null,
+    source: error?.source || null,
+    step: error?.step || null,
+    reason: error?.reason || null,
+    orderId: metadata?.order_id || fallbackOrderId || null,
+    paymentId: metadata?.payment_id || null,
+  };
+};
+
 export const startCoursePayment = async ({
   courseId,
   courseTitle,
@@ -202,14 +217,25 @@ export const startCoursePayment = async ({
     });
 
     razorpay.on("payment.failed", (responseData) => {
+      const diagnostics = getRazorpayPaymentFailureDetails(
+        responseData,
+        orderData.orderId
+      );
+
+      // Safe diagnostics only: no card number, CVV, OTP, token, or other
+      // payment credentials are logged.
+      console.error("[ApnaAcademy][Razorpay] Payment failed", diagnostics);
+
       if (purchaseType === "course" && promoCode) {
         releasePromoReservation(orderData.orderId).catch(() => {});
       }
+
       fail({
         type: "payment",
         message:
-          responseData?.error?.description ||
+          diagnostics.description ||
           "Payment failed. Please try again.",
+        diagnostics,
       });
     });
 
