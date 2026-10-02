@@ -108,11 +108,9 @@ export const handleRazorpayWebhook = async (req, res) => {
     }
 
     if (event === "payment.failed") {
-      await markPaymentFailed({
-        razorpayOrderId: orderId,
-        razorpayPaymentId: paymentId,
-      });
-
+      // A Razorpay Order can have multiple payment attempts. Do not mark the
+      // local purchase permanently failed from a single failed attempt.
+      // The browser flow creates a new order when the customer retries.
       return res.status(200).json({
         success: true,
         processed: true,
