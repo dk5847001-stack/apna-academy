@@ -44,6 +44,8 @@ async function getLeaderboard(req, res) {
   const page = Math.max(Number.isFinite(pageValue) ? pageValue : 1, 1)
 
   if (participantId && !mongoose.isValidObjectId(participantId)) throw new HttpError(400, 'Invalid participantId.', 'INVALID_PARTICIPANT_ID')
+  const requiredFilter = { quiz: quizSlug, subject, degree, branch, college }[scope]
+  if (scope !== 'overall' && !requiredFilter) throw new HttpError(400, 'A filter matching the selected leaderboard scope is required.', 'SCOPE_FILTER_REQUIRED')
 
   let quizId = null
   if (quizSlug) {
