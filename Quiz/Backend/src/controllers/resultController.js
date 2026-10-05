@@ -58,7 +58,8 @@ function buildAnalytics(attempt, quiz) {
   }))
 
   const suggestions = []
-  if (percentage < 40) suggestions.push('Revisit the core concepts before attempting another test.')
+  const passTarget = Number(attempt.rules?.passingPercentage ?? quiz?.passingPercentage ?? 40)
+  if (percentage < Math.max(40, passTarget)) suggestions.push('Revisit the core concepts before attempting another test.')
   else if (percentage < 60) suggestions.push('Review incorrect questions and strengthen the weaker topics.')
   else if (percentage < 80) suggestions.push('Keep practicing your weaker topics and aim for more consistent accuracy.')
   else suggestions.push('Strong attempt. Use targeted practice to turn this performance into consistent mastery.')
@@ -101,7 +102,7 @@ function buildAnalytics(attempt, quiz) {
     questionCount: questions.length,
     topicPerformance,
     suggestions,
-    questionReview: showExplanations === false ? [] : questions.map((question) => { const selected=answerMap.get(question.questionId.toString()) || null; return { questionId:question.questionId.toString(), position:question.position, text:question.text, selectedOption:selected, correctOption:question.correctOption, correct:Boolean(selected && selected===question.correctOption), explanation:question.explanation || '' } }),
+    questionReview: showExplanations === false ? [] : questions.map((question) => { const selected=answerMap.get(question.questionId.toString()) || null; return { questionId:question.questionId.toString(), position:question.position, text:question.text, selectedOption:selected, correct:Boolean(selected && selected===question.correctOption), explanation:question.explanation || '' } }),
   }
 }
 
