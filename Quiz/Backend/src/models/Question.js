@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const questionSchema = new mongoose.Schema({
   quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'QuizQuiz', required: true, index: true },
   position: { type: Number, required: true, min: 1 },
+  topic: { type: String, trim: true, maxlength: 120, default: '' },
   text: { type: String, required: true, trim: true, maxlength: 2000 },
   options: {
     type: [{
