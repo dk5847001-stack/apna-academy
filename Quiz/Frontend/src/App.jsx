@@ -1101,8 +1101,8 @@ function RegistrationPage({ existingProfile }) {
 
   function validate() {
     const next = {}
-    const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/
-    const mobilePattern = /^[6-9]\\d{9}$/
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const mobilePattern = /^[6-9]\d{9}$/
 
     if (!form.name.trim()) next.name = 'Enter your full name.'
     if (!form.rollNumber.trim()) next.rollNumber = 'Enter your PRN or roll number.'
