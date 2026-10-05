@@ -4,6 +4,7 @@ const snapshotOptionSchema = new mongoose.Schema({ key: String, text: String }, 
 const snapshotQuestionSchema = new mongoose.Schema({
   questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
   position: Number,
+  topic: String,
   text: String,
   options: [snapshotOptionSchema],
   correctOption: String,
