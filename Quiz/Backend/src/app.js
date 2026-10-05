@@ -6,6 +6,7 @@ const {generalLimiter,attemptLimiter}=require('./middleware/rateLimiters')
 const participantRoutes=require('./routes/participantRoutes')
 const quizRoutes=require('./routes/quizRoutes')
 const attemptRoutes=require('./routes/attemptRoutes')
+const resultRoutes=require('./routes/resultRoutes')
 const {notFound}=require('./middleware/notFound')
 const {errorHandler}=require('./middleware/errorHandler')
 
@@ -20,6 +21,7 @@ app.get('/health',(req,res)=>res.json({success:true,data:{service:'apna-academy-
 app.use('/api/v1/participants',participantRoutes)
 app.use('/api/v1/quizzes',quizRoutes)
 app.use('/api/v1/attempts',attemptLimiter,attemptRoutes)
+app.use('/api/v1/results',resultRoutes)
 app.use(notFound)
 app.use(errorHandler)
 module.exports=app
