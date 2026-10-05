@@ -50,6 +50,7 @@ function buildAnalytics(attempt, quiz) {
   const durationSeconds = Number(attempt.durationSeconds || quiz?.durationSeconds || 0)
   const timeRemainingSeconds = Math.max(0, durationSeconds - timeUsedSeconds)
   const passed = Boolean(attempt.result?.passed)
+  const showExplanations = attempt.rules?.showExplanations !== false
 
   const topicPerformance = [...topicMap.values()].map((item) => ({
     ...item,
@@ -96,11 +97,11 @@ function buildAnalytics(attempt, quiz) {
     timeUsedSeconds,
     timeRemainingSeconds,
     passed,
-    passingPercentage: Number(quiz?.passingPercentage ?? 40),
+    passingPercentage: Number(attempt.rules?.passingPercentage ?? quiz?.passingPercentage ?? 40),
     questionCount: questions.length,
     topicPerformance,
     suggestions,
-    questionReview: quiz?.showExplanations === false ? [] : questions.map((question) => { const selected=answerMap.get(question.questionId.toString()) || null; return { questionId:question.questionId.toString(), position:question.position, text:question.text, selectedOption:selected, correctOption:question.correctOption, correct:Boolean(selected && selected===question.correctOption), explanation:question.explanation || '' } }),
+    questionReview: showExplanations === false ? [] : questions.map((question) => { const selected=answerMap.get(question.questionId.toString()) || null; return { questionId:question.questionId.toString(), position:question.position, text:question.text, selectedOption:selected, correctOption:question.correctOption, correct:Boolean(selected && selected===question.correctOption), explanation:question.explanation || '' } }),
   }
 }
 
