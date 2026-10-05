@@ -91,3 +91,18 @@ Default local API: `http://localhost:5001`.
 ## Seed Note
 
 The seed creates a small development question fixture for Java Fundamentals, DSA with Java and DBMS Core Concepts. It is intentionally not production question content. Production question authoring belongs to the future Admin/Question Bank phase.
+
+
+## Phase 10 — Leaderboard + Competitive Layer — Complete
+
+API:
+- GET /api/v1/leaderboard
+- Query filters: scope, quizSlug, subject, degree, branch, college, participantId, page, limit.
+- Eligible attempts: SUBMITTED and EXPIRED only.
+- Repeated attempts are reduced to the best completed attempt per participant per quiz.
+- Ranking metric: average percentage across eligible best attempts.
+- Tie-breakers: completed quizzes, average accuracy, lower average time, earlier completion.
+- Rank method: competition ranking.
+- Public identity is reduced to first name plus last initial; email, mobile and roll/PRN are not returned.
+- The optional participantId only adds that participant's own rank summary; it does not alter the ranking calculation.
+- Leaderboard calculation is performed entirely from server/database state. Client scores are never accepted.
