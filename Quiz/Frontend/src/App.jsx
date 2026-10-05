@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { AtTheHorizon } from '@designcodeio/threeui'
-import '@designcodeio/threeui/style.css'
 import './App.css'
 
 gsap.registerPlugin(useGSAP, ScrollTrigger)
@@ -356,8 +354,7 @@ function LandingPage() {
               </div>
             </div>
             <div className="hero-visual" aria-label="Quiz experience preview">
-              <div className="threeui-hero-scene" aria-hidden="true"><AtTheHorizon /></div>
-              <div className="hero-orb hero-orb-one" aria-hidden="true" />
+                            <div className="hero-orb hero-orb-one" aria-hidden="true" />
               <div className="hero-orb hero-orb-two" aria-hidden="true" />
               <div className="quiz-preview-card">
                 <div className="preview-top"><span>Java Fundamentals</span><span className="preview-live">Practice</span></div>
