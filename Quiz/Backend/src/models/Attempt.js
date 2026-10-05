@@ -27,6 +27,11 @@ const attemptSchema = new mongoose.Schema({
   expiresAt: { type: Date, default: null },
   submittedAt: { type: Date, default: null },
   durationSeconds: { type: Number, required: true },
+  rules: {
+    passingPercentage: { type: Number, default: 40 },
+    allowReview: { type: Boolean, default: true },
+    showExplanations: { type: Boolean, default: true },
+  },
   snapshot: { type: [snapshotQuestionSchema], required: true },
   answers: { type: [answerSchema], default: [] },
   result: {
