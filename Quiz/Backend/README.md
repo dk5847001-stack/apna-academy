@@ -120,3 +120,13 @@ API:
 - Admin answer keys are available only after successful admin authorization.
 - Required environment variables: ADMIN_EMAIL, ADMIN_PASSWORD_HASH, ADMIN_TOKEN_SECRET.
 - Generate a password hash with: npm run admin:hash -- "your-strong-password".
+
+
+## Phase 12 — Advanced Quiz Features — Complete
+
+- Server-side question and option randomization.
+- Immutable attempt-level rules for pass percentage, review and explanations.
+- Server-side pass/fail scoring.
+- Completed-attempt learning review without returning correct answer keys.
+- Admin configuration for randomization and result behavior.
+- Existing attempt snapshots remain authoritative after later quiz edits.
