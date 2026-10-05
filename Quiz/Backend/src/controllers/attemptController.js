@@ -10,6 +10,8 @@ const idSchema=z.string().refine(v=>mongoose.isValidObjectId(v),'Invalid id')
 const startSchema=z.object({participantId:idSchema,quizId:idSchema})
 const answerSchema=z.object({selectedOption:z.enum(['A','B','C','D']).nullable()})
 
+function shuffle(list){ const copy=[...list]; for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]} return copy }
+
 function safeAttempt(attempt){
  return {id:attempt._id.toString(),quizId:attempt.quizId.toString(),participantId:attempt.participantId.toString(),status:attempt.status,startedAt:attempt.startedAt,expiresAt:attempt.expiresAt,durationSeconds:attempt.durationSeconds,questions:attempt.snapshot.map(q=>({questionId:q.questionId.toString(),position:q.position,topic:q.topic || 'General',text:q.text,options:q.options,marks:q.marks})),answers:attempt.answers.map(a=>({questionId:a.questionId.toString(),selectedOption:a.selectedOption}))}
 }
@@ -25,10 +27,11 @@ async function startAttempt(req,res){
  if(active) return res.status(200).json({success:true,data:{attempt:safeAttempt(active),resumed:true}})
  const attempts=await Attempt.countDocuments({participantId,quizId,status:{$in:['SUBMITTED','EXPIRED']}})
  if(attempts>=quiz.maxAttempts) throw new HttpError(409,'Maximum attempts reached for this quiz.','ATTEMPT_LIMIT_REACHED')
- const questions=await Question.find({quizId,isActive:true}).sort({position:1}).lean()
+ let questions=await Question.find({quizId,isActive:true}).sort({position:1}).lean()
+ if(quiz.shuffleQuestions) questions=shuffle(questions)
  if(!questions.length) throw new HttpError(409,'This quiz has no active questions.','NO_QUESTIONS')
  const now=new Date()
- const snapshot=questions.map(q=>({questionId:q._id,position:q.position,text:q.text,options:q.options.map(o=>({key:o.key,text:o.text})),correctOption:q.correctOption,marks:q.marks,negativeMarks:quiz.negativeMarks}))
+ const snapshot=questions.map(q=>{ let options=q.options.map(o=>({key:o.key,text:o.text})); let correctOption=q.correctOption; if(quiz.shuffleOptions){ const originalCorrect=correctOption; options=shuffle(options); const newCorrect=options.findIndex(o=>o.key===originalCorrect); const keys=['A','B','C','D']; options=options.map((o,i)=>({key:keys[i],text:o.text})); correctOption=keys[newCorrect] } return {questionId:q._id,position:q.position,topic:q.topic||'General',text:q.text,options,correctOption,marks:q.marks,negativeMarks:quiz.negativeMarks,explanation:q.explanation||''} })
  const attempt=await Attempt.create({participantId,quizId,status:'IN_PROGRESS',startedAt:now,expiresAt:new Date(now.getTime()+quiz.durationSeconds*1000),durationSeconds:quiz.durationSeconds,snapshot})
  res.status(201).json({success:true,data:{attempt:safeAttempt(attempt),resumed:false}})
 }
@@ -67,7 +70,7 @@ async function scoreAttempt(attempt,expired=false){
  const started=attempt.startedAt?.getTime()||Date.now()
  const end=Math.min(Date.now(),attempt.expiresAt?.getTime()||Date.now())
  const timeUsedSeconds=Math.max(0,Math.round((end-started)/1000))
- attempt.result={score,percentage:maxMarks?Number(((score/maxMarks)*100).toFixed(2)):0,correct,incorrect,skipped,accuracy:correct+incorrect?Number(((correct/(correct+incorrect))*100).toFixed(2)):0,timeUsedSeconds}
+ attempt.result={score,percentage:maxMarks?Number(((score/maxMarks)*100).toFixed(2)):0,correct,incorrect,skipped,accuracy:correct+incorrect?Number(((correct/(correct+incorrect))*100).toFixed(2)):0,timeUsedSeconds,passed:attempt.result?.passed}
  attempt.status=expired?'EXPIRED':'SUBMITTED'
  attempt.submittedAt=new Date()
  await attempt.save()
