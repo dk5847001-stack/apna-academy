@@ -658,7 +658,7 @@ function QuizEnginePage({ quizSlug, profile }) {
 
   function goNext() { setCurrentIndex((current) => Math.min(current + 1, questions.length - 1)) }
   function goPrevious() { setCurrentIndex((current) => Math.max(current - 1, 0)) }
-  function toggleMarked() { setMarked((current) => ({ ...current, [currentQuestion.questionId]: !current[currentQuestion.questionId] })) }
+  function toggleMarked() { if (attempt.allowReview === false) return; setMarked((current) => ({ ...current, [currentQuestion.questionId]: !current[currentQuestion.questionId] })) }
 
   async function submitAttempt() {
     if (submitting) return
