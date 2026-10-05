@@ -121,10 +121,115 @@ function getPath() {
   return window.location.pathname.replace(/\/+$/, '') || '/'
 }
 
+
+const ADMIN_TOKEN_KEY = 'apnaAcademyQuiz.adminToken'
+
+async function adminRequest(path, options = {}) {
+  const token = localStorage.getItem(ADMIN_TOKEN_KEY)
+  return apiRequest('/api/v1/admin' + path, {
+    ...options,
+    headers: { ...(options.headers || {}), ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+  })
+}
+
+function AdminLoginPage() {
+  const [email,setEmail]=useState('')
+  const [password,setPassword]=useState('')
+  const [error,setError]=useState('')
+  const [loading,setLoading]=useState(false)
+  async function submit(e){
+    e.preventDefault(); setError(''); setLoading(true)
+    try{
+      const payload=await apiRequest('/api/v1/admin/auth/login',{method:'POST',body:JSON.stringify({email,password})})
+      localStorage.setItem(ADMIN_TOKEN_KEY,payload.data.token)
+      window.location.href='/admin/dashboard'
+    }catch(err){setError(err.message)}finally{setLoading(false)}
+  }
+  return <div className="admin-app"><div className="admin-login-card"><div className="admin-brand">A<span>Q</span></div><p className="section-label">Secure administration</p><h1>Quiz Admin</h1><p>Manage quizzes, questions and student performance from one protected workspace.</p><form onSubmit={submit} className="admin-form"><label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="username"/></label><label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} required autoComplete="current-password"/></label>{error&&<div className="admin-error" role="alert">{error}</div>}<button className="button button-primary button-large" disabled={loading}>{loading?'Signing in…':'Sign in'}</button></form></div></div>
+}
+
+function AdminShell({children,active='dashboard'}){
+  function logout(){localStorage.removeItem(ADMIN_TOKEN_KEY);window.location.href='/admin/login'}
+  const links=[['dashboard','Dashboard','/admin/dashboard'],['quizzes','Quizzes','/admin/quizzes'],['questions','Question Bank','/admin/questions'],['participants','Participants','/admin/participants'],['attempts','Attempts','/admin/attempts'],['results','Results','/admin/results'],['leaderboard','Leaderboard','/leaderboard']]
+  return <div className="admin-app"><aside className="admin-sidebar"><a className="admin-logo" href="/admin/dashboard"><span>A</span> Apna Academy Quiz</a><nav>{links.map(([key,label,href])=><a key={key} className={active===key?'active':''} href={href}>{label}</a>)}</nav><button className="admin-logout" onClick={logout}>Sign out</button></aside><main className="admin-content">{children}</main></div>
+}
+
+function useAdminGuard(){
+  const [state,setState]=useState({loading:true,ok:false})
+  useEffect(()=>{adminRequest('/auth/me').then(()=>setState({loading:false,ok:true})).catch(()=>{localStorage.removeItem(ADMIN_TOKEN_KEY);setState({loading:false,ok:false})})},[])
+  return state
+}
+
+function AdminPage({active='dashboard',children}){
+  const auth=useAdminGuard()
+  if(auth.loading) return <div className="admin-loading">Checking admin session…</div>
+  if(!auth.ok){window.location.href='/admin/login';return null}
+  return <AdminShell active={active}>{children}</AdminShell>
+}
+
+function AdminDashboardPage(){
+  const [data,setData]=useState(null),[error,setError]=useState('')
+  useEffect(()=>{adminRequest('/dashboard').then(r=>setData(r.data)).catch(e=>setError(e.message))},[])
+  return <AdminPage><div className="admin-heading"><div><p className="section-label">Overview</p><h1>Quiz operations</h1><p>Monitor content, participants and completed attempts.</p></div><a className="button button-primary" href="/admin/quizzes/new">Create quiz +</a></div>{error&&<div className="admin-error">{error}</div>}{data&&<div className="admin-stat-grid">{Object.entries(data.counts).map(([k,v])=><div className="admin-stat" key={k}><span>{k.replace(/([A-Z])/g,' $1')}</span><strong>{v}</strong></div>)}</div>}<div className="admin-panel"><h2>Phase 11 controls</h2><p>Publishing, question authoring, participant review and result inspection are protected by server-side admin authorization. Active attempts keep their immutable question snapshots.</p></div></AdminPage>
+}
+
+const emptyQuizForm={slug:'',title:'',description:'',type:'Practice Quiz',degree:'B.Tech',branch:'Computer Science & Engineering',subject:'',difficulty:'Easy',durationSeconds:1200,marks:20,negativeMarks:0,maxAttempts:1,resultMode:'immediate',tags:[],isPublished:false}
+function AdminQuizFormPage({quizId=null}){
+  const [form,setForm]=useState(emptyQuizForm),[loading,setLoading]=useState(Boolean(quizId)),[saving,setSaving]=useState(false),[error,setError]=useState(''),[done,setDone]=useState(false)
+  useEffect(()=>{if(!quizId)return;adminRequest('/quizzes/'+quizId).then(r=>setForm({...r.data.quiz,tags:r.data.quiz.tags||[]})).catch(e=>setError(e.message)).finally(()=>setLoading(false))},[quizId])
+  function change(e){const {name,value,type,checked}=e.target;setForm(f=>({...f,[name]:type==='checkbox'?checked:['durationSeconds','marks','negativeMarks','maxAttempts'].includes(name)?Number(value):value}))}
+  async function submit(e){e.preventDefault();setSaving(true);setError('');try{const method=quizId?'PATCH':'POST',path=quizId?'/quizzes/'+quizId:'/quizzes';const r=await adminRequest(path,{method,body:JSON.stringify({...form,tags:typeof form.tags==='string'?form.tags.split(',').map(x=>x.trim()).filter(Boolean):form.tags})});setDone(true);if(!quizId)window.location.href='/admin/quizzes/'+r.data.quiz.id}catch(err){setError(err.message)}finally{setSaving(false)}}
+  if(loading)return <AdminPage>Loading quiz…</AdminPage>
+  return <AdminPage active="quizzes"><div className="admin-heading"><div><p className="section-label">Quiz authoring</p><h1>{quizId?'Edit quiz':'Create quiz'}</h1><p>Configure the public quiz metadata and publishing state.</p></div><a className="button button-secondary" href="/admin/quizzes">Back</a></div><form className="admin-panel admin-form admin-wide-form" onSubmit={submit}><div className="admin-form-grid">{[['slug','Slug'],['title','Title'],['subject','Subject'],['degree','Degree'],['branch','Branch']].map(([n,l])=><label key={n}>{l}<input name={n} value={form[n]} onChange={change} required/></label>)}<label>Type<select name="type" value={form.type} onChange={change}>{['Practice Quiz','Subject Test','Placement Test','Competitive Quiz','Mock Test','College Test','Certification Test','Live Quiz'].map(x=><option key={x}>{x}</option>)}</select></label><label>Difficulty<select name="difficulty" value={form.difficulty} onChange={change}>{['Easy','Medium','Hard','Mixed'].map(x=><option key={x}>{x}</option>)}</select></label><label>Duration (seconds)<input type="number" name="durationSeconds" min="60" value={form.durationSeconds} onChange={change}/></label><label>Total marks<input type="number" name="marks" min="1" value={form.marks} onChange={change}/></label><label>Negative marks<input type="number" step="0.01" name="negativeMarks" min="0" value={form.negativeMarks} onChange={change}/></label><label>Max attempts<input type="number" name="maxAttempts" min="1" value={form.maxAttempts} onChange={change}/></label><label>Result mode<select name="resultMode" value={form.resultMode} onChange={change}><option value="immediate">Immediate</option><option value="manual">Manual</option></select></label><label className="check-field"><input type="checkbox" name="isPublished" checked={form.isPublished} onChange={change}/> Published</label></div><label>Description<textarea name="description" value={form.description} onChange={change} rows="5" required/></label><label>Tags<input name="tags" value={Array.isArray(form.tags)?form.tags.join(', '):form.tags} onChange={change} placeholder="Java, Programming, Fundamentals"/></label>{error&&<div className="admin-error">{error}</div>}{done&&<div className="admin-success">Quiz saved successfully.</div>}<div className="admin-actions"><button className="button button-primary" disabled={saving}>{saving?'Saving…':'Save quiz'}</button></div></form></AdminPage>
+}
+
+function AdminQuizzesPage(){
+  const [quizzes,setQuizzes]=useState([]),[search,setSearch]=useState(''),[error,setError]=useState('')
+  const load=()=>adminRequest('/quizzes?search='+encodeURIComponent(search)).then(r=>setQuizzes(r.data.quizzes)).catch(e=>setError(e.message))
+  useEffect(()=>{load()},[])
+  async function toggle(q){try{await adminRequest('/quizzes/'+q.id,{method:'PATCH',body:JSON.stringify({isPublished:!q.isPublished})});load()}catch(e){setError(e.message)}}
+  return <AdminPage active="quizzes"><div className="admin-heading"><div><p className="section-label">Content</p><h1>Quizzes</h1><p>Create, edit, publish or unpublish tests.</p></div><a className="button button-primary" href="/admin/quizzes/new">New quiz</a></div><div className="admin-toolbar"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search title, slug or subject"/><button className="button button-secondary" onClick={load}>Search</button></div>{error&&<div className="admin-error">{error}</div>}<div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Quiz</th><th>Type</th><th>Questions</th><th>Status</th><th>Actions</th></tr></thead><tbody>{quizzes.map(q=><tr key={q.id}><td><strong>{q.title}</strong><small>{q.slug}</small></td><td>{q.type}</td><td>{q.questionCount}</td><td><span className={q.isPublished?'admin-status live':'admin-status'}>{q.isPublished?'Published':'Draft'}</span></td><td><a className="table-link" href={'/admin/quizzes/'+q.id}>Edit</a><button className="table-link" onClick={()=>toggle(q)}>{q.isPublished?'Unpublish':'Publish'}</button><a className="table-link" href={'/admin/questions?quizId='+q.id}>Questions</a></td></tr>)}</tbody></table></div></AdminPage>
+}
+
+function QuestionEditor({quizId}){
+  const blank={position:1,topic:'',text:'',options:[{key:'A',text:''},{key:'B',text:''},{key:'C',text:''},{key:'D',text:''}],correctOption:'A',marks:1,explanation:'',isActive:true}
+  const [questions,setQuestions]=useState([]),[form,setForm]=useState(blank),[editing,setEditing]=useState(null),[error,setError]=useState(''),[saving,setSaving]=useState(false)
+  const load=()=>adminRequest('/quizzes/'+quizId+'/questions').then(r=>setQuestions(r.data.questions)).catch(e=>setError(e.message))
+  useEffect(()=>{load()},[quizId])
+  function setOption(key,value){setForm(f=>({...f,options:f.options.map(o=>o.key===key?{...o,text:value}:o)}))}
+  async function save(e){e.preventDefault();setSaving(true);setError('');try{const path=editing?'/questions/'+editing:'/quizzes/'+quizId+'/questions';const method=editing?'PATCH':'POST';await adminRequest(path,{method,body:JSON.stringify(form)});setForm(blank);setEditing(null);load()}catch(e){setError(e.message)}finally{setSaving(false)}}
+  function edit(q){setEditing(q.id);setForm({...q,options:q.options.map(o=>({...o}))})}
+  async function deactivate(id){if(!confirm('Deactivate this question? Existing attempts remain unchanged.'))return;try{await adminRequest('/questions/'+id,{method:'DELETE'});load()}catch(e){setError(e.message)}}
+  return <div className="admin-question-layout"><form className="admin-panel admin-form" onSubmit={save}><h2>{editing?'Edit question':'Add question'}</h2><label>Position<input type="number" min="1" value={form.position} onChange={e=>setForm({...form,position:Number(e.target.value)})} required/></label><label>Topic<input value={form.topic} onChange={e=>setForm({...form,topic:e.target.value})}/></label><label>Question<textarea rows="4" value={form.text} onChange={e=>setForm({...form,text:e.target.value})} required/></label><div className="option-grid">{form.options.map(o=><label key={o.key}>Option {o.key}<input value={o.text} onChange={e=>setOption(o.key,e.target.value)} required={o.key<'C'}/></label>)}</div><label>Correct option<select value={form.correctOption} onChange={e=>setForm({...form,correctOption:e.target.value})}>{form.options.filter(o=>o.text.trim()).map(o=><option key={o.key}>{o.key}</option>)}</select></label><label>Marks<input type="number" min="0" step="0.25" value={form.marks} onChange={e=>setForm({...form,marks:Number(e.target.value)})}/></label><label>Explanation<textarea rows="3" value={form.explanation} onChange={e=>setForm({...form,explanation:e.target.value})}/></label>{error&&<div className="admin-error">{error}</div>}<div className="admin-actions"><button className="button button-primary" disabled={saving}>{saving?'Saving…':editing?'Update question':'Add question'}</button>{editing&&<button type="button" className="button button-secondary" onClick={()=>{setEditing(null);setForm(blank)}}>Cancel</button>}</div></form><div className="admin-panel"><div className="panel-heading"><h2>Question bank</h2><span>{questions.length} total</span></div><div className="question-admin-list">{questions.map(q=><article key={q.id} className={'question-admin-item '+(!q.isActive?'inactive':'')}><div><span>Q{q.position} · {q.topic||'General'}</span><strong>{q.text}</strong><small>Correct: {q.correctOption} · {q.marks} mark{q.marks===1?'':'s'}{q.isActive?'':' · inactive'}</small></div><div><button className="table-link" onClick={()=>edit(q)}>Edit</button>{q.isActive&&<button className="table-link danger-link" onClick={()=>deactivate(q.id)}>Deactivate</button>}</div></article>)}</div></div></div>
+}
+
+function AdminQuestionsPage(){
+  const [quizzes,setQuizzes]=useState([]),[selected,setSelected]=useState('')
+  useEffect(()=>{adminRequest('/quizzes').then(r=>{setQuizzes(r.data.quizzes);if(r.data.quizzes[0])setSelected(r.data.quizzes[0].id)}).catch(()=>{})},[])
+  const query=new URLSearchParams(window.location.search).get('quizId')
+  useEffect(()=>{if(query)setSelected(query)},[query])
+  return <AdminPage active="questions"><div className="admin-heading"><div><p className="section-label">Authoring</p><h1>Question Bank</h1><p>Edit questions without changing completed attempt snapshots.</p></div><select className="admin-select" value={selected} onChange={e=>setSelected(e.target.value)}>{quizzes.map(q=><option key={q.id} value={q.id}>{q.title}</option>)}</select></div>{selected?<QuestionEditor quizId={selected}/>:<div className="admin-panel">Create a quiz first.</div>}</AdminPage>
+}
+
+function AdminDataPage({type}){
+  const [data,setData]=useState([]),[error,setError]=useState(''),[search,setSearch]=useState('')
+  const endpoints={participants:'/participants',attempts:'/attempts',results:'/results'}
+  const load=()=>adminRequest(endpoints[type]+(type==='participants'&&search?'?search='+encodeURIComponent(search):'')).then(r=>setData(r.data[type])).catch(e=>setError(e.message))
+  useEffect(()=>{load()},[type])
+  return <AdminPage active={type}><div className="admin-heading"><div><p className="section-label">Operations</p><h1>{type.charAt(0).toUpperCase()+type.slice(1)}</h1><p>Protected operational data for Quiz administrators.</p></div></div>{type==='participants'&&<div className="admin-toolbar"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search name, email, roll or college"/><button className="button button-secondary" onClick={load}>Search</button></div>}{error&&<div className="admin-error">{error}</div>}<div className="admin-table-wrap"><table className="admin-table">{type==='participants'?<><thead><tr><th>Name</th><th>Email</th><th>College</th><th>Degree</th><th>Created</th></tr></thead><tbody>{data.map(p=><tr key={p.id}><td>{p.name}<small>{p.rollNumber}</small></td><td>{p.email}<small>{p.mobile}</small></td><td>{p.college}</td><td>{p.degree} · {p.branch}</td><td>{new Date(p.createdAt).toLocaleDateString()}</td></tr>)}</tbody></>:<><thead><tr><th>Student</th><th>Quiz</th><th>Status</th><th>Score</th><th>Percentage</th><th>Submitted</th></tr></thead><tbody>{data.map(x=><tr key={x.id||x.attemptId}><td>{x.participant?.name||'—'}<small>{x.participant?.email||''}</small></td><td>{x.quiz?.title||'—'}</td><td><span className="admin-status">{x.status}</span></td><td>{x.result?.score ?? '—'}</td><td>{x.result?.percentage != null ? x.result.percentage+'%' : '—'}</td><td>{x.submittedAt?new Date(x.submittedAt).toLocaleString():'—'}</td></tr>)}</tbody></>}</table></div></AdminPage>
+}
 function App() {
   const [path] = useState(getPath)
   const profile = readProfile()
-
+  if (path === '/admin/login') return <AdminLoginPage />
+  if (path === '/admin' || path === '/admin/dashboard') return <AdminDashboardPage />
+  if (path === '/admin/quizzes') return <AdminQuizzesPage />
+  if (path === '/admin/quizzes/new') return <AdminQuizFormPage />
+  if (path.startsWith('/admin/quizzes/')) return <AdminQuizFormPage quizId={path.split('/')[3]} />
+  if (path === '/admin/questions') return <AdminQuestionsPage />
+  if (path === '/admin/participants') return <AdminDataPage type="participants" />
+  if (path === '/admin/attempts') return <AdminDataPage type="attempts" />
+  if (path === '/admin/results') return <AdminDataPage type="results" />
   if (path === '/register') return <RegistrationPage existingProfile={profile} />
   if (path === '/profile') return <ProfilePage profile={profile} />
   if (path === '/quizzes') return <QuizCataloguePage />
