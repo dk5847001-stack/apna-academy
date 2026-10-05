@@ -18,7 +18,7 @@ All Quiz code, configuration, APIs, database models, authentication, quiz logic,
 - Phase 10: Complete — leaderboard + competitive layer
 - Phase 11: Complete — admin panel, authentication, question bank and quiz management
 - Phase 12: Complete — advanced quiz configuration, randomization, pass/fail and answer review
-- Phase 13: Complete — GSAP motion system + ThreeUI/WebGL hero layer with reduced-motion safeguards
+- Phase 13: Complete — GSAP motion system with reduced-motion safeguards
 
 ## Phase 7 Deliverables
 - Added dedicated `/quiz/:attemptId` quiz attempt route.
@@ -47,7 +47,7 @@ Phase 7 browser state is **not authoritative**. Users can modify client-side sta
 ## Design Guardrails
 - Active quiz screens remain calmer than marketing pages.
 - Orange is reserved for meaningful action/state emphasis.
-- ThreeUI/WebGL and advanced GSAP motion remain deferred to the dedicated motion phase.
+- WebGL and advanced GSAP motion remain deferred to the dedicated motion phase.
 - No existing ApnaAcademy frontend/backend, Interview app, admin app, payment flow or database schema was modified.
 
 See `ARCHITECTURE.md` for technical boundaries and `PRODUCT_ARCHITECTURE.md` for the approved product contract.
@@ -168,7 +168,7 @@ Add ADMIN_EMAIL, ADMIN_PASSWORD_HASH and ADMIN_TOKEN_SECRET to Quiz/Backend/.env
 - Added a subtle pointer-driven 3D tilt interaction to the landing quiz preview card.
 - Added slow ambient motion to the hero orbs and score badge.
 - Added scroll-triggered section and content-card reveals without changing quiz logic or navigation.
-- Added the community `@designcodeio/threeui` package and a restrained ThreeUI/WebGL layer behind the landing-page quiz preview.
+- Added the community `@designcodeio/threeui` package and a restrained WebGL layer behind the landing-page quiz preview.
 - Kept the ThreeUI layer decorative and pointer-inert so it never competes with primary content or controls.
 - Added explicit `prefers-reduced-motion` handling that disables the animated layer and hides the decorative ThreeUI scene.
 - Kept active quiz-taking screens free from marketing motion to preserve concentration and timing clarity.
