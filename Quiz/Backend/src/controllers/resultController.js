@@ -51,6 +51,7 @@ function buildAnalytics(attempt, quiz) {
   const timeRemainingSeconds = Math.max(0, durationSeconds - timeUsedSeconds)
   const passed = Boolean(attempt.result?.passed)
   const showExplanations = attempt.rules?.showExplanations !== false
+  const allowReview = attempt.rules?.allowReview !== false
 
   const topicPerformance = [...topicMap.values()].map((item) => ({
     ...item,
@@ -102,7 +103,7 @@ function buildAnalytics(attempt, quiz) {
     questionCount: questions.length,
     topicPerformance,
     suggestions,
-    questionReview: showExplanations === false ? [] : questions.map((question) => { const selected=answerMap.get(question.questionId.toString()) || null; return { questionId:question.questionId.toString(), position:question.position, text:question.text, selectedOption:selected, correct:Boolean(selected && selected===question.correctOption), explanation:question.explanation || '' } }),
+    questionReview: !allowReview || !showExplanations ? [] : questions.map((question) => { const selected=answerMap.get(question.questionId.toString()) || null; return { questionId:question.questionId.toString(), position:question.position, text:question.text, selectedOption:selected, correct:Boolean(selected && selected===question.correctOption), explanation:question.explanation || '' } }),
   }
 }
 
