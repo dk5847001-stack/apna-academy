@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { AtTheHorizon } from '@designcodeio/threeui'
+import '@designcodeio/threeui/style.css'
 import './App.css'
+
+gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 const STORAGE_KEY = 'apnaAcademyQuiz.studentProfile'
 const PARTICIPANT_KEY = 'apnaAcademyQuiz.participantId'
@@ -280,9 +287,56 @@ function SiteFooter() {
 
 function LandingPage() {
   const profile = readProfile()
+  const motionRoot = useRef(null)
+
+  useGSAP(() => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) return
+
+    const mm = gsap.matchMedia()
+    mm.add({ isDesktop: '(min-width: 901px)', isMobile: '(max-width: 900px)' }, (context) => {
+      const { isDesktop } = context.conditions
+      const intro = gsap.timeline({ defaults: { ease: 'power3.out' } })
+      intro.from('.site-header .brand, .site-header .desktop-nav .nav-link, .site-header .nav-actions', { y: -18, autoAlpha: 0, duration: 0.65, stagger: 0.05 })
+        .from('.hero-copy > *', { y: 28, autoAlpha: 0, duration: 0.72, stagger: 0.08 }, '-=0.35')
+        .from('.hero-visual', { x: isDesktop ? 36 : 0, y: isDesktop ? 0 : 24, scale: 0.96, autoAlpha: 0, duration: 0.9 }, '-=0.55')
+
+      gsap.to('.hero-orb-one', { x: 18, y: -16, duration: 4.5, ease: 'sine.inOut', repeat: -1, yoyo: true })
+      gsap.to('.hero-orb-two', { x: -14, y: 20, duration: 5.2, ease: 'sine.inOut', repeat: -1, yoyo: true, delay: 0.4 })
+      gsap.to('.score-float', { y: -10, duration: 2.6, ease: 'sine.inOut', repeat: -1, yoyo: true })
+
+      gsap.utils.toArray('.section-block, .process-section, .benefits-section, .leaderboard-preview, .final-cta').forEach((section) => {
+        gsap.from(section, { y: 42, autoAlpha: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: section, start: 'top 82%', once: true } })
+      })
+      gsap.utils.toArray('.category-card, .quiz-card, .step, .benefit-points > div').forEach((item, index) => {
+        gsap.from(item, { y: 24, autoAlpha: 0, duration: 0.65, delay: (index % 4) * 0.06, ease: 'power2.out', scrollTrigger: { trigger: item, start: 'top 88%', once: true } })
+      })
+
+      if (isDesktop) {
+        const visual = document.querySelector('.hero-visual')
+        if (visual) {
+          const move = (event) => {
+            const rect = visual.getBoundingClientRect()
+            const x = (event.clientX - rect.left) / rect.width - 0.5
+            const y = (event.clientY - rect.top) / rect.height - 0.5
+            gsap.to('.quiz-preview-card', { rotateY: x * 5, rotateX: y * -4, duration: 0.45, overwrite: true, ease: 'power2.out' })
+          }
+          const reset = () => gsap.to('.quiz-preview-card', { rotateY: 0, rotateX: 0, duration: 0.6, ease: 'power3.out' })
+          visual.addEventListener('pointermove', move)
+          visual.addEventListener('pointerleave', reset)
+          return () => {
+            visual.removeEventListener('pointermove', move)
+            visual.removeEventListener('pointerleave', reset)
+          }
+        }
+      }
+      return undefined
+    })
+    return () => mm.revert()
+  }, { scope: motionRoot })
 
   return (
-    <div className="quiz-app">
+    <div ref={motionRoot} className="quiz-app">
       <SiteHeader profile={profile} />
       <main>
         <section className="hero-section" aria-labelledby="hero-title">
@@ -301,6 +355,7 @@ function LandingPage() {
               </div>
             </div>
             <div className="hero-visual" aria-label="Quiz experience preview">
+              <div className="threeui-hero-scene" aria-hidden="true"><AtTheHorizon /></div>
               <div className="hero-orb hero-orb-one" aria-hidden="true" />
               <div className="hero-orb hero-orb-two" aria-hidden="true" />
               <div className="quiz-preview-card">
