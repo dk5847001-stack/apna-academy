@@ -2,6 +2,21 @@ import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
 const STORAGE_KEY = 'apnaAcademyQuiz.studentProfile'
+const PARTICIPANT_KEY = 'apnaAcademyQuiz.participantId'
+const QUIZ_API_URL = (import.meta.env.VITE_QUIZ_API_URL || 'http://localhost:5001').replace(/\/$/, '')
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(QUIZ_API_URL + path, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options })
+  let payload = null
+  try { payload = await response.json() } catch {}
+  if (!response.ok) throw new Error(payload?.error?.message || payload?.message || 'Something went wrong. Please try again.')
+  return payload
+}
+
+function formatDuration(seconds = 0) {
+  const total = Math.max(0, Number(seconds) || 0)
+  return String(Math.floor(total / 60)).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0')
+}
 
 const categories = [
   { label: 'Engineering', detail: 'B.Tech & technical subjects', icon: '01' },
@@ -114,7 +129,9 @@ function App() {
   if (path === '/profile') return <ProfilePage profile={profile} />
   if (path === '/quizzes') return <QuizCataloguePage />
   if (path.startsWith('/quizzes/')) return <QuizDetailsPage quizId={path.split('/')[2]} profile={profile} />
-  if (path.startsWith('/quiz/')) return <QuizEnginePage attemptId={path.split('/')[2]} profile={profile} />
+  if (path.startsWith('/quiz/')) return <QuizEnginePage quizSlug={path.split('/')[2]} profile={profile} />
+  if (path.startsWith('/result/')) return <ResultPage attemptId={path.split('/')[2]} profile={profile} />
+  if (path === '/results') return <ResultsHistoryPage profile={profile} />
   return <LandingPage />
 }
 
@@ -437,172 +454,189 @@ function QuizDetailsPage({ quizId, profile }) {
   )
 }
 
-function QuizEnginePage({ attemptId, profile }) {
-  const quiz = quizCatalogue.find((item) => item.id === attemptId)
-  const questions = quizQuestions[attemptId]
+function QuizEnginePage({ quizSlug, profile }) {
+  const [attempt, setAttempt] = useState(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [marked, setMarked] = useState({})
+  const [secondsLeft, setSecondsLeft] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [showSubmit, setShowSubmit] = useState(false)
+  const [error, setError] = useState('')
+  const storageKey = 'apnaAcademyQuiz.ui.' + quizSlug
+
+  useEffect(() => {
+    let cancelled = false
+    async function boot() {
+      if (!profile) { setLoading(false); return }
+      setLoading(true)
+      setError('')
+      try {
+        const participantResponse = await apiRequest('/api/v1/participants', { method: 'POST', body: JSON.stringify(profile) })
+        const participantId = participantResponse.data.participantId
+        localStorage.setItem(PARTICIPANT_KEY, participantId)
+        const quizResponse = await apiRequest('/api/v1/quizzes/' + encodeURIComponent(quizSlug))
+        const quiz = quizResponse.data.quiz
+        const startResponse = await apiRequest('/api/v1/attempts/start', { method: 'POST', body: JSON.stringify({ participantId, quizId: quiz.id }) })
+        if (cancelled) return
+        const nextAttempt = startResponse.data.attempt
+        setAttempt(nextAttempt)
+        try {
+          const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
+          if (saved) {
+            setCurrentIndex(Math.min(saved.currentIndex || 0, Math.max(0, nextAttempt.questions.length - 1)))
+            setMarked(saved.marked || {})
+          }
+        } catch {}
+      } catch (requestError) {
+        if (!cancelled) setError(requestError.message)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    boot()
+    return () => { cancelled = true }
+  }, [profile?.email, quizSlug])
+
+  useEffect(() => {
+    if (!attempt?.expiresAt || ['SUBMITTED', 'EXPIRED'].includes(attempt.status)) return undefined
+    const tick = () => setSecondsLeft(Math.max(0, Math.ceil((new Date(attempt.expiresAt).getTime() - Date.now()) / 1000)))
+    tick()
+    const timer = window.setInterval(tick, 1000)
+    return () => window.clearInterval(timer)
+  }, [attempt?.expiresAt, attempt?.status])
+
+  useEffect(() => {
+    if (!attempt || submitting || ['SUBMITTED', 'EXPIRED'].includes(attempt.status)) return
+    if (secondsLeft <= 0) setShowSubmit(true)
+  }, [attempt, secondsLeft, submitting])
+
+  useEffect(() => {
+    if (!attempt) return
+    sessionStorage.setItem(storageKey, JSON.stringify({ currentIndex, marked }))
+  }, [attempt, currentIndex, marked, storageKey])
 
   if (!profile) {
-    return (
-      <div className="quiz-app">
-        <SiteHeader profile={null} />
-        <main className="account-main"><section className="account-shell"><div className="empty-account"><p className="section-label">Registration required</p><h1>Create your student profile first.</h1><p>Your profile is used to identify the attempt. The secure server-backed attempt flow will be connected in the backend phase.</p><a className="button button-primary button-large" href="/register">Create profile <span aria-hidden="true">→</span></a></div></section></main>
-        <SiteFooter />
-      </div>
-    )
+    return <div className="quiz-app"><SiteHeader profile={null} /><main className="account-main"><section className="account-shell"><div className="empty-account"><p className="section-label">Registration required</p><h1>Create your student profile first.</h1><p>Your student profile is required before a secure server-backed attempt can start.</p><a className="button button-primary button-large" href="/register">Create profile <span aria-hidden="true">→</span></a></div></section></main><SiteFooter /></div>
   }
 
-  if (!quiz || !questions) {
-    return (
-      <div className="quiz-app">
-        <SiteHeader profile={profile} />
-        <main className="account-main"><section className="account-shell"><div className="empty-account"><p className="section-label">Quiz unavailable</p><h1>This quiz cannot be started yet.</h1><p>The selected quiz does not have an active question set in this frontend phase.</p><a className="button button-primary button-large" href="/quizzes">Back to quizzes</a></div></section></main>
-        <SiteFooter />
-      </div>
-    )
+  if (loading) {
+    return <div className="quiz-app"><SiteHeader profile={profile} /><main className="account-main"><section className="account-shell"><div className="empty-account"><p className="section-label">Preparing your attempt</p><h1>Loading your secure quiz room…</h1><p>The server is preparing your question snapshot and timer.</p></div></section></main><SiteFooter /></div>
   }
 
-  const storageKey = `apnaAcademyQuiz.attempt.${attemptId}`
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [answers, setAnswers] = useState({})
-  const [marked, setMarked] = useState({})
-  const [secondsLeft, setSecondsLeft] = useState(quiz.duration * 60)
-  const [showSubmit, setShowSubmit] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  if (error || !attempt || !attempt.questions?.length) {
+    return <div className="quiz-app"><SiteHeader profile={profile} /><main className="account-main"><section className="account-shell"><div className="empty-account"><p className="section-label">Unable to start</p><h1>{error || 'No active questions are available.'}</h1><p>Please return to the quiz catalogue and try again.</p><a className="button button-primary button-large" href="/quizzes">Back to quizzes</a></div></section></main><SiteFooter /></div>
+  }
 
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(sessionStorage.getItem(storageKey) || 'null')
-      if (saved) {
-        setCurrentIndex(Math.min(saved.currentIndex || 0, questions.length - 1))
-        setAnswers(saved.answers || {})
-        setMarked(saved.marked || {})
-        setSecondsLeft(typeof saved.secondsLeft === 'number' ? saved.secondsLeft : quiz.duration * 60)
-      }
-    } catch {}
-  }, [storageKey, questions.length, quiz.duration])
+  if (['SUBMITTED', 'EXPIRED'].includes(attempt.status)) {
+    window.location.replace('/result/' + attempt.id)
+    return null
+  }
 
-  useEffect(() => {
-    if (submitted) return undefined
-    const timer = window.setInterval(() => {
-      setSecondsLeft((current) => {
-        if (current <= 1) {
-          window.clearInterval(timer)
-          setShowSubmit(true)
-          return 0
-        }
-        return current - 1
-      })
-    }, 1000)
-    return () => window.clearInterval(timer)
-  }, [submitted])
-
-  useEffect(() => {
-    if (submitted) return
-    sessionStorage.setItem(storageKey, JSON.stringify({ currentIndex, answers, marked, secondsLeft }))
-  }, [storageKey, currentIndex, answers, marked, secondsLeft, submitted])
-
+  const questions = attempt.questions
   const currentQuestion = questions[currentIndex]
-  const answeredCount = Object.keys(answers).length
+  const currentAnswer = attempt.answers?.find((answer) => answer.questionId === currentQuestion.questionId)?.selectedOption
+  const answeredCount = (attempt.answers || []).filter((answer) => answer.selectedOption).length
   const markedCount = Object.values(marked).filter(Boolean).length
-  const formatTime = (seconds) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
 
-  function chooseAnswer(optionIndex) {
-    setAnswers((current) => ({ ...current, [currentQuestion.id]: optionIndex }))
+  async function chooseAnswer(optionKey) {
+    setError('')
+    setAttempt((current) => ({ ...current, answers: [...(current.answers || []).filter((answer) => answer.questionId !== currentQuestion.questionId), { questionId: currentQuestion.questionId, selectedOption: optionKey }] }))
+    try {
+      await apiRequest('/api/v1/attempts/' + attempt.id + '/questions/' + currentQuestion.questionId, { method: 'PATCH', body: JSON.stringify({ selectedOption: optionKey }) })
+    } catch (requestError) {
+      setError(requestError.message)
+    }
   }
 
-  function goNext() {
-    setCurrentIndex((current) => Math.min(current + 1, questions.length - 1))
-  }
+  function goNext() { setCurrentIndex((current) => Math.min(current + 1, questions.length - 1)) }
+  function goPrevious() { setCurrentIndex((current) => Math.max(current - 1, 0)) }
+  function toggleMarked() { setMarked((current) => ({ ...current, [currentQuestion.questionId]: !current[currentQuestion.questionId] })) }
 
-  function goPrevious() {
-    setCurrentIndex((current) => Math.max(current - 1, 0))
-  }
-
-  function toggleMarked() {
-    setMarked((current) => ({ ...current, [currentQuestion.id]: !current[currentQuestion.id] }))
-  }
-
-  function submitAttempt() {
-    setShowSubmit(false)
-    setSubmitted(true)
-    sessionStorage.removeItem(storageKey)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  if (submitted) {
-    return (
-      <div className="quiz-app">
-        <SiteHeader profile={profile} />
-        <main className="quiz-room-main">
-          <section className="quiz-result-shell shell-container">
-            <div className="quiz-result-card">
-              <span className="success-icon" aria-hidden="true">✓</span>
-              <p className="section-label">Attempt submitted</p>
-              <h1>Your answers are saved for the next phase.</h1>
-              <p>The quiz engine UI is complete. Secure server scoring, final result calculation and leaderboard ranking will be connected in the backend phase.</p>
-              <div className="result-summary-grid">
-                <div><span>Answered</span><strong>{answeredCount}</strong></div>
-                <div><span>Unanswered</span><strong>{questions.length - answeredCount}</strong></div>
-                <div><span>Marked</span><strong>{markedCount}</strong></div>
-                <div><span>Time used</span><strong>{formatTime(quiz.duration * 60 - secondsLeft)}</strong></div>
-              </div>
-              <div className="action-row center-actions"><a className="button button-primary button-large" href="/quizzes">Back to quizzes</a><a className="button button-secondary button-large" href="/profile">View profile</a></div>
-            </div>
-          </section>
-        </main>
-        <SiteFooter />
-      </div>
-    )
+  async function submitAttempt() {
+    if (submitting) return
+    setSubmitting(true)
+    setError('')
+    try {
+      const response = await apiRequest('/api/v1/attempts/' + attempt.id + '/submit', { method: 'POST', body: JSON.stringify({}) })
+      sessionStorage.removeItem(storageKey)
+      window.location.replace('/result/' + response.data.result.attemptId)
+    } catch (requestError) {
+      setError(requestError.message)
+      setSubmitting(false)
+      setShowSubmit(false)
+    }
   }
 
   return (
     <div className="quiz-app quiz-room-app">
       <SiteHeader profile={profile} />
       <main className="quiz-room-main">
-        <section className="quiz-room-header">
-          <div className="shell-container">
-            <div className="quiz-room-title"><div><p className="section-label">Live attempt</p><h1>{quiz.title}</h1></div><div className={secondsLeft <= 60 ? 'timer timer-warning' : 'timer'} aria-label={`Time remaining ${formatTime(secondsLeft)}`}><span>Time left</span><strong>{formatTime(secondsLeft)}</strong></div></div>
-            <div className="quiz-room-progress"><span style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }} /></div>
-            <div className="quiz-room-progress-meta"><span>Question {currentIndex + 1} of {questions.length}</span><span>{answeredCount} answered · {markedCount} marked</span></div>
-          </div>
-        </section>
-
-        <section className="quiz-room-content">
-          <div className="shell-container quiz-room-grid">
-            <aside className="question-palette" aria-label="Question navigation">
-              <div className="palette-heading"><strong>Questions</strong><span>{answeredCount}/{questions.length}</span></div>
-              <div className="palette-grid">
-                {questions.map((question, index) => {
-                  const answered = answers[question.id] !== undefined
-                  const isMarked = Boolean(marked[question.id])
-                  const active = index === currentIndex
-                  return <button key={question.id} type="button" className={`palette-button${active ? ' is-active' : ''}${answered ? ' is-answered' : ''}${isMarked ? ' is-marked' : ''}`} onClick={() => setCurrentIndex(index)} aria-label={`Question ${index + 1}${answered ? ', answered' : ''}${isMarked ? ', marked for review' : ''}`}>{index + 1}</button>
-                })}
-              </div>
-              <div className="palette-legend"><span><i className="legend-current" />Current</span><span><i className="legend-answered" />Answered</span><span><i className="legend-marked" />Review</span></div>
-            </aside>
-
-            <article className="question-card" aria-labelledby={`question-${currentQuestion.id}`}>
-              <div className="question-card-top"><span>Question {currentIndex + 1}</span>{marked[currentQuestion.id] && <span className="review-badge">Marked for review</span>}</div>
-              <h2 id={`question-${currentQuestion.id}`}>{currentQuestion.text}</h2>
-              <div className="answer-list">
-                {currentQuestion.options.map((option, index) => {
-                  const selected = answers[currentQuestion.id] === index
-                  return <button key={option} type="button" className={`answer-option${selected ? ' is-selected' : ''}`} onClick={() => chooseAnswer(index)} aria-pressed={selected}><span className="option-key">{String.fromCharCode(65 + index)}</span><span>{option}</span>{selected && <span className="answer-check" aria-hidden="true">✓</span>}</button>
-                })}
-              </div>
-              <div className="question-actions">
-                <button type="button" className="button button-secondary" onClick={toggleMarked}>{marked[currentQuestion.id] ? 'Remove review mark' : 'Mark for review'}</button>
-                <div><button type="button" className="button button-secondary" onClick={goPrevious} disabled={currentIndex === 0}>Previous</button>{currentIndex < questions.length - 1 ? <button type="button" className="button button-primary" onClick={goNext}>Save & next <span aria-hidden="true">→</span></button> : <button type="button" className="button button-primary" onClick={() => setShowSubmit(true)}>Submit quiz</button>}</div>
-              </div>
-            </article>
-          </div>
-        </section>
+        <section className="quiz-room-header"><div className="shell-container"><div className="quiz-room-title"><div><p className="section-label">Secure server attempt</p><h1>Quiz in progress</h1></div><div className={secondsLeft <= 60 ? 'timer timer-warning' : 'timer'} aria-label={'Time remaining ' + formatDuration(secondsLeft)}><span>Time left</span><strong>{formatDuration(secondsLeft)}</strong></div></div><div className="quiz-room-progress"><span style={{ width: ((currentIndex + 1) / questions.length) * 100 + '%' }} /></div><div className="quiz-room-progress-meta"><span>Question {currentIndex + 1} of {questions.length}</span><span>{answeredCount} answered · {markedCount} marked</span></div></div></section>
+        <section className="quiz-room-content"><div className="shell-container quiz-room-grid">
+          <aside className="question-palette" aria-label="Question navigation"><div className="palette-heading"><strong>Questions</strong><span>{answeredCount}/{questions.length}</span></div><div className="palette-grid">{questions.map((question, index) => { const answered = Boolean(attempt.answers?.find((answer) => answer.questionId === question.questionId)?.selectedOption); const isMarked = Boolean(marked[question.questionId]); const active = index === currentIndex; return <button key={question.questionId} type="button" className={'palette-button' + (active ? ' is-active' : '') + (answered ? ' is-answered' : '') + (isMarked ? ' is-marked' : '')} onClick={() => setCurrentIndex(index)} aria-label={'Question ' + (index + 1) + (answered ? ', answered' : '') + (isMarked ? ', marked for review' : '')}>{index + 1}</button> })}</div><div className="palette-legend"><span><i className="legend-current" />Current</span><span><i className="legend-answered" />Answered</span><span><i className="legend-marked" />Review</span></div></aside>
+          <article className="question-card" aria-labelledby={'question-' + currentQuestion.questionId}><div className="question-card-top"><span>Question {currentIndex + 1}</span>{marked[currentQuestion.questionId] && <span className="review-badge">Marked for review</span>}</div><h2 id={'question-' + currentQuestion.questionId}>{currentQuestion.text}</h2><div className="answer-list">{currentQuestion.options.map((option) => { const selected = currentAnswer === option.key; return <button key={option.key} type="button" className={'answer-option' + (selected ? ' is-selected' : '')} onClick={() => chooseAnswer(option.key)} aria-pressed={selected}><span className="option-key">{option.key}</span><span>{option.text}</span>{selected && <span className="answer-check" aria-hidden="true">✓</span>}</button> })}</div>{error && <p className="quiz-inline-error" role="alert">{error}</p>}<div className="question-actions"><button type="button" className="button button-secondary" onClick={toggleMarked}>{marked[currentQuestion.questionId] ? 'Remove review mark' : 'Mark for review'}</button><div><button type="button" className="button button-secondary" onClick={goPrevious} disabled={currentIndex === 0}>Previous</button>{currentIndex < questions.length - 1 ? <button type="button" className="button button-primary" onClick={goNext}>Save & next <span aria-hidden="true">→</span></button> : <button type="button" className="button button-primary" onClick={() => setShowSubmit(true)} disabled={submitting}>Submit quiz</button>}</div></div></article>
+        </div></section>
       </main>
-      {showSubmit && <div className="submit-overlay" role="dialog" aria-modal="true" aria-labelledby="submit-title"><div className="submit-dialog"><p className="section-label">Finish attempt</p><h2 id="submit-title">Submit this quiz?</h2><p>You have answered {answeredCount} of {questions.length} questions. You can still go back and review your answers.</p><div className="action-row"><button className="button button-secondary" type="button" onClick={() => setShowSubmit(false)}>Continue quiz</button><button className="button button-primary" type="button" onClick={submitAttempt}>Submit attempt</button></div></div></div>}
+      {showSubmit && <div className="submit-overlay" role="dialog" aria-modal="true" aria-labelledby="submit-title"><div className="submit-dialog"><p className="section-label">Finish attempt</p><h2 id="submit-title">Submit this quiz?</h2><p>You have answered {answeredCount} of {questions.length} questions. The server will calculate your final score.</p><div className="action-row"><button className="button button-secondary" type="button" onClick={() => setShowSubmit(false)}>Continue quiz</button><button className="button button-primary" type="button" onClick={submitAttempt} disabled={submitting}>{submitting ? 'Submitting…' : 'Submit attempt'}</button></div></div></div>}
       <SiteFooter />
     </div>
   )
+}
+
+function ResultPage({ attemptId, profile }) {
+  const [result, setResult] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      const participantId = localStorage.getItem(PARTICIPANT_KEY)
+      if (!participantId) { setError('Your quiz identity is not available on this device.'); setLoading(false); return }
+      try {
+        const response = await apiRequest('/api/v1/results/' + encodeURIComponent(attemptId) + '?participantId=' + encodeURIComponent(participantId))
+        if (!cancelled) setResult(response.data.result)
+      } catch (requestError) {
+        if (!cancelled) setError(requestError.message)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [attemptId])
+
+  return <div className="quiz-app"><SiteHeader profile={profile} /><main className="results-main"><section className="results-hero"><div className="shell-container"><p className="section-label">Your result</p><h1>{result?.quiz?.title || 'Quiz result'}</h1><p>{result ? 'A server-calculated view of your latest performance, built to help you decide what to practice next.' : 'Loading your secure result…'}</p></div></section><section className="results-content"><div className="shell-container">{loading && <div className="result-state"><strong>Calculating result…</strong><span>Fetching your verified analytics from the quiz server.</span></div>}{!loading && error && <div className="result-state"><strong>Result unavailable</strong><span>{error}</span><a className="button button-primary" href="/results">Open result history</a></div>}{!loading && result && <ResultAnalytics result={result} />}</div></section></main><SiteFooter /></div>
+}
+
+function ResultAnalytics({ result }) {
+  const statusLabel = result.status === 'EXPIRED' ? 'Time expired' : 'Submitted'
+  return <div className="result-analytics"><div className="result-overview-card"><div className="result-score"><span>Score</span><strong>{result.score}<small> / {result.maxMarks}</small></strong><b>{result.percentage}%</b></div><div className="result-status"><span className="soft-badge">{statusLabel}</span><p>{result.correct} correct · {result.incorrect} incorrect · {result.skipped} skipped</p><span>Accuracy {result.accuracy}% · Time {formatDuration(result.timeUsedSeconds)}</span></div></div><div className="analytics-grid"><div className="analytics-card"><span>Attempted</span><strong>{result.attempted}</strong><small>of {result.questionCount}</small></div><div className="analytics-card"><span>Correct</span><strong>{result.correct}</strong><small>{result.accuracy}% accuracy</small></div><div className="analytics-card"><span>Incorrect</span><strong>{result.incorrect}</strong><small>Review these topics</small></div><div className="analytics-card"><span>Skipped</span><strong>{result.skipped}</strong><small>{formatDuration(result.timeRemainingSeconds)} remaining</small></div></div><div className="analytics-columns"><section className="analytics-panel"><p className="section-label">Topic performance</p><h2>Where you performed best.</h2>{result.topicPerformance?.map((topic) => <div className="topic-row" key={topic.topic}><div><strong>{topic.topic}</strong><span>{topic.correct}/{topic.total} correct · {topic.skipped} skipped</span></div><b>{topic.accuracy}%</b><div className="topic-bar"><span style={{ width: topic.accuracy + '%' }} /></div></div>)}</section><section className="analytics-panel"><p className="section-label">Next steps</p><h2>Use this result to improve.</h2><ul className="suggestion-list">{result.suggestions?.map((suggestion) => <li key={suggestion}>{suggestion}</li>)}</ul><a className="button button-primary" href="/quizzes">Take another quiz <span aria-hidden="true">→</span></a></section></div><div className="result-actions"><a className="button button-secondary" href="/results">View result history</a><a className="button button-secondary" href="/quizzes">Explore quizzes</a></div></div>
+}
+
+function ResultsHistoryPage({ profile }) {
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      const participantId = localStorage.getItem(PARTICIPANT_KEY)
+      if (!participantId) { setError('Complete a quiz once to create your server-linked result history.'); setLoading(false); return }
+      try {
+        const response = await apiRequest('/api/v1/results?participantId=' + encodeURIComponent(participantId))
+        if (!cancelled) setResults(response.data.results || [])
+      } catch (requestError) {
+        if (!cancelled) setError(requestError.message)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
+  return <div className="quiz-app"><SiteHeader profile={profile} /><main className="results-main"><section className="results-hero"><div className="shell-container"><p className="section-label">Performance history</p><h1>Your quiz results, in one place.</h1><p>Review previous attempts, compare your accuracy and choose what to practice next.</p></div></section><section className="results-content"><div className="shell-container">{loading && <div className="result-state"><strong>Loading result history…</strong><span>Fetching your completed attempts.</span></div>}{!loading && error && <div className="result-state"><strong>No result history yet.</strong><span>{error}</span><a className="button button-primary" href="/quizzes">Explore quizzes</a></div>}{!loading && !error && results.length === 0 && <div className="result-state"><strong>Your result history is empty.</strong><span>Complete your first quiz and your verified performance will appear here.</span><a className="button button-primary" href="/quizzes">Explore quizzes</a></div>}{!loading && !error && results.length > 0 && <div className="history-list">{results.map((result) => <article className="history-card" key={result.attemptId}><div><span className="soft-badge">{result.quiz?.type || 'Quiz'}</span><h2>{result.quiz?.title || 'Quiz'}</h2><p>{result.submittedAt ? new Date(result.submittedAt).toLocaleString() : 'Completed'} · {result.correct} correct · {result.incorrect} incorrect · {result.skipped} skipped</p></div><div className="history-score"><strong>{result.percentage}%</strong><span>{result.score}/{result.maxMarks} · {formatDuration(result.timeUsedSeconds)}</span><a className="text-link" href={'/result/' + result.attemptId}>View result →</a></div></article>)}</div>}</div></section></main><SiteFooter /></div>
 }
 
 function RegistrationPage({ existingProfile }) {
