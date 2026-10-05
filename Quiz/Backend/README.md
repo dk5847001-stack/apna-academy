@@ -106,3 +106,17 @@ API:
 - Public identity is reduced to first name plus last initial; email, mobile and roll/PRN are not returned.
 - The optional participantId only adds that participant's own rank summary; it does not alter the ranking calculation.
 - Leaderboard calculation is performed entirely from server/database state. Client scores are never accepted.
+
+
+## Phase 11 — Admin Panel + Question Bank — Complete
+
+- Dedicated admin credentials, scrypt password verification and 8-hour HMAC-signed sessions.
+- Rate-limited admin login and server-protected management routes.
+- Admin APIs for dashboard, quiz CRUD, question CRUD/deactivation, participants, attempts and results.
+- Quiz publishing requires at least one active question.
+- Quiz deletion is a safe archive/unpublish operation, preserving historical attempts.
+- Question positions are unique per quiz and correct options must exist in the submitted option set.
+- Editing questions never rewrites immutable attempt snapshots.
+- Admin answer keys are available only after successful admin authorization.
+- Required environment variables: ADMIN_EMAIL, ADMIN_PASSWORD_HASH, ADMIN_TOKEN_SECRET.
+- Generate a password hash with: npm run admin:hash -- "your-strong-password".
