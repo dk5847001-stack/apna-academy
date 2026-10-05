@@ -146,6 +146,7 @@ function SiteHeader({ profile }) {
         <nav className="desktop-nav" aria-label="Primary navigation">
           <a className="nav-link" href="/">Home</a>
           <a className="nav-link" href="/quizzes">Quizzes</a>
+          <a className="nav-link" href="/results">Results</a>
           <a className="nav-link" href="/leaderboard">Leaderboard</a>
         </nav>
         <div className="nav-actions">
@@ -838,7 +839,7 @@ function ProfilePage({ profile }) {
             {profile.bio && <ProfileDetail label="About" value={profile.bio} wide />}
           </div>
           <div className="profile-next-card">
-            <div><p className="section-label">Next step</p><h2>Ready to find a quiz?</h2><p>Your profile is prepared for the upcoming quiz discovery and attempt flow.</p></div>
+            <div><p className="section-label">Next step</p><h2>Ready to find a quiz?</h2><p>Your profile is prepared for quiz discovery, secure attempts and performance history.</p></div>
             <a className="button button-primary" href="/quizzes">Explore quizzes <span aria-hidden="true">→</span></a>
           </div>
         </section>
