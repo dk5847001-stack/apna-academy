@@ -3,7 +3,7 @@ const Quiz=require('../models/Quiz')
 const Question=require('../models/Question')
 const {HttpError}=require('../utils/httpError')
 
-function publicQuiz(q){return {id:q._id.toString(),slug:q.slug,title:q.title,description:q.description,type:q.type,degree:q.degree,branch:q.branch,subject:q.subject,difficulty:q.difficulty,durationSeconds:q.durationSeconds,marks:q.marks,negativeMarks:q.negativeMarks,maxAttempts:q.maxAttempts,tags:q.tags,resultMode:q.resultMode}}
+function publicQuiz(q){return {id:q._id.toString(),slug:q.slug,title:q.title,description:q.description,type:q.type,degree:q.degree,branch:q.branch,subject:q.subject,difficulty:q.difficulty,durationSeconds:q.durationSeconds,marks:q.marks,negativeMarks:q.negativeMarks,maxAttempts:q.maxAttempts,passingPercentage:q.passingPercentage,shuffleQuestions:q.shuffleQuestions,shuffleOptions:q.shuffleOptions,allowReview:q.allowReview,showExplanations:q.showExplanations,tags:q.tags,resultMode:q.resultMode}}
 async function listQuizzes(req,res){
  const filter={isPublished:true}
  if(req.query.subject) filter.subject=req.query.subject
