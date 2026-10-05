@@ -17,7 +17,7 @@ All Quiz code, configuration, APIs, database models, authentication, quiz logic,
 - Phase 9: Complete — results + analytics
 - Phase 10: Complete — leaderboard + competitive layer
 - Phase 11: Complete — admin panel, authentication, question bank and quiz management
-- Phase 12: Next — advanced quiz features
+- Phase 12: Complete — advanced quiz configuration, randomization, pass/fail and answer review
 
 ## Phase 7 Deliverables
 - Added dedicated `/quiz/:attemptId` quiz attempt route.
@@ -134,3 +134,25 @@ Phase 10 must consume server-owned result data only. No leaderboard implementati
 ## Phase 11 Environment
 
 Add ADMIN_EMAIL, ADMIN_PASSWORD_HASH and ADMIN_TOKEN_SECRET to Quiz/Backend/.env. Generate a password hash with `npm run admin:hash -- "YourStrongPassword"`. Never commit secrets.
+
+
+## Phase 12 Deliverables
+
+- Added server-controlled question randomization per attempt.
+- Added server-controlled option randomization with correct-answer mapping preserved internally.
+- Added immutable per-attempt rules for passing percentage, review availability and explanation visibility.
+- Added server-side pass/fail calculation.
+- Added post-result learning review without exposing the answer key to the client.
+- Added configurable pass percentage, shuffle questions, shuffle options, review permission and explanation visibility to Admin quiz authoring.
+- Preserved server-owned timing, scoring, attempt limits and immutable snapshots.
+- All Phase 12 changes remain isolated under Quiz/Frontend and Quiz/Backend.
+
+## Phase 12 Security Contract
+
+1. Randomization happens on the server, never from trusted client state.
+2. Randomized order and option mapping are stored in the attempt snapshot.
+3. Correct answers remain server-side during an active attempt.
+4. Completed result review does not return correct answer keys.
+5. Pass/fail is calculated from the server snapshot and snapshotted pass threshold.
+6. Later admin changes cannot alter rules or question order for an existing attempt.
+7. Review/explanation visibility is controlled by the attempt snapshot.
