@@ -89,7 +89,7 @@ async function getLeaderboard(req, res) {
   let me = null
   if (participantId) {
     const own = ranked.find((row) => row.participantId.toString() === participantId)
-    if (own) me = { rank: own.rank, displayName: own.displayName, averagePercentage: own.averagePercentage, averageAccuracy: own.averageAccuracy, totalScore: own.totalScore, quizzesCompleted: own.quizzesCompleted, averageTimeUsedSeconds: own.averageTimeUsedSeconds }
+    if (own) me = { participantId: own.participantId.toString(), rank: own.rank, displayName: own.displayName, averagePercentage: own.averagePercentage, averageAccuracy: own.averageAccuracy, totalScore: own.totalScore, quizzesCompleted: own.quizzesCompleted, averageTimeUsedSeconds: own.averageTimeUsedSeconds }
   }
 
   res.json({ success: true, data: {
