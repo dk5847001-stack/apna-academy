@@ -11,7 +11,7 @@ const startSchema=z.object({participantId:idSchema,quizId:idSchema})
 const answerSchema=z.object({selectedOption:z.enum(['A','B','C','D']).nullable()})
 
 function safeAttempt(attempt){
- return {id:attempt._id.toString(),quizId:attempt.quizId.toString(),participantId:attempt.participantId.toString(),status:attempt.status,startedAt:attempt.startedAt,expiresAt:attempt.expiresAt,durationSeconds:attempt.durationSeconds,questions:attempt.snapshot.map(q=>({questionId:q.questionId.toString(),position:q.position,topic:q.topic || quiz.subject,text:q.text,options:q.options,marks:q.marks})),answers:attempt.answers.map(a=>({questionId:a.questionId.toString(),selectedOption:a.selectedOption}))}
+ return {id:attempt._id.toString(),quizId:attempt.quizId.toString(),participantId:attempt.participantId.toString(),status:attempt.status,startedAt:attempt.startedAt,expiresAt:attempt.expiresAt,durationSeconds:attempt.durationSeconds,questions:attempt.snapshot.map(q=>({questionId:q.questionId.toString(),position:q.position,topic:q.topic || 'General',text:q.text,options:q.options,marks:q.marks})),answers:attempt.answers.map(a=>({questionId:a.questionId.toString(),selectedOption:a.selectedOption}))}
 }
 function resultPayload(attempt){
  return {attemptId:attempt._id.toString(),status:attempt.status,...attempt.result}
