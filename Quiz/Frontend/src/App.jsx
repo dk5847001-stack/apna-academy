@@ -132,6 +132,7 @@ function App() {
   if (path.startsWith('/quiz/')) return <QuizEnginePage quizSlug={path.split('/')[2]} profile={profile} />
   if (path.startsWith('/result/')) return <ResultPage attemptId={path.split('/')[2]} profile={profile} />
   if (path === '/results') return <ResultsHistoryPage profile={profile} />
+  if (path === '/leaderboard') return <LeaderboardPage profile={profile} />
   return <LandingPage />
 }
 
@@ -638,6 +639,82 @@ function ResultsHistoryPage({ profile }) {
     return () => { cancelled = true }
   }, [])
   return <div className="quiz-app"><SiteHeader profile={profile} /><main className="results-main"><section className="results-hero"><div className="shell-container"><p className="section-label">Performance history</p><h1>Your quiz results, in one place.</h1><p>Review previous attempts, compare your accuracy and choose what to practice next.</p></div></section><section className="results-content"><div className="shell-container">{loading && <div className="result-state"><strong>Loading result history…</strong><span>Fetching your completed attempts.</span></div>}{!loading && error && <div className="result-state"><strong>No result history yet.</strong><span>{error}</span><a className="button button-primary" href="/quizzes">Explore quizzes</a></div>}{!loading && !error && results.length === 0 && <div className="result-state"><strong>Your result history is empty.</strong><span>Complete your first quiz and your verified performance will appear here.</span><a className="button button-primary" href="/quizzes">Explore quizzes</a></div>}{!loading && !error && results.length > 0 && <div className="history-list">{results.map((result) => <article className="history-card" key={result.attemptId}><div><span className="soft-badge">{result.quiz?.type || 'Quiz'}</span><h2>{result.quiz?.title || 'Quiz'}</h2><p>{result.submittedAt ? new Date(result.submittedAt).toLocaleString() : 'Completed'} · {result.correct} correct · {result.incorrect} incorrect · {result.skipped} skipped</p></div><div className="history-score"><strong>{result.percentage}%</strong><span>{result.score}/{result.maxMarks} · {formatDuration(result.timeUsedSeconds)}</span><a className="text-link" href={'/result/' + result.attemptId}>View result →</a></div></article>)}</div>}</div></section></main><SiteFooter /></div>
+}
+
+
+function LeaderboardPage({ profile }) {
+  const [scope, setScope] = useState('overall')
+  const [quizSlug, setQuizSlug] = useState('')
+  const [subject, setSubject] = useState('')
+  const [degree, setDegree] = useState('')
+  const [branch, setBranch] = useState('')
+  const [college, setCollege] = useState('')
+  const [quizzes, setQuizzes] = useState([])
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    apiRequest('/api/v1/quizzes')
+      .then((response) => { if (!cancelled) setQuizzes(response.data.quizzes || []) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoading(true)
+      setError('')
+      const params = new URLSearchParams({ scope, limit: '50' })
+      if (quizSlug) params.set('quizSlug', quizSlug)
+      if (subject) params.set('subject', subject)
+      if (degree) params.set('degree', degree)
+      if (branch) params.set('branch', branch)
+      if (college) params.set('college', college)
+      const participantId = localStorage.getItem(PARTICIPANT_KEY)
+      if (participantId) params.set('participantId', participantId)
+      try {
+        const response = await apiRequest('/api/v1/leaderboard?' + params.toString())
+        if (!cancelled) setData(response.data)
+      } catch (requestError) {
+        if (!cancelled) setError(requestError.message)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [scope, quizSlug, subject, degree, branch, college])
+
+  const scopeLabel = scope === 'quiz' ? 'Quiz' : scope === 'subject' ? 'Subject' : scope === 'degree' ? 'Program' : scope === 'branch' ? 'Branch' : scope === 'college' ? 'College' : 'Overall'
+  const hasActiveFilter = Boolean(quizSlug || subject || degree || branch || college)
+
+  return (
+    <div className="quiz-app">
+      <SiteHeader profile={profile} />
+      <main className="leaderboard-main">
+        <section className="leaderboard-hero"><div className="shell-container"><p className="section-label">Compete fairly</p><h1>See where your performance stands.</h1><p>Rankings are calculated on the server from completed attempts. Contact details are never shown.</p></div></section>
+        <section className="leaderboard-content"><div className="shell-container">
+          <div className="leaderboard-controls">
+            <label><span>Leaderboard</span><select value={scope} onChange={(event) => setScope(event.target.value)}><option value="overall">Overall</option><option value="quiz">Quiz</option><option value="subject">Subject</option><option value="degree">Program</option><option value="branch">Branch</option><option value="college">College</option></select></label>
+            <label><span>Quiz</span><select value={quizSlug} onChange={(event) => setQuizSlug(event.target.value)}><option value="">All quizzes</option>{quizzes.map((quiz) => <option key={quiz.slug} value={quiz.slug}>{quiz.title}</option>)}</select></label>
+            <label><span>Subject</span><select value={subject} onChange={(event) => setSubject(event.target.value)}><option value="">All subjects</option>{[...new Set(quizzes.map((quiz) => quiz.subject).filter(Boolean))].sort().map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+            <label><span>Degree</span><select value={degree} onChange={(event) => setDegree(event.target.value)}><option value="">All programs</option>{degreeOptions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+            <label><span>College</span><input value={college} onChange={(event) => setCollege(event.target.value)} placeholder="Optional college filter" /></label>
+          </div>
+          {loading && <div className="result-state"><strong>Loading leaderboard…</strong><span>Calculating rankings from verified completed attempts.</span></div>}
+          {!loading && error && <div className="result-state"><strong>Leaderboard unavailable</strong><span>{error}</span></div>}
+          {!loading && data && <div className="leaderboard-shell">
+            <div className="leaderboard-summary"><div><p className="section-label">{scopeLabel} leaderboard</p><h2>{hasActiveFilter ? 'Filtered performance rankings' : 'Top performers'}</h2><p>Primary metric: average percentage. More completed quizzes and stronger accuracy break ties.</p></div>{data.me && <div className="my-rank-card"><span>Your rank</span><strong>#{data.me.rank}</strong><small>{data.me.averagePercentage}% average · {data.me.quizzesCompleted} quiz{data.me.quizzesCompleted === 1 ? '' : 'zes'}</small></div>}</div>
+            <div className="leaderboard-table-wrap"><table className="leaderboard-table"><thead><tr><th>Rank</th><th>Student</th><th>College</th><th>Average</th><th>Accuracy</th><th>Quizzes</th><th>Time</th></tr></thead><tbody>{data.entries.map((entry) => <tr key={entry.participantId} className={data.me?.rank === entry.rank && profile ? 'is-you' : ''}><td><strong>#{entry.rank}</strong></td><td><strong>{entry.displayName}</strong>{data.me?.participantId === entry.participantId && <span className="you-badge">You</span>}</td><td>{entry.college || '—'}</td><td><strong>{entry.averagePercentage}%</strong></td><td>{entry.averageAccuracy}%</td><td>{entry.quizzesCompleted}</td><td>{formatDuration(entry.averageTimeUsedSeconds)}</td></tr>)}</tbody></table>{data.entries.length === 0 && <div className="empty-leaderboard"><strong>No completed attempts match these filters.</strong><span>Complete a quiz or adjust the filters to see rankings.</span></div>}</div>
+          </div>}
+        </div></section>
+      </main>
+      <SiteFooter />
+    </div>
+  )
 }
 
 function RegistrationPage({ existingProfile }) {
