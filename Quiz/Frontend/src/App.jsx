@@ -10,10 +10,10 @@ gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 const STORAGE_KEY = 'apnaAcademyQuiz.studentProfile'
 const PARTICIPANT_KEY = 'apnaAcademyQuiz.participantId'
-const QUIZ_API_URL = (import.meta.env.VITE_QUIZ_API_URL || 'http://localhost:5001').replace(/\/$/, '')
-const QUIZ_ENV = import.meta.env.MODE
+const QUIZ_API_URL = (import.meta.env.VITE_QUIZ_API_URL || (import.meta.env.DEV ? 'http://localhost:5001' : '')).replace(/\/$/, '')
 
 async function apiRequest(path, options = {}) {
+  if (!QUIZ_API_URL) throw new Error('Quiz API is not configured for this production build.')
   const response = await fetch(QUIZ_API_URL + path, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options })
   let payload = null
   try { payload = await response.json() } catch {}
