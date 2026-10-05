@@ -34,6 +34,26 @@ const branchOptions = {
   'Other UG/PG': ['Other'],
 }
 
+
+const quizCatalogue = [
+  { id: 'java-fundamentals', type: 'Practice Quiz', title: 'Java Fundamentals', description: 'Build confidence with core Java syntax, operators, conditions, loops and object-oriented basics.', degree: 'B.Tech', branch: 'Computer Science & Engineering', subject: 'Java', difficulty: 'Easy', duration: 20, questions: 20, marks: 20, negativeMarking: 'No', attempts: '3 attempts', level: 'Beginner friendly', tags: ['Java', 'Programming', 'Fundamentals'] },
+  { id: 'dsa-java', type: 'Subject Test', title: 'Data Structures & Algorithms with Java', description: 'Test arrays, strings, searching, sorting, stacks, queues and core algorithmic thinking.', degree: 'B.Tech', branch: 'Computer Science & Engineering', subject: 'DSA', difficulty: 'Mixed', duration: 30, questions: 30, marks: 30, negativeMarking: '0.25 per wrong answer', attempts: '2 attempts', level: 'Intermediate', tags: ['DSA', 'Java', 'Placement'] },
+  { id: 'dbms-core', type: 'Subject Test', title: 'DBMS Core Concepts', description: 'Check your understanding of databases, keys, normalization, SQL and transactions.', degree: 'B.Tech', branch: 'Computer Science & Engineering', subject: 'DBMS', difficulty: 'Medium', duration: 25, questions: 25, marks: 25, negativeMarking: 'No', attempts: '3 attempts', level: 'Intermediate', tags: ['DBMS', 'SQL', 'Databases'] },
+  { id: 'os-fundamentals', type: 'Subject Test', title: 'Operating Systems Fundamentals', description: 'Practice processes, threads, scheduling, memory management, deadlocks and file systems.', degree: 'B.Tech', branch: 'Computer Science & Engineering', subject: 'Operating Systems', difficulty: 'Medium', duration: 25, questions: 25, marks: 25, negativeMarking: '0.25 per wrong answer', attempts: '2 attempts', level: 'Intermediate', tags: ['OS', 'Systems', 'Core CS'] },
+  { id: 'web-development', type: 'Practice Quiz', title: 'Web Development Essentials', description: 'Revise HTML, CSS, JavaScript, HTTP and modern web development fundamentals.', degree: 'BCA', branch: 'Software Development', subject: 'Web Development', difficulty: 'Easy', duration: 20, questions: 20, marks: 20, negativeMarking: 'No', attempts: '3 attempts', level: 'Beginner friendly', tags: ['HTML', 'CSS', 'JavaScript'] },
+  { id: 'aptitude-placement', type: 'Placement Test', title: 'Aptitude & Reasoning', description: 'Prepare for placement tests with quantitative aptitude, logical reasoning and pattern questions.', degree: 'Other UG/PG', branch: 'Other', subject: 'Aptitude', difficulty: 'Mixed', duration: 25, questions: 25, marks: 25, negativeMarking: '0.25 per wrong answer', attempts: '2 attempts', level: 'Placement focused', tags: ['Aptitude', 'Reasoning', 'Placement'] },
+  { id: 'business-management', type: 'Practice Quiz', title: 'Business & Management Basics', description: 'Test fundamentals of management, marketing, finance and organizational concepts.', degree: 'BBA', branch: 'General Management', subject: 'Business', difficulty: 'Easy', duration: 20, questions: 20, marks: 20, negativeMarking: 'No', attempts: '3 attempts', level: 'Beginner friendly', tags: ['Business', 'Management', 'BBA'] },
+  { id: 'ai-ml-foundations', type: 'Competitive Quiz', title: 'AI & ML Foundations', description: 'Challenge yourself with machine learning concepts, data preparation and model fundamentals.', degree: 'B.Tech', branch: 'Artificial Intelligence & Machine Learning', subject: 'AI & ML', difficulty: 'Hard', duration: 30, questions: 30, marks: 30, negativeMarking: '0.25 per wrong answer', attempts: '1 attempt', level: 'Advanced', tags: ['AI', 'ML', 'Data Science'] },
+]
+
+const catalogueFilters = {
+  degree: ['All degrees', ...degreeOptions],
+  type: ['All types', 'Practice Quiz', 'Subject Test', 'Placement Test', 'Competitive Quiz'],
+  subject: ['All subjects', 'Java', 'DSA', 'DBMS', 'Operating Systems', 'Web Development', 'Aptitude', 'Business', 'AI & ML'],
+  difficulty: ['All levels', 'Easy', 'Medium', 'Hard', 'Mixed'],
+  duration: ['Any duration', 'Under 20 min', '20–25 min', '26–30 min'],
+}
+
 const initialProfile = {
   name: '',
   rollNumber: '',
@@ -67,6 +87,8 @@ function App() {
 
   if (path === '/register') return <RegistrationPage existingProfile={profile} />
   if (path === '/profile') return <ProfilePage profile={profile} />
+  if (path === '/quizzes') return <QuizCataloguePage />
+  if (path.startsWith('/quizzes/')) return <QuizDetailsPage quizId={path.split('/')[2]} profile={profile} />
   return <LandingPage />
 }
 
@@ -215,6 +237,172 @@ function LandingPage() {
             <h2 id="cta-title">Choose a quiz. Test yourself. Improve.</h2>
             <p>Start with a subject you know, or challenge yourself with something new.</p>
             <a className="button button-primary button-large" href="/quizzes">Explore all quizzes <span aria-hidden="true">→</span></a>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </div>
+  )
+}
+
+
+function QuizCataloguePage() {
+  const [query, setQuery] = useState('')
+  const [filters, setFilters] = useState({ degree: 'All degrees', type: 'All types', subject: 'All subjects', difficulty: 'All levels', duration: 'Any duration' })
+
+  const filteredQuizzes = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
+    return quizCatalogue.filter((quiz) => {
+      const matchesQuery = !normalizedQuery || [quiz.title, quiz.description, quiz.subject, quiz.type, ...quiz.tags].join(' ').toLowerCase().includes(normalizedQuery)
+      const matchesDegree = filters.degree === 'All degrees' || quiz.degree === filters.degree
+      const matchesType = filters.type === 'All types' || quiz.type === filters.type
+      const matchesSubject = filters.subject === 'All subjects' || quiz.subject === filters.subject
+      const matchesDifficulty = filters.difficulty === 'All levels' || quiz.difficulty === filters.difficulty
+      const matchesDuration = filters.duration === 'Any duration'
+        || (filters.duration === 'Under 20 min' && quiz.duration < 20)
+        || (filters.duration === '20–25 min' && quiz.duration >= 20 && quiz.duration <= 25)
+        || (filters.duration === '26–30 min' && quiz.duration >= 26 && quiz.duration <= 30)
+      return matchesQuery && matchesDegree && matchesType && matchesSubject && matchesDifficulty && matchesDuration
+    })
+  }, [filters, query])
+
+  function updateFilter(name, value) {
+    setFilters((current) => ({ ...current, [name]: value }))
+  }
+
+  function resetFilters() {
+    setQuery('')
+    setFilters({ degree: 'All degrees', type: 'All types', subject: 'All subjects', difficulty: 'All levels', duration: 'Any duration' })
+  }
+
+  return (
+    <div className="quiz-app">
+      <SiteHeader profile={readProfile()} />
+      <main className="catalogue-main">
+        <section className="catalogue-hero">
+          <div className="shell-container">
+            <p className="section-label">Quiz catalogue</p>
+            <h1>Find the right quiz for your next goal.</h1>
+            <p>Search by subject, filter by your academic path and choose a focused test that matches your preparation level.</p>
+            <label className="catalogue-search">
+              <span aria-hidden="true">⌕</span>
+              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search Java, DSA, aptitude, DBMS..." aria-label="Search quizzes" />
+              {query && <button type="button" onClick={() => setQuery('')} aria-label="Clear search">×</button>}
+            </label>
+          </div>
+        </section>
+
+        <section className="catalogue-content" aria-labelledby="catalogue-results-title">
+          <div className="shell-container catalogue-layout">
+            <aside className="filter-panel" aria-label="Quiz filters">
+              <div className="filter-heading"><div><strong>Filter quizzes</strong><span>Refine your search</span></div><button type="button" onClick={resetFilters}>Reset</button></div>
+              {Object.entries(catalogueFilters).map(([name, options]) => (
+                <label className="filter-field" key={name}>
+                  <span>{name === 'degree' ? 'Degree' : name === 'type' ? 'Quiz type' : name === 'subject' ? 'Subject' : name === 'difficulty' ? 'Difficulty' : 'Duration'}</span>
+                  <select value={filters[name]} onChange={(event) => updateFilter(name, event.target.value)}>
+                    {options.map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
+              ))}
+            </aside>
+
+            <div className="catalogue-results">
+              <div className="results-heading">
+                <div><p className="section-label">Explore</p><h2 id="catalogue-results-title">{filteredQuizzes.length} {filteredQuizzes.length === 1 ? 'quiz' : 'quizzes'} available</h2></div>
+                <span>{query ? 'Search results' : 'Curated for students'}</span>
+              </div>
+              {filteredQuizzes.length > 0 ? (
+                <div className="catalogue-grid">
+                  {filteredQuizzes.map((quiz) => <QuizCard quiz={quiz} key={quiz.id} />)}
+                </div>
+              ) : (
+                <div className="catalogue-empty">
+                  <span>⌕</span><h3>No quizzes match these filters.</h3><p>Try a different subject, degree or difficulty, or reset the filters.</p><button className="button button-secondary" type="button" onClick={resetFilters}>Clear filters</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </div>
+  )
+}
+
+function QuizCard({ quiz }) {
+  return (
+    <article className="catalogue-card">
+      <div className="catalogue-card-top"><span className="soft-badge">{quiz.type}</span><span className="quiz-level">{quiz.difficulty}</span></div>
+      <h3>{quiz.title}</h3>
+      <p className="catalogue-description">{quiz.description}</p>
+      <div className="quiz-meta-grid">
+        <span><b>{quiz.questions}</b> Questions</span><span><b>{quiz.duration}</b> Minutes</span><span><b>{quiz.marks}</b> Marks</span>
+      </div>
+      <div className="catalogue-tags">{quiz.tags.slice(0, 3).map((tag) => <span key={tag}>{tag}</span>)}</div>
+      <a className="button button-primary catalogue-card-button" href={`/quizzes/${quiz.id}`}>View details <span aria-hidden="true">→</span></a>
+    </article>
+  )
+}
+
+function QuizDetailsPage({ quizId, profile }) {
+  const quiz = quizCatalogue.find((item) => item.id === quizId)
+
+  if (!quiz) {
+    return (
+      <div className="quiz-app">
+        <SiteHeader profile={profile} />
+        <main className="account-main"><section className="account-shell"><div className="empty-account"><p className="section-label">Quiz not found</p><h1>This quiz is no longer available.</h1><p>Return to the catalogue to explore the currently available tests.</p><a className="button button-primary button-large" href="/quizzes">Browse quizzes <span aria-hidden="true">→</span></a></div></section></main>
+        <SiteFooter />
+      </div>
+    )
+  }
+
+  const startHref = profile ? '/quizzes' : '/register'
+
+  return (
+    <div className="quiz-app">
+      <SiteHeader profile={profile} />
+      <main className="quiz-details-main">
+        <section className="details-hero">
+          <div className="shell-container details-hero-grid">
+            <div>
+              <a className="back-link" href="/quizzes">← Back to quizzes</a>
+              <div className="details-badges"><span className="soft-badge">{quiz.type}</span><span>{quiz.difficulty}</span></div>
+              <h1>{quiz.title}</h1>
+              <p>{quiz.description}</p>
+              <div className="details-tags">{quiz.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+            </div>
+            <div className="details-start-card">
+              <div className="start-stat"><span>Questions</span><strong>{quiz.questions}</strong></div>
+              <div className="start-stat"><span>Duration</span><strong>{quiz.duration} min</strong></div>
+              <div className="start-stat"><span>Total marks</span><strong>{quiz.marks}</strong></div>
+              <a className="button button-primary button-large" href={startHref}>{profile ? 'Continue to quiz' : 'Register to continue'} <span aria-hidden="true">→</span></a>
+              {!profile && <small>Create your student profile before starting your first attempt.</small>}
+            </div>
+          </div>
+        </section>
+
+        <section className="details-body">
+          <div className="shell-container details-body-grid">
+            <article className="details-main-card">
+              <p className="section-label">About this quiz</p>
+              <h2>Know what to expect before you start.</h2>
+              <p>This {quiz.type.toLowerCase()} is designed around focused questions and a clear time limit. Your final score will be calculated by the quiz system after submission in a later phase.</p>
+              <div className="details-rule-grid">
+                <div><span>Difficulty</span><strong>{quiz.difficulty}</strong></div>
+                <div><span>Negative marking</span><strong>{quiz.negativeMarking}</strong></div>
+                <div><span>Attempts</span><strong>{quiz.attempts}</strong></div>
+                <div><span>Level</span><strong>{quiz.level}</strong></div>
+              </div>
+            </article>
+            <aside className="details-side-card">
+              <p className="section-label">Best for</p>
+              <h3>{quiz.degree}</h3>
+              <p>{quiz.branch}</p>
+              <div><span>Subject</span><strong>{quiz.subject}</strong></div>
+              <div><span>Result</span><strong>Shown after submission</strong></div>
+              <a className="text-link" href="/quizzes">Explore similar quizzes →</a>
+            </aside>
           </div>
         </section>
       </main>
