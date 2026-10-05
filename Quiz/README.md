@@ -194,3 +194,66 @@ The Quiz frontend now uses:
 - `three`
 
 After pulling the changes, run `npm install` inside `Quiz/Frontend` so the dependency lockfile is synchronized with the updated `package.json`.
+
+
+## Phase 14 — Production QA + Deployment Readiness — Complete
+
+Phase 14 closes the implementation roadmap with a production-readiness contract. It does not claim a live deployment that has not been executed from this environment.
+
+### Production-readiness changes
+
+- Production frontend builds no longer silently fall back to the local Quiz API URL. `VITE_QUIZ_API_URL` must be supplied for production builds.
+- Development builds retain the local `http://localhost:5001` fallback for convenience.
+- Added/updated `Quiz/Frontend/.env.example` with local and production API configuration examples.
+- Kept all Quiz configuration isolated from the main ApnaAcademy application.
+- Confirmed the production architecture remains:
+  - Static React/Vite frontend
+  - Independent Node/Express Quiz API
+  - Independent MongoDB database
+  - Separate admin surface within the Quiz frontend
+  - HTTPS-only production traffic
+- Production health verification target: `GET /health`.
+- Production smoke-test sequence:
+  1. frontend loads
+  2. API health is OK
+  3. quiz catalogue loads
+  4. quiz details load
+  5. participant registration works
+  6. secure attempt starts/resumes
+  7. answers persist
+  8. server expiry/submission works
+  9. result analytics load
+  10. leaderboard loads
+  11. admin login and protected CRUD work
+  12. refresh/deep links work for public and admin routes
+  13. mobile 320px+ layouts have no horizontal overflow
+  14. reduced-motion mode remains usable
+
+### Phase 14 Security / deployment checklist
+
+Before production launch, verify in the actual deployment environment:
+
+- `NODE_ENV=production`
+- production `MONGODB_URI`
+- exact production frontend origin in `CLIENT_ORIGINS`
+- `ADMIN_EMAIL`
+- strong `ADMIN_PASSWORD_HASH`
+- strong unique `ADMIN_TOKEN_SECRET`
+- `QUIZ_ATTEMPT_TTL_BUFFER_SECONDS` set appropriately
+- `VITE_QUIZ_API_URL` points to the deployed Quiz API
+- HTTPS enabled for frontend and API
+- MongoDB network access restricted to required infrastructure
+- no `.env` files or secrets committed to Git
+- API rate limits remain enabled
+- Helmet/CORS remain enabled
+- production logs do not contain passwords, tokens, answer keys or personal contact data
+- admin credentials tested with a real login before launch
+
+### Important validation boundary
+
+The repository changes are production-readiness changes, but a live production deployment, real MongoDB execution, browser/device matrix, DNS/CDN configuration and external uptime test require the actual deployment environment. They are therefore listed as verification gates rather than falsely marked as executed.
+
+### Final roadmap status
+
+- Phase 1–13: Complete
+- Phase 14: Complete — production QA/deployment readiness implemented and documented
