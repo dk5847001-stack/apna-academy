@@ -18,6 +18,7 @@ All Quiz code, configuration, APIs, database models, authentication, quiz logic,
 - Phase 10: Complete — leaderboard + competitive layer
 - Phase 11: Complete — admin panel, authentication, question bank and quiz management
 - Phase 12: Complete — advanced quiz configuration, randomization, pass/fail and answer review
+- Phase 13: Complete — GSAP motion system + ThreeUI/WebGL hero layer with reduced-motion safeguards
 
 ## Phase 7 Deliverables
 - Added dedicated `/quiz/:attemptId` quiz attempt route.
@@ -156,3 +157,40 @@ Add ADMIN_EMAIL, ADMIN_PASSWORD_HASH and ADMIN_TOKEN_SECRET to Quiz/Backend/.env
 5. Pass/fail is calculated from the server snapshot and snapshotted pass threshold.
 6. Later admin changes cannot alter rules or question order for an existing attempt.
 7. Review/explanation visibility is controlled by the attempt snapshot.
+
+
+## Phase 13 Deliverables
+
+- Added GSAP 3.15 with the React-safe `@gsap/react` integration.
+- Added GSAP ScrollTrigger for intentional reveal animations on marketing sections.
+- Added a scoped landing-page motion timeline for navbar, hero copy and hero visual entrance.
+- Added responsive GSAP behavior using `gsap.matchMedia()` so desktop-only pointer tilt is not enabled on smaller screens.
+- Added a subtle pointer-driven 3D tilt interaction to the landing quiz preview card.
+- Added slow ambient motion to the hero orbs and score badge.
+- Added scroll-triggered section and content-card reveals without changing quiz logic or navigation.
+- Added the community `@designcodeio/threeui` package and a restrained ThreeUI/WebGL layer behind the landing-page quiz preview.
+- Kept the ThreeUI layer decorative and pointer-inert so it never competes with primary content or controls.
+- Added explicit `prefers-reduced-motion` handling that disables the animated layer and hides the decorative ThreeUI scene.
+- Kept active quiz-taking screens free from marketing motion to preserve concentration and timing clarity.
+- Kept all Phase 13 changes inside `Quiz/Frontend/` and did not modify the existing ApnaAcademy, Interview or main Admin applications.
+
+## Phase 13 Motion Contract
+
+1. Motion is progressive enhancement; the application remains usable if animation is disabled.
+2. `prefers-reduced-motion: reduce` disables GSAP entrance/scroll motion and the decorative ThreeUI scene.
+3. WebGL/ThreeUI is decorative only and never contains required quiz information or controls.
+4. Pointer tilt is limited to the desktop landing hero and does not affect navigation or quiz state.
+5. Quiz-room timer, answer selection, submission, scoring and result data remain untouched by the motion layer.
+6. ScrollTrigger animations are one-time reveals to avoid persistent scroll-linked workload.
+7. No client-side score, timing or leaderboard authority was introduced in this phase.
+
+## Phase 13 Dependencies
+
+The Quiz frontend now uses:
+
+- `gsap`
+- `@gsap/react`
+- `@designcodeio/threeui`
+- `three`
+
+After pulling the changes, run `npm install` inside `Quiz/Frontend` so the dependency lockfile is synchronized with the updated `package.json`.
