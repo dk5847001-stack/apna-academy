@@ -293,161 +293,372 @@ function LandingPage() {
     if (reduceMotion) return
 
     const mm = gsap.matchMedia()
-    mm.add({ isDesktop: '(min-width: 901px)', isMobile: '(max-width: 900px)' }, (context) => {
-      const { isDesktop } = context.conditions
-      const intro = gsap.timeline({ defaults: { ease: 'power3.out' } })
-      intro.from('.site-header .brand, .site-header .desktop-nav .nav-link, .site-header .nav-actions', { y: -18, autoAlpha: 0, duration: 0.65, stagger: 0.05 })
-        .from('.hero-copy > *', { y: 28, autoAlpha: 0, duration: 0.72, stagger: 0.08 }, '-=0.35')
-        .from('.hero-visual', { x: isDesktop ? 36 : 0, y: isDesktop ? 0 : 24, scale: 0.96, autoAlpha: 0, duration: 0.9 }, '-=0.55')
+    mm.add({
+      desktop: '(min-width: 901px)',
+      tablet: '(min-width: 601px) and (max-width: 900px)',
+      mobile: '(max-width: 600px)',
+    }, (context) => {
+      const { desktop, tablet } = context.conditions
 
-      gsap.to('.hero-orb-one', { x: 18, y: -16, duration: 4.5, ease: 'sine.inOut', repeat: -1, yoyo: true })
-      gsap.to('.hero-orb-two', { x: -14, y: 20, duration: 5.2, ease: 'sine.inOut', repeat: -1, yoyo: true, delay: 0.4 })
-      gsap.to('.score-float', { y: -10, duration: 2.6, ease: 'sine.inOut', repeat: -1, yoyo: true })
+      const intro = gsap.timeline({ defaults: { ease: 'power4.out' } })
+      intro
+        .from('.motion-navline', { scaleX: 0, transformOrigin: 'left center', duration: 0.8 })
+        .from('.kinetic-eyebrow, .kinetic-title-line, .kinetic-copy, .kinetic-actions', {
+          y: 54,
+          autoAlpha: 0,
+          duration: 0.9,
+          stagger: 0.08,
+        }, '-=0.45')
+        .from('.hero-console', {
+          y: 70,
+          rotateX: 14,
+          rotateY: desktop ? -8 : 0,
+          scale: 0.92,
+          autoAlpha: 0,
+          duration: 1.2,
+          ease: 'expo.out',
+        }, '-=0.65')
+        .from('.hero-coordinate', {
+          y: 20,
+          autoAlpha: 0,
+          duration: 0.55,
+          stagger: 0.1,
+        }, '-=0.65')
 
-      gsap.utils.toArray('.section-block, .process-section, .benefits-section, .leaderboard-preview, .final-cta').forEach((section) => {
-        gsap.from(section, { y: 42, autoAlpha: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: section, start: 'top 82%', once: true } })
+      gsap.to('.kinetic-glow-a', {
+        x: 70,
+        y: -45,
+        scale: 1.15,
+        duration: 5.5,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true,
       })
-      gsap.utils.toArray('.category-card, .quiz-card, .step, .benefit-points > div').forEach((item, index) => {
-        gsap.from(item, { y: 24, autoAlpha: 0, duration: 0.65, delay: (index % 4) * 0.06, ease: 'power2.out', scrollTrigger: { trigger: item, start: 'top 88%', once: true } })
+      gsap.to('.kinetic-glow-b', {
+        x: -55,
+        y: 35,
+        scale: 0.9,
+        duration: 6.5,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true,
+        delay: 0.6,
       })
 
-      if (isDesktop) {
-        const visual = document.querySelector('.hero-visual')
-        if (visual) {
+      gsap.utils.toArray('.motion-reveal').forEach((element) => {
+        gsap.from(element, {
+          y: 80,
+          autoAlpha: 0,
+          duration: 1,
+          ease: 'power4.out',
+          scrollTrigger: {
+            trigger: element,
+            start: 'top 84%',
+            once: true,
+          },
+        })
+      })
+
+      gsap.utils.toArray('.motion-stagger').forEach((group) => {
+        gsap.from(group.children, {
+          y: 55,
+          autoAlpha: 0,
+          duration: 0.85,
+          stagger: 0.1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: group,
+            start: 'top 78%',
+            once: true,
+          },
+        })
+      })
+
+      const stage = document.querySelector('.kinetic-stage')
+      const stageTrack = document.querySelector('.kinetic-stage-track')
+      if (stage && stageTrack && (desktop || tablet)) {
+        const stageCards = gsap.utils.toArray('.kinetic-stage-card')
+        const stageTimeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: stage,
+            start: 'top top',
+            end: () => '+=' + Math.max(900, stageCards.length * 420),
+            pin: true,
+            scrub: 1.1,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        })
+
+        stageTimeline
+          .to('.kinetic-stage-progress span', { scaleX: 1, ease: 'none', duration: 1 }, 0)
+          .to(stageTrack, {
+            xPercent: -((stageCards.length - 1) * 100),
+            ease: 'none',
+            duration: stageCards.length - 1,
+          }, 0)
+
+        stageCards.forEach((card, index) => {
+          if (index === 0) return
+          stageTimeline.fromTo(card,
+            { scale: 0.86, rotate: index % 2 ? 4 : -4, autoAlpha: 0.35 },
+            { scale: 1, rotate: 0, autoAlpha: 1, duration: 1 },
+            index - 0.7,
+          )
+        })
+      }
+
+      gsap.to('.marquee-track', {
+        xPercent: -50,
+        duration: 24,
+        ease: 'none',
+        repeat: -1,
+      })
+
+      if (desktop) {
+        const hero = document.querySelector('.kinetic-hero')
+        if (hero) {
           const move = (event) => {
-            const rect = visual.getBoundingClientRect()
+            const rect = hero.getBoundingClientRect()
             const x = (event.clientX - rect.left) / rect.width - 0.5
             const y = (event.clientY - rect.top) / rect.height - 0.5
-            gsap.to('.quiz-preview-card', { rotateY: x * 5, rotateX: y * -4, duration: 0.45, overwrite: true, ease: 'power2.out' })
+            gsap.to('.hero-console', {
+              rotateY: x * 7,
+              rotateX: y * -5,
+              x: x * 10,
+              y: y * 7,
+              duration: 0.65,
+              overwrite: true,
+              ease: 'power3.out',
+            })
+            gsap.to('.kinetic-grid', {
+              x: x * -14,
+              y: y * -10,
+              duration: 0.8,
+              overwrite: true,
+              ease: 'power2.out',
+            })
           }
-          const reset = () => gsap.to('.quiz-preview-card', { rotateY: 0, rotateX: 0, duration: 0.6, ease: 'power3.out' })
-          visual.addEventListener('pointermove', move)
-          visual.addEventListener('pointerleave', reset)
+          const leave = () => gsap.to('.hero-console, .kinetic-grid', {
+            rotateY: 0,
+            rotateX: 0,
+            x: 0,
+            y: 0,
+            duration: 0.8,
+            ease: 'power4.out',
+          })
+          hero.addEventListener('pointermove', move)
+          hero.addEventListener('pointerleave', leave)
           return () => {
-            visual.removeEventListener('pointermove', move)
-            visual.removeEventListener('pointerleave', reset)
+            hero.removeEventListener('pointermove', move)
+            hero.removeEventListener('pointerleave', leave)
           }
         }
       }
+
       return undefined
     })
+
     return () => mm.revert()
   }, { scope: motionRoot })
 
   return (
-    <div ref={motionRoot} className="quiz-app">
+    <div ref={motionRoot} className="quiz-app kinetic-site">
       <SiteHeader profile={profile} />
+
       <main>
-        <section className="hero-section" aria-labelledby="hero-title">
-          <div className="shell-container hero-grid">
-            <div className="hero-copy">
-              <div className="eyebrow"><span className="eyebrow-dot" aria-hidden="true" />Built for student learning</div>
-              <p className="kicker">Learn · Test · Compete · Improve</p>
-              <h1 id="hero-title">Turn every quiz into a <span>better next attempt.</span></h1>
-              <p className="hero-intro">Practice your subjects, test your preparation and understand your performance — all in one focused quiz platform.</p>
-              <div className="action-row">
-                <a className="button button-primary button-large" href="/quizzes">Explore quizzes <span aria-hidden="true">→</span></a>
-                <a className="button button-secondary button-large" href={profile ? '/profile' : '/register'}>{profile ? 'View profile' : 'Create student profile'}</a>
+        <section className="kinetic-hero" aria-labelledby="kinetic-title">
+          <div className="kinetic-grid" aria-hidden="true" />
+          <div className="kinetic-glow kinetic-glow-a" aria-hidden="true" />
+          <div className="kinetic-glow kinetic-glow-b" aria-hidden="true" />
+
+          <div className="shell-container kinetic-hero-inner">
+            <div className="motion-navline" aria-hidden="true" />
+
+            <div className="kinetic-hero-copy">
+              <p className="kinetic-eyebrow">
+                <span>APNA ACADEMY</span>
+                <i />
+                QUIZ ENGINE / 01
+              </p>
+
+              <h1 id="kinetic-title" className="kinetic-title">
+                <span className="kinetic-title-line">Think.</span>
+                <span className="kinetic-title-line kinetic-title-accent">Test.</span>
+                <span className="kinetic-title-line">Go further.</span>
+              </h1>
+
+              <p className="kinetic-copy">
+                A focused quiz experience for students who want to turn preparation into measurable progress.
+              </p>
+
+              <div className="kinetic-actions">
+                <a className="kinetic-button kinetic-button-primary" href="/quizzes">
+                  Explore quizzes <span>↗</span>
+                </a>
+                <a className="kinetic-button kinetic-button-ghost" href={profile ? '/profile' : '/register'}>
+                  {profile ? 'Open profile' : 'Create profile'}
+                </a>
               </div>
-              <div className="hero-trust" aria-label="Platform benefits">
-                <span>✓ Timed tests</span><span>✓ Instant results</span><span>✓ Performance insights</span>
+
+              <div className="kinetic-meta" aria-label="Platform capabilities">
+                <span>Timed</span>
+                <span>Server scored</span>
+                <span>Analytics</span>
+                <span>Rankings</span>
               </div>
             </div>
-            <div className="hero-visual" aria-label="Quiz experience preview">
-                            <div className="hero-orb hero-orb-one" aria-hidden="true" />
-              <div className="hero-orb hero-orb-two" aria-hidden="true" />
-              <div className="quiz-preview-card">
-                <div className="preview-top"><span>Java Fundamentals</span><span className="preview-live">Practice</span></div>
-                <div className="preview-progress"><span style={{ width: '62%' }} /></div>
-                <div className="preview-meta"><span>Question 12 of 20</span><strong>08:42</strong></div>
-                <p className="preview-question">Which keyword is used to inherit a class in Java?</p>
-                <div className="preview-options">
-                  <div>A. implements</div>
-                  <div className="preview-option-selected">B. extends <span>✓</span></div>
-                  <div>C. inherits</div>
-                  <div>D. super</div>
+
+            <div className="hero-console-wrap">
+              <div className="hero-coordinate hero-coordinate-top">01 / 04</div>
+              <div className="hero-console">
+                <div className="console-top">
+                  <div>
+                    <span className="console-kicker">LIVE PRACTICE</span>
+                    <strong>Java Fundamentals</strong>
+                  </div>
+                  <span className="console-index">12 / 20</span>
                 </div>
-                <div className="preview-footer"><span>6 answered · 2 marked</span><span>Next →</span></div>
+                <div className="console-rule" />
+                <div className="console-question">
+                  <span className="console-number">Q.12</span>
+                  <h2>Which keyword is used to inherit a class in Java?</h2>
+                </div>
+                <div className="console-options">
+                  <div><b>A</b><span>implements</span></div>
+                  <div className="is-selected"><b>B</b><span>extends</span><i>✓</i></div>
+                  <div><b>C</b><span>inherits</span></div>
+                  <div><b>D</b><span>super</span></div>
+                </div>
+                <div className="console-bottom">
+                  <span>08:42 remaining</span>
+                  <span>60% complete</span>
+                </div>
+                <div className="console-progress"><span /></div>
               </div>
-              <div className="score-float"><span>Latest result</span><strong>84%</strong><small>+12% improvement</small></div>
+              <div className="hero-coordinate hero-coordinate-bottom">APQ / 2026</div>
+              <div className="hero-score-card">
+                <span>LAST RESULT</span>
+                <strong>84<span>%</span></strong>
+                <small>+12 improvement</small>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="section-block" aria-labelledby="categories-title">
+        <section className="kinetic-marquee" aria-label="Quiz platform features">
+          <div className="marquee-track">
+            {[...Array(2)].flatMap(() => ['LEARN', 'TEST', 'ANALYZE', 'IMPROVE', 'COMPETE', 'REPEAT']).map((item, index) => (
+              <span key={item + index}>{item}<i>✦</i></span>
+            ))}
+          </div>
+        </section>
+
+        <section className="kinetic-stage" aria-labelledby="stage-title">
+          <div className="kinetic-stage-head shell-container">
+            <div>
+              <p className="kinetic-section-index">02 / EXPERIENCE</p>
+              <h2 id="stage-title">One attempt.<br /><em>Three signals.</em></h2>
+            </div>
+            <p>We keep the interface quiet while the motion explains the product: choose, focus, understand.</p>
+          </div>
+
+          <div className="kinetic-stage-window">
+            <div className="kinetic-stage-track">
+              <article className="kinetic-stage-card">
+                <span>01</span>
+                <div>
+                  <small>CHOOSE</small>
+                  <h3>Find your test.</h3>
+                  <p>Filter by degree, subject, difficulty and goal. No noisy dashboard before you start.</p>
+                </div>
+                <strong>→</strong>
+              </article>
+              <article className="kinetic-stage-card">
+                <span>02</span>
+                <div>
+                  <small>FOCUS</small>
+                  <h3>Own the clock.</h3>
+                  <p>Server-controlled attempts, clear progress and review states keep the exam honest.</p>
+                </div>
+                <strong>→</strong>
+              </article>
+              <article className="kinetic-stage-card">
+                <span>03</span>
+                <div>
+                  <small>UNDERSTAND</small>
+                  <h3>Read the signal.</h3>
+                  <p>Score, accuracy, topic performance and improvement suggestions turn a result into a plan.</p>
+                </div>
+                <strong>↗</strong>
+              </article>
+            </div>
+          </div>
+
+          <div className="kinetic-stage-progress shell-container" aria-hidden="true"><span /></div>
+        </section>
+
+        <section className="kinetic-index-section motion-reveal" aria-labelledby="paths-title">
           <div className="shell-container">
-            <div className="section-heading"><div><p className="section-label">Find your path</p><h2 id="categories-title">Quizzes for where you are learning.</h2></div><a className="text-link" href="/quizzes">View all quizzes →</a></div>
-            <div className="category-grid">
+            <div className="kinetic-section-top">
+              <p className="kinetic-section-index">03 / FIND YOUR PATH</p>
+              <a href="/quizzes">VIEW ALL QUIZZES ↗</a>
+            </div>
+            <h2 id="paths-title">Built around<br /><em>how you learn.</em></h2>
+
+            <div className="kinetic-index-list motion-stagger">
               {categories.map((category) => (
-                <a className="category-card" href="/quizzes" key={category.label}>
-                  <span className="category-index">{category.icon}</span>
-                  <span><strong>{category.label}</strong><small>{category.detail}</small></span>
-                  <span className="card-arrow" aria-hidden="true">↗</span>
+                <a className="kinetic-index-row" href="/quizzes" key={category.label}>
+                  <span>{category.icon}</span>
+                  <strong>{category.label}</strong>
+                  <small>{category.detail}</small>
+                  <i>↗</i>
                 </a>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="section-block featured-section" aria-labelledby="featured-title">
+        <section className="kinetic-feature-section motion-reveal" aria-labelledby="featured-title">
           <div className="shell-container">
-            <div className="section-heading"><div><p className="section-label">Start practicing</p><h2 id="featured-title">Popular quiz formats, ready when you are.</h2></div><a className="text-link" href="/quizzes">Browse catalogue →</a></div>
-            <div className="featured-grid">
-              {featuredQuizzes.map((quiz) => (
-                <article className="quiz-card" key={quiz.title}>
-                  <div className="quiz-card-top"><span className="soft-badge">{quiz.type}</span><span className="quiz-level">{quiz.level}</span></div>
+            <div className="kinetic-section-top">
+              <p className="kinetic-section-index">04 / START PRACTICING</p>
+              <a href="/quizzes">BROWSE CATALOGUE ↗</a>
+            </div>
+            <div className="kinetic-feature-heading">
+              <h2 id="featured-title">Questions in.<br /><em>Clarity out.</em></h2>
+              <p>Start with a familiar subject or deliberately move outside your comfort zone.</p>
+            </div>
+
+            <div className="kinetic-feature-grid motion-stagger">
+              {featuredQuizzes.map((quiz, index) => (
+                <a className="kinetic-feature-card" href="/quizzes" key={quiz.title}>
+                  <div className="feature-card-number">0{index + 1}</div>
+                  <div className="feature-card-type">{quiz.type}</div>
                   <h3>{quiz.title}</h3>
-                  <p>{quiz.meta}</p>
-                  <a href="/quizzes" className="quiz-card-link">View quiz details <span aria-hidden="true">→</span></a>
-                </article>
+                  <p>{quiz.meta} · {quiz.level}</p>
+                  <span>OPEN QUIZ ↗</span>
+                </a>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="process-section" aria-labelledby="process-title">
+        <section className="kinetic-final motion-reveal" aria-labelledby="final-title">
+          <div className="kinetic-final-grid" aria-hidden="true" />
           <div className="shell-container">
-            <div className="process-intro"><p className="section-label">Simple by design</p><h2 id="process-title">Three steps from practice to progress.</h2><p>No complicated setup. Pick a quiz, focus on the questions, then use your result to decide what to do next.</p></div>
-            <div className="steps-list">
-              {steps.map(([number, title, description]) => (
-                <div className="step" key={number}><span className="step-number">{number}</span><div><h3>{title}</h3><p>{description}</p></div></div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="benefits-section" aria-labelledby="benefits-title">
-          <div className="shell-container benefits-grid">
-            <div><p className="section-label">Built around improvement</p><h2 id="benefits-title">A quiz should tell you more than a score.</h2><p className="benefits-copy">Every attempt is designed to help you understand accuracy, strengths and gaps so your next study session has a clear direction.</p></div>
-            <div className="benefit-points">
-              <div><strong>Focused attempts</strong><span>Clear questions, progress and timing without unnecessary distraction.</span></div>
-              <div><strong>Useful results</strong><span>See correct, incorrect, skipped and accuracy signals after submission.</span></div>
-              <div><strong>Fair competition</strong><span>Compare performance through privacy-conscious leaderboards.</span></div>
-            </div>
-          </div>
-        </section>
-
-        <section className="leaderboard-preview" aria-labelledby="leaderboard-title">
-          <div className="shell-container leaderboard-inner">
-            <div><p className="section-label">Compete fairly</p><h2 id="leaderboard-title">Ready to see where you stand?</h2><p>Track your performance and compare results without exposing private contact details.</p></div>
-            <a className="button button-light" href="/leaderboard">Open leaderboard <span aria-hidden="true">→</span></a>
-          </div>
-        </section>
-
-        <section className="final-cta" aria-labelledby="cta-title">
-          <div className="shell-container cta-card">
-            <p className="section-label">Your next attempt starts here</p>
-            <h2 id="cta-title">Choose a quiz. Test yourself. Improve.</h2>
-            <p>Start with a subject you know, or challenge yourself with something new.</p>
-            <a className="button button-primary button-large" href="/quizzes">Explore all quizzes <span aria-hidden="true">→</span></a>
+            <p className="kinetic-section-index">05 / YOUR NEXT ATTEMPT</p>
+            <h2 id="final-title">Make the next<br /><em>attempt count.</em></h2>
+            <p>Pick a quiz, commit to the clock and let the result show you what to do next.</p>
+            <a className="kinetic-button kinetic-button-primary kinetic-button-large" href="/quizzes">Explore all quizzes <span>↗</span></a>
           </div>
         </section>
       </main>
+
       <SiteFooter />
     </div>
   )
 }
-
 
 function QuizCataloguePage() {
   const [query, setQuery] = useState('')
