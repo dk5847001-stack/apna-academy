@@ -4,6 +4,8 @@ Independent backend for the Quiz product. This directory owns the Quiz API and Q
 
 ## Phase 8 — Backend + Database — Complete
 
+## Phase 9 — Results + Analytics — Complete
+
 - Node.js + Express API under `/api/v1/*`
 - Independent MongoDB connection
 - Mongoose models for Participant, Quiz, Question and Attempt
@@ -31,6 +33,8 @@ Independent backend for the Quiz product. This directory owns the Quiz API and Q
 - `GET /api/v1/attempts/:attemptId`
 - `PATCH /api/v1/attempts/:attemptId/questions/:questionId`
 - `POST /api/v1/attempts/:attemptId/submit`
+- `GET /api/v1/results?participantId=<participant-id>`
+- `GET /api/v1/results/:attemptId?participantId=<participant-id>`
 
 ### Start Attempt
 
@@ -52,6 +56,10 @@ The response contains public question data only. The server retains `correctOpti
 ```
 
 The server verifies that the question belongs to the attempt, verifies that the attempt is still open, and stores the answer.
+
+### Results & Analytics
+
+Completed attempts expose server-calculated analytics only after the attempt is `SUBMITTED` or `EXPIRED`. Result access requires both the attempt id and participant id; the server verifies ownership before returning data. Analytics include score, percentage, correct/incorrect/skipped, accuracy, time used, time remaining, topic-level performance and improvement suggestions. Correct answers are not exposed.
 
 ### Submit
 
