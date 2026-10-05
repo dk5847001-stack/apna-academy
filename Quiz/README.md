@@ -13,7 +13,8 @@ All Quiz code, configuration, APIs, database models, authentication, quiz logic,
 - Phase 5: Complete — student registration/profile
 - Phase 6: Complete — quiz discovery + quiz details
 - Phase 7: Complete — frontend quiz engine
-- Phase 8: Next — backend + database
+- Phase 8: Complete — backend + database
+- Phase 9: Next — results + analytics
 
 ## Phase 7 Deliverables
 - Added dedicated `/quiz/:attemptId` quiz attempt route.
