@@ -20,6 +20,11 @@ const quizSchema = z.object({
   marks: z.coerce.number().positive().max(10000),
   negativeMarks: z.coerce.number().min(0).max(100).default(0),
   maxAttempts: z.coerce.number().int().min(1).max(100).default(1),
+  passingPercentage: z.coerce.number().min(0).max(100).default(40),
+  shuffleQuestions: z.boolean().default(false),
+  shuffleOptions: z.boolean().default(false),
+  allowReview: z.boolean().default(true),
+  showExplanations: z.boolean().default(true),
   resultMode: z.enum(['immediate','manual']).default('immediate'),
   tags: z.array(z.string().trim().min(1).max(60)).max(30).default([]),
   isPublished: z.boolean().default(false),
@@ -36,7 +41,7 @@ const questionSchema = z.object({
 })
 
 function cleanQuiz(q) {
-  return { id:q._id.toString(), slug:q.slug, title:q.title, description:q.description, type:q.type, degree:q.degree, branch:q.branch, subject:q.subject, difficulty:q.difficulty, durationSeconds:q.durationSeconds, marks:q.marks, negativeMarks:q.negativeMarks, maxAttempts:q.maxAttempts, isPublished:q.isPublished, resultMode:q.resultMode, tags:q.tags, createdAt:q.createdAt, updatedAt:q.updatedAt }
+  return { id:q._id.toString(), slug:q.slug, title:q.title, description:q.description, type:q.type, degree:q.degree, branch:q.branch, subject:q.subject, difficulty:q.difficulty, durationSeconds:q.durationSeconds, marks:q.marks, negativeMarks:q.negativeMarks, maxAttempts:q.maxAttempts, passingPercentage:q.passingPercentage, shuffleQuestions:q.shuffleQuestions, shuffleOptions:q.shuffleOptions, allowReview:q.allowReview, showExplanations:q.showExplanations, isPublished:q.isPublished, resultMode:q.resultMode, tags:q.tags, createdAt:q.createdAt, updatedAt:q.updatedAt }
 }
 function cleanQuestion(q) {
   return { id:q._id.toString(), quizId:q.quizId.toString(), position:q.position, topic:q.topic || '', text:q.text, options:q.options, correctOption:q.correctOption, marks:q.marks, explanation:q.explanation || '', isActive:q.isActive, createdAt:q.createdAt, updatedAt:q.updatedAt }
