@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "seed": "node src/seed.js"
+    "seed": "node src/seed.js",
+    "admin:hash": "node src/generateAdminHash.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
