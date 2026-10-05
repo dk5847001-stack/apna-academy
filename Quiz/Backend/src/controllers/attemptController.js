@@ -13,7 +13,7 @@ const answerSchema=z.object({selectedOption:z.enum(['A','B','C','D']).nullable()
 function shuffle(list){ const copy=[...list]; for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]]} return copy }
 
 function safeAttempt(attempt){
- return {id:attempt._id.toString(),quizId:attempt.quizId.toString(),participantId:attempt.participantId.toString(),status:attempt.status,startedAt:attempt.startedAt,expiresAt:attempt.expiresAt,durationSeconds:attempt.durationSeconds,questions:attempt.snapshot.map(q=>({questionId:q.questionId.toString(),position:q.position,topic:q.topic || 'General',text:q.text,options:q.options,marks:q.marks})),answers:attempt.answers.map(a=>({questionId:a.questionId.toString(),selectedOption:a.selectedOption}))}
+ return {id:attempt._id.toString(),quizId:attempt.quizId.toString(),participantId:attempt.participantId.toString(),status:attempt.status,startedAt:attempt.startedAt,expiresAt:attempt.expiresAt,durationSeconds:attempt.durationSeconds,allowReview:attempt.rules?.allowReview !== false,questions:attempt.snapshot.map(q=>({questionId:q.questionId.toString(),position:q.position,topic:q.topic || 'General',text:q.text,options:q.options,marks:q.marks})),answers:attempt.answers.map(a=>({questionId:a.questionId.toString(),selectedOption:a.selectedOption}))}
 }
 function resultPayload(attempt){
  return {attemptId:attempt._id.toString(),status:attempt.status,...attempt.result}
@@ -32,7 +32,7 @@ async function startAttempt(req,res){
  if(!questions.length) throw new HttpError(409,'This quiz has no active questions.','NO_QUESTIONS')
  const now=new Date()
  const snapshot=questions.map(q=>{ let options=q.options.map(o=>({key:o.key,text:o.text})); let correctOption=q.correctOption; if(quiz.shuffleOptions){ const originalCorrect=correctOption; options=shuffle(options); const newCorrect=options.findIndex(o=>o.key===originalCorrect); const keys=['A','B','C','D']; options=options.map((o,i)=>({key:keys[i],text:o.text})); correctOption=keys[newCorrect] } return {questionId:q._id,position:q.position,topic:q.topic||'General',text:q.text,options,correctOption,marks:q.marks,negativeMarks:quiz.negativeMarks,explanation:q.explanation||''} })
- const attempt=await Attempt.create({participantId,quizId,status:'IN_PROGRESS',startedAt:now,expiresAt:new Date(now.getTime()+quiz.durationSeconds*1000),durationSeconds:quiz.durationSeconds,snapshot})
+ const attempt=await Attempt.create({participantId,quizId,status:'IN_PROGRESS',startedAt:now,expiresAt:new Date(now.getTime()+quiz.durationSeconds*1000),durationSeconds:quiz.durationSeconds,rules:{passingPercentage:quiz.passingPercentage,allowReview:quiz.allowReview,showExplanations:quiz.showExplanations},snapshot})
  res.status(201).json({success:true,data:{attempt:safeAttempt(attempt),resumed:false}})
 }
 async function getAttempt(req,res){
