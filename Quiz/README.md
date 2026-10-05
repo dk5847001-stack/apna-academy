@@ -14,7 +14,8 @@ All Quiz code, configuration, APIs, database models, authentication, quiz logic,
 - Phase 6: Complete — quiz discovery + quiz details
 - Phase 7: Complete — frontend quiz engine
 - Phase 8: Complete — backend + database
-- Phase 9: Next — results + analytics
+- Phase 9: Complete — results + analytics
+- Phase 10: Next — leaderboard + competitive layer
 
 ## Phase 7 Deliverables
 - Added dedicated `/quiz/:attemptId` quiz attempt route.
@@ -47,3 +48,37 @@ Phase 7 browser state is **not authoritative**. Users can modify client-side sta
 - No existing ApnaAcademy frontend/backend, Interview app, admin app, payment flow or database schema was modified.
 
 See `ARCHITECTURE.md` for technical boundaries and `PRODUCT_ARCHITECTURE.md` for the approved product contract.
+
+
+## Phase 9 Deliverables
+
+- Added server-backed result retrieval for completed attempts.
+- Added participant-scoped result authorization: an attempt result is returned only when its participant id matches the request.
+- Added result history API with the latest 50 completed attempts.
+- Added server-derived score, max marks, percentage, attempted, correct, incorrect, skipped and accuracy metrics.
+- Added server-derived time used and time remaining metrics.
+- Added topic-level performance analytics using immutable attempt question snapshots.
+- Added improvement suggestions based on performance, weak topics and skipped questions.
+- Kept correct answers out of result responses.
+- Added frontend integration for participant upsert, quiz lookup, secure attempt start/resume, server answer persistence, server timer, server submission and result navigation.
+- Added `/result/:attemptId` verified result analytics page.
+- Added `/results` participant result history page.
+- Added `VITE_QUIZ_API_URL` configuration example.
+- Kept leaderboard/ranking and admin question authoring out of this phase.
+- All Quiz work remains isolated under `Quiz/Frontend/` and `Quiz/Backend/`.
+
+## Phase 9 Security Contract
+
+1. Result APIs require both `attemptId` and `participantId`.
+2. The server verifies attempt ownership before returning analytics.
+3. Only `SUBMITTED` and `EXPIRED` attempts have readable final results.
+4. Result payloads never expose `correctOption`.
+5. Score and analytics are recomputed from the immutable attempt snapshot and stored answers.
+6. Topic analytics fall back to the quiz subject when a question has no explicit topic.
+7. Result history is capped at 50 records per participant request.
+8. Client-side result UI is presentation only; it is not trusted for score or ranking.
+9. Authentication/identity hardening remains a future concern; current participant identity is device/profile-linked and is not a substitute for production authentication.
+
+## Phase 9 Gate
+
+Phase 10 must consume server-owned result data only. No leaderboard implementation should trust frontend score, percentage or rank values.
