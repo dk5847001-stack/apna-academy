@@ -58,7 +58,7 @@ function readProfile() {
 }
 
 function getPath() {
-  return window.location.pathname.replace(/\\/+$/, '') || '/'
+  return window.location.pathname.replace(/\/+$/, '') || '/'
 }
 
 function App() {
