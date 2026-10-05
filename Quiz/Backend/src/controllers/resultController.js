@@ -49,6 +49,7 @@ function buildAnalytics(attempt, quiz) {
   const timeUsedSeconds = Number(attempt.result?.timeUsedSeconds ?? 0)
   const durationSeconds = Number(attempt.durationSeconds || quiz?.durationSeconds || 0)
   const timeRemainingSeconds = Math.max(0, durationSeconds - timeUsedSeconds)
+  const passed = Boolean(attempt.result?.passed)
 
   const topicPerformance = [...topicMap.values()].map((item) => ({
     ...item,
@@ -94,9 +95,12 @@ function buildAnalytics(attempt, quiz) {
     accuracy,
     timeUsedSeconds,
     timeRemainingSeconds,
+    passed,
+    passingPercentage: Number(quiz?.passingPercentage ?? 40),
     questionCount: questions.length,
     topicPerformance,
     suggestions,
+    questionReview: quiz?.showExplanations === false ? [] : questions.map((question) => { const selected=answerMap.get(question.questionId.toString()) || null; return { questionId:question.questionId.toString(), position:question.position, text:question.text, selectedOption:selected, correctOption:question.correctOption, correct:Boolean(selected && selected===question.correctOption), explanation:question.explanation || '' } }),
   }
 }
 
@@ -114,7 +118,7 @@ async function getResult(req, res) {
     throw new HttpError(409, 'This attempt has not been completed yet.', 'RESULT_NOT_READY')
   }
 
-  const quiz = await Quiz.findById(attempt.quizId).select('slug title type subject difficulty durationSeconds')
+  const quiz = await Quiz.findById(attempt.quizId).select('slug title type subject difficulty durationSeconds passingPercentage showExplanations')
   res.json({ success: true, data: { result: buildAnalytics(attempt, quiz) } })
 }
 
