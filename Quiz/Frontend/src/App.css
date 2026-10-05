@@ -97,3 +97,22 @@
 @media(max-width:560px){.admin-sidebar nav{grid-template-columns:1fr 1fr}.admin-form-grid,.option-grid{grid-template-columns:1fr}.admin-stat-grid{grid-template-columns:1fr 1fr}.admin-panel{padding:17px}.admin-login-card{padding:24px}.admin-toolbar{flex-direction:column}.admin-table{min-width:680px}}
 
 .result-review-panel{margin-top:20px}.result-review-list{display:grid;gap:10px;margin-top:18px}.result-review-item{display:flex;justify-content:space-between;gap:18px;padding:16px;border:1px solid #e7e3dd;border-radius:14px;background:#fff}.result-review-item span,.result-review-item small{display:block;color:#777;font-size:.8rem}.result-review-item strong{display:block;margin:5px 0}.result-review-item p{margin:8px 0 0;color:#666}.result-review-item>b{font-size:.8rem;white-space:nowrap}.result-review-item>b{color:#087443}
+
+
+/* Phase 13 — GSAP + ThreeUI premium motion layer */
+.hero-section{position:relative;overflow:hidden}
+.hero-visual{perspective:1100px;transform-style:preserve-3d}
+.quiz-preview-card{transform-style:preserve-3d;will-change:transform}
+.threeui-hero-scene{position:absolute;inset:-18%;z-index:0;opacity:.18;pointer-events:none;filter:saturate(.85) contrast(.95)}
+.threeui-hero-scene>*{width:100%;height:100%}
+.hero-visual .quiz-preview-card,.hero-visual .score-float{position:relative;z-index:2}
+.hero-visual .hero-orb{z-index:1;will-change:transform}
+.category-card,.quiz-card,.step,.benefit-points>div{will-change:transform,opacity}
+.section-block,.process-section,.benefits-section,.leaderboard-preview,.final-cta{will-change:transform,opacity}
+@media(max-width:900px){
+  .threeui-hero-scene{inset:-8%;opacity:.1}
+}
+@media(prefers-reduced-motion:reduce){
+  .threeui-hero-scene{display:none}
+  .quiz-preview-card,.hero-orb,.score-float{transform:none!important}
+}
