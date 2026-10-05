@@ -10,6 +10,7 @@ const snapshotQuestionSchema = new mongoose.Schema({
   correctOption: String,
   marks: Number,
   negativeMarks: Number,
+  explanation: String,
 }, { _id: false })
 
 const answerSchema = new mongoose.Schema({
@@ -36,6 +37,7 @@ const attemptSchema = new mongoose.Schema({
     skipped: Number,
     accuracy: Number,
     timeUsedSeconds: Number,
+    passed: Boolean,
   },
 }, { timestamps: true })
 
