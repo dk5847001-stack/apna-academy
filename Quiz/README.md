@@ -16,7 +16,8 @@ All Quiz code, configuration, APIs, database models, authentication, quiz logic,
 - Phase 8: Complete — backend + database
 - Phase 9: Complete — results + analytics
 - Phase 10: Complete — leaderboard + competitive layer
-- Phase 11: Next — admin panel
+- Phase 11: Complete — admin panel, authentication, question bank and quiz management
+- Phase 12: Next — advanced quiz features
 
 ## Phase 7 Deliverables
 - Added dedicated `/quiz/:attemptId` quiz attempt route.
@@ -115,3 +116,21 @@ Phase 10 must consume server-owned result data only. No leaderboard implementati
 8. Client-provided score, percentage or rank is never accepted by the leaderboard API.
 9. Leaderboard filters operate against server-side quiz and participant records.
 10. Phase 11 must not replace this server-owned ranking contract with frontend-calculated ranks.
+
+
+## Phase 11 Security Contract
+
+1. Participant identity is never accepted as admin authentication.
+2. Admin routes are server-protected with signed expiring tokens.
+3. Admin passwords are stored only as scrypt-derived hashes.
+4. Admin login is rate-limited.
+5. Public quiz APIs continue to exclude correct answers.
+6. Admin question APIs expose answer keys only after authorization.
+7. Quiz deletion is non-destructive archive/unpublish.
+8. Existing attempt snapshots remain authoritative after question edits.
+9. Frontend route hiding is not treated as authorization.
+10. Admin secrets remain environment-only.
+
+## Phase 11 Environment
+
+Add ADMIN_EMAIL, ADMIN_PASSWORD_HASH and ADMIN_TOKEN_SECRET to Quiz/Backend/.env. Generate a password hash with `npm run admin:hash -- "YourStrongPassword"`. Never commit secrets.
