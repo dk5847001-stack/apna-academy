@@ -15,7 +15,8 @@ All Quiz code, configuration, APIs, database models, authentication, quiz logic,
 - Phase 7: Complete — frontend quiz engine
 - Phase 8: Complete — backend + database
 - Phase 9: Complete — results + analytics
-- Phase 10: Next — leaderboard + competitive layer
+- Phase 10: Complete — leaderboard + competitive layer
+- Phase 11: Next — admin panel
 
 ## Phase 7 Deliverables
 - Added dedicated `/quiz/:attemptId` quiz attempt route.
@@ -82,3 +83,35 @@ See `ARCHITECTURE.md` for technical boundaries and `PRODUCT_ARCHITECTURE.md` for
 ## Phase 9 Gate
 
 Phase 10 must consume server-owned result data only. No leaderboard implementation should trust frontend score, percentage or rank values.
+
+## Phase 10 Deliverables
+
+- Added server-owned leaderboard aggregation under the Quiz backend.
+- Added public leaderboard API: GET /api/v1/leaderboard.
+- Added leaderboard scopes for overall, quiz, subject, degree, branch and college views.
+- Added optional quiz, subject, degree, branch and college filters.
+- Added pagination with a maximum of 100 entries per page.
+- Added competition ranking with deterministic tie-breakers.
+- Ranking priority: average percentage, completed quizzes, average accuracy, lower average time, then earlier completion.
+- For repeated attempts on the same quiz, only the participant's best completed attempt for that quiz contributes to the competitive score.
+- Overall and filtered rankings aggregate each participant's best attempt per matching quiz, preventing repeated attempts from artificially inflating leaderboard volume.
+- Added privacy-safe display names using first name plus last initial.
+- Public leaderboard responses never expose email, mobile or roll/PRN.
+- Added optional current-participant rank (me) without exposing other private identity data.
+- Added responsive /leaderboard frontend page with filters, ranking table and current-rank card.
+- Kept leaderboard score/rank calculation entirely server-owned.
+- Kept admin authoring, moderation and certification/live leaderboard features for later phases.
+- All Quiz work remains isolated under Quiz/Frontend/ and Quiz/Backend/.
+
+## Phase 10 Ranking Contract
+
+1. Only SUBMITTED and EXPIRED attempts are eligible.
+2. An individual participant can contribute at most one attempt per quiz to a leaderboard view: their best completed attempt.
+3. Best attempt ordering for the same quiz is percentage, accuracy, lower time, then earlier submission.
+4. Participant leaderboard metric is average percentage across eligible best attempts.
+5. Tie-breakers are completed quiz count, average accuracy, lower average time and earlier completion.
+6. Ranking uses competition ranking, so equal ranking metrics share a rank and the next rank skips accordingly.
+7. Public display names are privacy-reduced; contact details and PRN/roll numbers are never returned.
+8. Client-provided score, percentage or rank is never accepted by the leaderboard API.
+9. Leaderboard filters operate against server-side quiz and participant records.
+10. Phase 11 must not replace this server-owned ranking contract with frontend-calculated ranks.
