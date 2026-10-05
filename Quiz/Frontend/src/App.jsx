@@ -11,6 +11,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger)
 const STORAGE_KEY = 'apnaAcademyQuiz.studentProfile'
 const PARTICIPANT_KEY = 'apnaAcademyQuiz.participantId'
 const QUIZ_API_URL = (import.meta.env.VITE_QUIZ_API_URL || 'http://localhost:5001').replace(/\/$/, '')
+const QUIZ_ENV = import.meta.env.MODE
 
 async function apiRequest(path, options = {}) {
   const response = await fetch(QUIZ_API_URL + path, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options })
