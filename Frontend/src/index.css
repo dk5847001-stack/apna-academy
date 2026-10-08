@@ -673,3 +673,73 @@ html.dark .MuiModal-root,
 html.dark .MuiPopover-root {
   color: var(--aa-text-primary);
 }
+
+
+/* ============================================================
+   PHASE 6 — FINAL DARK-MODE QA HARDENING
+   Final regression hardening for page-specific gradients and runtime
+   DOM enhancements that are intentionally created outside JSX.
+============================================================ */
+
+html.dark [class*="bg-\\[\\#f8fbff\\]"] {
+  background-color: var(--aa-page) !important;
+}
+
+/* Light hero gradients must not leave a white band in dark mode. */
+html.dark [class*="bg-gradient-to-br"][class*="from-white"] {
+  background-image: linear-gradient(
+    135deg,
+    var(--aa-surface) 0%,
+    var(--aa-primary-soft) 52%,
+    var(--aa-surface-raised) 100%
+  ) !important;
+}
+
+/* Runtime homepage company marquee fades. */
+html.dark .aa-company-marquee-fade-left {
+  background-image: linear-gradient(
+    to right,
+    var(--aa-page),
+    color-mix(in srgb, var(--aa-page) 80%, transparent),
+    transparent
+  ) !important;
+}
+
+html.dark .aa-company-marquee-fade-right {
+  background-image: linear-gradient(
+    to left,
+    var(--aa-page),
+    color-mix(in srgb, var(--aa-page) 80%, transparent),
+    transparent
+  ) !important;
+}
+
+html.dark .aa-company-marquee-glow {
+  background-color: color-mix(
+    in srgb,
+    var(--aa-primary) 12%,
+    transparent
+  ) !important;
+}
+
+/* Dynamic Blog navigation classes are assigned by App.jsx at runtime. */
+html.dark a.rounded-lg.bg-blue-50 {
+  background-color: var(--aa-primary-soft) !important;
+  color: var(--aa-primary) !important;
+}
+
+/* Keep reduced-motion users free from transition-heavy theme changes. */
+@media (prefers-reduced-motion: reduce) {
+  html.dark,
+  html.dark body {
+    scroll-behavior: auto;
+  }
+
+  html.dark *,
+  html.dark *::before,
+  html.dark *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
