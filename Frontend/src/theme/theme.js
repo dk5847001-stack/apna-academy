@@ -212,6 +212,135 @@ export const createApnaTheme = (mode = "light") => {
           },
         },
       },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            color: palette.text.primary,
+            borderColor: palette.divider,
+            backgroundColor: dark ? "#182236" : "#f8fafc",
+          },
+          outlined: {
+            borderColor: dark ? "#344157" : "#cbd5e1",
+          },
+          colorPrimary: {
+            backgroundColor: dark ? "#16335c" : "#eff6ff",
+            color: dark ? "#bfdbfe" : "#1d4ed8",
+          },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          select: { color: palette.text.primary },
+          icon: { color: palette.text.secondary },
+        },
+      },
+      MuiFormHelperText: {
+        styleOverrides: { root: { color: palette.text.secondary } },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            boxShadow: "none",
+            "&:focus-visible": {
+              outline: dark ? "2px solid #60a5fa" : "2px solid #2563eb",
+              outlineOffset: 2,
+            },
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            color: palette.text.secondary,
+            "&:hover": {
+              backgroundColor: dark ? "#1a2537" : "#f1f5f9",
+            },
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            backgroundImage: "none",
+            backgroundColor: palette.background.paper,
+            color: palette.text.primary,
+            border: dark ? "1px solid #263247" : "none",
+            boxShadow: dark
+              ? "0 24px 70px rgba(0, 0, 0, 0.5)"
+              : "0 24px 70px rgba(15, 23, 42, 0.16)",
+          },
+        },
+      },
+      MuiDialogTitle: {
+        styleOverrides: { root: { color: palette.text.primary } },
+      },
+      MuiDialogContentText: {
+        styleOverrides: { root: { color: palette.text.secondary } },
+      },
+      MuiPopover: {
+        styleOverrides: {
+          paper: {
+            backgroundImage: "none",
+            backgroundColor: palette.background.paper,
+            color: palette.text.primary,
+            border: "1px solid " + palette.divider,
+          },
+        },
+      },
+      MuiSnackbarContent: {
+        styleOverrides: {
+          root: {
+            backgroundColor: dark ? "#192337" : "#0f172a",
+            color: "#ffffff",
+            border: dark ? "1px solid #263247" : "none",
+          },
+          message: { fontWeight: 600 },
+        },
+      },
+      MuiAlert: {
+        styleOverrides: {
+          root: { borderRadius: 12 },
+          standardInfo: {
+            backgroundColor: dark ? "#132746" : "#eff6ff",
+            color: dark ? "#bfdbfe" : "#1e3a8a",
+          },
+          standardSuccess: {
+            backgroundColor: dark ? "#0b2a24" : "#ecfdf5",
+            color: dark ? "#6ee7b7" : "#065f46",
+          },
+          standardWarning: {
+            backgroundColor: dark ? "#30250b" : "#fffbeb",
+            color: dark ? "#fcd34d" : "#92400e",
+          },
+          standardError: {
+            backgroundColor: dark ? "#32151d" : "#fef2f2",
+            color: dark ? "#fda4af" : "#991b1b",
+          },
+        },
+      },
+      MuiCircularProgress: {
+        styleOverrides: { root: { color: dark ? "#60a5fa" : "#2563eb" } },
+      },
+      MuiLinearProgress: {
+        styleOverrides: {
+          root: { backgroundColor: dark ? "#263247" : "#e2e8f0" },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: { color: palette.text.primary, borderColor: palette.divider },
+          head: { color: palette.text.secondary, fontWeight: 700 },
+        },
+      },
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            "&:hover": {
+              backgroundColor: dark ? "#151f31" : "#f8fafc",
+            },
+          },
+        },
+      },
       MuiTooltip: {
         styleOverrides: {
           tooltip: {
