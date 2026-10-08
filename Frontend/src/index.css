@@ -681,7 +681,8 @@ html.dark .MuiPopover-root {
    DOM enhancements that are intentionally created outside JSX.
 ============================================================ */
 
-html.dark [class*="bg-[#f8fbff]"] {
+html.dark [class*="bg-[#f8fbff]"],
+html.dark [class*="bg-[#f7faff]"] {
   background-color: var(--aa-page) !important;
 }
 
