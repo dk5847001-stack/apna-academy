@@ -48,20 +48,20 @@ function createActionButton({ label, primary = false, danger = false, onClick })
   button.style.padding = "0 14px";
   button.style.borderRadius = "9px";
   button.style.border = danger
-    ? "1px solid #fecaca"
+    ? "1px solid var(--aa-error)"
     : primary
-      ? "1px solid #0f172a"
-      : "1px solid #bfdbfe";
+      ? "1px solid var(--aa-border-strong)"
+      : "1px solid var(--aa-primary-border)";
   button.style.background = danger
-    ? "#ffffff"
+    ? "var(--aa-surface)"
     : primary
-      ? "#0f172a"
-      : "#ffffff";
+      ? "var(--aa-surface-elevated)"
+      : "var(--aa-surface)";
   button.style.color = danger
-    ? "#dc2626"
+    ? "var(--aa-error)"
     : primary
-      ? "#ffffff"
-      : "#1d4ed8";
+      ? "var(--aa-text-primary)"
+      : "var(--aa-primary)";
   button.style.fontSize = "14px";
   button.style.fontWeight = "700";
   button.style.fontFamily = "inherit";
@@ -69,17 +69,17 @@ function createActionButton({ label, primary = false, danger = false, onClick })
   button.style.boxShadow = "none";
   button.addEventListener("mouseenter", () => {
     button.style.background = danger
-      ? "#fef2f2"
+      ? "var(--aa-error-soft)"
       : primary
-        ? "#1e293b"
-        : "#eff6ff";
+        ? "var(--aa-surface-elevated)"
+        : "var(--aa-primary-soft)";
   });
   button.addEventListener("mouseleave", () => {
     button.style.background = danger
-      ? "#ffffff"
+      ? "var(--aa-surface)"
       : primary
-        ? "#0f172a"
-        : "#ffffff";
+        ? "var(--aa-surface-elevated)"
+        : "var(--aa-surface)";
   });
   button.addEventListener("click", onClick);
 
@@ -202,7 +202,7 @@ function installMobileActions(user) {
     container.setAttribute(MOBILE_ATTR, "true");
     container.style.marginTop = "12px";
     container.style.paddingTop = "12px";
-    container.style.borderTop = "1px solid #e2e8f0";
+    container.style.borderTop = "1px solid var(--aa-border)";
     list.appendChild(container);
   }
 
