@@ -184,15 +184,15 @@ function CompanyMarqueeEnhancement() {
 
       const leftFade = document.createElement("div");
       leftFade.className =
-        "pointer-events-none absolute inset-y-0 left-0 z-30 w-10 bg-gradient-to-r from-white via-white/80 to-transparent sm:w-20";
+        "aa-company-marquee-fade aa-company-marquee-fade-left pointer-events-none absolute inset-y-0 left-0 z-30 w-10 bg-gradient-to-r from-white via-white/80 to-transparent sm:w-20";
 
       const rightFade = document.createElement("div");
       rightFade.className =
-        "pointer-events-none absolute inset-y-0 right-0 z-30 w-10 bg-gradient-to-l from-white via-white/80 to-transparent sm:w-20";
+        "aa-company-marquee-fade aa-company-marquee-fade-right pointer-events-none absolute inset-y-0 right-0 z-30 w-10 bg-gradient-to-l from-white via-white/80 to-transparent sm:w-20";
 
       const centerGlow = document.createElement("div");
       centerGlow.className =
-        "pointer-events-none absolute inset-y-2 left-1/2 z-10 w-40 -translate-x-1/2 rounded-full bg-blue-100/20 blur-3xl sm:w-56";
+        "aa-company-marquee-glow pointer-events-none absolute inset-y-2 left-1/2 z-10 w-40 -translate-x-1/2 rounded-full bg-blue-100/20 blur-3xl sm:w-56";
 
       grid.append(centerGlow, leftFade, rightFade);
 
