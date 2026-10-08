@@ -367,7 +367,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#f7faff] text-slate-900">
+    <main className="aa-home-page relative min-h-screen overflow-hidden bg-[#f7faff] text-slate-900">
       {/* =====================================================
           PAGE AMBIENT BACKGROUND + HERO
       ====================================================== */}
