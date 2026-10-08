@@ -98,6 +98,13 @@ export const createApnaTheme = (mode = "light") => {
           },
         },
       },
+      MuiTypography: {
+        styleOverrides: {
+          root: {
+            color: palette.text.primary,
+          },
+        },
+      },
       MuiCard: {
         styleOverrides: {
           root: {
@@ -344,8 +351,9 @@ export const createApnaTheme = (mode = "light") => {
       MuiTooltip: {
         styleOverrides: {
           tooltip: {
-            backgroundColor: dark ? "#e2e8f0" : "#0f172a",
-            color: dark ? "#0f172a" : "#ffffff",
+            backgroundColor: dark ? "#192337" : "#0f172a",
+            color: dark ? "#f8fafc" : "#ffffff",
+            border: dark ? "1px solid #263247" : "none",
             fontSize: "0.75rem",
             fontWeight: 600,
           },
