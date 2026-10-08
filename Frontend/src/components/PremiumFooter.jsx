@@ -44,7 +44,7 @@ function FooterLink({ to, children }) {
   return (
     <Link
       to={to}
-      className="group inline-flex w-fit items-center gap-2 rounded-lg py-1 text-[15px] font-medium text-slate-700 no-underline transition duration-200 hover:text-blue-700"
+      className="group inline-flex w-fit items-center gap-2 rounded-lg py-1 text-[15px] font-medium text-slate-700 no-underline transition duration-200 hover:text-blue-700 dark:text-[var(--aa-text-secondary)] dark:hover:text-[var(--aa-primary-hover)]"
     >
       <span>{children}</span>
       <ArrowForward
@@ -61,10 +61,10 @@ function SectionHeading({ type }) {
   return (
     <div className="inline-flex flex-col items-start">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-100 bg-white/85 text-blue-600 shadow-[0_8px_22px_rgba(37,99,235,0.12)] backdrop-blur-xl">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-100 bg-white/85 text-blue-600 dark:border-[var(--aa-primary-border)] dark:bg-[var(--aa-primary-soft)] dark:text-[var(--aa-primary)] shadow-[0_8px_22px_rgba(37,99,235,0.12)] backdrop-blur-xl">
           <Icon fontSize="small" />
         </span>
-        <span className="text-[13px] font-black uppercase tracking-[0.14em] text-slate-800">
+        <span className="text-[13px] font-black uppercase tracking-[0.14em] text-slate-800 dark:text-[var(--aa-text-primary)]">
           {label}
         </span>
       </div>
@@ -96,7 +96,7 @@ function AppCard({ icon: Icon, title, description, onClick, accent = "blue" }) {
     <button
       type="button"
       onClick={onClick}
-      className="group flex w-full items-center gap-4 rounded-[20px] border border-white/90 bg-white/65 p-4 text-left shadow-[0_12px_32px_rgba(37,99,235,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:bg-white/80"
+      className="group flex w-full items-center gap-4 rounded-[20px] border border-white/90 bg-white/65 dark:border-[var(--aa-border)] dark:bg-[var(--aa-surface)] p-4 text-left shadow-[0_12px_32px_rgba(37,99,235,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:bg-white/80"
     >
       <span
         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${accentClasses}`}
@@ -104,10 +104,10 @@ function AppCard({ icon: Icon, title, description, onClick, accent = "blue" }) {
         <Icon fontSize="small" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[15px] font-extrabold text-slate-900">{title}</span>
-        <span className="mt-1 block text-[12px] leading-4 text-slate-500">{description}</span>
+        <span className="block truncate text-[15px] font-extrabold text-slate-900 dark:text-[var(--aa-text-primary)]">{title}</span>
+        <span className="mt-1 block text-[12px] leading-4 text-slate-500 dark:text-[var(--aa-text-muted)]">{description}</span>
       </span>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-blue-50/90 text-blue-600 transition duration-200 group-hover:translate-x-0.5 group-hover:bg-blue-100">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-blue-50/90 text-blue-600 dark:border-[var(--aa-primary-border)] dark:bg-[var(--aa-primary-soft)] dark:text-[var(--aa-primary)] transition duration-200 group-hover:translate-x-0.5 group-hover:bg-blue-100">
         <ArrowForward className="!text-[18px]" />
       </span>
     </button>
@@ -190,7 +190,7 @@ export default function PremiumFooter() {
   return (
     <footer
       data-premium-footer="true"
-      className="relative isolate overflow-hidden border-t border-slate-200/80 bg-[#fbfcff] text-slate-800 shadow-[0_-18px_60px_rgba(37,99,235,0.06)]"
+      className="relative isolate overflow-hidden border-t border-slate-200/80 bg-[#fbfcff] text-slate-800 shadow-[0_-18px_60px_rgba(37,99,235,0.06)] dark:bg-[var(--aa-page)] dark:text-[var(--aa-text-primary)] dark:border-[var(--aa-border)] dark:shadow-[0_-18px_60px_rgba(0,0,0,0.24)]"
     >
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -left-40 -top-28 h-[30rem] w-[30rem] rounded-full bg-blue-100/55 blur-3xl" />
@@ -207,10 +207,10 @@ export default function PremiumFooter() {
                 <School className="!text-[30px]" />
               </span>
               <span>
-                <span className="block text-[23px] font-black tracking-[-0.04em] text-slate-900">
+                <span className="block text-[23px] font-black tracking-[-0.04em] text-slate-900 dark:text-[var(--aa-text-primary)]">
                   Apna<span className="text-blue-600">Academy</span>
                 </span>
-                <span className="mt-0.5 block text-[14px] font-medium text-slate-500">Learn. Build. Grow.</span>
+                <span className="mt-0.5 block text-[14px] font-medium text-slate-500 dark:text-[var(--aa-text-muted)]">Learn. Build. Grow.</span>
               </span>
             </Link>
 
@@ -242,7 +242,7 @@ export default function PremiumFooter() {
               <button
                 type="button"
                 onClick={() => goTo(isLoggedIn ? DASHBOARD_URL : "/register")}
-                className="inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-white/80 px-4 py-2.5 text-[13px] font-extrabold text-slate-800 shadow-[0_10px_24px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/70 hover:text-blue-700"
+                className="inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-white/80 px-4 py-2.5 text-[13px] font-extrabold text-slate-800 dark:border-[var(--aa-border)] dark:bg-[var(--aa-surface)] dark:text-[var(--aa-text-primary)] shadow-[0_10px_24px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/70 hover:text-blue-700"
               >
                 <Dashboard fontSize="small" />
                 {isLoggedIn ? "Open Dashboard" : "Get Started"}
@@ -269,7 +269,7 @@ export default function PremiumFooter() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={label}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-100 bg-white/90 text-slate-500 shadow-[0_8px_18px_rgba(37,99,235,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-blue-100 hover:bg-blue-50 hover:text-blue-600"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-100 bg-white/90 text-slate-500 dark:border-[var(--aa-border)] dark:bg-[var(--aa-surface)] dark:text-[var(--aa-text-muted)] shadow-[0_8px_18px_rgba(37,99,235,0.08)] transition duration-200 hover:-translate-y-0.5 hover:border-blue-100 hover:bg-blue-50 hover:text-blue-600"
                   >
                     <Icon fontSize="small" />
                   </a>
@@ -330,19 +330,19 @@ export default function PremiumFooter() {
         </div>
 
         <div className="relative mx-auto mt-10 max-w-[1120px]">
-          <div className="rounded-[22px] border border-blue-100 bg-white/80 p-5 shadow-[0_18px_50px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl sm:p-6">
+          <div className="rounded-[22px] border border-blue-100 bg-white/80 p-5 dark:border-[var(--aa-border)] dark:bg-[var(--aa-surface)] shadow-[0_18px_50px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl sm:p-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-600">Get in touch</p>
-                <p className="mt-1 text-[15px] font-extrabold text-slate-900">We’re here to help you learn and grow.</p>
-                <p className="mt-1 text-[12px] text-slate-500">For general enquiries, partnerships or platform support, reach us directly.</p>
+                <p className="mt-1 text-[15px] font-extrabold text-slate-900 dark:text-[var(--aa-text-primary)]">We’re here to help you learn and grow.</p>
+                <p className="mt-1 text-[12px] text-slate-500 dark:text-[var(--aa-text-muted)]">For general enquiries, partnerships or platform support, reach us directly.</p>
               </div>
               <div className="grid shrink-0 gap-2 sm:min-w-[330px]">
-                <a href="mailto:info@apnaacademy.me" className="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 text-sm font-bold text-slate-700 no-underline transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+                <a href="mailto:info@apnaacademy.me" className="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 text-sm font-bold text-slate-700 dark:border-[var(--aa-border)] dark:bg-[var(--aa-input)] dark:text-[var(--aa-text-secondary)] no-underline transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
                   <Email fontSize="small" />
                   info@apnaacademy.me
                 </a>
-                <a href="mailto:support@apnaacademy.me" className="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 text-sm font-bold text-slate-700 no-underline transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+                <a href="mailto:support@apnaacademy.me" className="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-2.5 text-sm font-bold text-slate-700 dark:border-[var(--aa-border)] dark:bg-[var(--aa-input)] dark:text-[var(--aa-text-secondary)] no-underline transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
                   <Email fontSize="small" />
                   support@apnaacademy.me
                 </a>
@@ -356,15 +356,15 @@ export default function PremiumFooter() {
             <School className="!text-[64px] -rotate-12 drop-shadow-[0_10px_18px_rgba(37,99,235,0.14)]" />
           </div>
 
-          <div className="relative rounded-[22px] border border-white/90 bg-blue-50/65 p-4 shadow-[0_18px_50px_rgba(37,99,235,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl sm:p-6">
+          <div className="relative rounded-[22px] border border-white/90 bg-blue-50/65 dark:border-[var(--aa-border)] dark:bg-[var(--aa-primary-soft)] p-4 shadow-[0_18px_50px_rgba(37,99,235,0.10),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl sm:p-6">
             <div className="grid items-center gap-5 lg:grid-cols-[1fr_auto] lg:gap-8">
               <div className="flex min-w-0 items-center gap-4">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-white/80 text-blue-600 shadow-[0_10px_24px_rgba(37,99,235,0.10)]">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-white/80 text-blue-600 dark:bg-[var(--aa-surface-elevated)] dark:text-[var(--aa-primary)] shadow-[0_10px_24px_rgba(37,99,235,0.10)]">
                   <Email />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-[15px] font-extrabold text-slate-900">Stay updated</p>
-                  <p className="mt-0.5 text-[11px] leading-4 text-slate-500">Get course announcements and platform updates.</p>
+                  <p className="text-[15px] font-extrabold text-slate-900 dark:text-[var(--aa-text-primary)]">Stay updated</p>
+                  <p className="mt-0.5 text-[11px] leading-4 text-slate-500 dark:text-[var(--aa-text-muted)]">Get course announcements and platform updates.</p>
                 </div>
               </div>
 
@@ -378,7 +378,7 @@ export default function PremiumFooter() {
                     type="email"
                     maxLength={254}
                     placeholder="Enter your email address"
-                    className="h-11 w-full rounded-full border border-white/90 bg-white/95 pl-11 pr-4 text-[13px] font-semibold text-slate-800 outline-none shadow-[0_8px_20px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] placeholder:text-slate-400 focus:border-blue-300 focus:ring-4 focus:ring-blue-500/10"
+                    className="h-11 w-full rounded-full border border-white/90 bg-white/95 pl-11 pr-4 text-[13px] font-semibold text-slate-800 dark:border-[var(--aa-input-border)] dark:bg-[var(--aa-input)] dark:text-[var(--aa-text-primary)] outline-none shadow-[0_8px_20px_rgba(37,99,235,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] placeholder:text-slate-400 dark:placeholder:text-[var(--aa-text-subtle)] focus:border-blue-300 focus:ring-4 focus:ring-blue-500/10"
                   />
                 </div>
                 <button
@@ -391,7 +391,7 @@ export default function PremiumFooter() {
                 </button>
               </form>
             </div>
-            <p className="mt-2 min-h-4 pl-1 text-xs font-bold text-slate-500" aria-live="polite">{status}</p>
+            <p className="mt-2 min-h-4 pl-1 text-xs font-bold text-slate-500 dark:text-[var(--aa-text-muted)]" aria-live="polite">{status}</p>
           </div>
         </div>
 
