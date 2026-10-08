@@ -220,6 +220,8 @@ export default function MainLayout() {
       root.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
+
+    window.dispatchEvent(new Event("apnaacademy-theme-change"));
   }, [isDarkMode]);
 
   /* ==========================================================
