@@ -241,3 +241,222 @@ html.dark .aa-dark-text-primary { color: var(--aa-text-primary) !important; }
 html.dark .aa-dark-text-secondary { color: var(--aa-text-secondary) !important; }
 html.dark .aa-dark-text-muted { color: var(--aa-text-muted) !important; }
 html.dark .aa-dark-text-subtle { color: var(--aa-text-subtle) !important; }
+
+
+/* ============================================================
+   PHASE 4 — PAGE-LEVEL DARK MODE COVERAGE
+   Every public page uses Tailwind/MUI primitives. These selectors make
+   the semantic theme authoritative even where a page still carries a
+   light-mode utility class. They intentionally preserve media, accent,
+   and status colors while replacing light surfaces/text with readable
+   dark equivalents.
+============================================================ */
+
+html.dark [class*="bg-white"],
+html.dark [class*="bg-white/"] {
+  background-color: var(--aa-surface) !important;
+}
+
+html.dark [class*="bg-slate-50"],
+html.dark [class*="bg-slate-50/"] {
+  background-color: var(--aa-surface-raised) !important;
+}
+
+html.dark [class*="bg-slate-100"],
+html.dark [class*="bg-slate-100/"] {
+  background-color: var(--aa-surface-elevated) !important;
+}
+
+html.dark [class*="bg-blue-50"],
+html.dark [class*="bg-blue-50/"],
+html.dark [class*="bg-indigo-50"],
+html.dark [class*="bg-indigo-50/"] {
+  background-color: var(--aa-primary-soft) !important;
+}
+
+html.dark [class*="border-white"],
+html.dark [class*="border-white/"] {
+  border-color: var(--aa-border) !important;
+}
+
+html.dark [class*="border-slate-100"],
+html.dark [class*="border-slate-200"],
+html.dark [class*="border-slate-300"] {
+  border-color: var(--aa-border) !important;
+}
+
+html.dark [class*="border-blue-100"],
+html.dark [class*="border-blue-200"] {
+  border-color: var(--aa-primary-border) !important;
+}
+
+html.dark [class*="text-slate-950"],
+html.dark [class*="text-slate-900"] {
+  color: var(--aa-text-primary) !important;
+}
+
+html.dark [class*="text-slate-800"],
+html.dark [class*="text-slate-700"] {
+  color: var(--aa-text-secondary) !important;
+}
+
+html.dark [class*="text-slate-600"],
+html.dark [class*="text-slate-500"] {
+  color: var(--aa-text-muted) !important;
+}
+
+html.dark [class*="text-slate-400"] {
+  color: var(--aa-text-subtle) !important;
+}
+
+html.dark [class*="text-blue-700"],
+html.dark [class*="text-blue-600"] {
+  color: var(--aa-primary) !important;
+}
+
+html.dark [class*="hover:bg-white"]:hover {
+  background-color: var(--aa-surface-elevated) !important;
+}
+
+html.dark [class*="hover:bg-slate-50"]:hover {
+  background-color: var(--aa-surface-raised) !important;
+}
+
+html.dark [class*="hover:bg-blue-50"]:hover,
+html.dark [class*="hover:bg-indigo-50"]:hover {
+  background-color: var(--aa-primary-soft) !important;
+}
+
+/* Light status surfaces used throughout cards, alerts and policy pages. */
+html.dark [class*="bg-emerald-50"],
+html.dark [class*="bg-green-50"] {
+  background-color: var(--aa-success-soft) !important;
+}
+
+html.dark [class*="bg-amber-50"],
+html.dark [class*="bg-yellow-50"] {
+  background-color: var(--aa-warning-soft) !important;
+}
+
+html.dark [class*="bg-red-50"],
+html.dark [class*="bg-rose-50"] {
+  background-color: var(--aa-error-soft) !important;
+}
+
+html.dark [class*="border-emerald-"],
+html.dark [class*="border-green-"] {
+  border-color: color-mix(in srgb, var(--aa-success) 38%, var(--aa-border)) !important;
+}
+
+html.dark [class*="border-amber-"],
+html.dark [class*="border-yellow-"] {
+  border-color: color-mix(in srgb, var(--aa-warning) 38%, var(--aa-border)) !important;
+}
+
+html.dark [class*="border-red-"],
+html.dark [class*="border-rose-"] {
+  border-color: color-mix(in srgb, var(--aa-error) 38%, var(--aa-border)) !important;
+}
+
+html.dark [class*="text-emerald-"],
+html.dark [class*="text-green-"] {
+  color: var(--aa-success) !important;
+}
+
+html.dark [class*="text-amber-"],
+html.dark [class*="text-yellow-"] {
+  color: var(--aa-warning) !important;
+}
+
+html.dark [class*="text-red-"],
+html.dark [class*="text-rose-"] {
+  color: var(--aa-error) !important;
+}
+
+/* Auth forms: page-level sx props are normalized here as well. */
+html.dark .MuiTextField-root .MuiInputLabel-root {
+  color: var(--aa-text-secondary) !important;
+}
+
+html.dark .MuiTextField-root .MuiInputLabel-root.Mui-focused {
+  color: var(--aa-primary) !important;
+}
+
+html.dark .MuiTextField-root .MuiOutlinedInput-root {
+  background-color: var(--aa-input) !important;
+  color: var(--aa-text-primary) !important;
+}
+
+html.dark .MuiTextField-root .MuiOutlinedInput-notchedOutline {
+  border-color: var(--aa-input-border) !important;
+}
+
+html.dark .MuiTextField-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--aa-border-strong) !important;
+}
+
+html.dark .MuiTextField-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--aa-focus) !important;
+}
+
+/* MUI components embedded inside pages. */
+html.dark .MuiAlert-outlinedSuccess {
+  background-color: var(--aa-success-soft) !important;
+  border-color: color-mix(in srgb, var(--aa-success) 40%, var(--aa-border)) !important;
+  color: var(--aa-success) !important;
+}
+
+html.dark .MuiAlert-outlinedError {
+  background-color: var(--aa-error-soft) !important;
+  border-color: color-mix(in srgb, var(--aa-error) 40%, var(--aa-border)) !important;
+  color: var(--aa-error) !important;
+}
+
+/* Pricing has a deliberately warm light identity; dark mode keeps the
+   orange accent but moves every large surface to the platform palette. */
+html.dark .pricing-page {
+  background: var(--aa-page) !important;
+  color: var(--aa-text-primary) !important;
+}
+
+html.dark .pricing-page .text-\[\#172b46\] {
+  color: var(--aa-text-primary) !important;
+}
+
+html.dark .pricing-page [class*="bg-\[\#fff"] {
+  background-color: var(--aa-page) !important;
+}
+
+html.dark .pricing-page [class*="bg-orange-50"],
+html.dark .pricing-page [class*="bg-orange-100"],
+html.dark .pricing-page [class*="bg-amber-50"],
+html.dark .pricing-page [class*="bg-amber-100"] {
+  background-color: color-mix(in srgb, #f97316 10%, var(--aa-surface)) !important;
+}
+
+html.dark .pricing-page [class*="border-orange-"],
+html.dark .pricing-page [class*="border-amber-"] {
+  border-color: color-mix(in srgb, #f97316 34%, var(--aa-border)) !important;
+}
+
+html.dark .pricing-page [class*="text-orange-"] {
+  color: #fb923c !important;
+}
+
+html.dark .pricing-page [class*="text-emerald-"] {
+  color: var(--aa-success) !important;
+}
+
+html.dark .pricing-page table {
+  color: var(--aa-text-primary);
+}
+
+html.dark .pricing-page td,
+html.dark .pricing-page th {
+  border-color: var(--aa-border) !important;
+}
+
+/* Keep intentionally dark preview surfaces unchanged. */
+html.dark .aa-video-preview-dark {
+  color-scheme: dark;
+}
