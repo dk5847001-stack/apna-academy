@@ -686,6 +686,67 @@ html.dark [class*="bg-[#f7faff]"] {
   background-color: var(--aa-page) !important;
 }
 
+/* Home page: normalize every translucent white/light surface so no light
+   panels, strips, cards, or gradient stops survive dark mode. */
+html.dark .aa-home-page,
+html.dark .aa-home-page [class*="bg-[#f7faff]"] {
+  background-color: var(--aa-page) !important;
+}
+
+html.dark .aa-home-page .bg-white,
+html.dark .aa-home-page .\!bg-white,
+html.dark .aa-home-page [class*="bg-white/95"],
+html.dark .aa-home-page [class*="bg-white/90"] {
+  background-color: var(--aa-surface) !important;
+}
+
+html.dark .aa-home-page [class*="bg-white/85"],
+html.dark .aa-home-page [class*="bg-white/80"],
+html.dark .aa-home-page [class*="bg-white/70"] {
+  background-color: var(--aa-surface-raised) !important;
+}
+
+html.dark .aa-home-page [class*="bg-white/65"],
+html.dark .aa-home-page [class*="bg-white/60"] {
+  background-color: color-mix(in srgb, var(--aa-surface-raised) 92%, transparent) !important;
+}
+
+html.dark .aa-home-page [class*="bg-slate-50"] {
+  background-color: var(--aa-surface-raised) !important;
+}
+
+html.dark .aa-home-page [class*="bg-slate-100"] {
+  background-color: var(--aa-surface-elevated) !important;
+}
+
+html.dark .aa-home-page [class*="bg-blue-50"] {
+  background-color: var(--aa-primary-soft) !important;
+}
+
+html.dark .aa-home-page [class*="bg-blue-100/"] {
+  background-color: color-mix(in srgb, var(--aa-primary) 12%, transparent) !important;
+}
+
+html.dark .aa-home-page [class*="bg-blue-200/"],
+html.dark .aa-home-page [class*="bg-indigo-200/"],
+html.dark .aa-home-page [class*="bg-cyan-100/"],
+html.dark .aa-home-page [class*="bg-violet-100/"] {
+  background-color: color-mix(in srgb, var(--aa-primary) 9%, transparent) !important;
+}
+
+html.dark .aa-home-page [class*="border-white"] {
+  border-color: var(--aa-border) !important;
+}
+
+html.dark .aa-home-page [class*="bg-gradient-to-br"][class*="via-white"] {
+  background-image: linear-gradient(
+    135deg,
+    var(--aa-surface) 0%,
+    var(--aa-primary-soft) 52%,
+    var(--aa-surface-raised) 100%
+  ) !important;
+}
+
 /* Light hero gradients must not leave a white band in dark mode. */
 html.dark [class*="bg-gradient-to-br"][class*="from-white"] {
   background-image: linear-gradient(
