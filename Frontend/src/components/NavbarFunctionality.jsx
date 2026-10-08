@@ -53,43 +53,43 @@ function ensureThemeStyles() {
   style.id = THEME_STYLE_ID;
   style.textContent = `
     html.dark .MuiAppBar-root {
-      background-color: #0f172a !important;
-      color: #f8fafc !important;
-      border-bottom-color: #1e293b !important;
+      background-color: var(--aa-surface) !important;
+      color: var(--aa-text-primary) !important;
+      border-bottom-color: var(--aa-border) !important;
     }
 
     html:not(.dark) .MuiAppBar-root {
-      background-color: #ffffff !important;
-      color: #0f172a !important;
-      border-bottom-color: #e2e8f0 !important;
+      background-color: var(--aa-surface) !important;
+      color: var(--aa-text-primary) !important;
+      border-bottom-color: var(--aa-border) !important;
     }
 
     html.dark .MuiAppBar-root button[aria-label="Search courses"],
     html.dark .MuiAppBar-root button[aria-label="Toggle theme"],
     html.dark .MuiAppBar-root button[aria-label="Notifications"] {
-      background-color: #0f172a !important;
-      color: #cbd5e1 !important;
+      background-color: var(--aa-surface) !important;
+      color: var(--aa-text-secondary) !important;
     }
 
     html:not(.dark) .MuiAppBar-root button[aria-label="Search courses"],
     html:not(.dark) .MuiAppBar-root button[aria-label="Toggle theme"],
     html:not(.dark) .MuiAppBar-root button[aria-label="Notifications"] {
-      background-color: #ffffff !important;
-      color: #475569 !important;
+      background-color: var(--aa-surface) !important;
+      color: var(--aa-text-secondary) !important;
     }
 
     html.dark .MuiAppBar-root button[aria-label="Search courses"]:hover,
     html.dark .MuiAppBar-root button[aria-label="Toggle theme"]:hover,
     html.dark .MuiAppBar-root button[aria-label="Notifications"]:hover {
-      background-color: #1e293b !important;
-      color: #93c5fd !important;
+      background-color: var(--aa-surface-elevated) !important;
+      color: var(--aa-primary-hover) !important;
     }
 
     html:not(.dark) .MuiAppBar-root button[aria-label="Search courses"]:hover,
     html:not(.dark) .MuiAppBar-root button[aria-label="Toggle theme"]:hover,
     html:not(.dark) .MuiAppBar-root button[aria-label="Notifications"]:hover {
-      background-color: #eff6ff !important;
-      color: #1d4ed8 !important;
+      background-color: var(--aa-primary-soft) !important;
+      color: var(--aa-primary-hover) !important;
     }
 
     [data-apna-navbar-search-wrap="true"] {
@@ -126,22 +126,22 @@ function ensureThemeStyles() {
       pointer-events: auto;
       padding: 0 42px 0 14px;
       margin-right: -40px;
-      border-color: #cbd5e1;
+      border-color: var(--aa-input-border);
     }
 
     html.dark [data-apna-navbar-search-input="true"] {
-      background: #1e293b;
-      color: #f8fafc;
-      border-color: #334155;
+      background: var(--aa-input);
+      color: var(--aa-text-primary);
+      border-color: var(--aa-input-border);
     }
 
     html:not(.dark) [data-apna-navbar-search-input="true"] {
-      background: #f8fafc;
-      color: #0f172a;
+      background: var(--aa-surface-raised);
+      color: var(--aa-text-primary);
     }
 
     [data-apna-navbar-search-input="true"]::placeholder {
-      color: #94a3b8;
+      color: var(--aa-text-subtle);
     }
 
     [data-apna-navbar-search-wrap="true"][data-open="true"] button[aria-label="Search courses"] {
@@ -166,8 +166,8 @@ function applyTheme() {
   ensureThemeStyles();
   root.classList.toggle("dark", dark);
   root.style.colorScheme = dark ? "dark" : "light";
-  document.body.style.backgroundColor = dark ? "#020617" : "#ffffff";
-  document.body.style.color = dark ? "#f8fafc" : "#0f172a";
+  document.body.style.backgroundColor = "var(--aa-page)";
+  document.body.style.color = "var(--aa-text-primary)";
 
   if (dark) {
     applyTailwindDarkClasses();
