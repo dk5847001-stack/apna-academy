@@ -69,7 +69,7 @@ export default function MicrosoftStoreDownloadPopup() {
 
   return (
     <div
-      className="fixed inset-0 z-[1600] flex items-center justify-center bg-white/75 px-4 py-5 backdrop-blur-[5px] sm:px-6 sm:py-6"
+      className="fixed inset-0 z-[1600] flex items-center justify-center bg-slate-950/75 dark:bg-black/70 px-4 py-5 backdrop-blur-[5px] sm:px-6 sm:py-6"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) setOpen(false);
@@ -80,13 +80,13 @@ export default function MicrosoftStoreDownloadPopup() {
         aria-modal="true"
         aria-labelledby="microsoft-store-popup-title"
         aria-describedby="microsoft-store-popup-description"
-        className="relative max-h-[calc(100vh-40px)] w-full max-w-[600px] overflow-y-auto rounded-[20px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.16)] sm:max-h-[calc(100vh-48px)]"
+        className="relative max-h-[calc(100vh-40px)] w-full max-w-[600px] overflow-y-auto rounded-[20px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.16)] dark:border-[var(--aa-border)] dark:bg-[var(--aa-surface)] dark:shadow-[0_28px_90px_rgba(0,0,0,0.5)] sm:max-h-[calc(100vh-48px)]"
       >
         <button
           type="button"
           onClick={() => setOpen(false)}
           aria-label="Close Microsoft Store download popup"
-          className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:right-4 sm:top-4"
+          className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-[var(--aa-text-muted)] dark:hover:bg-[var(--aa-surface-raised)] dark:hover:text-[var(--aa-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500 sm:right-4 sm:top-4"
         >
           <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8">
             <path
@@ -100,7 +100,7 @@ export default function MicrosoftStoreDownloadPopup() {
         </button>
 
         <div className="grid min-h-0 grid-cols-1 items-center lg:min-h-0 lg:grid-cols-[0.75fr_1.25fr]">
-          <div className="relative flex min-h-[150px] items-center justify-center overflow-hidden bg-white px-6 pt-8 lg:min-h-[350px] lg:px-8 lg:pt-0">
+          <div className="relative flex min-h-[150px] items-center justify-center overflow-hidden bg-white px-6 pt-8 lg:min-h-[350px] dark:bg-[var(--aa-surface)] lg:px-8 lg:pt-0">
             <div className="relative flex h-[96px] w-[96px] items-center justify-center sm:h-[108px] sm:w-[108px]">
               <ApnaAcademyIcon />
             </div>
@@ -110,7 +110,7 @@ export default function MicrosoftStoreDownloadPopup() {
             <div className="max-w-[650px] lg:pt-2">
               <h2
                 id="microsoft-store-popup-title"
-                className="text-2xl font-extrabold leading-[1.04] tracking-[-0.045em] text-slate-950 sm:text-3xl lg:text-[34px]"
+                className="text-2xl font-extrabold leading-[1.04] tracking-[-0.045em] text-slate-950 dark:text-[var(--aa-text-primary)] sm:text-3xl lg:text-[34px]"
               >
                 Get ApnaAcademy
                 <span className="block text-blue-600">for Windows</span>
@@ -118,7 +118,7 @@ export default function MicrosoftStoreDownloadPopup() {
 
               <p
                 id="microsoft-store-popup-description"
-                className="mt-3 max-w-[460px] text-xs leading-5 text-slate-500 sm:text-sm sm:leading-6"
+                className="mt-3 max-w-[460px] text-xs leading-5 text-slate-500 dark:text-[var(--aa-text-muted)] sm:text-sm sm:leading-6"
               >
                 Download the official ApnaAcademy app from Microsoft Store and
                 start your learning journey today.
@@ -156,8 +156,8 @@ export default function MicrosoftStoreDownloadPopup() {
               </a>
             </div>
 
-            <div className="mt-5 grid max-w-[500px] grid-cols-3 border-t border-slate-100 pt-3">
-              <div className="flex items-center justify-center gap-2 border-r border-slate-200 px-2 text-center text-[10px] font-semibold text-slate-700 sm:gap-3 sm:text-[11px]">
+            <div className="mt-5 grid max-w-[500px] grid-cols-3 border-t border-slate-100 dark:border-[var(--aa-border)] pt-3">
+              <div className="flex items-center justify-center gap-2 border-r border-slate-200 px-2 text-center text-[10px] font-semibold text-slate-700 dark:border-[var(--aa-border)] dark:text-[var(--aa-text-secondary)] sm:gap-3 sm:text-[11px]">
                 <span className="text-blue-600">
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
                     <path
@@ -177,7 +177,7 @@ export default function MicrosoftStoreDownloadPopup() {
                 <span>Safe &amp; Secure</span>
               </div>
 
-              <div className="flex items-center justify-center gap-2 border-r border-slate-200 px-2 text-center text-xs font-semibold text-slate-700 sm:gap-3 sm:text-sm">
+              <div className="flex items-center justify-center gap-2 border-r border-slate-200 px-2 text-center text-xs font-semibold text-slate-700 dark:text-[var(--aa-text-secondary)] dark:border-[var(--aa-border)] dark:text-[var(--aa-text-secondary)] sm:gap-3 sm:text-sm">
                 <span className="text-blue-600">
                   <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none">
                     <path
