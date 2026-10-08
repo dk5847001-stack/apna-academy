@@ -132,7 +132,7 @@ function FooterColumn({ title, children }) {
         variant="subtitle2"
         sx={{
           mb: 1.5,
-          color: "#0f172a",
+          color: "var(--aa-text-primary)",
           fontWeight: 800,
           letterSpacing: "0.01em",
         }}
@@ -364,8 +364,8 @@ export default function MainLayout() {
         position="sticky"
         elevation={0}
         sx={{
-          backgroundColor: "#ffffff",
-          color: "#0f172a",
+          backgroundColor: "var(--aa-surface)",
+          color: "var(--aa-text-primary)",
           borderBottom: "1px solid #e2e8f0",
           boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
           zIndex: 1200,
@@ -392,7 +392,7 @@ export default function MainLayout() {
                   component="span"
                   className="truncate"
                   sx={{
-                    color: "#0f172a",
+                    color: "var(--aa-text-primary)",
                     fontWeight: 950,
                     fontSize: { xs: "1rem", sm: "1.08rem" },
                     lineHeight: 1,
@@ -450,7 +450,7 @@ export default function MainLayout() {
                 textTransform: "none",
                 fontSize: "0.875rem",
                 fontWeight: 700,
-                "&:hover": { color: "#1d4ed8", backgroundColor: "#eff6ff" },
+                "&:hover": { color: "var(--aa-primary-hover)", backgroundColor: "var(--aa-primary-soft)" },
               }}
             >
               More
@@ -481,8 +481,8 @@ export default function MainLayout() {
                 px: 1.45,
                 borderRadius: "10px",
                 borderColor: "#bfdbfe",
-                backgroundColor: "#eff6ff",
-                color: "#1d4ed8",
+                backgroundColor: "var(--aa-primary-soft)",
+                color: "var(--aa-primary-hover)",
                 textTransform: "none",
                 fontSize: "0.78rem",
                 fontWeight: 800,
@@ -506,9 +506,9 @@ export default function MainLayout() {
                 sx={{
                   width: 40,
                   height: 40,
-                  color: "#475569",
-                  backgroundColor: "#ffffff",
-                  "&:hover": { color: "#1d4ed8", backgroundColor: "#eff6ff" },
+                  color: "var(--aa-text-secondary)",
+                  backgroundColor: "var(--aa-surface)",
+                  "&:hover": { color: "var(--aa-primary-hover)", backgroundColor: "var(--aa-primary-soft)" },
                 }}
               >
                 <Search fontSize="small" />
@@ -523,9 +523,9 @@ export default function MainLayout() {
                   display: { xs: "none", sm: "inline-flex" },
                   width: 40,
                   height: 40,
-                  color: "#475569",
-                  backgroundColor: "#ffffff",
-                  "&:hover": { color: "#1d4ed8", backgroundColor: "#eff6ff" },
+                  color: "var(--aa-text-secondary)",
+                  backgroundColor: "var(--aa-surface)",
+                  "&:hover": { color: "var(--aa-primary-hover)", backgroundColor: "var(--aa-primary-soft)" },
                 }}
               >
                 {isDarkMode ? <LightMode fontSize="small" /> : <DarkMode fontSize="small" />}
@@ -540,9 +540,9 @@ export default function MainLayout() {
                   sx={{
                     width: 40,
                     height: 40,
-                    color: "#475569",
-                    backgroundColor: "#ffffff",
-                    "&:hover": { color: "#1d4ed8", backgroundColor: "#eff6ff" },
+                    color: "var(--aa-text-secondary)",
+                    backgroundColor: "var(--aa-surface)",
+                    "&:hover": { color: "var(--aa-primary-hover)", backgroundColor: "var(--aa-primary-soft)" },
                   }}
                 >
                   <Notifications fontSize="small" />
@@ -556,14 +556,14 @@ export default function MainLayout() {
                   onClick={handleLogin}
                   variant="text"
                   startIcon={<Login fontSize="small" />}
-                  sx={{ minHeight: 40, px: 1.5, borderRadius: "9px", color: "#334155", fontWeight: 700, textTransform: "none", "&:hover": { color: "#1d4ed8", backgroundColor: "#eff6ff" } }}
+                  sx={{ minHeight: 40, px: 1.5, borderRadius: "9px", color: "var(--aa-text-secondary)", fontWeight: 700, textTransform: "none", "&:hover": { color: "var(--aa-primary-hover)", backgroundColor: "var(--aa-primary-soft)" } }}
                 >
                   Login
                 </Button>
                 <Button
                   onClick={handleRegister}
                   variant="contained"
-                  sx={{ minHeight: 40, px: 2, borderRadius: "9px", backgroundColor: "#2563eb", color: "#ffffff", fontWeight: 700, textTransform: "none", boxShadow: "none", "&:hover": { backgroundColor: "#1d4ed8", boxShadow: "none" } }}
+                  sx={{ minHeight: 40, px: 2, borderRadius: "9px", backgroundColor: "var(--aa-primary)", color: "var(--aa-text-primary)", fontWeight: 700, textTransform: "none", boxShadow: "none", "&:hover": { backgroundColor: "var(--aa-primary-hover)", boxShadow: "none" } }}
                 >
                   Get Started
                 </Button>
@@ -572,10 +572,10 @@ export default function MainLayout() {
               <div className="ml-1 hidden md:block">
                 <Button
                   onClick={(event) => setProfileAnchor(event.currentTarget)}
-                  endIcon={<KeyboardArrowDown sx={{ color: "#64748b" }} />}
-                  sx={{ minHeight: 42, px: 1, borderRadius: "10px", color: "#0f172a", backgroundColor: "#ffffff", textTransform: "none", "&:hover": { color: "#0f172a", backgroundColor: "#f8fafc" } }}
+                  endIcon={<KeyboardArrowDown sx={{ color: "var(--aa-text-muted)" }} />}
+                  sx={{ minHeight: 42, px: 1, borderRadius: "10px", color: "var(--aa-text-primary)", backgroundColor: "var(--aa-surface)", textTransform: "none", "&:hover": { color: "var(--aa-text-primary)", backgroundColor: "var(--aa-surface-raised)" } }}
                 >
-                  <Avatar sx={{ width: 32, height: 32, mr: 1, backgroundColor: "#dbeafe", color: "#1d4ed8", fontSize: "0.8rem", fontWeight: 800 }}>
+                  <Avatar sx={{ width: 32, height: 32, mr: 1, backgroundColor: "#dbeafe", color: "var(--aa-primary-hover)", fontSize: "0.8rem", fontWeight: 800 }}>
                     {getInitials(user)}
                   </Avatar>
                   <span className="max-w-[110px] truncate text-sm font-bold">
@@ -588,7 +588,7 @@ export default function MainLayout() {
             <IconButton
               onClick={() => setMobileOpen(true)}
               aria-label="Open navigation menu"
-              sx={{ display: { xs: "inline-flex", lg: "none" }, width: 40, height: 40, color: "#334155" }}
+              sx={{ display: { xs: "inline-flex", lg: "none" }, width: 40, height: 40, color: "var(--aa-text-secondary)" }}
             >
               <MenuIcon fontSize="small" />
             </IconButton>
@@ -663,7 +663,7 @@ export default function MainLayout() {
       <Drawer anchor="right" open={mobileOpen} onClose={closeMobileMenu}>
         <Box sx={{ width: { xs: "min(88vw, 360px)", sm: 360 }, p: 2 }} role="presentation">
           <div className="mb-2 flex items-center justify-between">
-            <Typography sx={{ fontWeight: 900, color: "#0f172a" }}>ApnaAcademy</Typography>
+            <Typography sx={{ fontWeight: 900, color: "var(--aa-text-primary)" }}>ApnaAcademy</Typography>
             <IconButton onClick={closeMobileMenu} aria-label="Close navigation menu"><Close /></IconButton>
           </div>
           <Divider />
@@ -707,8 +707,8 @@ export default function MainLayout() {
                   sx={{
                     borderRadius: 2,
                     mb: 0.75,
-                    color: "#334155",
-                    "&:hover": { backgroundColor: "#eff6ff", color: "#1d4ed8" },
+                    color: "var(--aa-text-secondary)",
+                    "&:hover": { backgroundColor: "var(--aa-primary-soft)", color: "var(--aa-primary-hover)" },
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
@@ -724,9 +724,9 @@ export default function MainLayout() {
                   onClick={handleRegister}
                   sx={{
                     borderRadius: 2,
-                    backgroundColor: "#2563eb",
-                    color: "#ffffff",
-                    "&:hover": { backgroundColor: "#1d4ed8" },
+                    backgroundColor: "var(--aa-primary)",
+                    color: "var(--aa-text-primary)",
+                    "&:hover": { backgroundColor: "var(--aa-primary-hover)" },
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>
@@ -743,10 +743,10 @@ export default function MainLayout() {
                 onClick={handleLogout}
                 sx={{
                   borderRadius: 2,
-                  color: "#dc2626",
+                  color: "var(--aa-error)",
                   "&:hover": {
-                    backgroundColor: "#fef2f2",
-                    color: "#b91c1c",
+                    backgroundColor: "var(--aa-error-soft)",
+                    color: "var(--aa-error)",
                   },
                 }}
               >
@@ -767,7 +767,7 @@ export default function MainLayout() {
           MAIN CONTENT
       ======================================================= */}
 
-      <main className="min-h-[calc(100vh-68px)] bg-white">
+      <main className="min-h-[calc(100vh-68px)] bg-white dark:bg-[var(--aa-page)]">
         <Outlet />
       </main>
 
@@ -775,7 +775,7 @@ export default function MainLayout() {
           FOOTER
       ======================================================= */}
 
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-slate-200 bg-white dark:border-[var(--aa-border)] dark:bg-[var(--aa-page)]">
         <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.45fr_1fr_1fr_1.15fr_1fr]">
             {/* BRAND */}
@@ -784,18 +784,18 @@ export default function MainLayout() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
                   <School fontSize="small" />
                 </div>
-                <Typography sx={{ color: "#0f172a", fontWeight: 900, fontSize: "1.1rem" }}>
+                <Typography sx={{ color: "var(--aa-text-primary)", fontWeight: 900, fontSize: "1.1rem" }}>
                   ApnaAcademy
                 </Typography>
               </Link>
 
-              <Typography sx={{ mt: 2, maxWidth: 430, color: "#64748b", fontSize: "0.875rem", lineHeight: 1.7 }}>
+              <Typography sx={{ mt: 2, maxWidth: 430, color: "var(--aa-text-muted)", fontSize: "0.875rem", lineHeight: 1.7 }}>
                 Build practical skills through structured courses, hands-on learning and outcome-focused education.
               </Typography>
 
               <div className="mt-5 flex flex-wrap gap-2">
-                <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">Practical Learning</span>
-                <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Career Focused</span>
+                <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 dark:border-[var(--aa-primary-border)] dark:bg-[var(--aa-primary-soft)] dark:text-[var(--aa-primary)]">Practical Learning</span>
+                <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 dark:border-[var(--aa-success)] dark:bg-[var(--aa-success-soft)] dark:text-[var(--aa-success)]">Career Focused</span>
               </div>
 
               <div className="mt-5 flex flex-wrap gap-2">
@@ -820,7 +820,7 @@ export default function MainLayout() {
 
             {/* LEARNING */}
             <FooterColumn title="Learning">
-              <button type="button" onClick={handleLearningApp} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">Learning App</button>
+              <button type="button" onClick={handleLearningApp} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700 dark:text-[var(--aa-text-secondary)] dark:hover:text-[var(--aa-primary-hover)]">Learning App</button>
               {isLoggedIn && (
                 <>
                   <button type="button" onClick={handleMyCourses} className="block w-fit rounded-md border-0 bg-transparent py-1 text-left text-sm text-slate-600 transition-colors duration-200 hover:text-blue-700">My Courses</button>
@@ -877,12 +877,12 @@ export default function MainLayout() {
             </FooterColumn>
           </div>
 
-          <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <Typography sx={{ color: "#64748b", fontSize: "0.75rem" }}>
+          <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-6 dark:border-[var(--aa-border)] sm:flex-row sm:items-center sm:justify-between">
+            <Typography sx={{ color: "var(--aa-text-muted)", fontSize: "0.75rem" }}>
               © {new Date().getFullYear()} ApnaAcademy. All rights reserved.
             </Typography>
             <div className="flex flex-wrap items-center gap-4">
-              <Link to="/about" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"><InfoOutlined sx={{ fontSize: 15 }} />About</Link>
+              <Link to="/about" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700 dark:text-[var(--aa-text-muted)] dark:hover:text-[var(--aa-primary-hover)]"><InfoOutlined sx={{ fontSize: 15 }} />About</Link>
               <Link to="/contact" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"><ContactSupport sx={{ fontSize: 15 }} />Support</Link>
               <Link to="/contact" className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 no-underline transition-colors hover:text-blue-700"><Settings sx={{ fontSize: 15 }} />Contact</Link>
             </div>
