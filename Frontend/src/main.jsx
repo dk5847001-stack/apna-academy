@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
 import PremiumFooter from "./components/PremiumFooter";
+import ApnaThemeProvider from "./theme/ApnaThemeProvider";
 import "./index.css";
 
 const registerServiceWorker = () => {
@@ -18,12 +19,13 @@ const registerServiceWorker = () => {
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-      <PremiumFooter />
-    </BrowserRouter>
+    <ApnaThemeProvider>
+      <BrowserRouter>
+        <App />
+        <PremiumFooter />
+      </BrowserRouter>
+    </ApnaThemeProvider>
   </StrictMode>
 );
-
 
 registerServiceWorker();
