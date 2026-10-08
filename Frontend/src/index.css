@@ -493,3 +493,183 @@ html.dark .pricing-page th {
 html.dark .aa-video-preview-dark {
   color-scheme: dark;
 }
+
+
+/* ============================================================
+   PHASE 5 — MUI / PORTAL / BROWSER DARK MODE NORMALIZATION
+   Theme coverage for components rendered through React portals, native
+   browser controls, autofill, scrollbars, and interactive overlays.
+============================================================ */
+
+html.dark .MuiPopover-root,
+html.dark .MuiMenu-root,
+html.dark .MuiDialog-root,
+html.dark .MuiModal-root {
+  color-scheme: dark;
+}
+
+html.dark .MuiBackdrop-root {
+  background-color: rgba(0, 0, 0, 0.68) !important;
+}
+
+html.dark .MuiPaper-root {
+  background-image: none;
+}
+
+html.dark .MuiMenu-paper,
+html.dark .MuiPopover-paper,
+html.dark .MuiAutocomplete-paper {
+  background: var(--aa-surface) !important;
+  color: var(--aa-text-primary) !important;
+  border: 1px solid var(--aa-border) !important;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42) !important;
+}
+
+html.dark .MuiMenuItem-root,
+html.dark .MuiAutocomplete-option {
+  color: var(--aa-text-primary) !important;
+}
+
+html.dark .MuiMenuItem-root:hover,
+html.dark .MuiAutocomplete-option:hover,
+html.dark .MuiAutocomplete-option[aria-selected="true"] {
+  background-color: var(--aa-surface-raised) !important;
+}
+
+html.dark .MuiMenuItem-root.Mui-selected {
+  background-color: var(--aa-primary-soft) !important;
+  color: var(--aa-primary) !important;
+}
+
+html.dark .MuiSelect-icon,
+html.dark .MuiInputAdornment-root,
+html.dark .MuiFormLabel-root {
+  color: var(--aa-text-secondary) !important;
+}
+
+html.dark .MuiCheckbox-root,
+html.dark .MuiRadio-root {
+  color: var(--aa-text-muted);
+}
+
+html.dark .MuiCheckbox-root.Mui-checked,
+html.dark .MuiRadio-root.Mui-checked {
+  color: var(--aa-primary);
+}
+
+html.dark .MuiSwitch-track {
+  background-color: var(--aa-border-strong) !important;
+}
+
+html.dark .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background-color: var(--aa-primary-border) !important;
+}
+
+html.dark .MuiAccordion-root,
+html.dark .MuiAccordionSummary-root,
+html.dark .MuiAccordionDetails-root {
+  background-color: var(--aa-surface) !important;
+  color: var(--aa-text-primary) !important;
+  border-color: var(--aa-border) !important;
+}
+
+html.dark .MuiAccordion-root::before {
+  background-color: var(--aa-border) !important;
+}
+
+html.dark .MuiTabs-indicator {
+  background-color: var(--aa-primary) !important;
+}
+
+html.dark .MuiTab-root {
+  color: var(--aa-text-muted) !important;
+}
+
+html.dark .MuiTab-root.Mui-selected {
+  color: var(--aa-primary) !important;
+}
+
+html.dark .MuiCircularProgress-circle {
+  stroke: currentColor;
+}
+
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus,
+html.dark textarea:-webkit-autofill,
+html.dark select:-webkit-autofill {
+  -webkit-text-fill-color: var(--aa-text-primary) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--aa-input) inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+  caret-color: var(--aa-text-primary);
+}
+
+html.dark ::selection {
+  background: rgba(96, 165, 250, 0.28);
+  color: #ffffff;
+}
+
+html.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: var(--aa-page);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #344157;
+  border: 2px solid var(--aa-page);
+  border-radius: 999px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #52627c;
+}
+
+html.dark {
+  scrollbar-color: #344157 var(--aa-page);
+  scrollbar-width: thin;
+}
+
+/* Native date/time/search controls should not reintroduce white UI. */
+html.dark input[type="date"],
+html.dark input[type="time"],
+html.dark input[type="datetime-local"],
+html.dark input[type="month"],
+html.dark input[type="week"],
+html.dark input[type="search"] {
+  color-scheme: dark;
+}
+
+/* Utility-level dynamic surfaces missed by generated Tailwind variants. */
+html.dark [class*="bg-gray-50"],
+html.dark [class*="bg-zinc-50"],
+html.dark [class*="bg-neutral-50"] {
+  background-color: var(--aa-surface-raised) !important;
+}
+
+html.dark [class*="text-gray-900"],
+html.dark [class*="text-zinc-900"],
+html.dark [class*="text-neutral-900"] {
+  color: var(--aa-text-primary) !important;
+}
+
+html.dark [class*="text-gray-600"],
+html.dark [class*="text-zinc-600"],
+html.dark [class*="text-neutral-600"] {
+  color: var(--aa-text-muted) !important;
+}
+
+html.dark [class*="border-gray-200"],
+html.dark [class*="border-zinc-200"],
+html.dark [class*="border-neutral-200"] {
+  border-color: var(--aa-border) !important;
+}
+
+/* Prevent a light native outline/background from appearing around portals. */
+html.dark .MuiModal-root,
+html.dark .MuiPopover-root {
+  color: var(--aa-text-primary);
+}
