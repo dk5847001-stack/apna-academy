@@ -224,3 +224,20 @@ html.dark #root {
   outline: 2px solid var(--aa-focus);
   outline-offset: 2px;
 }
+
+
+/* Runtime dark classes used by NavbarFunctionality. */
+html.dark .aa-dark-surface { background-color: var(--aa-surface) !important; }
+html.dark .aa-dark-surface-raised { background-color: var(--aa-surface-raised) !important; }
+html.dark .aa-dark-surface-raised-soft { background-color: color-mix(in srgb, var(--aa-surface-raised) 70%, transparent) !important; }
+html.dark .aa-dark-surface-elevated { background-color: var(--aa-surface-elevated) !important; }
+html.dark .aa-dark-primary-soft { background-color: var(--aa-primary-soft) !important; }
+html.dark .aa-dark-success-soft { background-color: var(--aa-success-soft) !important; }
+html.dark .aa-dark-warning-soft { background-color: var(--aa-warning-soft) !important; }
+html.dark .aa-dark-secondary-soft { background-color: color-mix(in srgb, #8b5cf6 14%, var(--aa-surface)) !important; }
+html.dark .aa-dark-border { border-color: var(--aa-border) !important; }
+html.dark .aa-dark-primary-border { border-color: var(--aa-primary-border) !important; }
+html.dark .aa-dark-text-primary { color: var(--aa-text-primary) !important; }
+html.dark .aa-dark-text-secondary { color: var(--aa-text-secondary) !important; }
+html.dark .aa-dark-text-muted { color: var(--aa-text-muted) !important; }
+html.dark .aa-dark-text-subtle { color: var(--aa-text-subtle) !important; }
