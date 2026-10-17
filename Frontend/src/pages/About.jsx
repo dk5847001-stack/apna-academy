@@ -364,6 +364,7 @@ export default function About() {
                 ApnaAcademy brings structured learning, practical skills,
                 measurable progress, and digital achievements together in one
                 modern platform.
+                <a href="https://rzp.io/rzp/RQ6KPfM">Start subscription.</a>
               </Typography>
             </div>
 
