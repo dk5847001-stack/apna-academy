@@ -138,7 +138,7 @@ export default function AboutPremium() {
             <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">ApnaAcademy brings structured learning, practical skills, measurable progress and digital achievements together in one modern platform.</p>
             <div className="mt-6 flex justify-center">
               <a
-                href="https://rzp.io/rzp/RQ6KPfM"
+                href="https://rzp.io/rzp/tw6i9Ry2"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-extrabold text-white no-underline shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30"
