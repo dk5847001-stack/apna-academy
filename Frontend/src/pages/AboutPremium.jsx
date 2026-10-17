@@ -136,6 +136,16 @@ export default function AboutPremium() {
             <span className="inline-flex rounded-full border border-blue-200 bg-white px-3.5 py-1.5 text-xs font-extrabold text-blue-700 shadow-sm">Our Purpose</span>
             <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Creating a better learning journey</h2>
             <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">ApnaAcademy brings structured learning, practical skills, measurable progress and digital achievements together in one modern platform.</p>
+            <div className="mt-6 flex justify-center">
+              <a
+                href="https://rzp.io/rzp/RQ6KPfM"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-extrabold text-white no-underline shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+              >
+                Start Subscription <ArrowForward sx={{ fontSize: 18 }} />
+              </a>
+            </div>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             {[
